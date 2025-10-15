@@ -1,9 +1,8 @@
-const CACHE_NAME = 'local-explorer-v1';
+const CACHE_NAME = 'local-explorer-v2'; // Updated cache version
 const urlsToCache = [
     '/',
     'LocalExplorer.html',
-    'https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap'
-    // Note: Google Maps and other external API scripts cannot be cached by the service worker.
+    'https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap'
 ];
 
 // Install the service worker and cache static assets
@@ -25,44 +24,47 @@ self.addEventListener('activate', event => {
             return Promise.all(
                 cacheNames.map(cacheName => {
                     if (cacheWhitelist.indexOf(cacheName) === -1) {
+                        console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
         })
     );
+    return self.clients.claim();
 });
 
-// Serve cached content when offline, or fetch from network
+// Serve cached content when offline, or fetch from network (Cache-first strategy)
 self.addEventListener('fetch', event => {
+    // We only want to cache GET requests.
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
-            .then(response => {
-                // Cache hit - return response
-                if (response) {
-                    return response;
+            .then(cachedResponse => {
+                // Return cached response if found.
+                if (cachedResponse) {
+                    return cachedResponse;
                 }
 
-                // Not in cache - fetch from network
+                // If not in cache, fetch from network.
                 return fetch(event.request).then(
-                    response => {
+                    networkResponse => {
                         // Check if we received a valid response
-                        if(!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
+                        if(!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                            return networkResponse;
                         }
 
-                        // IMPORTANT: Clone the response. A response is a stream
-                        // and because we want the browser to consume the response
-                        // as well as the cache consuming the response, we need
-                        // to clone it so we have two streams.
-                        const responseToCache = response.clone();
-
+                        // Clone the response to cache it.
+                        const responseToCache = networkResponse.clone();
                         caches.open(CACHE_NAME)
                             .then(cache => {
                                 cache.put(event.request, responseToCache);
                             });
 
-                        return response;
+                        return networkResponse;
                     }
                 );
             })
