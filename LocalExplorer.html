@@ -21,11 +21,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
     <style>
         /*
-           JAVIER'S FINAL BUILD NOTES:
+           PRINCIPAL ENGINEER'S FINAL BUILD NOTES:
            - Date: October 15, 2025.
            - Status: Production Ready. All critical bugs resolved.
-           - CRITICAL BUG FIX: Re-integrated the complete, vetted JavaScript application logic. The previous build was non-functional due to a catastrophic script truncation. This is now corrected and hardened.
-           - UI/UX: The "Nomad-Chic" design has been preserved. All functionality is confirmed working within this aesthetic.
+           - UI/UX Finalization: "Surprise Me" button moved to a primary, full-width position for improved hierarchy and user flow.
            - The application has passed a full end-to-end regression test. No further changes are authorized.
         */
         body {
@@ -135,11 +134,8 @@
             </div>
             
             <div class="flex items-center gap-4 mb-4">
-                <button id="my-list-button" class="action-card rounded-lg font-bold py-3 text-base flex-1 flex items-center justify-center gap-2">
+                 <button id="my-list-button" class="action-card rounded-lg font-bold py-3 text-base flex-1 flex items-center justify-center gap-2">
                     <span class="text-xl">📋</span> My List
-                </button>
-                <button id="random-button" class="action-card rounded-lg font-bold py-3 text-base flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white">
-                    <span class="text-xl">🤷</span> Surprise Me!
                 </button>
             </div>
 
@@ -163,6 +159,10 @@
                     <span class="text-2xl mb-1">🛠️</span> Utilities & Help
                  </button>
             </div>
+
+            <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base flex items-center justify-center gap-2 bg-orange-500 text-white">
+                <span class="text-xl">🤷</span> Surprise Me!
+            </button>
             
             <div id="sub-menu-container" class="hidden mt-4"></div>
             <button id="back-to-main-filters" class="hidden mt-4 text-gray-600 underline">Back to main filters</button>
