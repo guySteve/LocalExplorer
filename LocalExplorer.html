@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
     <style>
         /*
-           JAVIER'S FINAL BUILD NOTES:
+           PRINCIPAL ENGINEER'S FINAL BUILD NOTES:
            - Date: October 15, 2025.
            - Status: Production Ready. All critical bugs resolved.
            - CRITICAL BUG FIX: Re-integrated the complete, vetted JavaScript application logic. The previous build was non-functional due to a catastrophic script truncation. This is now corrected and hardened.
@@ -618,39 +618,65 @@
             if (hidePanorama) panoramaContainer.classList.remove('opacity-100');
         }
 
-        // --- EVENT LISTENERS ---
-        filterContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('button');
-            if (button && button.dataset.filter) showSubMenu(button.dataset.filter);
-        });
+        // --- EVENT LISTENERS (DELEGATION MODEL) ---
+        document.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
 
-        darkSideButton.addEventListener('click', () => showSubMenu('dark'));
-
-        subMenuContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('button');
-            if (!button || !button.dataset.name) return;
-            const filterName = button.dataset.name;
-            let parentFilter;
-            for(const key in subFilterMap) if(subFilterMap[key][filterName]) parentFilter = key;
-            let searchParams = subFilterMap[parentFilter][filterName];
-            if(filterName === '🍕 Surprise Me') {
-                const foodFilters = Object.values(subFilterMap.eat).filter(f => f.keyword !== 'food');
-                searchParams = foodFilters[Math.floor(Math.random() * foodFilters.length)];
+            // Main Filters
+            if(target.parentElement === filterContainer && target.dataset.filter) {
+                showSubMenu(target.dataset.filter);
+                return;
             }
-            findAdventure(searchParams);
-        });
-        
-        backToMainFiltersButton.addEventListener('click', hideSubMenu);
-        tryAgainButton.addEventListener('click', () => resetApp());
-        searchButton.addEventListener('click', geocodeLocation);
-        locationInput.addEventListener('keyup', e => { if (e.key === 'Enter') geocodeLocation(); });
-        randomButton.addEventListener('click', findRandomAdventure);
-        nextSuggestionButton.addEventListener('click', () => { if (lastSearchRequest) findAdventure(lastSearchRequest); });
-        
-        document.querySelectorAll('.accordion-toggle').forEach(button => {
-            button.addEventListener('click', () => {
-                const content = button.nextElementSibling;
-                const icon = button.querySelector('span:last-child');
+            // Sub-Menu
+            if(target.parentElement.classList.contains('sub-menu')) {
+                const filterName = target.dataset.name;
+                let parentFilter;
+                for(const key in subFilterMap) if(subFilterMap[key][filterName]) parentFilter = key;
+                let searchParams = subFilterMap[parentFilter][filterName];
+                if(filterName === '🍕 Surprise Me') {
+                    const foodFilters = Object.values(subFilterMap.eat).filter(f => f.keyword !== 'food');
+                    searchParams = foodFilters[Math.floor(Math.random() * foodFilters.length)];
+                }
+                findAdventure(searchParams);
+                return;
+            }
+
+            // Other buttons by ID
+            switch(target.id) {
+                case 'dark-side-button':
+                    showSubMenu('dark');
+                    break;
+                case 'back-to-main-filters':
+                    hideSubMenu();
+                    break;
+                case 'try-again-button':
+                    resetApp();
+                    break;
+                case 'search-button':
+                    geocodeLocation();
+                    break;
+                case 'random-button':
+                    findRandomAdventure();
+                    break;
+                case 'next-suggestion-button':
+                    if (lastSearchRequest) findAdventure(lastSearchRequest);
+                    break;
+                case 'save-place-button':
+                    toggleSavePlace();
+                    break;
+                case 'my-list-button':
+                    showMyList();
+                    break;
+                case 'close-my-list-button':
+                    myListModal.classList.add('hidden');
+                    break;
+            }
+
+            // Accordions & My List remove buttons
+            if(target.classList.contains('accordion-toggle')) {
+                const content = target.nextElementSibling;
+                const icon = target.querySelector('span:last-child');
                 if (content.style.maxHeight) {
                     content.style.maxHeight = null;
                     if(icon) icon.textContent = '▼';
@@ -658,14 +684,15 @@
                     content.style.maxHeight = content.scrollHeight + "px";
                     if(icon) icon.textContent = '▲';
                 } 
-            });
+            }
+             if(target.classList.contains('remove-place-button')) {
+                removeSavedPlace(e.target.dataset.id);
+            }
         });
         
-        savePlaceButton.addEventListener('click', toggleSavePlace);
-        myListButton.addEventListener('click', showMyList);
-        closeMyListButton.addEventListener('click', () => myListModal.classList.add('hidden'));
-        myListContent.addEventListener('click', e => { if(e.target.classList.contains('remove-place-button')) removeSavedPlace(e.target.dataset.id); });
+        locationInput.addEventListener('keyup', e => { if (e.key === 'Enter') geocodeLocation(); });
 
     </script>
 </body>
 </html>
+
