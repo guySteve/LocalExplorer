@@ -3,8 +3,8 @@
     "short_name": "Explorer",
     "start_url": "LocalExplorer.html",
     "display": "standalone",
-    "background_color": "#1e293b",
-    "theme_color": "#1e293b",
+    "background_color": "#f8f7f2",
+    "theme_color": "#111827",
     "description": "Discover fun and interesting places near you.",
     "icons": [
         {
