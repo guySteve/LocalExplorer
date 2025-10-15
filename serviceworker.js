@@ -1,4 +1,4 @@
-const CACHE_NAME = 'local-explorer-v5-final'; // Final production cache version
+const CACHE_NAME = 'local-explorer-v6-gold-master'; // Final production cache version
 const urlsToCache = [
     '/',
     'LocalExplorer.html',
@@ -67,8 +67,9 @@ self.addEventListener('fetch', event => {
                         return networkResponse;
                     }
                 ).catch(error => {
-                    // This is a fallback for network errors, you can serve a custom offline page here if you had one.
+                    // This is a fallback for network errors.
                     console.error('Fetch failed:', error);
+                    // Optionally, you could return a custom offline page here.
                 });
             })
     );
