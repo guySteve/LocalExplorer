@@ -1,7 +1,7 @@
 const CACHE_NAME = 'local-explorer-v1';
 const urlsToCache = [
     '/',
-    'local_explorer.html',
+    'LocalExplorer.html',
     'https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap'
     // Note: Google Maps and other external API scripts cannot be cached by the service worker.
 ];
