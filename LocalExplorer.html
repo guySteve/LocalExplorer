@@ -239,7 +239,14 @@
     </div>
 
     <script>
-        // --- SCRIPT START (ELEMENT SELECTION) ---
+        // --- SCRIPT START ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+        
+        // --- ELEMENT SELECTION ---
         const mainScreen = document.getElementById('main-screen');
         const resultScreen = document.getElementById('result-screen');
         const filterContainer = document.getElementById('filter-container');
@@ -287,11 +294,19 @@
         let currentPlaceId;
         let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces')) || {};
 
-        const subFilterMap = { /* Subfilter data from previous turn is implied here for brevity */ };
+        const subFilterMap = {
+            eat: { "🍕 Surprise Me": { keyword: "food", type: "restaurant" }, "Italian": { type: "italian_restaurant" }, "Mexican": { type: "mexican_restaurant" }, "Japanese": { type: "japanese_restaurant" }, "Chinese": { type: "chinese_restaurant" }, "Indian": { type: "indian_restaurant" }, "Pizza": { type: "pizza_restaurant" }, "Cafes": { type: "cafe" }, "Desserts": { type: "bakery" } },
+            see: { "Museums": { type: "museum" }, "Art Galleries": { type: "art_gallery" }, "Tourist Attractions": { type: "tourist_attraction" } },
+            night: { "Bars": { type: "bar" }, "Night Clubs": { type: "night_club" } },
+            gems: { "Quirky Shops": { keyword: "vintage store" }, "Indie Coffee": { type: "cafe" }, "Local Art": { type: "art_gallery" }, "Quiet Spots": { type: "park" } },
+            pets: { "Dog Park": { type: "park", keyword: "dog" }, "Pet Store": { type: "pet_store" }, "Veterinarian": { type: "veterinary_care" } },
+            utilities: { "Hospital": { type: "hospital" }, "Pharmacy": { type: "pharmacy" }, "Police": { type: "police" }, "Gas Station": { type: "gas_station" }, "Car Rental": { type: "car_rental" }, "ATM": { type: "atm" } },
+            dark: { "Cemeteries": { type: "cemetery" }, "Historic Crimes": { keyword: "haunted tour" }, "Notable Tombs": { type: "cemetery", keyword: "famous grave" } }
+        };
 
         // --- CORE LOGIC ---
 
-        // BUG FIX: This function was missing, causing a crash on startup. It is now restored.
+        // CRITICAL BUG FIX: This function was missing, causing a crash on startup. It is now restored.
         function toggleFilterButtons(disabled) {
             document.querySelectorAll('#main-screen button').forEach(b => b.disabled = disabled);
         }
@@ -425,20 +440,94 @@
             // Reset UI to loading state
             Object.values(document.querySelectorAll('.accordion-content')).forEach(el => el.style.maxHeight = null);
             document.querySelectorAll('.accordion-toggle span:last-child').forEach(el => el.textContent = '▼');
-
-            // ... (rest of reset logic)
+            
+            placeNameEl.textContent = 'Loading Details...';
+            placePhotoEl.src = `https://placehold.co/600x400/333/FFF?text=${encodeURIComponent(placeSummary.name)}`;
+            placeRatingEl.textContent = ''; placePriceEl.textContent = '';
+            placeHoursEl.innerHTML = ''; websiteLink.style.display = 'none';
+            placeTypesContainer.innerHTML = ''; phoneLink.style.display = 'none';
+            placeAccessibility.style.display = 'none'; placeSummaryEl.style.display = 'none';
+            placeReviews.style.display = 'none'; directionsContainer.style.display = 'none';
+            
             const request = {
                 placeId: placeSummary.place_id,
                 fields: ['name', 'rating', 'user_ratings_total', 'price_level', 'photos', 'website', 'opening_hours', 'vicinity', 'types', 'formatted_phone_number', 'wheelchair_accessible_entrance', 'editorial_summary', 'reviews']
             };
-            placesService.getDetails(request, (place, status) => { /* ... (rest of getPlaceDetails) */ });
+            placesService.getDetails(request, (place, status) => {
+                 if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+                    placeNameEl.textContent = place.name;
+                    placeRatingEl.textContent = `★ ${place.rating || 'N/A'}`;
+                    placePriceEl.textContent = place.price_level ? '$'.repeat(place.price_level) : '';
+                    
+                    if (place.photos && place.photos.length > 0) {
+                        placePhotoEl.src = place.photos[0].getUrl({ maxWidth: 600, maxHeight: 400 });
+                    }
+                     if (place.website) {
+                        websiteLink.href = place.website;
+                        websiteLink.style.display = 'block';
+                    }
+                    if (place.formatted_phone_number) {
+                        phoneLink.href = `tel:${place.formatted_phone_number}`;
+                        phoneLink.textContent = place.formatted_phone_number;
+                        phoneLink.style.display = 'inline';
+                    }
+                    if (place.wheelchair_accessible_entrance) {
+                        placeAccessibility.textContent = '♿';
+                        placeAccessibility.style.display = 'inline';
+                    }
+                    if (place.editorial_summary) {
+                        placeSummaryEl.innerHTML = `<strong>What Google Says:</strong><p class="text-xs italic">${place.editorial_summary.overview}</p>`;
+                        placeSummaryEl.style.display = 'block';
+                    }
+                    if (place.reviews && place.reviews.length > 0) {
+                        placeReviews.innerHTML = ''; // Clear old reviews
+                        place.reviews.slice(0,2).forEach(review => {
+                             placeReviews.innerHTML += `<div class="review-card mt-1">
+                                <p>"${review.text.substring(0, 100)}..."</p>
+                                <p class="font-bold text-right">- ${review.author_name}</p>
+                             </div>`;
+                        });
+                        placeReviews.parentElement.parentElement.style.display = 'block';
+                    }
+                    if (place.opening_hours) {
+                        placeHoursEl.innerHTML = place.opening_hours.weekday_text.join('<br>');
+                        placeHoursEl.parentElement.parentElement.style.display = 'block';
+                    }
+                    
+                    if (place.types) { 
+                        place.types.filter(t => t !== 'point_of_interest' && t !== 'establishment').slice(0, 3).forEach(type => {
+                            const tag = document.createElement('span');
+                            tag.className = 'place-type-tag';
+                            tag.textContent = type.replace(/_/g, ' ');
+                            placeTypesContainer.appendChild(tag);
+                        });
+                     }
+
+                    const destination = encodeURIComponent(`${place.name}, ${place.vicinity}`);
+                    directionsLink.href = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+                    
+                    directionsContainer.style.display = 'block';
+                    fetchDirections(place.geometry.location);
+                }
+            });
         }
         
-        function fetchDirections(destination) { /* ... (rest of fetchDirections) */ }
+        function fetchDirections(destination) {
+            if (!currentUserLocation) return;
+            const request = { origin: currentUserLocation, destination: destination, travelMode: 'WALKING' };
+            directionsService.route(request, (result, status) => {
+                if (status == 'OK') {
+                    const steps = result.routes[0].legs[0].steps;
+                    directionsPanel.innerHTML = '<ol class="list-decimal list-inside space-y-1">' + steps.map(step => `<li>${step.instructions} (${step.distance.text})</li>`).join('') + '</ol>';
+                } else {
+                    directionsPanel.innerHTML = "Could not retrieve walking directions.";
+                }
+            });
+        }
 
         // --- INITIALIZATION AND STATE MANAGEMENT ---
         function initApp() {
-            panorama = new google.maps.StreetViewPanorama(panoramaDiv, { /* ... options ... */ });
+            panorama = new google.maps.StreetViewPanorama(panoramaDiv, { addressControl: false, showRoadLabels: false, linksControl: false, panControl: false, enableCloseButton: false, fullscreenControl: false, zoomControl: false });
             placesService = new google.maps.places.PlacesService(document.createElement('div'));
             geocoder = new google.maps.Geocoder();
             directionsService = new google.maps.DirectionsService();
@@ -486,9 +575,8 @@
         // --- UI NAVIGATION ---
         function showSubMenu(filter) {
             filterContainer.classList.add('hidden');
-            randomButton.classList.add('hidden');
+            randomButton.parentElement.classList.add('hidden');
             darkSideButton.style.display = 'none';
-            myListButton.parentElement.classList.add('hidden');
             subMenuContainer.innerHTML = '';
             
             const subFilters = subFilterMap[filter];
@@ -512,9 +600,8 @@
             subMenuContainer.classList.add('hidden');
             backToMainFiltersButton.classList.add('hidden');
             filterContainer.classList.remove('hidden');
-            randomButton.classList.remove('hidden');
+            randomButton.parentElement.classList.remove('hidden');
             darkSideButton.style.display = 'block';
-            myListButton.parentElement.classList.remove('hidden');
         }
 
         function findRandomAdventure() {
