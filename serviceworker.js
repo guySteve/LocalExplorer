@@ -1,4 +1,4 @@
-const CACHE_NAME = 'local-explorer-v2'; // Updated cache version
+const CACHE_NAME = 'local-explorer-v3'; // Updated cache version for new design
 const urlsToCache = [
     '/',
     'LocalExplorer.html',
@@ -53,7 +53,7 @@ self.addEventListener('fetch', event => {
                 return fetch(event.request).then(
                     networkResponse => {
                         // Check if we received a valid response
-                        if(!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                        if(!networkResponse || response.status !== 200 || response.type !== 'basic') {
                             return networkResponse;
                         }
 
