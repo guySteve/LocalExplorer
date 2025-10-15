@@ -1,7 +1,7 @@
 {
     "name": "Local Explorer",
     "short_name": "Explorer",
-    "start_url": "local_explorer.html",
+    "start_url": "LocalExplorer.html",
     "display": "standalone",
     "background_color": "#1e293b",
     "theme_color": "#1e293b",
