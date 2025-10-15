@@ -4,7 +4,6 @@ const APP_SHELL = [
   './LocalExplorer.html',
   './manifest.json'
 ];
-// Safe list of cross-origin assets you want cached at install (optional)
 const PRECACHE_EXTERNAL = [
   'https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap'
 ];
@@ -18,7 +17,7 @@ self.addEventListener('install', (event) => {
   })());
 });
 
-// Activate: cleanup old caches
+// Activate
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
@@ -27,7 +26,7 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// Fetch: cache-first for same-origin; network-first for cross-origin (avoid caching Maps requests)
+// Fetch
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -47,7 +46,6 @@ self.addEventListener('fetch', (event) => {
         }
         return res;
       } catch (e) {
-        // Optional: return a fallback page if request is navigational
         if (req.mode === 'navigate') {
           const fallback = await caches.match('./LocalExplorer.html');
           if (fallback) return fallback;
@@ -56,7 +54,7 @@ self.addEventListener('fetch', (event) => {
       }
     })());
   } else {
-    // Cross-origin: network-first, don't cache heavy/volatile APIs like Google Maps
+    // Network-first for cross-origin (don’t cache volatile APIs like Maps)
     event.respondWith(fetch(req).catch(() => caches.match(req)));
   }
 });
