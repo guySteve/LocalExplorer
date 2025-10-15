@@ -3,18 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- PWA and Mobile Experience Meta Tags -->
-    <meta name="theme-color" content="#1e293b">
+    <!-- PWA Manifest Link -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
+    <!-- PWA Theme Color -->
+    <meta name="theme-color" content="#1e293b">
     <title>Local Explorer</title>
-    
-    <!-- Google APIs -->
+    <!-- The "places" library is essential -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places&callback=initApp" async defer></script>
-    
-    <!-- Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -97,13 +92,12 @@
         }
         #dark-side-button {
             position: absolute;
-            bottom: 0.5rem;
-            left: 0.5rem;
+            bottom: -2.5rem;
+            right: 0.5rem;
             font-size: 1.5rem;
             opacity: 0.4;
             transition: opacity 0.2s;
             cursor: pointer;
-            z-index: 10;
         }
         #dark-side-button:hover {
             opacity: 1;
@@ -120,7 +114,7 @@
     <div id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center">
         
         <!-- Main Interaction Screen -->
-        <div id="main-screen" class="relative">
+        <div id="main-screen">
             <h1 class="text-4xl md:text-5xl font-bold text-shadow text-white mb-4">Local Explorer</h1>
             <div id="fun-fact-widget" class="info-widget text-left mb-4">
                 <h3 class="font-bold mb-1 text-teal-300">Local Fact</h3>
@@ -138,7 +132,7 @@
                 </div>
             </div>
 
-            <div id="filter-container" class="grid grid-cols-2 gap-4">
+            <div id="filter-container" class="grid grid-cols-2 gap-4 relative">
                  <button data-filter="eat" class="filter-button bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
                     <span class="text-xl mb-1">🍽️</span> Foodie Finds
                  </button>
@@ -157,6 +151,7 @@
                  <button data-filter="utilities" class="filter-button bg-stone-600 hover:bg-stone-700 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
                     <span class="text-xl mb-1">🛠️</span> Utilities & Help
                  </button>
+                 <button id="dark-side-button" data-filter="dark">👻</button>
             </div>
             <button id="random-button" class="filter-button w-full mt-4 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3 rounded-lg text-base flex items-center justify-center">
                 <span class="text-xl mr-2">🤷</span> Surprise Me!
@@ -164,10 +159,6 @@
             
             <div id="sub-menu-container" class="hidden mt-4"></div>
             <button id="back-to-main-filters" class="hidden mt-4 text-white underline">Back to main filters</button>
-            <noscript>
-                <p class="text-white bg-red-500 p-4 rounded-lg mt-4">This app requires JavaScript to function. Please enable it in your browser settings.</p>
-            </noscript>
-            <button id="dark-side-button" data-filter="dark">👻</button>
         </div>
     </div>
 
@@ -229,7 +220,6 @@
         const randomButton = document.getElementById('random-button');
         const nextSuggestionButton = document.getElementById('next-suggestion-button');
         const funFactText = document.getElementById('fun-fact-text');
-        const darkSideButton = document.getElementById('dark-side-button');
 
         // Result Card Elements
         const placeNameEl = document.getElementById('place-name');
@@ -289,7 +279,7 @@
         };
 
         function toggleFilterButtons(disabled) {
-            document.querySelectorAll('#filter-container button, #random-button, #dark-side-button').forEach(b => b.disabled = disabled);
+            document.querySelectorAll('#filter-container button, #random-button').forEach(b => b.disabled = disabled);
         }
 
         async function getFunFact(coords) { 
@@ -332,15 +322,13 @@
             };
 
             const utilityTypes = Object.values(subFilterMap.utilities).map(f => f.type);
-            const darkTypes = Object.values(subFilterMap.dark).map(f => f.type).filter(Boolean);
-            const isUtilityOrDarkSearch = utilityTypes.includes(request.type) || darkTypes.includes(request.type) || searchParams.keyword;
-
+            const isUtilitySearch = utilityTypes.includes(request.type) || Object.values(subFilterMap.dark).some(v => v.type === request.type);
 
             placesService.nearbySearch(request, (results, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK && results) {
                     let goodPlaces;
-                    if (isUtilityOrDarkSearch) {
-                        goodPlaces = results;
+                    if (isUtilitySearch) {
+                        goodPlaces = results; // For utilities and dark tourism, don't filter by rating
                     } else {
                         goodPlaces = results.filter(p => p.rating && p.rating >= 4.2 && p.user_ratings_total > 25);
                     }
@@ -378,7 +366,6 @@
             placeAccessibility.style.display = 'none'; placeSummaryEl.style.display = 'none';
             placeReviews.style.display = 'none'; directionsContainer.style.display = 'none';
             directionsPanel.classList.add('hidden');
-            toggleDirectionsButton.textContent = 'Show Walking Directions ▼';
 
             const request = {
                 placeId: placeSummary.place_id,
@@ -449,7 +436,7 @@
             directionsService.route(request, (result, status) => {
                 if (status == 'OK') {
                     const steps = result.routes[0].legs[0].steps;
-                    directionsPanel.innerHTML = '<ol class="list-decimal list-inside space-y-1">' + steps.map(step => `<li>${step.instructions} (${step.distance.text})</li>`).join('') + '</ol>';
+                    directionsPanel.innerHTML = steps.map(step => `<li>${step.instructions} (${step.distance.text})</li>`).join('');
                 } else {
                     directionsPanel.innerHTML = "Could not retrieve walking directions.";
                 }
@@ -571,10 +558,6 @@
             if (button && button.dataset.filter) {
                 showSubMenu(button.dataset.filter);
             }
-        });
-
-        darkSideButton.addEventListener('click', () => {
-            showSubMenu('dark');
         });
 
         subMenuContainer.addEventListener('click', (e) => {
