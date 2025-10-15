@@ -1,8 +1,8 @@
 {
-  "id": "/",
+  "id": "/local-explorer",
   "name": "Local Explorer",
   "short_name": "Explorer",
-  "start_url": "./",
+  "start_url": "./LocalExplorer.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f8f7f2",
