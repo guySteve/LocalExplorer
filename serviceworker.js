@@ -1,76 +1,62 @@
-const CACHE_NAME = 'local-explorer-v7-gold-master'; // Final production cache version
-const urlsToCache = [
-    '/',
-    'LocalExplorer.html',
-    'https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap'
+const CACHE_NAME = 'local-explorer-v8';
+const APP_SHELL = [
+  './',
+  './LocalExplorer.html',
+  './manifest.json'
+];
+// Safe list of cross-origin assets you want cached at install (optional)
+const PRECACHE_EXTERNAL = [
+  'https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap'
 ];
 
-// Install the service worker and cache static assets
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Service Worker: Caching app shell');
-                return cache.addAll(urlsToCache);
-            })
-    );
+// Install
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL.concat(PRECACHE_EXTERNAL));
+    self.skipWaiting();
+  })());
 });
 
-// Clean up old caches when a new service worker is activated
-self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        console.log('Service Worker: Deleting old cache:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
-    return self.clients.claim();
+// Activate: cleanup old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => (k === CACHE_NAME) ? null : caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-// Serve cached content when offline, or fetch from network (Cache-first strategy)
-self.addEventListener('fetch', event => {
-    // We only want to cache GET requests.
-    if (event.request.method !== 'GET') {
-        return;
-    }
+// Fetch: cache-first for same-origin; network-first for cross-origin (avoid caching Maps requests)
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(cachedResponse => {
-                // Return cached response if found.
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
 
-                // If not in cache, fetch from network.
-                return fetch(event.request).then(
-                    networkResponse => {
-                        // Check if we received a valid response before caching.
-                        if(!networkResponse || networkResponse.status !== 200) {
-                            return networkResponse;
-                        }
-
-                        // Clone the response to cache it.
-                        const responseToCache = networkResponse.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
-
-                        return networkResponse;
-                    }
-                ).catch(error => {
-                    // This is a fallback for network errors.
-                    console.error('Fetch failed:', error);
-                    // Optionally, you could return a custom offline page here.
-                });
-            })
-    );
+  if (sameOrigin) {
+    event.respondWith((async () => {
+      const cached = await caches.match(req);
+      if (cached) return cached;
+      try {
+        const res = await fetch(req);
+        if (res && res.status === 200) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(req, res.clone());
+        }
+        return res;
+      } catch (e) {
+        // Optional: return a fallback page if request is navigational
+        if (req.mode === 'navigate') {
+          const fallback = await caches.match('./LocalExplorer.html');
+          if (fallback) return fallback;
+        }
+        throw e;
+      }
+    })());
+  } else {
+    // Cross-origin: network-first, don't cache heavy/volatile APIs like Google Maps
+    event.respondWith(fetch(req).catch(() => caches.match(req)));
+  }
 });
