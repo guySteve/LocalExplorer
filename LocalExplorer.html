@@ -73,7 +73,6 @@
             padding: 0.75rem;
             font-size: 0.8rem;
             overflow: hidden;
-            min-height: 80px;
             border: 1px solid rgba(255,255,255,0.1);
         }
         .place-type-tag {
@@ -96,13 +95,14 @@
             overflow-y: auto;
         }
         #dark-side-button {
-            position: absolute;
-            bottom: -2.5rem;
-            right: 0.5rem;
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
             font-size: 1.5rem;
             opacity: 0.4;
             transition: opacity 0.2s;
             cursor: pointer;
+            z-index: 20;
         }
         #dark-side-button:hover {
             opacity: 1;
@@ -137,28 +137,25 @@
                 </div>
             </div>
 
-            <div class="relative">
-                <div id="filter-container" class="grid grid-cols-2 gap-4">
-                     <button data-filter="eat" class="filter-button bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
-                        <span class="text-xl mb-1">🍽️</span> Foodie Finds
-                     </button>
-                     <button data-filter="see" class="filter-button bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
-                        <span class="text-xl mb-1">🏛️</span> Iconic Sights
-                     </button>
-                     <button data-filter="night" class="filter-button bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
-                        <span class="text-xl mb-1">🌙</span> Night Out
-                     </button>
-                     <button data-filter="gems" class="filter-button bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
-                        <span class="text-xl mb-1">💎</span> Hidden Gems
-                     </button>
-                     <button data-filter="pets" class="filter-button bg-lime-700 hover:bg-lime-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
-                        <span class="text-xl mb-1">🐾</span> Pet Friendly
-                     </button>
-                     <button data-filter="utilities" class="filter-button bg-stone-600 hover:bg-stone-700 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
-                        <span class="text-xl mb-1">🛠️</span> Utilities & Help
-                     </button>
-                </div>
-                 <button id="dark-side-button" data-filter="dark">👻</button>
+            <div id="filter-container" class="grid grid-cols-2 gap-4">
+                 <button data-filter="eat" class="filter-button bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🍽️</span> Foodie Finds
+                 </button>
+                 <button data-filter="see" class="filter-button bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🏛️</span> Iconic Sights
+                 </button>
+                 <button data-filter="night" class="filter-button bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🌙</span> Night Out
+                 </button>
+                 <button data-filter="gems" class="filter-button bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">💎</span> Hidden Gems
+                 </button>
+                 <button data-filter="pets" class="filter-button bg-lime-700 hover:bg-lime-800 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🐾</span> Pet Friendly
+                 </button>
+                 <button data-filter="utilities" class="filter-button bg-stone-600 hover:bg-stone-700 text-white font-bold py-3 rounded-lg text-base flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🛠️</span> Utilities & Help
+                 </button>
             </div>
             <button id="random-button" class="filter-button w-full mt-4 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3 rounded-lg text-base flex items-center justify-center">
                 <span class="text-xl mr-2">🤷</span> Surprise Me!
@@ -171,6 +168,8 @@
             </noscript>
         </div>
     </div>
+    
+    <button id="dark-side-button" data-filter="dark">👻</button>
 
     <!-- Result Display -->
     <div id="result-screen" class="hidden fixed inset-0 z-20 flex flex-col justify-end items-center p-4">
@@ -232,7 +231,6 @@
         const funFactText = document.getElementById('fun-fact-text');
         const darkSideButton = document.getElementById('dark-side-button');
 
-
         // Result Card Elements
         const placeNameEl = document.getElementById('place-name');
         const placeRatingEl = document.getElementById('place-rating');
@@ -253,6 +251,9 @@
         let placesService, panorama, geocoder, directionsService;
         let currentUserLocation;
         let lastSearchRequest;
+        let localFacts = [];
+        let factInterval;
+        let currentFactIndex = 0;
 
         const subFilterMap = {
             eat: { 
@@ -294,26 +295,52 @@
             document.querySelectorAll('#filter-container button, #random-button, #dark-side-button').forEach(b => b.disabled = disabled);
         }
 
-        async function getFunFact(coords) { 
+        async function getFunFact(coords) {
+            if (factInterval) clearInterval(factInterval);
+            funFactText.textContent = "Finding local facts...";
             try {
-                const geoSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`;
+                const geoSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`;
                 const geoResponse = await fetch(geoSearchUrl);
                 const geoData = await geoResponse.json();
                 if (!geoData.query.geosearch || geoData.query.geosearch.length === 0) {
                     funFactText.textContent = "No local facts found nearby.";
                     return;
                 }
-                const pageId = geoData.query.geosearch[0].pageid;
-                const pageInfoUrl = `https://en.wikipedia.org/w/api.php?action=query&pageids=${pageId}&prop=extracts&exintro&explaintext&format=json&origin=*`;
+
+                const pageIds = geoData.query.geosearch.map(p => p.pageid);
+                const pageInfoUrl = `https://en.wikipedia.org/w/api.php?action=query&pageids=${pageIds.join('|')}&prop=extracts&exintro&explaintext&format=json&origin=*`;
                 const pageResponse = await fetch(pageInfoUrl);
                 const pageData = await pageResponse.json();
-                const extract = pageData.query.pages[pageId].extract;
-                funFactText.textContent = extract.substring(0, 120) + '...';
+                
+                localFacts = Object.values(pageData.query.pages)
+                    .map(page => page.extract)
+                    .filter(extract => extract && extract.length > 50 && extract.length < 250) // Prioritize shorter facts
+                    .sort((a, b) => a.length - b.length);
+
+                if (localFacts.length > 0) {
+                    startFactCycling();
+                } else {
+                    funFactText.textContent = "No detailed local facts found.";
+                }
+
             } catch (error) {
                 console.error("Error fetching fun fact:", error);
                 funFactText.textContent = "Could not load fun fact.";
             }
-         }
+        }
+
+        function startFactCycling() {
+            if (factInterval) clearInterval(factInterval);
+            currentFactIndex = 0;
+            funFactText.textContent = localFacts[currentFactIndex];
+
+            if (localFacts.length > 1) {
+                factInterval = setInterval(() => {
+                    currentFactIndex = (currentFactIndex + 1) % localFacts.length;
+                    funFactText.textContent = localFacts[currentFactIndex];
+                }, 7000); // Cycle every 7 seconds
+            }
+        }
 
         function findAdventure(searchParams, retries = 3) { 
             if (!placesService || !currentUserLocation) {
