@@ -13,7 +13,7 @@
 
   <title>Local Explorer</title>
 
-  <!-- Google Maps JS (only needed library) -->
+  <!-- Google Maps JS -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places&callback=initApp" async defer></script>
 
   <!-- Styling -->
@@ -23,23 +23,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
 
   <style>
-    body { font-family: 'Raleway', sans-serif; background-color: #f8f7f2; }
-    h1,h2,h3,.font-header { font-family: 'Poppins', sans-serif; }
-    #panorama { position: absolute; top:0; left:0; width:100%; height:100%; z-index:1; }
+    body { font-family:'Raleway',sans-serif; background:#f8f7f2; }
+    h1,h2,h3,.font-header { font-family:'Poppins',sans-serif; }
+    #panorama { position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; }
     .action-card { background:#111827; color:#f8f7f2; transition:.2s all; box-shadow:0 4px 12px rgba(0,0,0,.1); }
     .action-card:hover:not(:disabled){ transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,.15); }
     .action-card:active:not(:disabled){ transform:translateY(-1px) scale(.98); }
     .action-card:disabled{ opacity:.6; cursor:not-allowed; }
+
     #result-card{ background:rgba(17,24,39,.9); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
       transition:transform .5s cubic-bezier(.19,1,.22,1), opacity .5s ease-out; max-height:90vh; overflow-y:auto;
-      border-top:1px solid rgba(248,247,242,.2);}
+      border-top:1px solid rgba(248,247,242,.2); }
     #result-screen.hidden #result-card, #result-screen.hidden #result-buttons-container{ opacity:0; transform:translateY(100%); }
     #result-buttons-container{ transition:transform .5s cubic-bezier(.19,1,.22,1), opacity .5s ease-out; }
     .place-type-tag{ background:rgba(248,247,242,.1); border:1px solid rgba(248,247,242,.2); padding:2px 10px; border-radius:9999px; font-size:.75rem; text-transform:capitalize; font-weight:600; }
-    #dark-side-button{ position:fixed; bottom:1rem; left:1rem; font-size:1.5rem; opacity:.3; transition:opacity .2s; cursor:pointer; z-index:20;}
+
+    #dark-side-button{ position:fixed; bottom:1rem; left:1rem; font-size:1.5rem; opacity:.3; transition:opacity .2s; cursor:pointer; z-index:20; }
     #dark-side-button:hover{ opacity:1; }
+
     .accordion-content{ max-height:0; overflow:hidden; transition:max-height .3s ease-out; }
     #save-place-button.saved{ transform:scale(1.25); }
+
+    /* ✅ Prevent hidden panorama from blocking clicks */
+    #panorama-container { pointer-events: none; }
+    #panorama-container.opacity-100 { pointer-events: auto; }
   </style>
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
@@ -120,7 +127,7 @@
 
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
 
-      <!-- Added summary block (was referenced but missing) -->
+      <!-- Summary block (referenced in code) -->
       <div id="place-summary" class="text-left text-sm space-y-2 hidden"></div>
 
       <!-- Accordion -->
@@ -168,7 +175,7 @@
   </div>
 
   <script>
-    // Register SW (file name/path fixed)
+    // Register SW
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./serviceworker.js').catch(err => console.log('SW registration failed:', err));
@@ -279,7 +286,7 @@
       showMyList();
     }
 
-    // Fun Fact (fixed to actually fetch extracts)
+    // Fun Facts
     async function getFunFact(coords, retries = 3){
       if (factInterval) clearInterval(factInterval);
       funFactText.textContent = "Finding local facts...";
@@ -352,7 +359,7 @@
     }
 
     function getPlaceDetails(placeSummary){
-      mainScreen.classList.add('hidden');
+      mainScreen.classList.remove('hidden'); // keep main screen; we overlay result screen
       resultScreen.classList.remove('hidden');
       panorama.setPosition(placeSummary.geometry.location);
       panoramaContainer.classList.add('opacity-100');
@@ -375,7 +382,7 @@
 
       const request = {
         placeId: placeSummary.place_id,
-        fields: ['name','rating','user_ratings_total','price_level','photos','website','opening_hours','vicinity','types','formatted_phone_number','editorial_summary','reviews','geometry']
+        fields: ['name','rating','user_ratings_total','price_level','photos','website','opening_hours','vicinity','types','formatted_phone_number','editorial_summary','reviews','geometry','wheelchair_accessible_entrance']
       };
       placesService.getDetails(request, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place){
@@ -386,6 +393,7 @@
           if (place.photos?.length) placePhotoEl.src = place.photos[0].getUrl({ maxWidth: 600, maxHeight: 400 });
           if (place.website){ websiteLink.href = place.website; websiteLink.classList.remove('hidden'); }
           if (place.formatted_phone_number){ phoneLink.href = `tel:${place.formatted_phone_number}`; phoneLink.textContent = place.formatted_phone_number; }
+          if (place.wheelchair_accessible_entrance){ placeAccessibility.textContent = '♿'; placeAccessibility.style.display = 'inline'; }
           if (place.editorial_summary?.overview){
             placeSummaryEl.innerHTML = `<strong>What Google Says:</strong><p class="text-xs italic">${place.editorial_summary.overview}</p>`;
             placeSummaryEl.classList.remove('hidden');
@@ -448,7 +456,7 @@
         handleLocationError();
       }
     }
-    window.initApp = initApp; // ensure global for callback
+    window.initApp = initApp; // expose for callback
 
     function handleLocationError(){
       locationStatus.textContent = "Couldn't get your location. Please enter one manually.";
@@ -483,7 +491,8 @@
     // UI nav
     function showSubMenu(filter){
       filterContainer.classList.add('hidden');
-      randomButton.parentElement.classList.add('hidden');
+      // ✅ Only hide the button, not its parent container
+      randomButton.classList.add('hidden');
       darkSideButton.style.display = 'none';
       subMenuContainer.innerHTML = '';
       const subFilters = subFilterMap[filter];
@@ -502,7 +511,7 @@
       subMenuContainer.classList.add('hidden');
       backToMainFiltersButton.classList.add('hidden');
       filterContainer.classList.remove('hidden');
-      randomButton.parentElement.classList.remove('hidden');
+      randomButton.classList.remove('hidden');
       darkSideButton.style.display = 'block';
     }
     function findRandomAdventure(){
@@ -522,26 +531,34 @@
       if (hidePanorama) panoramaContainer.classList.remove('opacity-100');
     }
 
-    // Events
+    // Events (robust delegation)
     document.addEventListener('click', (e) => {
-      const target = e.target.closest('button');
-      if (!target || target.disabled) return;
+      const btn = e.target.closest('button');
+      if (!btn || btn.disabled) return;
 
-      if (target.parentElement === filterContainer && target.dataset.filter){ showSubMenu(target.dataset.filter); return; }
-
-      if (target.parentElement?.classList.contains('sub-menu')){
-        const filterName = target.dataset.name;
-        let parentFilter;
-        for (const key in subFilterMap) if (subFilterMap[key][filterName]) parentFilter = key;
-        let searchParams = subFilterMap[parentFilter][filterName];
-        if (filterName === '🍕 Surprise Me'){
-          const foodFilters = Object.values(subFilterMap.eat).filter(f => f.keyword !== 'food');
-          searchParams = foodFilters[Math.floor(Math.random() * foodFilters.length)];
-        }
-        findAdventure(searchParams); return;
+      // Main filter buttons
+      if (btn.matches('#filter-container > button[data-filter]')) {
+        showSubMenu(btn.dataset.filter);
+        return;
       }
 
-      switch (target.id){
+      // Sub-menu buttons
+      if (btn.closest('.sub-menu') && btn.dataset.name) {
+        const filterName = btn.dataset.name;
+        let parentFilter;
+        for (const key in subFilterMap) if (subFilterMap[key][filterName]) parentFilter = key;
+        let params = subFilterMap[parentFilter][filterName];
+
+        if (filterName === '🍕 Surprise Me') {
+          const food = Object.values(subFilterMap.eat).filter(f => f.keyword !== 'food');
+          params = food[Math.floor(Math.random() * food.length)];
+        }
+        findAdventure(params);
+        return;
+      }
+
+      // Other controls
+      switch (btn.id){
         case 'dark-side-button': showSubMenu('dark'); break;
         case 'back-to-main-filters': hideSubMenu(); break;
         case 'try-again-button': resetApp(); break;
@@ -558,15 +575,15 @@
           break;
       }
 
-      if (target.classList.contains('accordion-toggle')){
-        const content = target.nextElementSibling;
-        const icon = target.querySelector('span:last-child');
+      if (btn.classList.contains('accordion-toggle')){
+        const content = btn.nextElementSibling;
+        const icon = btn.querySelector('span:last-child');
         if (content.style.maxHeight){ content.style.maxHeight = null; if (icon) icon.textContent = '▼'; }
         else { content.style.maxHeight = content.scrollHeight + 'px'; if (icon) icon.textContent = '▲'; }
       }
 
-      if (target.classList.contains('remove-place-button')){
-        removeSavedPlace(target.dataset.id);
+      if (btn.classList.contains('remove-place-button')){
+        removeSavedPlace(btn.dataset.id);
       }
     });
 
