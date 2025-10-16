@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="Manifest" href="./Manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Local Explorer" />
   <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
   <title>Local Explorer</title>
 
-  <!-- Safe callback stub -->
+  <!-- Callback stub so Google loads cleanly -->
   <script>
     window.initApp = function () {
       (function wait() {
@@ -50,14 +50,14 @@
     #result-card{background:rgba(15,22,36,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .4s,opacity .3s;max-height:90vh;overflow-y:auto;border-top:1px solid var(--muted)}
     .place-type-tag{background:rgba(255,255,255,.06);border:1px solid var(--muted);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
     .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
-    #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;background:rgba(3,8,18,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;background:rgba(3,8,18,.78);backdrop-filter:blur(8px)}
     #results-list-card{background:rgba(15,22,36,.97);color:var(--ivory);border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto;border:1px solid var(--muted)}
     .result-item{background:rgba(255,255,255,.05);border:1px solid var(--muted);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem;cursor:pointer}
     .result-item:hover{background:rgba(255,255,255,.08)}
     .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:var(--navy-900);pointer-events:none}
     #dark-side-button{position:fixed;bottom:1rem;left:1rem;font-size:1.5rem;opacity:.45;transition:opacity .2s;cursor:pointer;z-index:20}
     #dark-side-button:hover{opacity:1}
-    #compass-modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    #compass-modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.7);backdrop-filter:blur(8px)}
     #compass-dialog{width:min(92vw,480px);background:rgba(15,22,36,.97);color:var(--ivory);border:1px solid var(--muted);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:16px;outline:none}
     #nav-bubble{position:relative;margin:8px 0 12px 0;color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;box-shadow:0 10px 24px rgba(0,0,0,.35);background:
       radial-gradient(120% 140% at 10% 0%, rgba(45,212,191,.10) 0%, rgba(242,193,78,.12) 35%, rgba(15,22,36,.96) 68%);border:1px solid var(--muted)}
@@ -66,7 +66,7 @@
     #compass-overlay{width:260px;height:260px;border-radius:22px;margin:6px auto 10px auto;padding:18px;position:relative;background:
       radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
       conic-gradient(from 0deg, rgba(242,193,78,.4), rgba(242,193,78,.08) 30%, rgba(45,212,191,.5) 60%, rgba(45,212,191,.12) 75%, rgba(242,193,78,.35));
-      border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden}
+      border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);overflow:hidden}
     #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--gold);transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(242,193,78,.45));margin-bottom:8px}
     #compass-dist{font-size:14px;color:var(--ink);font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
     #reviews-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.65);backdrop-filter:blur(8px)}
@@ -74,50 +74,71 @@
     .review{background:rgba(255,255,255,.06);border:1px solid var(--muted);border-radius:12px;padding:12px}
     .review + .review{margin-top:10px}
     .reviewer{font-weight:700}.review-meta{font-size:12px;opacity:.8}.whitespace-pre-wrap{white-space:pre-wrap}
-    /* Voice modal */
     #voice-modal{position:fixed;inset:0;z-index:65;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.65);backdrop-filter:blur(8px)}
     #voice-card{width:min(92vw,560px);max-height:85vh;overflow:auto;background:rgba(15,22,36,.98);color:var(--ivory);border:1px solid var(--muted);border-radius:18px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+    /* Saved modal */
+    #saved-modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.65);backdrop-filter:blur(8px)}
+    #saved-card{width:min(92vw,760px);max-height:85vh;overflow:auto;background:rgba(15,22,36,.98);color:var(--ivory);border:1px solid var(--muted);border-radius:18px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+    .saved-item{background:rgba(255,255,255,.06);border:1px solid var(--muted);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    /* Compact icon buttons */
+    .icon-row{display:flex;gap:.5rem;flex-wrap:wrap}
+    .icon-btn{display:inline-flex;align-items:center;gap:.5rem;justify-content:center;min-width:44px;height:44px;padding:0 .75rem;border-radius:12px}
+    .icon-btn svg{width:18px;height:18px}
+    .btn-label{white-space:nowrap}
+    @media (max-width:420px){ .btn-label{display:none} }
     input,select,textarea,button{font-size:16px}
     @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
 
-  <!-- Street View -->
+  <!-- Street View backdrop -->
   <div id="panorama-container" class="fixed inset-0"><div id="panorama" aria-hidden="true"></div></div>
 
-  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
-    <section id="main-screen" aria-labelledby="app-title">
-      <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold mb-4" style="color:var(--ivory)">Local Explorer</h1>
-
-      <section id="fun-fact-container" class="text-left mb-4 px-2">
-        <h2 class="font-header font-bold mb-1 text-sm tracking-wider uppercase" style="color:var(--gold)">Local Fact</h2>
-        <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="color:var(--ink);border-color:rgba(255,255,255,.12)">Loading...</p>
-      </section>
-
-      <p id="location-status" class="text-lg font-semibold my-4" style="color:var(--ink)">Please allow location access...</p>
-
-      <div id="manual-location-entry" class="hidden mb-6">
-        <div class="flex items-center rounded-lg" style="background:rgba(255,255,255,.06);border:1px solid var(--muted)">
-          <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place" class="w-full bg-transparent text-white p-3 rounded-l-lg focus:outline-none"/>
-          <button id="search-button" class="action-card bg-gradient-to-b from-[var(--gold)] to-[var(--gold)] text-black font-semibold p-3 rounded-r-lg" aria-label="Search">🔍</button>
-        </div>
+  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto" role="main" aria-live="polite">
+    <!-- Header with Saved icon -->
+    <header class="flex items-center justify-between mb-3">
+      <h1 id="app-title" class="text-3xl md:text-4xl font-header font-bold" style="color:var(--ivory)">Local Explorer</h1>
+      <div class="flex items-center gap-2">
+        <button id="open-saved-button" class="icon-btn action-card" title="Open saved list" aria-label="Open saved list">
+          <!-- star icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="1.8" d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          <span class="btn-label">Saved</span>
+        </button>
       </div>
+    </header>
 
-      <nav id="filter-container" class="grid grid-cols-2 gap-4 mt-4">
-        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base">🍽️ Foodie Finds</button>
-        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base">🏛️ Iconic Sights</button>
-        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base">🌙 Night Out</button>
-        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base">💎 Hidden Gems</button>
-        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base">🐾 Pet Friendly</button>
-        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base">🛠️ Utilities & Help</button>
-      </nav>
-
-      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base" style="background:linear-gradient(180deg,#24406f,#1c2f54);border-color:rgba(255,255,255,.18)">🤷 Surprise Me!</button>
-
-      <div id="sub-menu-container" class="hidden mt-4"></div>
-      <button id="back-to-main-filters" class="hidden mt-4 underline" style="color:var(--ink)">Back to main filters</button>
+    <!-- Local facts -->
+    <section id="fun-fact-container" class="text-left mb-4 px-1">
+      <h2 class="font-header font-bold mb-1 text-sm tracking-wider uppercase" style="color:var(--gold)">Local Fact</h2>
+      <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="color:var(--ink);border-color:rgba(255,255,255,.12)">Loading...</p>
     </section>
+
+    <p id="location-status" class="text-lg font-semibold my-3" style="color:var(--ink)">Please allow location access...</p>
+
+    <div id="manual-location-entry" class="hidden mb-4">
+      <div class="flex items-center rounded-lg" style="background:rgba(255,255,255,.06);border:1px solid var(--muted)">
+        <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place"
+               class="w-full bg-transparent text-white p-3 rounded-l-lg focus:outline-none"/>
+        <button id="search-button" class="action-card bg-gradient-to-b from-[var(--gold)] to-[var(--gold)] text-black font-semibold p-3 rounded-r-lg" aria-label="Search">🔍</button>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <nav id="filter-container" class="grid grid-cols-2 gap-3">
+      <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base">🍽️ Foodie Finds</button>
+      <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base">🏛️ Iconic Sights</button>
+      <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base">🌙 Night Out</button>
+      <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base">💎 Hidden Gems</button>
+      <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base">🐾 Pet Friendly</button>
+      <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base">🛠️ Utilities & Help</button>
+    </nav>
+
+    <button id="random-button" class="action-card w-full mt-3 rounded-lg font-bold py-3 text-base"
+      style="background:linear-gradient(180deg,#24406f,#1c2f54);border-color:rgba(255,255,255,.18)">🤷 Surprise Me!</button>
+
+    <div id="sub-menu-container" class="hidden mt-3"></div>
+    <button id="back-to-main-filters" class="hidden mt-3 underline" style="color:var(--ink)">Back to main filters</button>
   </main>
 
   <button id="dark-side-button" data-filter="dark" aria-label="Dark category">👻</button>
@@ -155,15 +176,31 @@
 
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
 
-      <div class="flex flex-wrap justify-center gap-3 my-4">
-        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg" style="background:linear-gradient(180deg,#24406f,#1c2f54)">Map</a>
-        <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden">Website</a>
-        <button id="reviews-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Reviews</button>
-        <button id="share-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Share</button>
-        <button id="compass-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Compass (Walking)</button>
+      <!-- Condensed action row (icons with labels hidden on small screens) -->
+      <div class="icon-row my-3">
+        <a id="directions-link" href="#" target="_blank" rel="noopener" class="icon-btn action-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="1.8" d="M21.71 11.29 12.71 2.29a1 1 0 0 0-1.42 0L2.29 11.29a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42Z"/><path stroke-width="1.8" d="M12 22V12"/><path stroke-width="1.8" d="M12 12H3"/></svg>
+          <span class="btn-label">Map</span>
+        </a>
+        <a id="website-link" href="#" target="_blank" rel="noopener" class="icon-btn action-card hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="1.8"/><path stroke-width="1.8" d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+          <span class="btn-label">Website</span>
+        </a>
+        <button id="reviews-button" class="icon-btn action-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="1.8" d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+          <span class="btn-label">Reviews</span>
+        </button>
+        <button id="share-button" class="icon-btn action-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="18" cy="5" r="3" stroke-width="1.8"/><circle cx="6" cy="12" r="3" stroke-width="1.8"/><circle cx="18" cy="19" r="3" stroke-width="1.8"/><path stroke-width="1.8" d="M8.59 13.51 15.42 17.5M15.41 6.5 8.59 10.49"/></svg>
+          <span class="btn-label">Share</span>
+        </button>
+        <button id="compass-button" class="icon-btn action-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="1.8"/><path stroke-width="1.8" d="m16 8-3 7-7 3 3-7 7-3z"/></svg>
+          <span class="btn-label">Compass</span>
+        </button>
       </div>
 
-      <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
+      <div id="result-buttons-container" class="w-full max-w-md flex gap-3">
         <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
         <button id="next-suggestion-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl" style="display:none">Next</button>
       </div>
@@ -243,14 +280,32 @@
     </div>
   </div>
 
+  <!-- Saved Modal -->
+  <div id="saved-modal" aria-hidden="true">
+    <div id="saved-card" role="dialog" aria-modal="true" aria-labelledby="saved-title">
+      <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+        <h3 id="saved-title" class="font-header text-lg">Saved</h3>
+        <div class="flex items-center gap-2">
+          <button id="saved-export" class="action-card py-2 px-3 rounded-lg">Export</button>
+          <label class="action-card py-2 px-3 rounded-lg cursor-pointer">
+            <input id="saved-import" type="file" accept="application/json" class="hidden">
+            Import
+          </label>
+          <button id="close-saved" class="action-card py-2 px-3 rounded-lg">Close</button>
+        </div>
+      </div>
+      <div id="saved-list" class="grid gap-2"></div>
+    </div>
+  </div>
+
   <script>
     /* ===== SW ===== */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => { navigator.serviceWorker.register('./serviceworker.js').catch(()=>{}); });
     }
+    navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(()=>{});
 
     /* ===== Refs ===== */
-    const funFactContainer=document.getElementById('fun-fact-container');
     const funFactText=document.getElementById('fun-fact-text');
     const resultsListScreen=document.getElementById('results-list-screen');
     const resultsTitle=document.getElementById('results-title');
@@ -286,12 +341,10 @@
     const randomButton=document.getElementById('random-button');
     const darkSideButton=document.getElementById('dark-side-button');
     const nextBtn=document.getElementById('next-suggestion-button');
-    // Reviews
     const reviewsModal=document.getElementById('reviews-modal');
     const reviewsList=document.getElementById('reviews-list');
     const reviewsOpenInMaps=document.getElementById('reviews-open-in-maps');
     const reviewsWorstToggle=document.getElementById('reviews-worst-toggle');
-    // Voice
     const voiceButton=document.getElementById('voice-button');
     const voiceModal=document.getElementById('voice-modal');
     const voiceSelect=document.getElementById('voice-select');
@@ -300,18 +353,43 @@
     const voiceTest=document.getElementById('voice-test');
     const voiceSave=document.getElementById('voice-save');
     const closeVoice=document.getElementById('close-voice');
+    const savedModal=document.getElementById('saved-modal');
+    const savedList=document.getElementById('saved-list');
+    const savedExport=document.getElementById('saved-export');
+    const savedImport=document.getElementById('saved-import');
 
     /* ===== State ===== */
     let placesService, panorama, geocoder, directionsService;
     let currentUserLocation, currentLocality='', currentPlace, currentResults=[];
-    let savedPlaces=JSON.parse(localStorage.getItem('savedPlaces')||'{}');
+    const STORAGE_KEY='local_explorer.saved_places.v1';
+    const STORAGE_BAK='local_explorer.saved_places.v1.bak';
+    // migrate old key if exists
+    function loadSaved(){
+      let data={};
+      try{
+        const v=localStorage.getItem(STORAGE_KEY);
+        if(v){ data=JSON.parse(v)||{}; }
+        else{
+          const old=localStorage.getItem('savedPlaces');
+          if(old){ data=JSON.parse(old)||{}; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+        }
+      }catch{ data={}; }
+      return data;
+    }
+    let savedPlaces=loadSaved();
+    function persistSaved(){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedPlaces));
+        localStorage.setItem(STORAGE_BAK, JSON.stringify(savedPlaces));
+      }catch{}
+    }
+
     let compassActive=false, guideSpeaking=false, watchId=null, headingDeg=0;
     let routeSteps=[], stepIndex=0, stepTarget=null, destLatLng=null;
     let currentReviews=[];
-    // Voice state
     let voicesCache=[], chosenVoiceName=localStorage.getItem('ttsVoiceName')||'', chosenRate=parseFloat(localStorage.getItem('ttsRate')||'1')||1;
 
-    /* ===== Categories & Filters ===== */
+    /* ===== Categories ===== */
     const subFilterMap={eat:{"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}},dark:{"Cemeteries":{type:"cemetery"},"Haunted Tours":{type:"tourist_attraction",keyword:"ghost tour haunted tour"},"Haunted Sites":{type:"tourist_attraction",keyword:"haunted site haunted house"},"Crime Museums":{type:"museum",keyword:"crime history museum"}}};
     const allowedByCategory={eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),night:new Set(['bar','night_club']),see:new Set(['museum','art_gallery','tourist_attraction']),gems:new Set(['art_gallery','park','cafe']),pets:new Set(['park','pet_store','veterinary_care']),utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),dark:new Set(['cemetery','museum','tourist_attraction'])};
     const bannedRetailish=new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
@@ -326,7 +404,7 @@
     const dedupe=items=>{const s=new Set(),o=[];for(const it of items)if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)}return o};
     const sortResults=a=>a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
     const toRad=d=>d*Math.PI/180,toDeg=r=>r*180/Math.PI,norm=a=>((a%360)+360)%360;
-    function uiStatus(msg){ console.warn(msg); if(locationStatus) locationStatus.textContent=msg; }
+    function uiStatus(msg){ if(locationStatus) locationStatus.textContent=msg; }
 
     function isCandidate(p,kw,reqType,allowedSet){
       const t=new Set(p.types||[]);
@@ -343,16 +421,13 @@
       savePlaceButton.setAttribute('aria-pressed', String(pressed));
       savePlaceButton.textContent=pressed?'★':'☆';
     }
-
-    /* ===== Next visibility (NEW) ===== */
     function updateNextVisibility(){
       const show = Array.isArray(currentResults) && currentResults.length > 1;
       nextBtn.style.display = show ? 'inline-block' : 'none';
       nextBtn.disabled = !show;
     }
 
-    /* ===== Speech (platform-aware) ===== */
-    let voicesCache=[], chosenVoiceName=localStorage.getItem('ttsVoiceName')||'', chosenRate=parseFloat(localStorage.getItem('ttsRate')||'1')||1;
+    /* ===== Voice ===== */
     const ua=(navigator.userAgent||'').toLowerCase(); const isIOS=/iphone|ipad|ipod/.test(ua); const isAndroid=/android/.test(ua);
     function getVoicesSafe(){ try{return window.speechSynthesis.getVoices()||[]}catch{return[]} }
     function bestDefaultVoice(voices){
@@ -417,7 +492,7 @@
 
     /* ===== Results ===== */
     function showResultsList(parentFilter,subLabel){
-      resultsListScreen.style.display='flex'; funFactContainer.style.display='none';
+      resultsListScreen.style.display='flex';
       resultsTitle.textContent=subLabel||'Results';
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
       resultsList.innerHTML='';
@@ -430,14 +505,10 @@
             <div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name}</h3><div class="text-xs" style="color:var(--ink)">${price}</div></div>
             <div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--gold)">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs" style="color:var(--ink)">(${p.user_ratings_total??0})</div></div>
             <div class="text-xs mt-1" style="color:var(--ink)">${vic}</div>
-          </div>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full action-card self-center map-link-icon" style="min-height:unset">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-          </a>`;
+          </div>`;
         resultsList.appendChild(card);
       });
     }
-
     function nearbySearchWithLogs(req,cb){ placesService.nearbySearch(req,(res,status)=>{ if(status!==google.maps.places.PlacesServiceStatus.OK) uiStatus(`NearbySearch: ${status}`); cb(res||[],status); }); }
     function textSearchWithLogs(req,cb){ placesService.textSearch(req,(res,status)=>{ if(status!==google.maps.places.PlacesServiceStatus.OK) uiStatus(`TextSearch: ${status}`); cb(res||[],status); }); }
 
@@ -487,7 +558,7 @@
     function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s) getPlaceDetails(s); }
 
     function getPlaceDetails(summary){
-      resultsListScreen.style.display='none'; resultScreen.style.display='flex'; funFactContainer.style.display='none';
+      resultsListScreen.style.display='none'; resultScreen.style.display='flex';
       panorama.setPosition(summary.geometry.location); panoramaContainer.classList.add('shown');
       currentPlace=summary; updateSaveButtonState(); updateNextVisibility();
       placeNameEl.textContent='Loading Details...';
@@ -603,6 +674,33 @@
     }
     function stopCompass(){ if(!compassActive)return; compassActive=false; try{window.removeEventListener('deviceorientation',onOrientation,true);}catch{} if(watchId!==null){ try{navigator.geolocation.clearWatch(watchId);}catch{} watchId=null; } }
 
+    /* ===== Saved UI ===== */
+    function renderSavedList(){
+      savedList.innerHTML='';
+      const entries=Object.entries(savedPlaces);
+      if(!entries.length){ const d=document.createElement('div'); d.className='text-sm opacity-80'; d.textContent='No saved places yet.'; savedList.appendChild(d); return; }
+      entries.forEach(([id,info])=>{
+        const row=document.createElement('div'); row.className='saved-item'; row.dataset.id=id;
+        const name=info.name||'Unnamed'; const url=info.vicinity||info.url||'#';
+        row.innerHTML=`<div class="min-w-0">
+            <div class="font-semibold truncate">${escapeHtml(name)}</div>
+            <div class="text-xs opacity-80 truncate">${escapeHtml(url)}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="${url}" target="_blank" rel="noopener" class="action-card icon-btn" title="Open in Maps">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="1.8" d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3" stroke-width="1.8"/></svg>
+            </a>
+            <button class="action-card icon-btn saved-remove" title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="1.8" d="M3 6h18"/><path stroke-width="1.8" d="M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6"/><path stroke-width="1.8" d="M10 6V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>`;
+        savedList.appendChild(row);
+      });
+    }
+
+    function openSaved(){ savedModal.style.display='flex'; savedModal.setAttribute('aria-hidden','false'); renderSavedList(); }
+    function closeSaved(){ savedModal.style.display='none'; savedModal.setAttribute('aria-hidden','true'); }
+
     /* ===== Init / Geocode ===== */
     function handleLocationError(){ locationStatus.textContent="Couldn't get your location. Please enter one manually."; manualLocationEntry.classList.remove('hidden'); getFunFact({lat:51.5074,lng:-0.1278}); toggleFilterButtons(false); }
     function reverseGeocodeSetLocation(coords){
@@ -614,7 +712,7 @@
           const state=c.find(x=>x.types.includes('administrative_area_level_1'))?.short_name;
           if(city&&state) currentLocality=`${city}, ${state}`;
           label=results[0].formatted_address.split(',').slice(0,2).join(',');
-        } else { uiStatus(`ReverseGeocode: ${status}`); }
+        }
         setLocationAndEnableApp(coords,label);
       });
     }
@@ -623,98 +721,133 @@
       locationStatus.textContent=`Searching for "${address}"...`;
       geocoder.geocode({address},(results,status)=>{
         if(status==='OK'&&results?.[0]){ const loc=results[0].geometry.location; reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()}); }
-        else { uiStatus(`Geocode: ${status}`); locationStatus.textContent=`Could not find "${address}". (${status})`; }
+        else { locationStatus.textContent=`Could not find "${address}". (${status})`; }
       });
     }
     function setLocationAndEnableApp(coords,label){
-      currentUserLocation=coords; locationStatus.textContent=`Exploring: ${label}`; manualLocationEntry.classList.add('hidden'); toggleFilterButtons(false); getFunFact(coords); document.getElementById('fun-fact-container').style.display='block'; panorama.setPosition(coords); panoramaContainer.classList.add('shown');
+      currentUserLocation=coords; locationStatus.textContent=`Exploring: ${label}`; manualLocationEntry.classList.add('hidden'); toggleFilterButtons(false); getFunFact(coords); panorama.setPosition(coords); panoramaContainer.classList.add('shown');
     }
     function showSubMenu(filter){
       filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); darkSideButton.style.display='none';
-      subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu';
+      subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-3 sub-menu';
       for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);}
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
     function hideSubMenu(){ subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block' }
     function findRandomAdventure(){ const r={...subFilterMap}; ['utilities','pets','dark'].forEach(f=>delete r[f]); const pool=Object.values(r).flatMap(o=>Object.values(o)); hideSubMenu(); const pick=pool[Math.floor(Math.random()*pool.length)]; findAdventure(pick,"random","Surprise Me!",{maxRadiusMeters:METERS_10_MILES}); }
-    function resetApp(hide=true){ closeCompass(); resultScreen.style.display='none'; resultsListScreen.style.display='none'; document.getElementById('main-screen').classList.remove('hidden'); document.getElementById('fun-fact-container').style.display='block'; hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false; if(currentUserLocation) locationStatus.textContent='Location set! Where to next?'; if(hide) panoramaContainer.classList.remove('shown'); }
+    function resetApp(hide=true){ closeCompass(); resultScreen.style.display='none'; resultsListScreen.style.display='none'; document.getElementById('main-screen')?.classList?.remove('hidden'); document.getElementById('fun-fact-container').style.display='block'; hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false; if(currentUserLocation) locationStatus.textContent='Location set! Where to next?'; if(hide) panoramaContainer.classList.remove('shown'); }
 
+    /* ===== Events ===== */
     document.addEventListener('click',(e)=>{
-      const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
-      if(e.target.closest('.map-link-icon')) return;
+      const btn=e.target.closest('button,a'); if(!btn) return;
+
+      if(btn.matches('#open-saved-button')){ e.preventDefault(); openSaved(); return; }
+      if(btn.matches('#close-saved')){ e.preventDefault(); closeSaved(); return; }
+      if(btn.matches('#close-results-button')){ resultsListScreen.style.display='none'; return; }
+      if(btn.matches('#close-reviews')){ reviewsModal.style.display='none'; return; }
+      if(btn.matches('#close-compass')){ closeCompass(); return; }
+      if(btn.matches('#voice-button')){ voiceModal.style.display='flex'; voiceModal.setAttribute('aria-hidden','false'); return; }
+      if(btn.matches('#close-voice')){ voiceModal.style.display='none'; voiceModal.setAttribute('aria-hidden','true'); return; }
+
       if(btn.matches('#filter-container > button[data-filter]')){ showSubMenu(btn.dataset.filter); return; }
       if(btn.closest('.sub-menu') && btn.dataset.name){
         const name=btn.dataset.name,parent=btn.dataset.parent; let params=subFilterMap[parent][name];
         if(parent==='eat' && name==='🍕 Surprise Me'){ const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)]; }
         findAdventure(params,parent,name); return;
       }
+
       if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return; }
-      switch(btn.id){
-        case 'dark-side-button': showSubMenu('dark'); break;
-        case 'back-to-main-filters': hideSubMenu(); break;
-        case 'close-results-button': resultsListScreen.style.display='none'; funFactContainer.style.display='block'; break;
-        case 'try-again-button': resetApp(); break;
-        case 'search-button': geocodeLocation(); break;
-        case 'random-button': findRandomAdventure(); break;
-        case 'next-suggestion-button':
-          // Improved: only active if at least 2 results; robust fallback if current not found
-          if(!Array.isArray(currentResults) || currentResults.length < 2) { updateNextVisibility(); break; }
-          nextBtn.disabled = true;
-          const curId = currentPlace?.place_id || '';
-          let idx = currentResults.findIndex(r => r.place_id === curId);
-          if (idx < 0) idx = 0; // fallback if not found
-          const next = currentResults[(idx + 1) % currentResults.length];
-          if (next) getPlaceDetails(next);
-          setTimeout(()=>{ nextBtn.disabled = false; }, 400); // avoid double-tap races
-          break;
-        case 'save-place-button':
-          if(currentPlace){ if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id]; else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href}; localStorage.setItem('savedPlaces',JSON.stringify(savedPlaces)); updateSaveButtonState(); }
-          break;
-        case 'compass-button': openCompass(); break;
-        case 'close-compass': closeCompass(); break;
-        case 'guide-button':
-          guideSpeaking=!guideSpeaking; guideButton.textContent=guideSpeaking?'Pause ⏸':'Guide Me ▶︎';
-          if(guideSpeaking){
-            if(routeSteps.length && stepIndex<routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); }
-            else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
-          } else { try{ speechSynthesis.cancel(); }catch{} }
-          break;
-        case 'share-button':
-          if(navigator.share && currentPlace){ navigator.share({title:currentPlace.name,text:`Check out this place I found: ${currentPlace.name}`,url:directionsLink.href}); }
-          break;
-        case 'reviews-button': reviewsModal.style.display='flex'; break;
-        case 'close-reviews': reviewsModal.style.display='none'; break;
-        case 'voice-button': voiceModal.style.display='flex'; voiceModal.setAttribute('aria-hidden','false'); break;
-        case 'close-voice': voiceModal.style.display='none'; voiceModal.setAttribute('aria-hidden','true'); break;
+
+      if(btn.id==='random-button'){ findRandomAdventure(); return; }
+      if(btn.id==='dark-side-button'){ showSubMenu('dark'); return; }
+      if(btn.id==='back-to-main-filters'){ hideSubMenu(); return; }
+      if(btn.id==='try-again-button'){ resetApp(); return; }
+      if(btn.id==='search-button'){ geocodeLocation(); return; }
+      if(btn.id==='reviews-button'){ reviewsModal.style.display='flex'; return; }
+      if(btn.id==='compass-button'){ openCompass(); return; }
+      if(btn.id==='guide-button'){
+        guideSpeaking=!guideSpeaking; guideButton.textContent=guideSpeaking?'Pause ⏸':'Guide Me ▶︎';
+        if(guideSpeaking){
+          if(routeSteps.length && stepIndex<routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); }
+          else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
+        } else { try{ speechSynthesis.cancel(); }catch{} }
+        return;
+      }
+      if(btn.id==='share-button'){
+        if(navigator.share && currentPlace){ navigator.share({title:currentPlace.name,text:`Check out this place I found: ${currentPlace.name}`,url:directionsLink.href}); }
+        return;
+      }
+      if(btn.id==='save-place-button'){
+        if(currentPlace){
+          if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id];
+          else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href};
+          persistSaved(); updateSaveButtonState();
+        }
+        return;
+      }
+      if(btn.id==='next-suggestion-button'){
+        if(!Array.isArray(currentResults) || currentResults.length < 2) { updateNextVisibility(); return; }
+        nextBtn.disabled = true;
+        const curId = currentPlace?.place_id || '';
+        let idx = currentResults.findIndex(r => r.place_id === curId);
+        if (idx < 0) idx = 0;
+        const next = currentResults[(idx + 1) % currentResults.length];
+        if (next) getPlaceDetails(next);
+        setTimeout(()=>{ nextBtn.disabled = false; }, 400);
+        return;
       }
     });
 
+    // Saved remove (delegated)
+    savedList.addEventListener('click', (e)=>{
+      const rem=e.target.closest('.saved-remove'); if(!rem) return;
+      const row=e.target.closest('.saved-item'); const id=row?.dataset?.id; if(!id) return;
+      delete savedPlaces[id]; persistSaved(); renderSavedList();
+    });
+
+    // Export/Import
+    savedExport.addEventListener('click', ()=>{
+      const blob=new Blob([JSON.stringify(savedPlaces,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='local-explorer-saved.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+    savedImport.addEventListener('change', async (e)=>{
+      const f=e.target.files?.[0]; if(!f) return;
+      try{
+        const txt=await f.text(); const obj=JSON.parse(txt);
+        if(obj && typeof obj==='object'){ savedPlaces={...savedPlaces, ...obj}; persistSaved(); renderSavedList(); }
+      }catch{}
+      e.target.value='';
+    });
+
+    // Reviews filter
     reviewsWorstToggle.addEventListener('change',()=>updateReviewsUI(currentReviews,reviewsWorstToggle.checked));
+    // Search via Enter
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
+    // Voice controls
     voiceRate.addEventListener('input',()=>{ chosenRate=parseFloat(voiceRate.value)||1; voiceRateValue.textContent=chosenRate.toFixed(2); });
-    voiceTest.addEventListener('click',()=>{ const name=voiceSelect.value; if(name) chosenVoiceName=name; speak('This is your selected voice. All set.'); });
+    voiceTest.addEventListener('click',()=>{ const name=voiceSelect.value; if(name) chosenVoiceName=name; speak('This is your selected voice.'); });
     voiceSave.addEventListener('click',()=>{ const name=voiceSelect.value||''; chosenVoiceName=name; localStorage.setItem('ttsVoiceName',chosenVoiceName); localStorage.setItem('ttsRate',String(chosenRate)); voiceModal.style.display='none'; voiceModal.setAttribute('aria-hidden','true'); });
 
     /* ===== REAL init ===== */
     function initApp(){
       initVoices();
-      if(!window.google || !google.maps || !google.maps.places){ uiStatus("Maps not loaded. Check API key / network / ad-blockers."); manualLocationEntry.classList.remove('hidden'); return; }
+      if(!window.google || !google.maps || !google.maps.places){ locationStatus.textContent="Maps not loaded. Check API key / network / ad-blockers."; manualLocationEntry.classList.remove('hidden'); return; }
       panorama=new google.maps.StreetViewPanorama(panoramaDiv,{addressControl:false,showRoadLabels:false,linksControl:false,panControl:false,enableCloseButton:false,fullscreenControl:false,zoomControl:false});
       placesService=new google.maps.places.PlacesService(document.createElement('div'));
       geocoder=new google.maps.Geocoder();
       directionsService=new google.maps.DirectionsService();
       toggleFilterButtons(true);
-      if(location.protocol!=='https:' && location.hostname!=='localhost'){ console.warn('Geolocation requires https or localhost.'); }
+      if(location.protocol!=='https:' && location.hostname!=='localhost'){ console.warn('Geolocation needs https or localhost.'); }
       if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(pos=>{
           const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
           reverseGeocodeSetLocation(coords);
         },err=>{
-          console.warn('Geolocation error:',err);
           handleLocationError();
           locationStatus.textContent=`Location blocked: ${err.code} (${err.message||'Denied'})`;
         },{enableHighAccuracy:true,maximumAge:5000,timeout:10000});
-      } else { handleLocationError(); locationStatus.textContent="Geolocation not supported in this browser."; }
+      } else { handleLocationError(); locationStatus.textContent="Geolocation not supported."; }
     }
     window.__realInitApp=initApp;
   </script>
