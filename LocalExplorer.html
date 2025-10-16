@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111827" />
-  <link rel="manifest" href="./Manifest.json" />
+  <link rel="manifest" href="./manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Local Explorer" />
@@ -12,7 +12,7 @@
   <title>Local Explorer</title>
 
   <!-- Replace YOUR_KEY with your referrer-restricted key -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places&callback=initApp" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&libraries=places&callback=initApp" async defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -66,6 +66,17 @@
     #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--amber);
       transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(245,158,11,.45));margin-bottom:8px}
     #compass-dist{font-size:14px;color:#e5e7eb;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+
+    /* Reviews mini-window */
+    #reviews-modal{position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.55); backdrop-filter:blur(6px)}
+    #reviews-card{width:min(92vw,720px); max-height:78vh; overflow:auto; background:rgba(17,24,39,.98); color:#f8f7f2;
+      border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:16px; box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .review{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:12px}
+    .review + .review{margin-top:10px}
+    .reviewer{font-weight:700}
+    .review-meta{font-size:12px; opacity:.8}
+    .truncate{display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden}
   </style>
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
@@ -150,8 +161,9 @@
       <div class="flex flex-wrap justify-center gap-3 my-4">
         <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-orange-500 text-white font-bold py-3 px-4 rounded-lg">Map</a>
         <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hidden">Website</a>
+        <button id="reviews-button" class="flex-1 action-card bg-slate-600 text-white font-bold py-3 px-4 rounded-lg">Reviews</button>
         <button id="share-button" class="flex-1 action-card bg-teal-600 text-white font-bold py-3 px-4 rounded-lg">Share</button>
-        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg">Compass</button>
+        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg">Compass (Walking)</button>
       </div>
 
       <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
@@ -161,11 +173,14 @@
     </div>
   </section>
 
-  <!-- Compass Modal -->
+  <!-- Compass Modal (explicit walking mode) -->
   <div id="compass-modal" aria-hidden="true">
     <div id="compass-dialog" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <header class="flex items-center justify-between mb-2">
-        <h2 id="modal-title" class="font-header text-lg">Live Compass</h2>
+        <h2 id="modal-title" class="font-header text-lg flex items-center gap-2">
+          🚶 Live Compass — Walking
+          <span class="text-xs font-semibold bg-emerald-700/60 px-2 py-0.5 rounded">Walking mode</span>
+        </h2>
         <div class="flex gap-2">
           <button id="guide-button" class="action-card bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
           <button id="close-compass" class="action-card text-white font-bold py-2 px-3 rounded-lg bg-gray-700">Close</button>
@@ -173,12 +188,26 @@
       </header>
       <div id="nav-bubble">
         <div id="nav-main">Head toward destination</div>
-        <div id="nav-sub">Follow the arrow</div>
+        <div id="nav-sub">Walking directions · Follow the arrow</div>
       </div>
       <div id="compass-overlay">
         <div id="compass-arrow"></div>
         <div id="compass-dist">--</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Reviews Mini Window -->
+  <div id="reviews-modal">
+    <div id="reviews-card" role="dialog" aria-modal="true" aria-labelledby="reviews-title">
+      <div class="flex items-center justify-between mb-2">
+        <h3 id="reviews-title" class="font-header text-lg">Recent Reviews</h3>
+        <div class="flex items-center gap-2">
+          <a id="reviews-open-in-maps" class="action-card bg-orange-600 text-white font-bold py-2 px-3 rounded-lg hidden" target="_blank" rel="noopener">Open in Google Maps</a>
+          <button id="close-reviews" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Close</button>
+        </div>
+      </div>
+      <div id="reviews-list"></div>
     </div>
   </div>
 
@@ -229,6 +258,13 @@
     const shareButton = document.getElementById('share-button');
     const randomButton = document.getElementById('random-button');
     const darkSideButton = document.getElementById('dark-side-button');
+
+    // Reviews refs
+    const reviewsModal = document.getElementById('reviews-modal');
+    const reviewsList = document.getElementById('reviews-list');
+    const closeReviewsBtn = document.getElementById('close-reviews');
+    const reviewsButton = document.getElementById('reviews-button');
+    const reviewsOpenInMaps = document.getElementById('reviews-open-in-maps');
 
     /* ====== State ====== */
     let placesService, panorama, geocoder, directionsService;
@@ -376,7 +412,7 @@
       nearby();
     }
 
-    /* ====== Details, Directions, Compass ====== */
+    /* ====== Details, Directions, Compass, Reviews ====== */
     function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s); }
 
     function getPlaceDetails(summary){
@@ -393,12 +429,18 @@
       placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
       phoneLink.textContent=''; phoneLink.removeAttribute('href');
       placeAccessibility.textContent=''; placeAccessibility.style.display='none';
+      reviewsOpenInMaps.classList.add('hidden');
+      reviewsOpenInMaps.removeAttribute('href');
+      reviewsList.innerHTML='';
 
       routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
 
       placesService.getDetails({
         placeId:summary.place_id,
-        fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
+        fields:[
+          'name','rating','user_ratings_total','price_level','photos','website','vicinity','types',
+          'formatted_phone_number','geometry','wheelchair_accessible_entrance','reviews','url'
+        ]
       },(place,status)=>{
         if(status===google.maps.places.PlacesServiceStatus.OK&&place){
           currentPlace=place;
@@ -415,11 +457,53 @@
               const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s);
             });
           }
+          if(place.url){ reviewsOpenInMaps.href = place.url; reviewsOpenInMaps.classList.remove('hidden'); }
+
           const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
+
+          // Build route (Walking)
           buildRouteTo(place.geometry.location);
+
+          // Build reviews panel
+          updateReviewsUI(place.reviews || []);
+
           updateSaveButtonState();
         }
       });
+    }
+
+    // Reviews UI
+    function updateReviewsUI(reviews){
+      reviewsList.innerHTML = '';
+      if(!reviews || !reviews.length){
+        const empty = document.createElement('div');
+        empty.className='text-sm opacity-80';
+        empty.textContent = 'No recent reviews.';
+        reviewsList.appendChild(empty);
+        return;
+      }
+      const sorted = [...reviews].sort((a,b)=> (b.time||0)-(a.time||0));
+      sorted.forEach(r=>{
+        const card = document.createElement('div');
+        card.className='review';
+        const stars = renderStarsHTML(r.rating || 0);
+        const when = r.relative_time_description || '';
+        const user = r.author_name || 'Anonymous';
+        const text = r.text || '';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="reviewer">${user}</div>
+            <div class="review-meta">${when}</div>
+          </div>
+          <div class="star-row mt-1">${stars}</div>
+          <p class="mt-2 text-sm truncate">${escapeHtml(text)}</p>
+        `;
+        reviewsList.appendChild(card);
+      });
+    }
+
+    function escapeHtml(s){
+      return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
 
     // --- Geometry helpers
@@ -428,7 +512,6 @@
     const norm = a => ((a%360)+360)%360;
 
     function bearingFromTo(a, b){
-      // a, b: {lat, lng}
       const φ1 = toRad(a.lat), φ2 = toRad(b.lat);
       const Δλ = toRad(b.lng - a.lng);
       const y = Math.sin(Δλ) * Math.cos(φ2);
@@ -452,7 +535,7 @@
       return delta > 0 ? 'Sharp right' : 'Sharp left';
     }
 
-    // --- Directions + Compass
+    // --- Directions + Compass (Walking mode)
     function buildRouteTo(latLng){
       try{
         destLatLng = { lat: typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat,
@@ -478,19 +561,18 @@
           stepTarget = routeSteps[0]?.end_location || destLatLng;
           document.getElementById('compass-button').disabled = false;
 
-          // Seed UI
           const inst = stripHtml(routeSteps[0]?.instructions || 'Head to destination');
           const dist = routeSteps[0]?.distance?.text || '';
           navMain.textContent = inst;
-          navSub.textContent = dist ? `Next: ${dist}` : 'Follow the arrow';
+          navSub.textContent = dist ? `Walking · ${dist}` : 'Walking · Follow the arrow';
         } else {
-          // Fallback: straight-line guidance only
+          // Fallback: straight line walking
           routeSteps = [];
           stepIndex = 0;
           stepTarget = destLatLng;
           document.getElementById('compass-button').disabled = false;
           navMain.textContent = 'Head toward destination';
-          navSub.textContent = 'Follow the arrow';
+          navSub.textContent = 'Walking · Follow the arrow';
         }
       });
     }
@@ -509,7 +591,7 @@
       const inst = stripHtml(routeSteps[i]?.instructions || 'Continue');
       const dist = routeSteps[i]?.distance?.text || '';
       navMain.textContent = inst;
-      navSub.textContent = dist ? `Next: ${dist}` : 'Follow the arrow';
+      navSub.textContent = dist ? `Walking · ${dist}` : 'Walking · Follow the arrow';
 
       if (guideSpeaking){
         const say = `${inst}${dist?'. '+dist:''}`;
@@ -534,34 +616,30 @@
           setStep(stepIndex + 1);
         } else {
           navMain.textContent = 'Arrived';
-          navSub.textContent = 'You made it';
+          navSub.textContent = 'Walking complete';
           compassDist.textContent = '0 ft';
-          // Keep arrow pointing forward
         }
       }
 
       // Rotate arrow to show relative heading
-      const bearing = bearingFromTo(here, there); // 0..360
-      const delta = norm(bearing - headingDeg); // 0..360
+      const bearing = bearingFromTo(here, there);
+      const delta = norm(bearing - headingDeg);
       const rel = delta <= 180 ? delta : delta - 360; // -180..180
       compassArrow.style.transform = `rotate(${rel}deg)`;
 
       // Hint
       const hint = turnHint(rel);
       if (hint === 'Ahead'){
-        navSub.textContent = (routeSteps[stepIndex]?.distance?.text ? `Next: ${routeSteps[stepIndex].distance.text}` : 'On course');
+        navSub.textContent = (routeSteps[stepIndex]?.distance?.text ? `Walking · ${routeSteps[stepIndex].distance.text}` : 'Walking · On course');
       } else {
-        navSub.textContent = `${hint}${routeSteps[stepIndex]?.distance?.text ? ' · ' + routeSteps[stepIndex].distance.text : ''}`;
+        navSub.textContent = `Walking · ${hint}${routeSteps[stepIndex]?.distance?.text ? ' · ' + routeSteps[stepIndex].distance.text : ''}`;
       }
     }
 
     function onOrientation(e){
-      // iOS gives webkitCompassHeading (0=N)
       if (typeof e.webkitCompassHeading === 'number'){
-        headingDeg = norm(e.webkitCompassHeading); // already 0=N clockwise
+        headingDeg = norm(e.webkitCompassHeading);
       } else {
-        // On Android, alpha is 0=Z axis; need to transform relative to screen orientation.
-        // As a pragmatic approach, use alpha and invert to make 0=N roughly.
         const alpha = typeof e.alpha === 'number' ? e.alpha : 0;
         headingDeg = norm(360 - alpha);
       }
@@ -571,7 +649,6 @@
     async function requestMotionPermissionIfNeeded(){
       const D = window.DeviceOrientationEvent;
       if (!D) return true;
-      // iOS 13+
       if (typeof D.requestPermission === 'function'){
         try{
           const res = await D.requestPermission();
@@ -585,10 +662,7 @@
       compassModal.style.display = 'flex';
       compassModal.setAttribute('aria-hidden','false');
       compassDialog.focus();
-
-      // Key trap
       compassDialog.addEventListener('keydown', trapCompassTab);
-
       startCompass();
     }
 
@@ -610,11 +684,9 @@
 
     async function startCompass(){
       if (compassActive) return;
-      const ok = await requestMotionPermissionIfNeeded();
-      // Start orientation listener even if permission flow is N/A
+      await requestMotionPermissionIfNeeded();
       window.addEventListener('deviceorientation', onOrientation, true);
 
-      // Start location watch
       if (navigator.geolocation){
         watchId = navigator.geolocation.watchPosition(p=>{
           currentUserLocation = { lat: p.coords.latitude, lng: p.coords.longitude };
@@ -622,9 +694,8 @@
         }, ()=>{}, { enableHighAccuracy:true, maximumAge:1000, timeout:10000 });
       }
       compassActive = true;
-
-      // Initial UI push
       updateCompassUI();
+
       if (guideSpeaking){
         if(routeSteps.length && stepIndex < routeSteps.length){
           const st=routeSteps[stepIndex];
@@ -765,6 +836,12 @@
           if (navigator.share && currentPlace) {
             navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href });
           }
+          break;
+        case 'reviews-button':
+          reviewsModal.style.display='flex';
+          break;
+        case 'close-reviews':
+          reviewsModal.style.display='none';
           break;
       }
     });
