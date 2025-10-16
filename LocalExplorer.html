@@ -1,11 +1,10 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="./Manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Local Explorer" />
@@ -20,67 +19,148 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
 
   <style>
-    :root{ --navy:#111827; --ivory:#f8f7f2; --amber:#f59e0b; --teal:#10b981; }
-    body{font-family:'Raleway',sans-serif;background:#f8f7f2;}
-    h1,h2,h3,.font-header{font-family:'Poppins',sans-serif;}
+    /* ===== Theme (Modern Navy) ===== */
+    :root{
+      --navy-900:#0b1220; /* deep hull navy */
+      --navy-800:#0f1a2e;
+      --navy-700:#12203b;
+      --navy-600:#1a2b4f;
+      --navy-500:#233a6b;
+      --ivory:#f8f7f2;
+      --gold:#f2c14e;   /* subtle naval brass */
+      --teal:#2dd4bf;   /* accent for focus */
+      --ink:#e5e7eb;    /* soft gray text */
+      --muted:rgba(255,255,255,.12);
+    }
+
+    html,body{height:100%}
+    body{
+      font-family:'Raleway',sans-serif;
+      color:var(--ivory);
+      background:
+        radial-gradient(140% 140% at 20% -10%, rgba(45,212,191,.06) 0%, rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, var(--navy-900) 0%, var(--navy-800) 60%, var(--navy-900) 100%);
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    h1,h2,h3,.font-header{font-family:'Poppins',sans-serif}
+
+    /* Safe areas */
     .pt-safe{padding-top: calc(1rem + env(safe-area-inset-top));}
     .pb-safe{padding-bottom: calc(1rem + env(safe-area-inset-bottom));}
 
+    /* Cards + Buttons */
+    .action-card{
+      background:linear-gradient(180deg, var(--navy-700), var(--navy-800));
+      color:var(--ivory); transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+      box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
+      border:1px solid var(--muted); min-height:44px; /* tap target */
+    }
+    .action-card:hover:not(:disabled){
+      transform:translateY(-1px);
+      box-shadow:0 12px 30px rgba(0,0,0,.35);
+      background:linear-gradient(180deg, var(--navy-600), var(--navy-700));
+    }
+    .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
+    .action-card:disabled{opacity:.55;cursor:not-allowed}
+
+    /* Global focus visibility */
+    :where(button,a,input,select,textarea):focus-visible{
+      outline:3px solid var(--teal);
+      outline-offset:2px;
+      border-radius:12px;
+    }
+
+    /* Street View layer */
     #panorama{position:absolute;inset:0;z-index:1}
     #panorama-container{pointer-events:none;opacity:0;visibility:hidden}
-    #panorama-container.shown{pointer-events:none;opacity:1;visibility:visible;transition:opacity 1s}
+    #panorama-container.shown{pointer-events:none;opacity:1;visibility:visible;transition:opacity .7s}
 
-    .action-card{background:#111827;color:#f8f7f2;transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.1)}
-    .action-card:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
-    .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
-    .action-card:disabled{opacity:.6;cursor:not-allowed}
-
-    #result-card{background:rgba(17,24,39,.92);color:#f8f7f2;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-      transition:transform .4s ease,opacity .3s ease;max-height:90vh;overflow-y:auto;border-top:1px solid rgba(248,247,242,.2)}
-    .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
+    /* Result drawer */
+    #result-card{
+      background:rgba(15,22,36,.92);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      transition:transform .4s ease,opacity .3s ease;
+      max-height:90vh; overflow-y:auto; border-top:1px solid var(--muted)
+    }
+    .place-type-tag{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--muted);
+      padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600
+    }
     .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
-    #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
-      background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-    #results-list-card{background:rgba(17,24,39,.97);color:#f8f7f2;border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
-    .result-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem; cursor: pointer;}
-    .result-item:hover{background: rgba(255,255,255,0.1);}
-    .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:#111827; pointer-events: none;}
+    /* Results List overlay */
+    #results-list-screen{
+      position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
+      background:rgba(3,8,18,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+    }
+    #results-list-card{background:rgba(15,22,36,.97);color:var(--ivory);border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto;border:1px solid var(--muted)}
+    .result-item{
+      background:rgba(255,255,255,.05);border:1px solid var(--muted);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem; cursor: pointer;
+    }
+    .result-item:hover{background: rgba(255,255,255,0.08);}
+    .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:var(--navy-900); pointer-events: none;}
 
-    #dark-side-button{position:fixed;bottom:1rem;left:1rem;font-size:1.5rem;opacity:.35;transition:opacity .2s;cursor:pointer;z-index:20}
+    /* Dark-side button */
+    #dark-side-button{position:fixed;bottom:1rem;left:1rem;font-size:1.5rem;opacity:.45;transition:opacity .2s;cursor:pointer;z-index:20}
     #dark-side-button:hover{opacity:1}
 
+    /* Compass modal */
     #compass-modal{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
-    #compass-dialog{width: min(92vw, 440px); background: rgba(17,24,39,.97); color: var(--ivory);
-      border:1px solid rgba(255,255,255,.12); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.5); padding:16px; outline:none;}
-    #nav-bubble{position:relative;margin: 8px 0 12px 0;color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);background:radial-gradient(120% 140% at 10% 0%, rgba(16,185,129,.16) 0%, rgba(245,158,11,.18) 35%, rgba(17,24,39,.96) 68%);
-      border:1px solid rgba(255,255,255,.12)}
+      background: rgba(3,8,18,.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
+    #compass-dialog{
+      width: min(92vw, 480px); background: rgba(15,22,36,.97); color: var(--ivory);
+      border:1px solid var(--muted); border-radius:18px; box-shadow:0 24px 70px rgba(0,0,0,.55); padding:16px; outline:none;
+    }
+    #nav-bubble{
+      position:relative;margin: 8px 0 12px 0;color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      background:
+        radial-gradient(120% 140% at 10% 0%, rgba(45,212,191,.10) 0%, rgba(242,193,78,.12) 35%, rgba(15,22,36,.96) 68%);
+      border:1px solid var(--muted)
+    }
     #nav-main{font-weight:700;letter-spacing:.2px}
     #nav-sub{font-size:11.5px;opacity:.85;margin-top:2px}
-    #compass-overlay{width:240px;height:240px;border-radius:22px;margin: 6px auto 10px auto; padding: 18px; position:relative;
-      background: radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
-        conic-gradient(from 0deg, rgba(245,158,11,.5), rgba(245,158,11,.1) 30%, rgba(16,185,129,.5) 60%, rgba(16,185,129,.12) 75%, rgba(245,158,11,.35));
-      border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
-      display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden}
-    #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--amber);
-      transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(245,158,11,.45));margin-bottom:8px}
-    #compass-dist{font-size:14px;color:#e5e7eb;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+    #compass-overlay{
+      width:260px;height:260px;border-radius:22px;margin: 6px auto 10px auto; padding: 18px; position:relative;
+      background:
+        radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
+        conic-gradient(from 0deg, rgba(242,193,78,.4), rgba(242,193,78,.08) 30%, rgba(45,212,191,.5) 60%, rgba(45,212,191,.12) 75%, rgba(242,193,78,.35));
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
+      display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden
+    }
+    #compass-arrow{
+      width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--gold);
+      transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(242,193,78,.45));margin-bottom:8px
+    }
+    #compass-dist{font-size:14px;color:var(--ink);font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 
-    /* Reviews mini-window */
+    /* Reviews modal */
     #reviews-modal{position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.55); backdrop-filter:blur(6px)}
-    #reviews-card{width:min(92vw,720px); max-height:78vh; overflow:auto; background:rgba(17,24,39,.98); color:#f8f7f2;
-      border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:16px; box-shadow:0 20px 60px rgba(0,0,0,.5)}
-    .review{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:12px}
+      background:rgba(3,8,18,.65); backdrop-filter:blur(8px)}
+    #reviews-card{
+      width:min(92vw,760px); max-height:85vh; overflow:auto;
+      background:rgba(15,22,36,.98); color:var(--ivory);
+      border:1px solid var(--muted); border-radius:18px; padding:16px; box-shadow:0 24px 70px rgba(0,0,0,.55)
+    }
+    .review{background:rgba(255,255,255,.06); border:1px solid var(--muted); border-radius:12px; padding:12px}
     .review + .review{margin-top:10px}
     .reviewer{font-weight:700}
     .review-meta{font-size:12px; opacity:.8}
-    .truncate{display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden}
+    /* allow full text; modal scrolls */
+    .whitespace-pre-wrap{white-space:pre-wrap}
+
+    /* Form/input: iOS zoom prevention (>=16px) */
+    input,select,textarea,button{font-size:16px}
+
+    /* Motion safety */
+    @media (prefers-reduced-motion: reduce){
+      *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important}
+    }
   </style>
 </head>
-<body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
 
   <!-- Street View backdrop (non-interactive) -->
   <div id="panorama-container" class="fixed inset-0">
@@ -89,38 +169,39 @@
 
   <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
     <section id="main-screen" aria-labelledby="app-title">
-      <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold text-gray-900 mb-4">Local Explorer</h1>
+      <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold mb-4" style="color:var(--ivory)">Local Explorer</h1>
 
       <!-- Local facts -->
       <section id="fun-fact-container" class="text-left mb-4 px-2">
-        <h2 class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h2>
-        <p id="fun-fact-text" class="text-sm text-gray-600 border-t-2 border-gray-200 pt-2">Loading...</p>
+        <h2 class="font-header font-bold mb-1 text-sm tracking-wider uppercase" style="color:var(--gold)">Local Fact</h2>
+        <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="color:var(--ink); border-color:rgba(255,255,255,.12)">Loading...</p>
       </section>
 
-      <p id="location-status" class="text-lg font-semibold text-gray-700 my-4">Please allow location access...</p>
+      <p id="location-status" class="text-lg font-semibold my-4" style="color:var(--ink)">Please allow location access...</p>
 
       <div id="manual-location-entry" class="hidden mb-6">
-        <div class="flex items-center bg-white rounded-lg shadow-md">
+        <div class="flex items-center rounded-lg" style="background:rgba(255,255,255,.06); border:1px solid var(--muted)">
           <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place"
-                 class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" />
-          <button id="search-button" class="action-card bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-r-lg" aria-label="Search">🔍</button>
+                 class="w-full bg-transparent text-white p-3 rounded-l-lg focus:outline-none" />
+          <button id="search-button" class="action-card bg-gradient-to-b from-[var(--gold)] to-[var(--gold)] text-black font-semibold p-3 rounded-r-lg" aria-label="Search">🔍</button>
         </div>
       </div>
 
       <!-- Categories -->
       <nav id="filter-container" class="grid grid-cols-2 gap-4">
         <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🍽️ Foodie Finds</button>
-        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex-col items-center justify-center">🏛️ Iconic Sights</button>
-        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex-col items-center justify-center">🌙 Night Out</button>
-        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex-col items-center justify-center">💎 Hidden Gems</button>
-        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex-col items-center justify-center">🐾 Pet Friendly</button>
-        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex-col items-center justify-center">🛠️ Utilities & Help</button>
+        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🏛️ Iconic Sights</button>
+        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🌙 Night Out</button>
+        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">💎 Hidden Gems</button>
+        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🐾 Pet Friendly</button>
+        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🛠️ Utilities & Help</button>
       </nav>
 
-      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base bg-orange-500 text-white">🤷 Surprise Me!</button>
+      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base"
+        style="background:linear-gradient(180deg,#24406f,#1c2f54); border-color:rgba(255,255,255,.18)">🤷 Surprise Me!</button>
 
       <div id="sub-menu-container" class="hidden mt-4"></div>
-      <button id="back-to-main-filters" class="hidden mt-4 text-gray-600 underline">Back to main filters</button>
+      <button id="back-to-main-filters" class="hidden mt-4 underline" style="color:var(--ink)">Back to main filters</button>
     </section>
   </main>
 
@@ -131,9 +212,9 @@
     <div id="results-list-card" class="w-full max-w-2xl">
       <div class="flex items-center justify-between mb-3">
         <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
-        <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Back</button>
+        <button id="close-results-button" class="action-card font-bold py-2 px-3 rounded-lg">Back</button>
       </div>
-      <div id="results-meta" class="text-sm text-gray-300 mb-3"></div>
+      <div id="results-meta" class="text-sm mb-3" style="color:var(--ink)"></div>
       <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
   </section>
@@ -143,48 +224,49 @@
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
       <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
       <div class="flex justify-between items-start">
-        <h2 class="text-2xl md:text-3xl font-header font-bold text-left text-white" id="place-name">...</h2>
+        <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2>
         <div class="flex items-center gap-2">
           <span id="place-accessibility" class="text-2xl"></span>
-          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform text-white" aria-pressed="false">☆</button>
+          <button id="save-place-button" class="text-3xl opacity-80 hover:opacity-100 transition-transform" aria-pressed="false" title="Save">☆</button>
         </div>
       </div>
 
       <div class="flex justify-center items-center gap-3 text-base my-2">
         <div class="star-row" id="place-stars"></div>
-        <p class="font-semibold text-orange-400" id="place-rating">...</p>
-        <p class="font-semibold text-green-400" id="place-price">...</p>
-        <a id="phone-link" href="#" class="text-blue-300 hover:underline text-sm"></a>
+        <p class="font-semibold" id="place-rating" style="color:var(--gold)">...</p>
+        <p class="font-semibold" id="place-price" style="color:#a7f3d0">...</p>
+        <a id="phone-link" href="#" class="hover:underline text-sm" style="color:#93c5fd"></a>
       </div>
 
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
 
       <div class="flex flex-wrap justify-center gap-3 my-4">
-        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-orange-500 text-white font-bold py-3 px-4 rounded-lg">Map</a>
-        <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hidden">Website</a>
-        <button id="reviews-button" class="flex-1 action-card bg-slate-600 text-white font-bold py-3 px-4 rounded-lg">Reviews</button>
-        <button id="share-button" class="flex-1 action-card bg-teal-600 text-white font-bold py-3 px-4 rounded-lg">Share</button>
-        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg">Compass (Walking)</button>
+        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg"
+           style="background:linear-gradient(180deg,#24406f,#1c2f54)">Map</a>
+        <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden">Website</a>
+        <button id="reviews-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Reviews</button>
+        <button id="share-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Share</button>
+        <button id="compass-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Compass (Walking)</button>
       </div>
 
       <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
-        <button id="try-again-button" class="flex-1 action-card bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
-        <button id="next-suggestion-button" class="flex-1 action-card bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
+        <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
+        <button id="next-suggestion-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
       </div>
     </div>
   </section>
 
-  <!-- Compass Modal (explicit walking mode) -->
+  <!-- Compass Modal -->
   <div id="compass-modal" aria-hidden="true">
     <div id="compass-dialog" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <header class="flex items-center justify-between mb-2">
         <h2 id="modal-title" class="font-header text-lg flex items-center gap-2">
           🚶 Live Compass — Walking
-          <span class="text-xs font-semibold bg-emerald-700/60 px-2 py-0.5 rounded">Walking mode</span>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:rgba(16,185,129,.25); border:1px solid var(--muted)">Walking mode</span>
         </h2>
         <div class="flex gap-2">
-          <button id="guide-button" class="action-card bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
-          <button id="close-compass" class="action-card text-white font-bold py-2 px-3 rounded-lg bg-gray-700">Close</button>
+          <button id="guide-button" class="action-card font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
+          <button id="close-compass" class="action-card font-bold py-2 px-3 rounded-lg">Close</button>
         </div>
       </header>
       <div id="nav-bubble">
@@ -198,18 +280,19 @@
     </div>
   </div>
 
-  <!-- Reviews Mini Window -->
+  <!-- Reviews Modal -->
   <div id="reviews-modal">
     <div id="reviews-card" role="dialog" aria-modal="true" aria-labelledby="reviews-title">
       <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
         <h3 id="reviews-title" class="font-header text-lg">Recent Reviews</h3>
         <div class="flex items-center gap-2">
-          <label class="flex items-center gap-2 text-sm opacity-90">
-            <input id="reviews-worst-toggle" type="checkbox" class="accent-orange-500">
+          <label class="flex items-center gap-2 text-sm opacity-90 select-none">
+            <input id="reviews-worst-toggle" type="checkbox" class="accent-[var(--gold)]">
             <span>Worst (≤3★)</span>
           </label>
-          <a id="reviews-open-in-maps" class="action-card bg-orange-600 text-white font-bold py-2 px-3 rounded-lg hidden" target="_blank" rel="noopener">Open in Google Maps</a>
-          <button id="close-reviews" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Close</button>
+          <a id="reviews-open-in-maps" class="action-card font-bold py-2 px-3 rounded-lg hidden" target="_blank" rel="noopener"
+             style="background:linear-gradient(180deg,#24406f,#1c2f54)">Open in Google Maps</a>
+          <button id="close-reviews" class="action-card font-bold py-2 px-3 rounded-lg">Close</button>
         </div>
       </div>
       <div id="reviews-list"></div>
@@ -227,7 +310,6 @@
     /* ====== Refs ====== */
     const funFactContainer = document.getElementById('fun-fact-container');
     const funFactText = document.getElementById('fun-fact-text');
-    const mainScreen = document.getElementById('main-screen');
     const resultsListScreen = document.getElementById('results-list-screen');
     const resultsTitle = document.getElementById('results-title');
     const resultsMeta = document.getElementById('results-meta');
@@ -254,21 +336,17 @@
     const savePlaceButton = document.getElementById('save-place-button');
     const compassModal = document.getElementById('compass-modal');
     const compassDialog = document.getElementById('compass-dialog');
-    const closeCompassBtn = document.getElementById('close-compass');
     const guideButton = document.getElementById('guide-button');
     const navMain = document.getElementById('nav-main');
     const navSub = document.getElementById('nav-sub');
     const compassArrow = document.getElementById('compass-arrow');
     const compassDist = document.getElementById('compass-dist');
-    const shareButton = document.getElementById('share-button');
     const randomButton = document.getElementById('random-button');
     const darkSideButton = document.getElementById('dark-side-button');
 
     // Reviews refs
     const reviewsModal = document.getElementById('reviews-modal');
     const reviewsList = document.getElementById('reviews-list');
-    const closeReviewsBtn = document.getElementById('close-reviews');
-    const reviewsButton = document.getElementById('reviews-button');
     const reviewsOpenInMaps = document.getElementById('reviews-open-in-maps');
     const reviewsWorstToggle = document.getElementById('reviews-worst-toggle');
 
@@ -306,6 +384,7 @@
     const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
     /* ====== Utils ====== */
+    const METERS_10_MILES = 16093; // ~10 miles
     const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
     const toggleFilterButtons = d => document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
     const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
@@ -313,6 +392,7 @@
     const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
     const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
     const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
+    const toRad = d => d*Math.PI/180, toDeg = r => r*180/Math.PI, norm = a => ((a%360)+360)%360;
 
     function isCandidate(p, kw, reqType, allowedSet) {
       const t=new Set(p.types||[]);
@@ -331,11 +411,7 @@
     }
 
     function speak(text){
-      try{
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        speechSynthesis.speak(u);
-      }catch{}
+      try{ speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }catch{}
     }
 
     /* ====== Local Facts ====== */
@@ -349,206 +425,15 @@
         const exURL = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&pageids=${ids.join('|')}&format=json&origin=*`;
         const exRes = await fetch(exURL); const ex = await exRes.json();
         localFacts = Object.values(ex?.query?.pages||{}).map(p=>p.extract).filter(e => e && e.length > 60 && e.length < 280);
-        if(localFacts.length) startFactCycling(); else funFactText.textContent="No detailed local facts found.";
+        funFactText.textContent = localFacts[0] || "No local facts found nearby.";
+        if(localFacts.length>1){
+          if(factInterval) clearInterval(factInterval);
+          let i=0; factInterval=setInterval(()=>{ i=(i+1)%localFacts.length; funFactText.textContent = localFacts[i]; },7000);
+        }
       }catch{ funFactText.textContent="Local facts are currently unavailable."; }
     }
-    function startFactCycling(){
-      if(factInterval) clearInterval(factInterval);
-      currentFactIndex=0; funFactText.textContent = localFacts[currentFactIndex] || "No local facts found nearby.";
-      if(localFacts.length>1){ factInterval=setInterval(()=>{ currentFactIndex=(currentFactIndex+1)%localFacts.length; funFactText.textContent = localFacts[currentFactIndex]; },7000); }
-    }
 
-    /* ====== Results List ====== */
-    function showResultsList(parentFilter, subLabel){
-      resultsListScreen.style.display='flex'; funFactContainer.style.display='none';
-      resultsTitle.textContent=subLabel || 'Results';
-      resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
-      resultsList.innerHTML='';
-      currentResults.forEach(p=>{
-        const photo=(p.photos&&p.photos[0])?p.photos[0].getUrl({maxWidth:200,maxHeight:200}):'https://placehold.co/200x200/111827/fff?text=N/A';
-        const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
-        const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
-        card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" />
-          <div class="flex-1 text-left">
-            <div class="flex items-center justify-between"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300">${price}</div></div>
-            <div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div></div>
-            <div class="text-xs text-gray-300 mt-1">${vic}</div>
-          </div>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full bg-orange-500 text-white self-center map-link-icon">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-          </a>`;
-        resultsList.appendChild(card);
-      });
-    }
-
-    /* ====== Search ====== */
-    function findAdventure(searchParams,parentFilter,subLabel){
-      if(!placesService||!currentUserLocation)return;
-      resultsListScreen.style.display='none'; toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
-      locationStatus.textContent="Searching nearby..."; currentResults=[];
-      const reqType=searchParams.type||null;
-      const kw=(parentFilter==='eat')?(searchParams.keyword||(reqType?reqType.replace('_restaurant',''):'')):searchParams.keyword||'';
-      const radii=[2000,5000,10000,20000,35000,50000]; let i=0;
-
-      const nearby=()=>{ if(i>=radii.length)return text();
-        const radius=radii[i++]; const req={location:currentUserLocation,radius,...(searchParams.type&&{type:searchParams.type}),...(kw&&{keyword:kw})};
-        placesService.nearbySearch(req,(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
-            const allowed = allowedByCategory[parentFilter] || new Set();
-            const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-            currentResults=dedupe([...currentResults,...res.filter(p => filtered(p))]);
-            if(currentResults.length<12){locationStatus.textContent=`Searching wider (${metersToImperial(radius)})...`;nearby();} else finalize();
-          } else nearby();
-        });
-      };
-      const text=()=>{
-        const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||''} in ${city}`;
-        placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
-            const allowed = allowedByCategory[parentFilter] || new Set();
-            const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-            currentResults=dedupe([...currentResults,...res.filter(p => filtered(p))]);
-          } finalize();
-        });
-      };
-      const finalize=()=>{
-        currentResults=sortResults(currentResults);
-        showResultsList(parentFilter,subLabel);
-        toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      };
-      nearby();
-    }
-
-    /* ====== Details, Directions, Compass, Reviews ====== */
-    function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s); }
-
-    function getPlaceDetails(summary){
-      resultsListScreen.style.display = 'none';
-      resultScreen.style.display='flex';
-      funFactContainer.style.display='none';
-      panorama.setPosition(summary.geometry.location);
-      panoramaContainer.classList.add('shown');
-      currentPlace = summary;
-      updateSaveButtonState();
-      placeNameEl.textContent = 'Loading Details...';
-      placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
-      placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
-      placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
-      phoneLink.textContent=''; phoneLink.removeAttribute('href');
-      placeAccessibility.textContent=''; placeAccessibility.style.display='none';
-      reviewsOpenInMaps.classList.add('hidden');
-      reviewsOpenInMaps.removeAttribute('href');
-      reviewsList.innerHTML='';
-
-      routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
-
-      placesService.getDetails({
-        placeId:summary.place_id,
-        fields:[
-          'name','rating','user_ratings_total','price_level','photos','website','vicinity','types',
-          'formatted_phone_number','geometry','wheelchair_accessible_entrance','reviews','url'
-        ]
-      },(place,status)=>{
-        if(status===google.maps.places.PlacesServiceStatus.OK&&place){
-          currentPlace=place;
-          placeNameEl.textContent=place.name;
-          renderStars(placeStarsEl, place.rating??0);
-          placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
-          placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-          if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
-          if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
-          if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
-          if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
-          if(place.types?.length){
-            place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{
-              const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s);
-            });
-          }
-          if(place.url){ reviewsOpenInMaps.href = place.url; reviewsOpenInMaps.classList.remove('hidden'); }
-
-          const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
-
-          // Build route (Walking)
-          buildRouteTo(place.geometry.location);
-
-          // Reviews data + panel
-          currentReviews = place.reviews || [];
-          updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
-
-          updateSaveButtonState();
-        }
-      });
-    }
-
-    // Reviews UI (+ worst filter)
-    function updateReviewsUI(reviews, worstOnly=false){
-      reviewsList.innerHTML = '';
-      if(!reviews || !reviews.length){
-        const empty = document.createElement('div');
-        empty.className='text-sm opacity-80';
-        empty.textContent = 'No recent reviews.';
-        reviewsList.appendChild(empty);
-        return;
-      }
-
-      let data = [...reviews];
-      if (worstOnly){
-        data = data.filter(r => typeof r.rating === 'number' && r.rating <= 3);
-        // sort by rating asc (worst first), then most recent within same rating
-        data.sort((a,b)=>{
-          const ar = a.rating ?? 999, br = b.rating ?? 999;
-          if (ar !== br) return ar - br;
-          return (b.time||0) - (a.time||0);
-        });
-      } else {
-        // default: most recent first
-        data.sort((a,b)=> (b.time||0)-(a.time||0));
-      }
-
-      if (!data.length){
-        const none = document.createElement('div');
-        none.className='text-sm opacity-80';
-        none.textContent = 'No reviews match this filter.';
-        reviewsList.appendChild(none);
-        return;
-      }
-
-      data.forEach(r=>{
-        const card = document.createElement('div');
-        card.className='review';
-        const stars = renderStarsHTML(r.rating || 0);
-        const when = r.relative_time_description || '';
-        const user = r.author_name || 'Anonymous';
-        const text = r.text || '';
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="reviewer">${escapeHtml(user)}</div>
-            <div class="review-meta">${escapeHtml(when)}</div>
-          </div>
-          <div class="star-row mt-1">${stars}</div>
-          <p class="mt-2 text-sm truncate">${escapeHtml(text)}</p>
-        `;
-        reviewsList.appendChild(card);
-      });
-    }
-
-    function escapeHtml(s){
-      return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
-
-    // --- Geometry helpers
-    const toRad = d => d*Math.PI/180;
-    const toDeg = r => r*180/Math.PI;
-    const norm = a => ((a%360)+360)%360;
-
-    function bearingFromTo(a, b){
-      const φ1 = toRad(a.lat), φ2 = toRad(b.lat);
-      const Δλ = toRad(b.lng - a.lng);
-      const y = Math.sin(Δλ) * Math.cos(φ2);
-      const x = Math.cos(φ1)*Math.cos(φ2) + Math.sin(φ1)*Math.sin(φ2)*Math.cos(Δλ);
-      return norm(toDeg(Math.atan2(y, x)));
-    }
-
+    /* ====== Distance helpers ====== */
     function haversineMeters(a,b){
       const R=6371000;
       const φ1=toRad(a.lat), φ2=toRad(b.lat);
@@ -556,333 +441,15 @@
       const h=Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
       return 2*R*Math.asin(Math.sqrt(h));
     }
-
-    function turnHint(delta){
-      const d = Math.abs(delta);
-      if (d < 15) return 'Ahead';
-      if (d < 45) return delta > 0 ? 'Veer right' : 'Veer left';
-      if (d < 110) return delta > 0 ? 'Turn right' : 'Turn left';
-      return delta > 0 ? 'Sharp right' : 'Sharp left';
+    function computeDistanceMetersFromCurrent(loc){
+      if(!currentUserLocation || !loc) return Infinity;
+      const b = { lat: typeof loc.lat === 'function' ? loc.lat() : loc.lat,
+                  lng: typeof loc.lng === 'function' ? loc.lng() : loc.lng };
+      return haversineMeters(currentUserLocation, b);
     }
 
-    // --- Directions + Compass (Walking mode)
-    function buildRouteTo(latLng){
-      try{
-        destLatLng = { lat: typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat,
-                       lng: typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng };
-      }catch{
-        destLatLng = latLng;
-      }
-
-      const origin = currentUserLocation ? new google.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng) : null;
-      if(!origin || !destLatLng){ document.getElementById('compass-button').disabled = true; return; }
-
-      const req = {
-        origin,
-        destination: new google.maps.LatLng(destLatLng.lat, destLatLng.lng),
-        travelMode: google.maps.TravelMode.WALKING
-      };
-
-      directionsService.route(req,(res,status)=>{
-        if(status === google.maps.DirectionsStatus.OK && res.routes?.[0]?.legs?.[0]){
-          const leg = res.routes[0].legs[0];
-          routeSteps = leg.steps || [];
-          stepIndex = 0;
-          stepTarget = routeSteps[0]?.end_location || destLatLng;
-          document.getElementById('compass-button').disabled = false;
-
-          const inst = stripHtml(routeSteps[0]?.instructions || 'Head to destination');
-          const dist = routeSteps[0]?.distance?.text || '';
-          navMain.textContent = inst;
-          navSub.textContent = dist ? `Walking · ${dist}` : 'Walking · Follow the arrow';
-        } else {
-          // Fallback: straight line walking
-          routeSteps = [];
-          stepIndex = 0;
-          stepTarget = destLatLng;
-          document.getElementById('compass-button').disabled = false;
-          navMain.textContent = 'Head toward destination';
-          navSub.textContent = 'Walking · Follow the arrow';
-        }
-      });
-    }
-
-    function setStep(i){
-      if (i < 0) i = 0;
-      if (!routeSteps.length){ stepIndex = 0; stepTarget = destLatLng; return; }
-      if (i >= routeSteps.length){
-        stepIndex = routeSteps.length - 1;
-        stepTarget = destLatLng;
-        return;
-      }
-      stepIndex = i;
-      stepTarget = routeSteps[i].end_location || destLatLng;
-
-      const inst = stripHtml(routeSteps[i]?.instructions || 'Continue');
-      const dist = routeSteps[i]?.distance?.text || '';
-      navMain.textContent = inst;
-      navSub.textContent = dist ? `Walking · ${dist}` : 'Walking · Follow the arrow';
-
-      if (guideSpeaking){
-        const say = `${inst}${dist?'. '+dist:''}`;
-        speak(say);
-      }
-    }
-
-    function updateCompassUI(){
-      if (!compassActive || !currentUserLocation || !stepTarget) return;
-
-      const here = { lat: currentUserLocation.lat, lng: currentUserLocation.lng };
-      const there = { lat: typeof stepTarget.lat === 'function' ? stepTarget.lat() : stepTarget.lat,
-                      lng: typeof stepTarget.lng === 'function' ? stepTarget.lng() : stepTarget.lng };
-
-      const distM = haversineMeters(here, there);
-      compassDist.textContent = metersToImperial(distM);
-
-      // Advance step when close
-      const arriveThreshold = routeSteps.length ? 12 : 8; // meters
-      if (distM < arriveThreshold){
-        if (routeSteps.length && stepIndex < routeSteps.length - 1){
-          setStep(stepIndex + 1);
-        } else {
-          navMain.textContent = 'Arrived';
-          navSub.textContent = 'Walking complete';
-          compassDist.textContent = '0 ft';
-        }
-      }
-
-      // Rotate arrow to show relative heading
-      const bearing = bearingFromTo(here, there);
-      const delta = norm(bearing - headingDeg);
-      const rel = delta <= 180 ? delta : delta - 360; // -180..180
-      compassArrow.style.transform = `rotate(${rel}deg)`;
-
-      // Hint
-      const hint = turnHint(rel);
-      if (hint === 'Ahead'){
-        navSub.textContent = (routeSteps[stepIndex]?.distance?.text ? `Walking · ${routeSteps[stepIndex].distance.text}` : 'Walking · On course');
-      } else {
-        navSub.textContent = `Walking · ${hint}${routeSteps[stepIndex]?.distance?.text ? ' · ' + routeSteps[stepIndex].distance.text : ''}`;
-      }
-    }
-
-    function onOrientation(e){
-      if (typeof e.webkitCompassHeading === 'number'){
-        headingDeg = norm(e.webkitCompassHeading);
-      } else {
-        const alpha = typeof e.alpha === 'number' ? e.alpha : 0;
-        headingDeg = norm(360 - alpha);
-      }
-      updateCompassUI();
-    }
-
-    async function requestMotionPermissionIfNeeded(){
-      const D = window.DeviceOrientationEvent;
-      if (!D) return true;
-      if (typeof D.requestPermission === 'function'){
-        try{
-          const res = await D.requestPermission();
-          return res === 'granted';
-        }catch{ return false; }
-      }
-      return true;
-    }
-
-    function openCompass(){
-      compassModal.style.display = 'flex';
-      compassModal.setAttribute('aria-hidden','false');
-      compassDialog.focus();
-      compassDialog.addEventListener('keydown', trapCompassTab);
-      startCompass();
-    }
-
-    function closeCompass(){
-      stopCompass();
-      compassDialog.removeEventListener('keydown', trapCompassTab);
-      compassModal.style.display = 'none';
-      compassModal.setAttribute('aria-hidden','true');
-    }
-
-    function trapCompassTab(e){
-      if (e.key !== 'Tab') return;
-      const focusable = compassDialog.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      if (!focusable.length) return;
-      const first = focusable[0], last = focusable[focusable.length-1];
-      if (e.shiftKey && document.activeElement === first){ last.focus(); e.preventDefault(); }
-      else if (!e.shiftKey && document.activeElement === last){ first.focus(); e.preventDefault(); }
-    }
-
-    async function startCompass(){
-      if (compassActive) return;
-      await requestMotionPermissionIfNeeded();
-      window.addEventListener('deviceorientation', onOrientation, true);
-
-      if (navigator.geolocation){
-        watchId = navigator.geolocation.watchPosition(p=>{
-          currentUserLocation = { lat: p.coords.latitude, lng: p.coords.longitude };
-          updateCompassUI();
-        }, ()=>{}, { enableHighAccuracy:true, maximumAge:1000, timeout:10000 });
-      }
-      compassActive = true;
-      updateCompassUI();
-
-      if (guideSpeaking){
-        if(routeSteps.length && stepIndex < routeSteps.length){
-          const st=routeSteps[stepIndex];
-          const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||'';
-          speak(`${text}${dist?'. '+dist:''}`);
-        } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
-      }
-    }
-
-    function stopCompass(){
-      if (!compassActive) return;
-      compassActive = false;
-      try{ window.removeEventListener('deviceorientation', onOrientation, true); }catch{}
-      if (watchId !== null){ try{ navigator.geolocation.clearWatch(watchId); }catch{} watchId = null; }
-    }
-
-    /* ====== Init / Geocode ====== */
-    function initApp(){
-      panorama=new google.maps.StreetViewPanorama(panoramaDiv,{addressControl:false,showRoadLabels:false,linksControl:false,panControl:false,enableCloseButton:false,fullscreenControl:false,zoomControl:false});
-      placesService=new google.maps.places.PlacesService(document.createElement('div'));
-      geocoder=new google.maps.Geocoder();
-      directionsService=new google.maps.DirectionsService();
-      toggleFilterButtons(true);
-      if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos=>{
-          const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
-          reverseGeocodeSetLocation(coords);
-        }, handleLocationError, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
-      } else handleLocationError();
-    }
-    window.initApp=initApp;
-
-    function handleLocationError(){
-      locationStatus.textContent="Couldn't get your location. Please enter one manually.";
-      manualLocationEntry.classList.remove('hidden');
-      getFunFact({lat:51.5074,lng:-0.1278});
-      toggleFilterButtons(false);
-    }
-    function reverseGeocodeSetLocation(coords){
-      geocoder.geocode({location:coords},(results,status)=>{
-        let label="Your Current Location"; currentLocality='';
-        if(status==='OK'&&results?.[0]){
-          const c=results[0].address_components||[];
-          const city=c.find(x=>x.types.includes('locality'))?.long_name||c.find(x=>x.types.includes('postal_town'))?.long_name||c.find(x=>x.types.includes('sublocality'))?.long_name;
-          const state=c.find(x=>x.types.includes('administrative_area_level_1'))?.short_name;
-          if(city&&state) currentLocality=`${city}, ${state}`;
-          label=results[0].formatted_address.split(',').slice(0,2).join(',');
-        }
-        setLocationAndEnableApp(coords,label);
-      });
-    }
-    function geocodeLocation(){
-      const address=locationInput.value.trim(); if(!address) return;
-      locationStatus.textContent=`Searching for "${address}"...`;
-      geocoder.geocode({address},(results,status)=>{
-        if(status==='OK'&&results?.[0]){
-          const loc=results[0].geometry.location;
-          reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()});
-        } else locationStatus.textContent=`Could not find "${address}". Please try again.`;
-      });
-    }
-    function setLocationAndEnableApp(coords,label){
-      currentUserLocation=coords;
-      locationStatus.textContent=`Exploring: ${label}`;
-      manualLocationEntry.classList.add('hidden');
-      toggleFilterButtons(false);
-      getFunFact(coords);
-      funFactContainer.style.display='block';
-    }
-
-    /* ====== UI & Events ====== */
-    function showSubMenu(filter){
-      filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); darkSideButton.style.display='none';
-      subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu';
-      for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);}
-      subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
-    }
-    function hideSubMenu(){subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block'}
-    function findRandomAdventure() {
-      const randomizableFilters = { ...subFilterMap };
-      ['utilities', 'pets', 'dark'].forEach(f => delete randomizableFilters[f]);
-      const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj));
-      hideSubMenu();
-      findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!");
-    }
-    function resetApp(hide=true){
-      closeCompass();
-      resultScreen.style.display='none'; resultsListScreen.style.display='none';
-      mainScreen.classList.remove('hidden');
-      funFactContainer.style.display='block';
-      hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      if(currentUserLocation) locationStatus.textContent='Location set! Where to next?';
-      if(hide) panoramaContainer.classList.remove('shown');
-    }
-
-    document.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
-      if (e.target.closest('.map-link-icon')) return;
-
-      if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
-      if(btn.closest('.sub-menu') && btn.dataset.name){
-        const name=btn.dataset.name, parent=btn.dataset.parent;
-        let params=subFilterMap[parent][name];
-        if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];}
-        findAdventure(params,parent,name); return;
-      }
-      if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
-
-      switch(btn.id){
-        case 'dark-side-button': showSubMenu('dark'); break;
-        case 'back-to-main-filters': hideSubMenu(); break;
-        case 'close-results-button': resultsListScreen.style.display='none'; funFactContainer.style.display='block'; break;
-        case 'try-again-button': resetApp(); break;
-        case 'search-button': geocodeLocation(); break;
-        case 'random-button': findRandomAdventure(); break;
-        case 'next-suggestion-button':
-          if(currentResults.length){const idx=currentResults.findIndex(r=>r.place_id===(currentPlace?.place_id||'')); const next=currentResults[(idx+1)%currentResults.length]; if(next) getPlaceDetails(next);}
-          break;
-        case 'save-place-button':
-          if(currentPlace) {
-            if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id];
-            else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href};
-            localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
-            updateSaveButtonState();
-          }
-          break;
-        case 'compass-button': openCompass(); break;
-        case 'close-compass': closeCompass(); break;
-        case 'guide-button':
-          guideSpeaking = !guideSpeaking;
-          guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎';
-          if(guideSpeaking){
-            if(routeSteps.length && stepIndex < routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); }
-            else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
-          } else { try{ speechSynthesis.cancel(); }catch{} }
-          break;
-        case 'share-button':
-          if (navigator.share && currentPlace) {
-            navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href });
-          }
-          break;
-        case 'reviews-button':
-          reviewsModal.style.display='flex';
-          break;
-        case 'close-reviews':
-          reviewsModal.style.display='none';
-          break;
-      }
-    });
-
-    // Worst filter toggle
-    reviewsWorstToggle.addEventListener('change', ()=>{
-      updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
-    });
-
-    document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
-  </script>
-</body>
-</html>
-```
+    /* ====== Results List ====== */
+    function showResultsList(parentFilter, subLabel){
+      resultsListScreen.style.display='flex'; funFactContainer.style.display='none';
+      resultsTitle.textContent=subLabel || 'Results';
+      resultsMeta.textContent=currentResults.length?`${currentResults.length
