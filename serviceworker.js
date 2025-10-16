@@ -1,4 +1,4 @@
-const CACHE_NAME = 'local-explorer-v8-gold-master'; // Final production cache version
+const CACHE_NAME = 'local-explorer-v9-gold-master'; // Final production cache version
 const urlsToCache = [
     '/',
     'LocalExplorer.html',
@@ -74,3 +74,4 @@ self.addEventListener('fetch', event => {
             })
     );
 });
+
