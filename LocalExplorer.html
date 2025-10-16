@@ -357,7 +357,8 @@
         funFactContainer.style.display='none';
         panorama.setPosition(summary.geometry.location);
         panoramaContainer.classList.add('shown');
-        currentPlace = summary; updateSaveButtonState();
+        currentPlace = summary; 
+        updateSaveButtonState();
         placeNameEl.textContent = 'Loading Details...';
         placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
         placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
@@ -496,7 +497,7 @@
         if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];}
         findAdventure(params,parent,name); return;
       }
-      if(e.target.classList.contains('result-item') || e.target.closest('.result-item')){const t=e.target.closest('.result-item'); openDetailsById(t.dataset.id); return;}
+      if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
 
       switch(btn.id){
         case 'dark-side-button': showSubMenu('dark'); break;
@@ -525,7 +526,5 @@
 
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
   </script>
-
 </body>
 </html>
-
