@@ -4,16 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
-  <link rel="Manifest" href="./Manifest.json" />
+  <link rel="manifest" href="./manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Local Explorer" />
   <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
   <title>Local Explorer</title>
 
-  <!-- SAFE CALLBACK STUB (must be BEFORE Google script) -->
+  <!-- Safe callback stub -->
   <script>
-    // Google will call window.initApp; ensure it exists even if our real script hasn't loaded yet.
     window.initApp = function () {
       (function wait() {
         if (typeof window.__realInitApp === 'function') return window.__realInitApp();
@@ -22,7 +21,7 @@
     };
   </script>
 
-  <!-- Google Maps (keep your key). If you switch to type="module", still export init globally. -->
+  <!-- Google Maps -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places&callback=initApp" async defer></script>
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,128 +30,90 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* ===== Theme (Modern Navy) ===== */
-    :root{
-      --navy-900:#0b1220; --navy-800:#0f1a2e; --navy-700:#12203b; --navy-600:#1a2b4f; --navy-500:#233a6b;
-      --ivory:#f8f7f2; --gold:#f2c14e; --teal:#2dd4bf; --ink:#e5e7eb; --muted:rgba(255,255,255,.12);
-    }
+    :root{--navy-900:#0b1220;--navy-800:#0f1a2e;--navy-700:#12203b;--navy-600:#1a2b4f;--navy-500:#233a6b;--ivory:#f8f7f2;--gold:#f2c14e;--teal:#2dd4bf;--ink:#e5e7eb;--muted:rgba(255,255,255,.12)}
     html,body{height:100%}
-    body{
-      font-family:'Raleway',sans-serif; color:var(--ivory);
-      background:
-        radial-gradient(140% 140% at 20% -10%, rgba(45,212,191,.06) 0%, rgba(255,255,255,0) 60%),
-        linear-gradient(180deg, var(--navy-900) 0%, var(--navy-800) 60%, var(--navy-900) 100%);
-      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-    }
+    body{font-family:'Raleway',sans-serif;color:var(--ivory);background:
+      radial-gradient(140% 140% at 20% -10%, rgba(45,212,191,.06) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--navy-900) 0%, var(--navy-800) 60%, var(--navy-900) 100%);
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
     h1,h2,h3,.font-header{font-family:'Poppins',sans-serif}
-    .pt-safe{padding-top: calc(1rem + env(safe-area-inset-top));}
-    .pb-safe{padding-bottom: calc(1rem + env(safe-area-inset-bottom));}
-
-    .action-card{
-      background:linear-gradient(180deg, var(--navy-700), var(--navy-800));
-      color:var(--ivory); transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
-      box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
-      border:1px solid var(--muted); min-height:44px;
-    }
-    .action-card:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 12px 30px rgba(0,0,0,.35);
-      background:linear-gradient(180deg, var(--navy-600), var(--navy-700)); }
+    .pt-safe{padding-top:calc(1rem + env(safe-area-inset-top))}
+    .pb-safe{padding-bottom:calc(1rem + env(safe-area-inset-bottom))}
+    .action-card{background:linear-gradient(180deg,var(--navy-700),var(--navy-800));color:var(--ivory);transition:transform .18s,box-shadow .18s,background .18s;box-shadow:0 8px 24px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.04);border:1px solid var(--muted);min-height:44px}
+    .action-card:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 30px rgba(0,0,0,.35);background:linear-gradient(180deg,var(--navy-600),var(--navy-700))}
     .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
     .action-card:disabled{opacity:.55;cursor:not-allowed}
-    :where(button,a,input,select,textarea):focus-visible{ outline:3px solid var(--teal); outline-offset:2px; border-radius:12px; }
-
+    :where(button,a,input,select,textarea):focus-visible{outline:3px solid var(--teal);outline-offset:2px;border-radius:12px}
     #panorama{position:absolute;inset:0;z-index:1}
     #panorama-container{pointer-events:none;opacity:0;visibility:hidden}
     #panorama-container.shown{pointer-events:none;opacity:1;visibility:visible;transition:opacity .7s}
-
-    #result-card{background:rgba(15,22,36,.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-      transition:transform .4s ease,opacity .3s ease; max-height:90vh; overflow-y:auto; border-top:1px solid var(--muted)}
-    .place-type-tag{background:rgba(255,255,255,.06); border:1px solid var(--muted); padding:2px 10px; border-radius:9999px; font-size:.75rem; text-transform:capitalize; font-weight:600}
+    #result-card{background:rgba(15,22,36,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .4s,opacity .3s;max-height:90vh;overflow-y:auto;border-top:1px solid var(--muted)}
+    .place-type-tag{background:rgba(255,255,255,.06);border:1px solid var(--muted);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
     .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
-
-    #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
-      background:rgba(3,8,18,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;background:rgba(3,8,18,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     #results-list-card{background:rgba(15,22,36,.97);color:var(--ivory);border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto;border:1px solid var(--muted)}
-    .result-item{background:rgba(255,255,255,.05);border:1px solid var(--muted);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem; cursor: pointer;}
-    .result-item:hover{background: rgba(255,255,255,0.08);}
-    .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:var(--navy-900); pointer-events: none;}
-
+    .result-item{background:rgba(255,255,255,.05);border:1px solid var(--muted);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem;cursor:pointer}
+    .result-item:hover{background:rgba(255,255,255,.08)}
+    .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:var(--navy-900);pointer-events:none}
     #dark-side-button{position:fixed;bottom:1rem;left:1rem;font-size:1.5rem;opacity:.45;transition:opacity .2s;cursor:pointer;z-index:20}
     #dark-side-button:hover{opacity:1}
-
-    #compass-modal{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
-      background: rgba(3,8,18,.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
-    #compass-dialog{width: min(92vw, 480px); background: rgba(15,22,36,.97); color: var(--ivory);
-      border:1px solid var(--muted); border-radius:18px; box-shadow:0 24px 70px rgba(0,0,0,.55); padding:16px; outline:none;}
-    #nav-bubble{position:relative;margin: 8px 0 12px 0;color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-      background: radial-gradient(120% 140% at 10% 0%, rgba(45,212,191,.10) 0%, rgba(242,193,78,.12) 35%, rgba(15,22,36,.96) 68%);
-      border:1px solid var(--muted)}
+    #compass-modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    #compass-dialog{width:min(92vw,480px);background:rgba(15,22,36,.97);color:var(--ivory);border:1px solid var(--muted);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:16px;outline:none}
+    #nav-bubble{position:relative;margin:8px 0 12px 0;color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;box-shadow:0 10px 24px rgba(0,0,0,.35);background:
+      radial-gradient(120% 140% at 10% 0%, rgba(45,212,191,.10) 0%, rgba(242,193,78,.12) 35%, rgba(15,22,36,.96) 68%);border:1px solid var(--muted)}
     #nav-main{font-weight:700;letter-spacing:.2px}
     #nav-sub{font-size:11.5px;opacity:.85;margin-top:2px}
-    #compass-overlay{width:260px;height:260px;border-radius:22px;margin: 6px auto 10px auto; padding: 18px; position:relative;
-      background: radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
-        conic-gradient(from 0deg, rgba(242,193,78,.4), rgba(242,193,78,.08) 30%, rgba(45,212,191,.5) 60%, rgba(45,212,191,.12) 75%, rgba(242,193,78,.35));
-      border:1px solid rgba(255,255,255,.18); box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
-      display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden}
-    #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--gold);
-      transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(242,193,78,.45));margin-bottom:8px}
+    #compass-overlay{width:260px;height:260px;border-radius:22px;margin:6px auto 10px auto;padding:18px;position:relative;background:
+      radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
+      conic-gradient(from 0deg, rgba(242,193,78,.4), rgba(242,193,78,.08) 30%, rgba(45,212,191,.5) 60%, rgba(45,212,191,.12) 75%, rgba(242,193,78,.35));
+      border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden}
+    #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--gold);transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(242,193,78,.45));margin-bottom:8px}
     #compass-dist{font-size:14px;color:var(--ink);font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-
-    #reviews-modal{position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center;
-      background:rgba(3,8,18,.65); backdrop-filter:blur(8px)}
-    #reviews-card{width:min(92vw,760px); max-height:85vh; overflow:auto; background:rgba(15,22,36,.98); color:var(--ivory);
-      border:1px solid var(--muted); border-radius:18px; padding:16px; box-shadow:0 24px 70px rgba(0,0,0,.55)}
-    .review{background:rgba(255,255,255,.06); border:1px solid var(--muted); border-radius:12px; padding:12px}
+    #reviews-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.65);backdrop-filter:blur(8px)}
+    #reviews-card{width:min(92vw,760px);max-height:85vh;overflow:auto;background:rgba(15,22,36,.98);color:var(--ivory);border:1px solid var(--muted);border-radius:18px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+    .review{background:rgba(255,255,255,.06);border:1px solid var(--muted);border-radius:12px;padding:12px}
     .review + .review{margin-top:10px}
-    .reviewer{font-weight:700}
-    .review-meta{font-size:12px; opacity:.8}
-    .whitespace-pre-wrap{white-space:pre-wrap}
-
+    .reviewer{font-weight:700}.review-meta{font-size:12px;opacity:.8}.whitespace-pre-wrap{white-space:pre-wrap}
+    /* Voice modal */
+    #voice-modal{position:fixed;inset:0;z-index:65;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.65);backdrop-filter:blur(8px)}
+    #voice-card{width:min(92vw,560px);max-height:85vh;overflow:auto;background:rgba(15,22,36,.98);color:var(--ivory);border:1px solid var(--muted);border-radius:18px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
     input,select,textarea,button{font-size:16px}
-    @media (prefers-reduced-motion: reduce){
-      *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important}
-    }
+    @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
 
-  <!-- Street View backdrop (non-interactive) -->
-  <div id="panorama-container" class="fixed inset-0">
-    <div id="panorama" aria-hidden="true"></div>
-  </div>
+  <!-- Street View -->
+  <div id="panorama-container" class="fixed inset-0"><div id="panorama" aria-hidden="true"></div></div>
 
   <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
     <section id="main-screen" aria-labelledby="app-title">
       <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold mb-4" style="color:var(--ivory)">Local Explorer</h1>
 
-      <!-- Local facts -->
       <section id="fun-fact-container" class="text-left mb-4 px-2">
         <h2 class="font-header font-bold mb-1 text-sm tracking-wider uppercase" style="color:var(--gold)">Local Fact</h2>
-        <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="color:var(--ink); border-color:rgba(255,255,255,.12)">Loading...</p>
+        <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="color:var(--ink);border-color:rgba(255,255,255,.12)">Loading...</p>
       </section>
 
       <p id="location-status" class="text-lg font-semibold my-4" style="color:var(--ink)">Please allow location access...</p>
 
       <div id="manual-location-entry" class="hidden mb-6">
-        <div class="flex items-center rounded-lg" style="background:rgba(255,255,255,.06); border:1px solid var(--muted)">
-          <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place"
-                 class="w-full bg-transparent text-white p-3 rounded-l-lg focus:outline-none" />
+        <div class="flex items-center rounded-lg" style="background:rgba(255,255,255,.06);border:1px solid var(--muted)">
+          <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place" class="w-full bg-transparent text-white p-3 rounded-l-lg focus:outline-none"/>
           <button id="search-button" class="action-card bg-gradient-to-b from-[var(--gold)] to-[var(--gold)] text-black font-semibold p-3 rounded-r-lg" aria-label="Search">🔍</button>
         </div>
       </div>
 
-      <!-- Categories -->
       <nav id="filter-container" class="grid grid-cols-2 gap-4 mt-4">
-        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🍽️ Foodie Finds</button>
-        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🏛️ Iconic Sights</button>
-        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🌙 Night Out</button>
-        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">💎 Hidden Gems</button>
-        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🐾 Pet Friendly</button>
-        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🛠️ Utilities & Help</button>
+        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base">🍽️ Foodie Finds</button>
+        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base">🏛️ Iconic Sights</button>
+        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base">🌙 Night Out</button>
+        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base">💎 Hidden Gems</button>
+        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base">🐾 Pet Friendly</button>
+        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base">🛠️ Utilities & Help</button>
       </nav>
 
-      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base"
-        style="background:linear-gradient(180deg,#24406f,#1c2f54); border-color:rgba(255,255,255,.18)">🤷 Surprise Me!</button>
+      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base" style="background:linear-gradient(180deg,#24406f,#1c2f54);border-color:rgba(255,255,255,.18)">🤷 Surprise Me!</button>
 
       <div id="sub-menu-container" class="hidden mt-4"></div>
       <button id="back-to-main-filters" class="hidden mt-4 underline" style="color:var(--ink)">Back to main filters</button>
@@ -161,7 +122,7 @@
 
   <button id="dark-side-button" data-filter="dark" aria-label="Dark category">👻</button>
 
-  <!-- Results LIST -->
+  <!-- Results -->
   <section id="results-list-screen" role="dialog" aria-modal="true" style="display:none;">
     <div id="results-list-card" class="w-full max-w-2xl">
       <div class="flex items-center justify-between mb-3">
@@ -176,7 +137,7 @@
   <!-- Place Detail -->
   <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
-      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
+      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4"/>
       <div class="flex justify-between items-start">
         <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2>
         <div class="flex items-center gap-2">
@@ -195,8 +156,7 @@
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
 
       <div class="flex flex-wrap justify-center gap-3 my-4">
-        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg"
-           style="background:linear-gradient(180deg,#24406f,#1c2f54)">Map</a>
+        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg" style="background:linear-gradient(180deg,#24406f,#1c2f54)">Map</a>
         <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden">Website</a>
         <button id="reviews-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Reviews</button>
         <button id="share-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg">Share</button>
@@ -216,9 +176,10 @@
       <header class="flex items-center justify-between mb-2">
         <h2 id="modal-title" class="font-header text-lg flex items-center gap-2">
           🚶 Live Compass — Walking
-          <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:rgba(16,185,129,.25); border:1px solid var(--muted)">Walking mode</span>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:rgba(16,185,129,.25);border:1px solid var(--muted)">Walking mode</span>
         </h2>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
+          <button id="voice-button" class="action-card font-bold py-2 px-3 rounded-lg" title="Pick voice">Voice</button>
           <button id="guide-button" class="action-card font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
           <button id="close-compass" class="action-card font-bold py-2 px-3 rounded-lg">Close</button>
         </div>
@@ -244,8 +205,7 @@
             <input id="reviews-worst-toggle" type="checkbox" class="accent-[var(--gold)]">
             <span>Worst (≤3★)</span>
           </label>
-          <a id="reviews-open-in-maps" class="action-card font-bold py-2 px-3 rounded-lg hidden" target="_blank" rel="noopener"
-             style="background:linear-gradient(180deg,#24406f,#1c2f54)">Open in Google Maps</a>
+          <a id="reviews-open-in-maps" class="action-card font-bold py-2 px-3 rounded-lg hidden" target="_blank" rel="noopener" style="background:linear-gradient(180deg,#24406f,#1c2f54)">Open in Google Maps</a>
           <button id="close-reviews" class="action-card font-bold py-2 px-3 rounded-lg">Close</button>
         </div>
       </div>
@@ -253,161 +213,231 @@
     </div>
   </div>
 
+  <!-- Voice Picker Modal -->
+  <div id="voice-modal" aria-hidden="true">
+    <div id="voice-card" role="dialog" aria-modal="true" aria-labelledby="voice-title">
+      <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+        <h3 id="voice-title" class="font-header text-lg">Voice Picker</h3>
+        <button id="close-voice" class="action-card font-bold py-2 px-3 rounded-lg">Close</button>
+      </div>
+
+      <div class="grid gap-3">
+        <div>
+          <label class="block text-sm mb-1 opacity-90">Voice</label>
+          <select id="voice-select" class="w-full bg-transparent border border-[var(--muted)] rounded-lg p-2">
+            <option value="">Loading voices…</option>
+          </select>
+          <p id="voice-note" class="text-xs mt-1 opacity-75">We’ll prefer Siri on iOS and Google voices on Android, but you can choose any.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm mb-1 opacity-90">Rate: <span id="voice-rate-value">1.00</span>x</label>
+          <input id="voice-rate" type="range" min="0.75" max="1.25" step="0.05" value="1.00" class="w-full">
+        </div>
+
+        <div class="flex gap-2 flex-wrap">
+          <button id="voice-test" class="action-card font-bold py-2 px-3 rounded-lg">Test</button>
+          <button id="voice-save" class="action-card font-bold py-2 px-3 rounded-lg">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    /* ===== Service Worker (non-blocking) ===== */
+    /* ===== SW ===== */
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./serviceworker.js').catch(()=>{});
-      });
+      window.addEventListener('load', () => { navigator.serviceWorker.register('./serviceworker.js').catch(()=>{}); });
     }
 
     /* ===== Refs ===== */
-    const funFactContainer = document.getElementById('fun-fact-container');
-    const funFactText = document.getElementById('fun-fact-text');
-    const resultsListScreen = document.getElementById('results-list-screen');
-    const resultsTitle = document.getElementById('results-title');
-    const resultsMeta = document.getElementById('results-meta');
-    const resultsList = document.getElementById('results-list');
-    const resultScreen = document.getElementById('result-screen');
-    const filterContainer = document.getElementById('filter-container');
-    const locationStatus = document.getElementById('location-status');
-    const panoramaContainer = document.getElementById('panorama-container');
-    const panoramaDiv = document.getElementById('panorama');
-    const manualLocationEntry = document.getElementById('manual-location-entry');
-    const locationInput = document.getElementById('location-input');
-    const subMenuContainer = document.getElementById('sub-menu-container');
-    const backToMainFiltersButton = document.getElementById('back-to-main-filters');
-    const placeNameEl = document.getElementById('place-name');
-    const placeRatingEl = document.getElementById('place-rating');
-    const placeStarsEl = document.getElementById('place-stars');
-    const placePriceEl = document.getElementById('place-price');
-    const placePhotoEl = document.getElementById('place-photo');
-    const directionsLink = document.getElementById('directions-link');
-    const websiteLink = document.getElementById('website-link');
-    const placeTypesContainer = document.getElementById('place-types-container');
-    const phoneLink = document.getElementById('phone-link');
-    const placeAccessibility = document.getElementById('place-accessibility');
-    const savePlaceButton = document.getElementById('save-place-button');
-    const compassModal = document.getElementById('compass-modal');
-    const compassDialog = document.getElementById('compass-dialog');
-    const guideButton = document.getElementById('guide-button');
-    const navMain = document.getElementById('nav-main');
-    const navSub = document.getElementById('nav-sub');
-    const compassArrow = document.getElementById('compass-arrow');
-    const compassDist = document.getElementById('compass-dist');
-    const randomButton = document.getElementById('random-button');
-    const darkSideButton = document.getElementById('dark-side-button');
-
-    // Reviews refs
-    const reviewsModal = document.getElementById('reviews-modal');
-    const reviewsList = document.getElementById('reviews-list');
-    const reviewsOpenInMaps = document.getElementById('reviews-open-in-maps');
-    const reviewsWorstToggle = document.getElementById('reviews-worst-toggle');
+    const funFactContainer=document.getElementById('fun-fact-container');
+    const funFactText=document.getElementById('fun-fact-text');
+    const resultsListScreen=document.getElementById('results-list-screen');
+    const resultsTitle=document.getElementById('results-title');
+    const resultsMeta=document.getElementById('results-meta');
+    const resultsList=document.getElementById('results-list');
+    const resultScreen=document.getElementById('result-screen');
+    const filterContainer=document.getElementById('filter-container');
+    const locationStatus=document.getElementById('location-status');
+    const panoramaContainer=document.getElementById('panorama-container');
+    const panoramaDiv=document.getElementById('panorama');
+    const manualLocationEntry=document.getElementById('manual-location-entry');
+    const locationInput=document.getElementById('location-input');
+    const subMenuContainer=document.getElementById('sub-menu-container');
+    const backToMainFiltersButton=document.getElementById('back-to-main-filters');
+    const placeNameEl=document.getElementById('place-name');
+    const placeRatingEl=document.getElementById('place-rating');
+    const placeStarsEl=document.getElementById('place-stars');
+    const placePriceEl=document.getElementById('place-price');
+    const placePhotoEl=document.getElementById('place-photo');
+    const directionsLink=document.getElementById('directions-link');
+    const websiteLink=document.getElementById('website-link');
+    const placeTypesContainer=document.getElementById('place-types-container');
+    const phoneLink=document.getElementById('phone-link');
+    const placeAccessibility=document.getElementById('place-accessibility');
+    const savePlaceButton=document.getElementById('save-place-button');
+    const compassModal=document.getElementById('compass-modal');
+    const compassDialog=document.getElementById('compass-dialog');
+    const guideButton=document.getElementById('guide-button');
+    const navMain=document.getElementById('nav-main');
+    const navSub=document.getElementById('nav-sub');
+    const compassArrow=document.getElementById('compass-arrow');
+    const compassDist=document.getElementById('compass-dist');
+    const randomButton=document.getElementById('random-button');
+    const darkSideButton=document.getElementById('dark-side-button');
+    // Reviews
+    const reviewsModal=document.getElementById('reviews-modal');
+    const reviewsList=document.getElementById('reviews-list');
+    const reviewsOpenInMaps=document.getElementById('reviews-open-in-maps');
+    const reviewsWorstToggle=document.getElementById('reviews-worst-toggle');
+    // Voice
+    const voiceButton=document.getElementById('voice-button');
+    const voiceModal=document.getElementById('voice-modal');
+    const voiceSelect=document.getElementById('voice-select');
+    const voiceRate=document.getElementById('voice-rate');
+    const voiceRateValue=document.getElementById('voice-rate-value');
+    const voiceTest=document.getElementById('voice-test');
+    const voiceSave=document.getElementById('voice-save');
+    const closeVoice=document.getElementById('close-voice');
 
     /* ===== State ===== */
     let placesService, panorama, geocoder, directionsService;
-    let currentUserLocation;
-    let currentLocality = '';
-    let currentPlace;
-    let currentResults = [];
-    let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
-    let localFacts = [], factInterval = null;
-    let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
-    let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
-    let currentReviews = [];
+    let currentUserLocation, currentLocality='', currentPlace, currentResults=[];
+    let savedPlaces=JSON.parse(localStorage.getItem('savedPlaces')||'{}');
+    let compassActive=false, guideSpeaking=false, watchId=null, headingDeg=0;
+    let routeSteps=[], stepIndex=0, stepTarget=null, destLatLng=null;
+    let currentReviews=[];
+    // Voice state
+    let voicesCache=[], chosenVoiceName=localStorage.getItem('ttsVoiceName')||'', chosenRate=parseFloat(localStorage.getItem('ttsRate')||'1')||1;
 
-    /* ===== Categories ===== */
-    const subFilterMap = {
-      eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
-      see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
-      night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},
-      gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
-      pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
-      utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}},
-      dark:{"Cemeteries":{type:"cemetery"},"Haunted Tours":{type:"tourist_attraction",keyword:"ghost tour haunted tour"},"Haunted Sites":{type:"tourist_attraction",keyword:"haunted site haunted house"},"Crime Museums":{type:"museum",keyword:"crime history museum"}}
-    };
-    const allowedByCategory = {
-      eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
-      night:new Set(['bar','night_club']),
-      see:new Set(['museum','art_gallery','tourist_attraction']),
-      gems:new Set(['art_gallery','park','cafe']),
-      pets:new Set(['park','pet_store','veterinary_care']),
-      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
-      dark:new Set(['cemetery','museum','tourist_attraction'])
-    };
-    const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
+    /* ===== Categories & Filters ===== */
+    const subFilterMap={eat:{"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}},dark:{"Cemeteries":{type:"cemetery"},"Haunted Tours":{type:"tourist_attraction",keyword:"ghost tour haunted tour"},"Haunted Sites":{type:"tourist_attraction",keyword:"haunted site haunted house"},"Crime Museums":{type:"museum",keyword:"crime history museum"}}};
+    const allowedByCategory={eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),night:new Set(['bar','night_club']),see:new Set(['museum','art_gallery','tourist_attraction']),gems:new Set(['art_gallery','park','cafe']),pets:new Set(['park','pet_store','veterinary_care']),utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),dark:new Set(['cemetery','museum','tourist_attraction'])};
+    const bannedRetailish=new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
     /* ===== Utils ===== */
-    const METERS_10_MILES = 16093;
-    const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
-    const toggleFilterButtons = d => document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
-    const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
-    const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
-    const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
-    const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
-    const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
-    const toRad = d => d*Math.PI/180, toDeg = r => r*180/Math.PI, norm = a => ((a%360)+360)%360;
+    const METERS_10_MILES=16093;
+    const metersToImperial=m=>{const ft=m*3.28084;return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`};
+    const toggleFilterButtons=d=>document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
+    const renderStarsHTML=r=>{r=Math.round(r||0);let h='';for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`;return h};
+    const renderStars=(el,r)=>el.innerHTML=renderStarsHTML(r);
+    const stripHtml=h=>{const t=document.createElement('div');t.innerHTML=h||'';return t.textContent||t.innerText||''};
+    const dedupe=items=>{const s=new Set(),o=[];for(const it of items)if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)}return o};
+    const sortResults=a=>a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
+    const toRad=d=>d*Math.PI/180,toDeg=r=>r*180/Math.PI,norm=a=>((a%360)+360)%360;
+    const ua=(navigator.userAgent||'').toLowerCase(); const isIOS=/iphone|ipad|ipod/.test(ua); const isAndroid=/android/.test(ua);
 
-    function uiStatus(msg){ console.warn(msg); const el = locationStatus; if (el) el.textContent = msg; }
+    function uiStatus(msg){ console.warn(msg); if(locationStatus) locationStatus.textContent=msg; }
 
-    function isCandidate(p, kw, reqType, allowedSet) {
+    function isCandidate(p,kw,reqType,allowedSet){
       const t=new Set(p.types||[]);
-      if (![...t].some(x => allowedSet.has(x))) return false;
-      for (const x of t) if(bannedRetailish.has(x)) return false;
-      if (reqType && !t.has(reqType)) {
+      if (![...t].some(x=>allowedSet.has(x))) return false;
+      for(const x of t) if(bannedRetailish.has(x)) return false;
+      if(reqType && !t.has(reqType)){
         if(!(t.has('restaurant') && kw && new RegExp(kw,'i').test(p.name||''))) return false;
       }
       return true;
     }
 
     function updateSaveButtonState(){
-      const pressed = currentPlace && !!savedPlaces[currentPlace.place_id];
+      const pressed=currentPlace && !!savedPlaces[currentPlace.place_id];
       savePlaceButton.setAttribute('aria-pressed', String(pressed));
-      savePlaceButton.textContent = pressed ? '★' : '☆';
+      savePlaceButton.textContent=pressed?'★':'☆';
     }
 
-    function speak(text){ try{ speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }catch{} }
+    /* ===== Speech (with platform-aware picker) ===== */
+    function getVoicesSafe(){ try{return window.speechSynthesis.getVoices()||[]}catch{return[]} }
+    function bestDefaultVoice(voices){
+      // Prefer platform voices: Siri (iOS), Google (Android), else en-US local
+      const langPref=(navigator.language||'en-US').toLowerCase();
+      const by=(pred)=>voices.find(v=>pred(v));
+      if(isIOS){ const siri=by(v=>/siri/i.test(v.name)); if(siri) return siri; }
+      if(isAndroid){ const g=en=>v=>/google/i.test(v.name)&&/english/i.test(v.name||'')&&/en-us/i.test((v.lang||'').toLowerCase()); const gv=voices.find(g()); if(gv) return gv; }
+      const langMatch=by(v=>(v.localService!==false)&& (v.lang||'').toLowerCase().startsWith(langPref.slice(0,2)));
+      if(langMatch) return langMatch;
+      return voices[0]||null;
+    }
+    function populateVoicePicker(){
+      voicesCache=getVoicesSafe();
+      voiceSelect.innerHTML='';
+      if(!voicesCache.length){
+        const opt=document.createElement('option'); opt.value=''; opt.textContent='No voices available'; voiceSelect.appendChild(opt); return;
+      }
+      // Sort: platform-preferred first, then localService, then lang match, then alpha
+      const prefRank=v=>{
+        let r=0;
+        if(isIOS && /siri/i.test(v.name)) r-=3;
+        if(isAndroid && /google/i.test(v.name)) r-=3;
+        if(v.localService!==false) r-=1;
+        if((v.lang||'').toLowerCase().startsWith((navigator.language||'en').slice(0,2).toLowerCase())) r-=1;
+        return r;
+      };
+      const list=[...voicesCache].sort((a,b)=>prefRank(a)-prefRank(b)||a.name.localeCompare(b.name));
+      list.forEach(v=>{
+        const opt=document.createElement('option');
+        opt.value=v.name;
+        opt.textContent=`${v.name} (${v.lang})${v.localService===false?' • online':''}`;
+        voiceSelect.appendChild(opt);
+      });
+      // pick saved or best default
+      let pick = voicesCache.find(v=>v.name===chosenVoiceName) || bestDefaultVoice(voicesCache);
+      if(pick){ voiceSelect.value = pick.name; chosenVoiceName = pick.name; }
+      voiceRate.value = chosenRate.toFixed(2);
+      voiceRateValue.textContent = chosenRate.toFixed(2);
+    }
+    // Ensure voices load on iOS/Android
+    function initVoices(){
+      populateVoicePicker();
+      try{
+        window.speechSynthesis.onvoiceschanged = ()=>populateVoicePicker();
+        // Nudge some browsers to load voices
+        setTimeout(()=>populateVoicePicker(), 300);
+        setTimeout(()=>populateVoicePicker(), 1200);
+      }catch{}
+    }
+    function speak(text){
+      try{
+        speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(text);
+        const v=voicesCache.find(x=>x.name===chosenVoiceName) || bestDefaultVoice(voicesCache);
+        if(v) u.voice=v;
+        u.rate = chosenRate;
+        u.pitch=1; u.volume=1;
+        speechSynthesis.speak(u);
+      }catch{}
+    }
 
-    /* ===== Local Facts ===== */
+    /* ===== Facts ===== */
     async function getFunFact(coords){
       try{
-        funFactText.textContent = "Finding local facts...";
-        const geoURL = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`;
-        const geoRes = await fetch(geoURL); const geo = await geoRes.json();
-        const ids = (geo?.query?.geosearch||[]).map(p=>p.pageid).slice(0,10);
+        funFactText.textContent="Finding local facts...";
+        const geoURL=`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`;
+        const geo=await (await fetch(geoURL)).json();
+        const ids=(geo?.query?.geosearch||[]).map(p=>p.pageid).slice(0,10);
         if(!ids.length){ funFactText.textContent="No local facts found nearby."; return; }
-        const exURL = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&pageids=${ids.join('|')}&format=json&origin=*`;
-        const exRes = await fetch(exURL); const ex = await exRes.json();
-        const localFacts = Object.values(ex?.query?.pages||{}).map(p=>p.extract).filter(e => e && e.length > 60 && e.length < 280);
-        funFactText.textContent = localFacts[0] || "No local facts found nearby.";
+        const exURL=`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&pageids=${ids.join('|')}&format=json&origin=*`;
+        const ex=await (await fetch(exURL)).json();
+        const facts=Object.values(ex?.query?.pages||{}).map(p=>p.extract).filter(e=>e && e.length>60 && e.length<280);
+        funFactText.textContent=facts[0] || "No local facts found nearby.";
       }catch{ funFactText.textContent="Local facts are currently unavailable."; }
     }
 
-    /* ===== Distance helpers ===== */
-    function haversineMeters(a,b){
-      const R=6371000;
-      const φ1=toRad(a.lat), φ2=toRad(b.lat);
-      const dφ=toRad(b.lat-a.lat), dλ=toRad(b.lng-a.lng);
-      const h=Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
-      return 2*R*Math.asin(Math.sqrt(h));
-    }
-    function computeDistanceMetersFromCurrent(loc){
-      if(!currentUserLocation || !loc) return Infinity;
-      const b = { lat: typeof loc.lat === 'function' ? loc.lat() : loc.lat,
-                  lng: typeof loc.lng === 'function' ? loc.lng() : loc.lng };
-      return haversineMeters(currentUserLocation, b);
-    }
+    /* ===== Distance/Bearing ===== */
+    function haversineMeters(a,b){const R=6371000,φ1=toRad(a.lat),φ2=toRad(b.lat),dφ=toRad(b.lat-a.lat),dλ=toRad(b.lng-a.lng);const h=Math.sin(dφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+    function computeDistanceMetersFromCurrent(loc){ if(!currentUserLocation||!loc) return Infinity; const b={lat:typeof loc.lat==='function'?loc.lat():loc.lat,lng:typeof loc.lng==='function'?loc.lng():loc.lng}; return haversineMeters(currentUserLocation,b) }
+    function bearingFromTo(a,b){const φ1=toRad(a.lat),φ2=toRad(b.lat),Δλ=toRad(b.lng-a.lng),y=Math.sin(Δλ)*Math.cos(φ2),x=Math.cos(φ1)*Math.cos(φ2)+Math.sin(φ1)*Math.sin(φ2)*Math.cos(Δλ);return norm(toDeg(Math.atan2(y,x)))}
+    function turnHint(delta){const d=Math.abs(delta);if(d<15)return'Ahead';if(d<45)return delta>0?'Veer right':'Veer left';if(d<110)return delta>0?'Turn right':'Turn left';return delta>0?'Sharp right':'Sharp left'}
 
-    /* ===== Results List ===== */
-    function showResultsList(parentFilter, subLabel){
+    /* ===== Results ===== */
+    function showResultsList(parentFilter,subLabel){
       resultsListScreen.style.display='flex'; funFactContainer.style.display='none';
-      resultsTitle.textContent=subLabel || 'Results';
+      resultsTitle.textContent=subLabel||'Results';
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
       resultsList.innerHTML='';
       currentResults.forEach(p=>{
         const photo=(p.photos&&p.photos[0])?p.photos[0].getUrl({maxWidth:200,maxHeight:200}):'https://placehold.co/200x200/111827/fff?text=N/A';
         const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
-        const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
+        const card=document.createElement('button'); card.className='result-item'; card.dataset.id=p.place_id;
         card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" />
           <div class="flex-1 text-left">
             <div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name}</h3><div class="text-xs" style="color:var(--ink)">${price}</div></div>
@@ -415,70 +445,49 @@
             <div class="text-xs mt-1" style="color:var(--ink)">${vic}</div>
           </div>
           <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full action-card self-center map-link-icon" style="min-height:unset">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
           </a>`;
         resultsList.appendChild(card);
       });
     }
 
-    /* ===== Wrapped Places calls for visible status ===== */
-    function nearbySearchWithLogs(req, cb){
-      placesService.nearbySearch(req,(res,status)=>{
-        if (status !== google.maps.places.PlacesServiceStatus.OK) uiStatus(`NearbySearch: ${status}`);
-        cb(res||[], status);
-      });
-    }
-    function textSearchWithLogs(req, cb){
-      placesService.textSearch(req,(res,status)=>{
-        if (status !== google.maps.places.PlacesServiceStatus.OK) uiStatus(`TextSearch: ${status}`);
-        cb(res||[], status);
-      });
-    }
+    function nearbySearchWithLogs(req,cb){ placesService.nearbySearch(req,(res,status)=>{ if(status!==google.maps.places.PlacesServiceStatus.OK) uiStatus(`NearbySearch: ${status}`); cb(res||[],status); }); }
+    function textSearchWithLogs(req,cb){ placesService.textSearch(req,(res,status)=>{ if(status!==google.maps.places.PlacesServiceStatus.OK) uiStatus(`TextSearch: ${status}`); cb(res||[],status); }); }
 
-    /* ===== Search ===== */
-    function findAdventure(params,parentFilter,subLabel, options = {}){
+    function findAdventure(params,parentFilter,subLabel,options={}){
       if(!placesService){ uiStatus('PlacesService not ready'); return; }
       if(!currentUserLocation){ uiStatus('No location yet. Allow location or enter one above.'); manualLocationEntry.classList.remove('hidden'); return; }
-
       resultsListScreen.style.display='none'; toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
       locationStatus.textContent="Searching nearby..."; currentResults=[];
       const reqType=params.type||null;
       const kw=(parentFilter==='eat')?(params.keyword||(reqType?reqType.replace('_restaurant',''):'')):params.keyword||'';
-      const maxRadius = options.maxRadiusMeters || null;
+      const maxRadius=options.maxRadiusMeters||null;
       const defaultRadii=[2000,5000,10000,20000,35000,50000];
       const radii=(maxRadius?defaultRadii.filter(r=>r<=maxRadius):defaultRadii);
       let i=0;
-      const allowed = allowedByCategory[parentFilter] || new Set();
+      const allowed=allowedByCategory[parentFilter]||new Set();
 
       const pushResults=(res)=>{
         res.forEach(p=>{
-          try{
-            const loc = p.geometry?.location;
-            const dist = loc ? computeDistanceMetersFromCurrent(loc) : Infinity;
-            p.distanceMeters = dist;
-          }catch{ p.distanceMeters = Infinity; }
+          try{ const loc=p.geometry?.location; const dist=loc?computeDistanceMetersFromCurrent(loc):Infinity; p.distanceMeters=dist; }catch{ p.distanceMeters=Infinity; }
         });
-        let filtered = res.filter(p => isCandidate(p, kw, reqType, allowed));
-        if(maxRadius) filtered = filtered.filter(p => p.distanceMeters <= maxRadius);
-        currentResults=dedupe([...currentResults, ...filtered]);
+        let filtered=res.filter(p=>isCandidate(p,kw,reqType,allowed));
+        if(maxRadius) filtered=filtered.filter(p=>p.distanceMeters<=maxRadius);
+        currentResults=dedupe([...currentResults,...filtered]);
       };
 
       const nearby=()=>{ if(i>=radii.length)return text();
         const radius=radii[i++]; const req={location:currentUserLocation,radius,...(params.type&&{type:params.type}),...(kw&&{keyword:kw})};
         nearbySearchWithLogs(req,(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
+          if(status===google.maps.places.PlacesServiceStatus.OK && res?.length){
             pushResults(res);
-            if(currentResults.length<12){locationStatus.textContent=`Searching wider (${metersToImperial(radius)})...`;nearby();} else finalize();
+            if(currentResults.length<12){ locationStatus.textContent=`Searching wider (${metersToImperial(radius)})...`; nearby(); } else finalize();
           } else nearby();
         });
       };
       const text=()=>{
-        const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||''} in ${city}`;
-        const radiusForText = maxRadius || 50000;
-        textSearchWithLogs({query,location:currentUserLocation,radius:radiusForText},(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){ pushResults(res); }
-          finalize();
-        });
+        const city=currentLocality||''; const query=kw?`${kw} in ${city}`:`${subLabel||''} in ${city}`;
+        textSearchWithLogs({query,location:currentUserLocation,radius:maxRadius||50000},(res)=>{ if(res?.length) pushResults(res); finalize(); });
       };
       const finalize=()=>{
         currentResults=sortResults(currentResults);
@@ -488,18 +497,13 @@
       nearby();
     }
 
-    /* ===== Details, Directions, Compass, Reviews ===== */
-    function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s); }
+    function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s) getPlaceDetails(s); }
 
     function getPlaceDetails(summary){
-      resultsListScreen.style.display = 'none';
-      resultScreen.style.display='flex';
-      funFactContainer.style.display='none';
-      panorama.setPosition(summary.geometry.location);
-      panoramaContainer.classList.add('shown');
-      currentPlace = summary;
-      updateSaveButtonState();
-      placeNameEl.textContent = 'Loading Details...';
+      resultsListScreen.style.display='none'; resultScreen.style.display='flex'; funFactContainer.style.display='none';
+      panorama.setPosition(summary.geometry.location); panoramaContainer.classList.add('shown');
+      currentPlace=summary; updateSaveButtonState();
+      placeNameEl.textContent='Loading Details...';
       placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
       placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
       placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
@@ -507,266 +511,123 @@
       placeAccessibility.textContent=''; placeAccessibility.style.display='none';
       reviewsOpenInMaps.classList.add('hidden'); reviewsOpenInMaps.removeAttribute('href');
       reviewsList.innerHTML='';
-
       routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
 
-      placesService.getDetails({
-        placeId:summary.place_id,
-        fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance','reviews','url']
-      },(place,status)=>{
-        if(status===google.maps.places.PlacesServiceStatus.OK&&place){
+      placesService.getDetails({placeId:summary.place_id,fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance','reviews','url']},(place,status)=>{
+        if(status===google.maps.places.PlacesServiceStatus.OK && place){
           currentPlace=place;
           placeNameEl.textContent=place.name;
           renderStars(placeStarsEl, place.rating??0);
           placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
           placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-          if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
-          if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
-          if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
-          if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
-          if(place.types?.length){
-            place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{
-              const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s);
-            });
-          }
-          if(place.url){ reviewsOpenInMaps.href = place.url; reviewsOpenInMaps.classList.remove('hidden'); }
-
+          if(place.photos?.length){ const photo=place.photos[0]; placePhotoEl.src=photo.getUrl({maxWidth:600,maxHeight:400}); }
+          if(place.website){ websiteLink.href=place.website; websiteLink.classList.remove('hidden'); }
+          if(place.formatted_phone_number){ phoneLink.href=`tel:${place.formatted_phone_number}`; phoneLink.textContent=place.formatted_phone_number; }
+          if(place.wheelchair_accessible_entrance){ placeAccessibility.textContent='♿'; placeAccessibility.style.display='inline'; }
+          if(place.types?.length){ place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{ const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g,' '); placeTypesContainer.appendChild(s); }); }
+          if(place.url){ reviewsOpenInMaps.href=place.url; reviewsOpenInMaps.classList.remove('hidden'); }
           const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
 
           buildRouteTo(place.geometry.location);
 
-          currentReviews = place.reviews || [];
-          updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
-
+          currentReviews=place.reviews||[]; updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
           updateSaveButtonState();
-        } else {
-          uiStatus(`Place details: ${status}`);
-        }
+        } else { uiStatus(`Place details: ${status}`); }
       });
     }
 
-    function updateReviewsUI(reviews, worstOnly=false){
-      reviewsList.innerHTML = '';
-      if(!reviews || !reviews.length){
-        const empty = document.createElement('div');
-        empty.className='text-sm opacity-80';
-        empty.textContent = 'No recent reviews.';
-        reviewsList.appendChild(empty);
-        return;
-      }
-      let data = [...reviews];
-      if (worstOnly){
-        data = data.filter(r => typeof r.rating === 'number' && r.rating <= 3)
-                   .sort((a,b)=> (a.rating??999)-(b.rating??999) || (b.time||0)-(a.time||0));
-      } else {
-        data.sort((a,b)=> (b.time||0)-(a.time||0));
-      }
-      if (!data.length){
-        const none = document.createElement('div');
-        none.className='text-sm opacity-80';
-        none.textContent = 'No reviews match this filter.';
-        reviewsList.appendChild(none);
-        return;
-      }
+    function updateReviewsUI(reviews,worstOnly=false){
+      reviewsList.innerHTML='';
+      if(!reviews||!reviews.length){ const d=document.createElement('div'); d.className='text-sm opacity-80'; d.textContent='No recent reviews.'; reviewsList.appendChild(d); return; }
+      let data=[...reviews];
+      if(worstOnly){ data=data.filter(r=>typeof r.rating==='number' && r.rating<=3).sort((a,b)=>(a.rating??999)-(b.rating??999)||(b.time||0)-(a.time||0)); }
+      else { data=data.sort((a,b)=>(b.time||0)-(a.time||0)); }
+      if(!data.length){ const d=document.createElement('div'); d.className='text-sm opacity-80'; d.textContent='No reviews match this filter.'; reviewsList.appendChild(d); return; }
       data.forEach(r=>{
-        const card = document.createElement('div');
-        card.className='review';
-        const stars = renderStarsHTML(r.rating || 0);
-        const when = r.relative_time_description || '';
-        const user = r.author_name || 'Anonymous';
-        const text = r.text || '';
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="reviewer">${escapeHtml(user)}</div>
-            <div class="review-meta">${escapeHtml(when)}</div>
-          </div>
-          <div class="star-row mt-1">${stars}</div>
-          <p class="mt-2 text-sm whitespace-pre-wrap">${escapeHtml(text)}</p>
-        `;
+        const card=document.createElement('div'); card.className='review';
+        const stars=renderStarsHTML(r.rating||0); const when=r.relative_time_description||''; const user=r.author_name||'Anonymous'; const text=r.text||'';
+        card.innerHTML=`<div class="flex items-center justify-between"><div class="reviewer">${escapeHtml(user)}</div><div class="review-meta">${escapeHtml(when)}</div></div><div class="star-row mt-1">${stars}</div><p class="mt-2 text-sm whitespace-pre-wrap">${escapeHtml(text)}</p>`;
         reviewsList.appendChild(card);
       });
     }
-    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-    /* ===== Bearings / Compass ===== */
-    function bearingFromTo(a, b){
-      const φ1 = toRad(a.lat), φ2 = toRad(b.lat);
-      const Δλ = toRad(b.lng - a.lng);
-      const y = Math.sin(Δλ) * Math.cos(φ2);
-      const x = Math.cos(φ1)*Math.cos(φ2) + Math.sin(φ1)*Math.sin(φ2)*Math.cos(Δλ);
-      return norm(toDeg(Math.atan2(y, x)));
-    }
-    function turnHint(delta){
-      const d = Math.abs(delta);
-      if (d < 15) return 'Ahead';
-      if (d < 45) return delta > 0 ? 'Veer right' : 'Veer left';
-      if (d < 110) return delta > 0 ? 'Turn right' : 'Turn left';
-      return delta > 0 ? 'Sharp right' : 'Sharp left';
-    }
+    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
     function buildRouteTo(latLng){
-      try{
-        destLatLng = { lat: typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat,
-                       lng: typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng };
-      }catch{ destLatLng = latLng; }
-
-      const origin = currentUserLocation ? new google.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng) : null;
-      if(!origin || !destLatLng){ document.getElementById('compass-button').disabled = true; return; }
-
-      const req = { origin, destination: new google.maps.LatLng(destLatLng.lat, destLatLng.lng), travelMode: google.maps.TravelMode.WALKING };
-
+      try{ destLatLng={lat:typeof latLng.lat==='function'?latLng.lat():latLng.lat,lng:typeof latLng.lng==='function'?latLng.lng():latLng.lng}; }catch{ destLatLng=latLng; }
+      const origin=currentUserLocation?new google.maps.LatLng(currentUserLocation.lat,currentUserLocation.lng):null;
+      if(!origin||!destLatLng){ document.getElementById('compass-button').disabled=true; return; }
+      const req={origin,destination:new google.maps.LatLng(destLatLng.lat,destLatLng.lng),travelMode:google.maps.TravelMode.WALKING};
       directionsService.route(req,(res,status)=>{
-        if(status === google.maps.DirectionsStatus.OK && res.routes?.[0]?.legs?.[0]){
-          const leg = res.routes[0].legs[0];
-          routeSteps = leg.steps || [];
-          stepIndex = 0;
-          stepTarget = routeSteps[0]?.end_location || destLatLng;
-          document.getElementById('compass-button').disabled = false;
-
-          const inst = stripHtml(routeSteps[0]?.instructions || 'Head to destination');
-          const dist = routeSteps[0]?.distance?.text || '';
-          navMain.textContent = inst;
-          navSub.textContent = dist ? `Walking · ${dist}` : 'Walking · Follow the arrow';
+        if(status===google.maps.DirectionsStatus.OK && res.routes?.[0]?.legs?.[0]){
+          const leg=res.routes[0].legs[0]; routeSteps=leg.steps||[]; stepIndex=0; stepTarget=routeSteps[0]?.end_location||destLatLng; document.getElementById('compass-button').disabled=false;
+          const inst=stripHtml(routeSteps[0]?.instructions||'Head to destination'); const dist=routeSteps[0]?.distance?.text||''; navMain.textContent=inst; navSub.textContent=dist?`Walking · ${dist}`:'Walking · Follow the arrow';
         } else {
-          routeSteps = [];
-          stepIndex = 0;
-          stepTarget = destLatLng;
-          document.getElementById('compass-button').disabled = false;
-          navMain.textContent = 'Head toward destination';
-          navSub.textContent = 'Walking · Follow the arrow';
+          routeSteps=[]; stepIndex=0; stepTarget=destLatLng; document.getElementById('compass-button').disabled=false; navMain.textContent='Head toward destination'; navSub.textContent='Walking · Follow the arrow';
         }
       });
     }
-
     function setStep(i){
-      if (!routeSteps.length){ stepIndex = 0; stepTarget = destLatLng; return; }
-      if (i < 0) i = 0;
-      if (i >= routeSteps.length){ stepIndex = routeSteps.length - 1; stepTarget = destLatLng; return; }
-      stepIndex = i; stepTarget = routeSteps[i].end_location || destLatLng;
-
-      const inst = stripHtml(routeSteps[i]?.instructions || 'Continue');
-      const dist = routeSteps[i]?.distance?.text || '';
-      navMain.textContent = inst;
-      navSub.textContent = dist ? `Walking · ${dist}` : 'Walking · Follow the arrow';
-
-      if (guideSpeaking){ speak(`${inst}${dist?'. '+dist:''}`); }
+      if(!routeSteps.length){ stepIndex=0; stepTarget=destLatLng; return; }
+      if(i<0)i=0; if(i>=routeSteps.length){ stepIndex=routeSteps.length-1; stepTarget=destLatLng; return; }
+      stepIndex=i; stepTarget=routeSteps[i].end_location||destLatLng;
+      const inst=stripHtml(routeSteps[i]?.instructions||'Continue'); const dist=routeSteps[i]?.distance?.text||''; navMain.textContent=inst; navSub.textContent=dist?`Walking · ${dist}`:'Walking · Follow the arrow';
+      if(guideSpeaking){ speak(`${inst}${dist?'. '+dist:''}`); }
     }
 
     function updateCompassUI(){
-      if (!compassActive || !currentUserLocation || !stepTarget) return;
-
-      const here = { lat: currentUserLocation.lat, lng: currentUserLocation.lng };
-      const there = { lat: typeof stepTarget.lat === 'function' ? stepTarget.lat() : stepTarget.lat,
-                      lng: typeof stepTarget.lng === 'function' ? stepTarget.lng() : stepTarget.lng };
-
-      const distM = haversineMeters(here, there);
-      compassDist.textContent = metersToImperial(distM);
-
-      const arriveThreshold = routeSteps.length ? 12 : 8; // meters
-      if (distM < arriveThreshold){
-        if (routeSteps.length && stepIndex < routeSteps.length - 1){ setStep(stepIndex + 1); }
-        else { navMain.textContent = 'Arrived'; navSub.textContent = 'Walking complete'; compassDist.textContent = '0 ft'; }
-      }
-
-      const bearing = bearingFromTo(here, there);
-      const delta = norm(bearing - headingDeg);
-      const rel = delta <= 180 ? delta : delta - 360; // -180..180
-      compassArrow.style.transform = `rotate(${rel}deg)`;
-
-      const hint = turnHint(rel);
-      if (hint === 'Ahead'){
-        navSub.textContent = (routeSteps[stepIndex]?.distance?.text ? `Walking · ${routeSteps[stepIndex].distance.text}` : 'Walking · On course');
-      } else {
-        navSub.textContent = `Walking · ${hint}${routeSteps[stepIndex]?.distance?.text ? ' · ' + routeSteps[stepIndex].distance.text : ''}`;
-      }
+      if(!compassActive||!currentUserLocation||!stepTarget) return;
+      const here={lat:currentUserLocation.lat,lng:currentUserLocation.lng};
+      const there={lat:typeof stepTarget.lat==='function'?stepTarget.lat():stepTarget.lat,lng:typeof stepTarget.lng==='function'?stepTarget.lng():stepTarget.lng};
+      const distM=haversineMeters(here,there); compassDist.textContent=metersToImperial(distM);
+      const arriveThreshold=routeSteps.length?12:8;
+      if(distM<arriveThreshold){ if(routeSteps.length && stepIndex<routeSteps.length-1){ setStep(stepIndex+1); } else { navMain.textContent='Arrived'; navSub.textContent='Walking complete'; compassDist.textContent='0 ft'; } }
+      const bearing=bearingFromTo(here,there); const delta=norm(bearing-headingDeg); const rel=delta<=180?delta:delta-360;
+      compassArrow.style.transform=`rotate(${rel}deg)`;
+      const hint=turnHint(rel);
+      if(hint==='Ahead'){ navSub.textContent=(routeSteps[stepIndex]?.distance?.text?`Walking · ${routeSteps[stepIndex].distance.text}`:'Walking · On course'); }
+      else { navSub.textContent=`Walking · ${hint}${routeSteps[stepIndex]?.distance?.text?' · '+routeSteps[stepIndex].distance.text:''}`; }
     }
-
     function onOrientation(e){
-      if (typeof e.webkitCompassHeading === 'number'){ headingDeg = norm(e.webkitCompassHeading); }
-      else { const alpha = typeof e.alpha === 'number' ? e.alpha : 0; headingDeg = norm(360 - alpha); }
+      if(typeof e.webkitCompassHeading==='number'){ headingDeg=norm(e.webkitCompassHeading); }
+      else { const alpha=typeof e.alpha==='number'?e.alpha:0; headingDeg=norm(360-alpha); }
       updateCompassUI();
     }
-
     async function requestMotionPermissionIfNeeded(){
-      const D = window.DeviceOrientationEvent;
-      if (!D) return true;
-      if (typeof D.requestPermission === 'function'){
-        try{ return (await D.requestPermission()) === 'granted'; }catch{ return false; }
-      }
+      const D=window.DeviceOrientationEvent;
+      if(!D) return true;
+      if(typeof D.requestPermission==='function'){ try{ return (await D.requestPermission())==='granted'; }catch{ return false; } }
       return true;
     }
-
-    function openCompass(){
-      compassModal.style.display = 'flex';
-      compassModal.setAttribute('aria-hidden','false');
-      compassDialog.focus();
-      compassDialog.addEventListener('keydown', trapCompassTab);
-      startCompass();
-    }
-    function closeCompass(){
-      stopCompass();
-      compassDialog.removeEventListener('keydown', trapCompassTab);
-      compassModal.style.display = 'none';
-      compassModal.setAttribute('aria-hidden','true');
-    }
-    function trapCompassTab(e){
-      if (e.key !== 'Tab') return;
-      const focusable = compassDialog.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      if (!focusable.length) return;
-      const first = focusable[0], last = focusable[focusable.length-1];
-      if (e.shiftKey && document.activeElement === first){ last.focus(); e.preventDefault(); }
-      else if (!e.shiftKey && document.activeElement === last){ first.focus(); e.preventDefault(); }
-    }
-
+    function openCompass(){ compassModal.style.display='flex'; compassModal.setAttribute('aria-hidden','false'); compassDialog.focus(); compassDialog.addEventListener('keydown',trapCompassTab); startCompass(); }
+    function closeCompass(){ stopCompass(); compassDialog.removeEventListener('keydown',trapCompassTab); compassModal.style.display='none'; compassModal.setAttribute('aria-hidden','true'); }
+    function trapCompassTab(e){ if(e.key!=='Tab')return; const f=compassDialog.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'); if(!f.length)return; const first=f[0],last=f[f.length-1]; if(e.shiftKey && document.activeElement===first){ last.focus(); e.preventDefault(); } else if(!e.shiftKey && document.activeElement===last){ first.focus(); e.preventDefault(); } }
     async function startCompass(){
-      if (compassActive) return;
+      if(compassActive) return;
       await requestMotionPermissionIfNeeded();
       window.addEventListener('deviceorientation', onOrientation, true);
-
-      if (navigator.geolocation){
-        watchId = navigator.geolocation.watchPosition(p=>{
-          currentUserLocation = { lat: p.coords.latitude, lng: p.coords.longitude };
-          updateCompassUI();
-        }, ()=>{}, { enableHighAccuracy:true, maximumAge:1000, timeout:10000 });
+      if(navigator.geolocation){
+        watchId=navigator.geolocation.watchPosition(p=>{ currentUserLocation={lat:p.coords.latitude,lng:p.coords.longitude}; updateCompassUI(); },()=>{}, {enableHighAccuracy:true,maximumAge:1000,timeout:10000});
       }
-      compassActive = true;
-      updateCompassUI();
-
-      if (guideSpeaking){
-        if(routeSteps.length && stepIndex < routeSteps.length){
-          const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||'';
-          speak(`${text}${dist?'. '+dist:''}`);
-        } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
+      compassActive=true; updateCompassUI();
+      if(guideSpeaking){
+        if(routeSteps.length && stepIndex<routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); }
+        else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
       }
     }
-    function stopCompass(){
-      if (!compassActive) return;
-      compassActive = false;
-      try{ window.removeEventListener('deviceorientation', onOrientation, true); }catch{}
-      if (watchId !== null){ try{ navigator.geolocation.clearWatch(watchId); }catch{} watchId = null; }
-    }
+    function stopCompass(){ if(!compassActive)return; compassActive=false; try{window.removeEventListener('deviceorientation',onOrientation,true);}catch{} if(watchId!==null){ try{navigator.geolocation.clearWatch(watchId);}catch{} watchId=null; } }
 
     /* ===== Init / Geocode ===== */
-    function handleLocationError(){
-      locationStatus.textContent="Couldn't get your location. Please enter one manually.";
-      manualLocationEntry.classList.remove('hidden');
-      getFunFact({lat:51.5074,lng:-0.1278});
-      toggleFilterButtons(false);
-    }
+    function handleLocationError(){ locationStatus.textContent="Couldn't get your location. Please enter one manually."; manualLocationEntry.classList.remove('hidden'); getFunFact({lat:51.5074,lng:-0.1278}); toggleFilterButtons(false); }
     function reverseGeocodeSetLocation(coords){
       geocoder.geocode({location:coords},(results,status)=>{
         let label="Your Current Location"; currentLocality='';
         if(status==='OK'&&results?.[0]){
           const c=results[0].address_components||[];
-          const city=c.find(x=>x.types.includes('locality'))?.long_name
-                  ||c.find(x=>x.types.includes('postal_town'))?.long_name
-                  ||c.find(x=>x.types.includes('sublocality'))?.long_name;
+          const city=c.find(x=>x.types.includes('locality'))?.long_name||c.find(x=>x.types.includes('postal_town'))?.long_name||c.find(x=>x.types.includes('sublocality'))?.long_name;
           const state=c.find(x=>x.types.includes('administrative_area_level_1'))?.short_name;
           if(city&&state) currentLocality=`${city}, ${state}`;
           label=results[0].formatted_address.split(',').slice(0,2).join(',');
-        } else {
-          uiStatus(`ReverseGeocode: ${status}`);
-        }
+        } else { uiStatus(`ReverseGeocode: ${status}`); }
         setLocationAndEnableApp(coords,label);
       });
     }
@@ -774,70 +635,33 @@
       const address=locationInput.value.trim(); if(!address) return;
       locationStatus.textContent=`Searching for "${address}"...`;
       geocoder.geocode({address},(results,status)=>{
-        if(status==='OK'&&results?.[0]){
-          const loc=results[0].geometry.location;
-          reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()});
-        } else {
-          uiStatus(`Geocode: ${status}`);
-          locationStatus.textContent=`Could not find "${address}". (${status})`;
-        }
+        if(status==='OK'&&results?.[0]){ const loc=results[0].geometry.location; reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()}); }
+        else { uiStatus(`Geocode: ${status}`); locationStatus.textContent=`Could not find "${address}". (${status})`; }
       });
     }
     function setLocationAndEnableApp(coords,label){
-      currentUserLocation=coords;
-      locationStatus.textContent=`Exploring: ${label}`;
-      manualLocationEntry.classList.add('hidden');
-      toggleFilterButtons(false);
-      getFunFact(coords);
-      document.getElementById('fun-fact-container').style.display='block';
-      // show street view softly
-      panorama.setPosition(coords);
-      panoramaContainer.classList.add('shown');
+      currentUserLocation=coords; locationStatus.textContent=`Exploring: ${label}`; manualLocationEntry.classList.add('hidden'); toggleFilterButtons(false); getFunFact(coords); document.getElementById('fun-fact-container').style.display='block'; panorama.setPosition(coords); panoramaContainer.classList.add('shown');
     }
-
     function showSubMenu(filter){
       filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); darkSideButton.style.display='none';
       subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu';
       for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);}
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
-    function hideSubMenu(){subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block'}
+    function hideSubMenu(){ subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block' }
+    function findRandomAdventure(){ const r={...subFilterMap}; ['utilities','pets','dark'].forEach(f=>delete r[f]); const pool=Object.values(r).flatMap(o=>Object.values(o)); hideSubMenu(); const pick=pool[Math.floor(Math.random()*pool.length)]; findAdventure(pick,"random","Surprise Me!",{maxRadiusMeters:METERS_10_MILES}); }
+    function resetApp(hide=true){ closeCompass(); resultScreen.style.display='none'; resultsListScreen.style.display='none'; document.getElementById('main-screen').classList.remove('hidden'); document.getElementById('fun-fact-container').style.display='block'; hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false; if(currentUserLocation) locationStatus.textContent='Location set! Where to next?'; if(hide) panoramaContainer.classList.remove('shown'); }
 
-    function findRandomAdventure() {
-      const randomizable = { ...subFilterMap };
-      ['utilities', 'pets', 'dark'].forEach(f => delete randomizable[f]);
-      const pool = Object.values(randomizable).flatMap(obj => Object.values(obj));
-      hideSubMenu();
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      findAdventure(pick, "random", "Surprise Me!", { maxRadiusMeters: METERS_10_MILES });
-    }
-
-    function resetApp(hide=true){
-      closeCompass();
-      resultScreen.style.display='none'; resultsListScreen.style.display='none';
-      document.getElementById('main-screen').classList.remove('hidden');
-      document.getElementById('fun-fact-container').style.display='block';
-      hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      if(currentUserLocation) locationStatus.textContent='Location set! Where to next?';
-      if(hide) panoramaContainer.classList.remove('shown');
-    }
-
-    document.addEventListener('click', (e)=>{
+    document.addEventListener('click',(e)=>{
       const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
-      if (e.target.closest('.map-link-icon')) return;
-
-      if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
+      if(e.target.closest('.map-link-icon')) return;
+      if(btn.matches('#filter-container > button[data-filter]')){ showSubMenu(btn.dataset.filter); return; }
       if(btn.closest('.sub-menu') && btn.dataset.name){
-        const name=btn.dataset.name, parent=btn.dataset.parent;
-        let params=subFilterMap[parent][name];
-        if(parent==='eat' && name==='🍕 Surprise Me'){
-          const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant'));
-          params=food[Math.floor(Math.random()*food.length)];
-        }
+        const name=btn.dataset.name,parent=btn.dataset.parent; let params=subFilterMap[parent][name];
+        if(parent==='eat' && name==='🍕 Surprise Me'){ const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)]; }
         findAdventure(params,parent,name); return;
       }
-      if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
-
+      if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return; }
       switch(btn.id){
         case 'dark-side-button': showSubMenu('dark'); break;
         case 'back-to-main-filters': hideSubMenu(); break;
@@ -846,78 +670,58 @@
         case 'search-button': geocodeLocation(); break;
         case 'random-button': findRandomAdventure(); break;
         case 'next-suggestion-button':
-          if(currentResults.length){
-            const idx=currentResults.findIndex(r=>r.place_id===(currentPlace?.place_id||'')); 
-            const next=currentResults[(idx+1)%currentResults.length]; 
-            if(next) getPlaceDetails(next);
-          }
+          if(currentResults.length){ const idx=currentResults.findIndex(r=>r.place_id===(currentPlace?.place_id||'')); const next=currentResults[(idx+1)%currentResults.length]; if(next) getPlaceDetails(next); }
           break;
         case 'save-place-button':
-          if(currentPlace) {
-            if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id];
-            else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href};
-            localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
-            updateSaveButtonState();
-          }
+          if(currentPlace){ if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id]; else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href}; localStorage.setItem('savedPlaces',JSON.stringify(savedPlaces)); updateSaveButtonState(); }
           break;
         case 'compass-button': openCompass(); break;
         case 'close-compass': closeCompass(); break;
         case 'guide-button':
-          guideSpeaking = !guideSpeaking;
-          guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎';
+          guideSpeaking=!guideSpeaking; guideButton.textContent=guideSpeaking?'Pause ⏸':'Guide Me ▶︎';
           if(guideSpeaking){
-            if(routeSteps.length && stepIndex < routeSteps.length){ 
-              const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; 
-              speak(`${text}${dist?'. '+dist:''}`); 
-            } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
+            if(routeSteps.length && stepIndex<routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); }
+            else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
           } else { try{ speechSynthesis.cancel(); }catch{} }
           break;
         case 'share-button':
-          if (navigator.share && currentPlace) {
-            navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href });
-          }
+          if(navigator.share && currentPlace){ navigator.share({title:currentPlace.name,text:`Check out this place I found: ${currentPlace.name}`,url:directionsLink.href}); }
           break;
         case 'reviews-button': reviewsModal.style.display='flex'; break;
         case 'close-reviews': reviewsModal.style.display='none'; break;
+        case 'voice-button': voiceModal.style.display='flex'; voiceModal.setAttribute('aria-hidden','false'); break;
+        case 'close-voice': voiceModal.style.display='none'; voiceModal.setAttribute('aria-hidden','true'); break;
       }
     });
 
-    reviewsWorstToggle.addEventListener('change', ()=>{ updateReviewsUI(currentReviews, reviewsWorstToggle.checked); });
+    reviewsWorstToggle.addEventListener('change',()=>updateReviewsUI(currentReviews,reviewsWorstToggle.checked));
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
+    voiceRate.addEventListener('input',()=>{ chosenRate=parseFloat(voiceRate.value)||1; voiceRateValue.textContent=chosenRate.toFixed(2); });
+    voiceTest.addEventListener('click',()=>{ const name=voiceSelect.value; if(name) chosenVoiceName=name; speak('This is your selected voice. All set.'); });
+    voiceSave.addEventListener('click',()=>{ const name=voiceSelect.value||''; chosenVoiceName=name; localStorage.setItem('ttsVoiceName',chosenVoiceName); localStorage.setItem('ttsRate',String(chosenRate)); voiceModal.style.display='none'; voiceModal.setAttribute('aria-hidden','true'); });
 
-    /* ===== REAL init (exposed for the stub) ===== */
+    /* ===== REAL init ===== */
     function initApp(){
-      if (!window.google || !google.maps || !google.maps.places) {
-        uiStatus("Maps not loaded. Check API key / network / ad-blockers.");
-        manualLocationEntry.classList.remove('hidden');
-        return;
-      }
+      initVoices();
+      if(!window.google || !google.maps || !google.maps.places){ uiStatus("Maps not loaded. Check API key / network / ad-blockers."); manualLocationEntry.classList.remove('hidden'); return; }
       panorama=new google.maps.StreetViewPanorama(panoramaDiv,{addressControl:false,showRoadLabels:false,linksControl:false,panControl:false,enableCloseButton:false,fullscreenControl:false,zoomControl:false});
       placesService=new google.maps.places.PlacesService(document.createElement('div'));
       geocoder=new google.maps.Geocoder();
       directionsService=new google.maps.DirectionsService();
       toggleFilterButtons(true);
-
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        console.warn('Geolocation requires https or localhost.');
-      }
-
+      if(location.protocol!=='https:' && location.hostname!=='localhost'){ console.warn('Geolocation requires https or localhost.'); }
       if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(pos=>{
           const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
           reverseGeocodeSetLocation(coords);
-        }, err=>{
-          console.warn('Geolocation error:', err);
+        },err=>{
+          console.warn('Geolocation error:',err);
           handleLocationError();
-          locationStatus.textContent = `Location blocked: ${err.code} (${err.message || 'Denied'})`;
-        }, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
-      } else {
-        handleLocationError();
-        locationStatus.textContent = "Geolocation not supported in this browser.";
-      }
+          locationStatus.textContent=`Location blocked: ${err.code} (${err.message||'Denied'})`;
+        },{enableHighAccuracy:true,maximumAge:5000,timeout:10000});
+      } else { handleLocationError(); locationStatus.textContent="Geolocation not supported in this browser."; }
     }
-    // Expose for the stub to call when ready
-    window.__realInitApp = initApp;
+    window.__realInitApp=initApp;
   </script>
 </body>
 </html>
