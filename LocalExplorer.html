@@ -23,9 +23,10 @@
     .pt-safe{padding-top: calc(1rem + env(safe-area-inset-top));}
     .pb-safe{padding-bottom: calc(1rem + env(safe-area-inset-bottom));}
 
+    /* Street View underlay – NEVER block clicks */
     #panorama{position:absolute;inset:0;z-index:1}
     #panorama-container{pointer-events:none;opacity:0;visibility:hidden}
-    #panorama-container.shown{pointer-events:auto;opacity:1;visibility:visible;transition:opacity 1s}
+    #panorama-container.shown{pointer-events:none;opacity:1;visibility:visible;transition:opacity 1s}
 
     .action-card{background:#111827;color:#f8f7f2;transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.1)}
     .action-card:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
@@ -37,7 +38,7 @@
     .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
     .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
-    /* Results overlay */
+    /* Results overlay – darker so content behind doesn’t distract */
     #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
       background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     #results-list-card{background:rgba(17,24,39,.97);color:#f8f7f2;border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
@@ -66,97 +67,91 @@
     #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--amber);
       transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(245,158,11,.45));margin-bottom:8px}
     #compass-dist{font-size:14px;color:#e5e7eb;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
 
-  <!-- Street View backdrop -->
+  <!-- Street View backdrop (non-interactive) -->
   <div id="panorama-container" class="fixed inset-0">
     <div id="panorama" aria-hidden="true"></div>
   </div>
 
-  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main">
+  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
     <section id="main-screen" aria-labelledby="app-title">
       <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold text-gray-900 mb-4">Local Explorer</h1>
 
       <!-- Local facts -->
-      <section id="fun-fact-container" class="text-left mb-4 px-2" aria-labelledby="fact-title">
-        <h2 id="fact-title" class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h2>
+      <section id="fun-fact-container" class="text-left mb-4 px-2">
+        <h2 class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h2>
         <p id="fun-fact-text" class="text-sm text-gray-600 border-t-2 border-gray-200 pt-2">Loading...</p>
       </section>
 
-      <p id="location-status" class="text-lg font-semibold text-gray-700 my-4 transition-all" aria-live="polite">Please allow location access...</p>
+      <p id="location-status" class="text-lg font-semibold text-gray-700 my-4">Please allow location access...</p>
 
       <div id="manual-location-entry" class="hidden mb-6">
         <div class="flex items-center bg-white rounded-lg shadow-md">
-          <input type="text" id="location-input" inputmode="search" aria-label="Enter a city or place"
-                 placeholder="Enter a city or place" class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" />
-          <button id="search-button" class="action-card bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-r-lg" aria-label="Search">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          </button>
+          <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place"
+                 class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" />
+          <button id="search-button" class="action-card bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-r-lg" aria-label="Search">🔍</button>
         </div>
       </div>
 
       <!-- Categories -->
-      <nav id="filter-container" class="grid grid-cols-2 gap-4" aria-label="Categories">
-        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🍽️</span> Foodie Finds</button>
-        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🏛️</span> Iconic Sights</button>
-        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🌙</span> Night Out</button>
-        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">💎</span> Hidden Gems</button>
-        <button data-filter="outdoor" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🏞️</span> Outdoors</button>
-        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🐾</span> Pet Friendly</button>
-        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🛠️</span> Utilities & Help</button>
-        <button id="donate-button" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">❤️</span> Donate</button>
+      <nav id="filter-container" class="grid grid-cols-2 gap-4">
+        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🍽️ Foodie Finds</button>
+        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🏛️ Iconic Sights</button>
+        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🌙 Night Out</button>
+        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">💎 Hidden Gems</button>
+        <button data-filter="outdoor" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🏞️ Outdoors</button>
+        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🐾 Pet Friendly</button>
+        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🛠️ Utilities & Help</button>
+        <button id="donate-button" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">❤️ Donate</button>
       </nav>
 
-      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base flex items-center justify-center gap-2 bg-orange-500 text-white">
-        <span class="text-xl" aria-hidden="true">🤷</span> Surprise Me!
-      </button>
+      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base bg-orange-500 text-white">🤷 Surprise Me!</button>
 
-      <div id="sub-menu-container" class="hidden mt-4" aria-live="polite"></div>
+      <div id="sub-menu-container" class="hidden mt-4"></div>
       <button id="back-to-main-filters" class="hidden mt-4 text-gray-600 underline">Back to main filters</button>
     </section>
   </main>
 
-  <button id="dark-side-button" data-filter="dark" aria-label="Dark surprises">👻</button>
+  <button id="dark-side-button" data-filter="dark" aria-label="Dark category">👻</button>
 
   <!-- Results LIST -->
-  <section id="results-list-screen" role="dialog" aria-modal="true" aria-labelledby="results-title" style="display:none;">
+  <section id="results-list-screen" role="dialog" aria-modal="true" style="display:none;">
     <div id="results-list-card" class="w-full max-w-2xl">
       <div class="flex items-center justify-between mb-3">
         <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
-        <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg" aria-label="Close results">Back</button>
+        <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Back</button>
       </div>
-      <div id="results-meta" class="text-sm text-gray-300 mb-3" aria-live="polite"></div>
+      <div id="results-meta" class="text-sm text-gray-300 mb-3"></div>
       <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
   </section>
 
   <!-- Place Detail -->
-  <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;" aria-live="polite" aria-label="Place details">
+  <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
       <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
       <div class="flex justify-between items-start">
         <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2>
         <div class="flex items-center gap-2">
-          <span id="place-accessibility" class="text-2xl" aria-label="Accessibility"></span>
-          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false" aria-label="Save place">☆</button>
+          <span id="place-accessibility" class="text-2xl"></span>
+          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false">☆</button>
         </div>
       </div>
 
-      <div class="flex justify-center items-center gap-3 text-base my-2" aria-label="Ratings">
-        <div class="star-row" id="place-stars" aria-hidden="true"></div>
+      <div class="flex justify-center items-center gap-3 text-base my-2">
+        <div class="star-row" id="place-stars"></div>
         <p class="font-semibold text-orange-400" id="place-rating">...</p>
         <p class="font-semibold text-green-400" id="place-price">...</p>
         <a id="phone-link" href="#" class="text-blue-300 hover:underline text-sm"></a>
       </div>
 
-      <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3" aria-label="Place types"></div>
+      <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
 
-      <div id="reviews-block" class="text-left mt-3 hidden" aria-labelledby="reviews-heading">
-        <h3 id="reviews-heading" class="font-bold mb-2">Recent Reviews</h3>
+      <div id="reviews-block" class="text-left mt-3 hidden">
+        <h3 class="font-bold mb-2">Recent Reviews</h3>
         <div id="place-reviews" class="space-y-2"></div>
       </div>
 
@@ -164,7 +159,7 @@
         <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-orange-500 text-white font-bold py-3 px-4 rounded-lg">Map View</a>
         <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hidden">Website</a>
         <button id="share-button" class="flex-1 action-card bg-teal-600 text-white font-bold py-3 px-4 rounded-lg">Share</button>
-        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg" aria-haspopup="dialog" aria-controls="compass-modal">Compass</button>
+        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg">Compass</button>
       </div>
 
       <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
@@ -175,23 +170,21 @@
   </section>
 
   <!-- Compass Modal -->
-  <section id="compass-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <section id="compass-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)">
     <div id="compass-dialog" tabindex="-1">
       <header class="flex items-center justify-between mb-2">
         <h2 id="modal-title" class="font-header text-lg">Live Compass</h2>
         <div class="flex gap-2">
           <button id="guide-button" class="action-card bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
-          <button id="close-compass" class="action-card text-white font-bold py-2 px-3 rounded-lg bg-gray-700" aria-label="Close compass">Close</button>
+          <button id="close-compass" class="action-card text-white font-bold py-2 px-3 rounded-lg bg-gray-700">Close</button>
         </div>
       </header>
-
-      <div id="nav-bubble" aria-live="polite">
+      <div id="nav-bubble">
         <div id="nav-main">Head toward destination</div>
         <div id="nav-sub">Follow the arrow</div>
       </div>
-
-      <div id="compass-overlay" aria-label="Compass pointing to next step">
-        <div id="compass-arrow" aria-hidden="true"></div>
+      <div id="compass-overlay">
+        <div id="compass-arrow"></div>
         <div id="compass-dist">--</div>
       </div>
     </div>
@@ -222,10 +215,10 @@
   </section>
 
   <script>
-    /* ====== PWA ====== */
+    /* ====== SW (non-blocking) ====== */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./serviceworker.js').catch(err => console.log('SW registration failed:', err));
+        navigator.serviceWorker.register('./serviceworker.js').catch(()=>{});
       });
     }
 
@@ -264,7 +257,6 @@
     const savePlaceButton = document.getElementById('save-place-button');
     const nextSuggestionButton = document.getElementById('next-suggestion-button');
 
-    /* Compass */
     const compassModal = document.getElementById('compass-modal');
     const compassDialog = document.getElementById('compass-dialog');
     const compassButton = document.getElementById('compass-button');
@@ -275,7 +267,6 @@
     const compassArrow = document.getElementById('compass-arrow');
     const compassDist = document.getElementById('compass-dist');
 
-    /* Donate / Venmo */
     const donateButton = document.getElementById('donate-button');
     const donateModal = document.getElementById('donate-modal');
     const donateDialog = document.getElementById('donate-dialog');
@@ -383,7 +374,7 @@
       });
     }
 
-    /* ====== Local Facts ====== */
+    /* ====== Local Facts (always restored when closing overlays) ====== */
     async function getFunFact(coords){
       try{
         funFactText.textContent = "Finding local facts...";
@@ -404,14 +395,14 @@
 
         if(localFacts.length){ startFactCycling(); }
         else { funFactText.textContent="No detailed local facts found."; }
-      }catch(e){
+      }catch{
         funFactText.textContent="Local facts are currently unavailable.";
       }
     }
     function startFactCycling(){
       if(factInterval) clearInterval(factInterval);
       currentFactIndex=0;
-      funFactText.textContent = localFacts[currentFactIndex];
+      funFactText.textContent = localFacts[currentFactIndex] || "No local facts found nearby.";
       if(localFacts.length>1){
         factInterval=setInterval(()=>{
           currentFactIndex=(currentFactIndex+1)%localFacts.length;
@@ -424,7 +415,7 @@
     function showResultsList(parentFilter, subLabel){
       resultsListScreen.style.display='flex';
       funFactContainer.style.display='none';
-      resultsTitle.textContent=subLabel;
+      resultsTitle.textContent=subLabel || 'Results';
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
       resultsList.innerHTML='';
       currentResults.forEach(p=>{
@@ -438,14 +429,14 @@
               <h3 class="font-semibold text-base">${p.name}</h3>
               <div class="text-xs text-gray-300">${price}</div>
             </div>
-            <div class="flex items-center gap-2 mt-1" aria-label="Rating ${rating?rating.toFixed(1):'N A'}">
-              <div class="star-row" aria-hidden="true">${renderStarsHTML(rating)}</div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="star-row">${renderStarsHTML(rating)}</div>
               <div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div>
               <div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div>
             </div>
             <div class="text-xs text-gray-300 mt-1">${vic}</div>
             <div class="mt-2 flex gap-2">
-              <button class="action-card px-2 py-1 rounded-md text-xs open-details" data-id="${p.place_id}" aria-label="Open details for ${p.name}">Details</button>
+              <button class="action-card px-2 py-1 rounded-md text-xs open-details" data-id="${p.place_id}">Details</button>
               <a class="action-card px-2 py-1 rounded-md text-xs" target="_blank" rel="noopener"
                  href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}">Map</a>
             </div>
@@ -454,7 +445,7 @@
       });
     }
 
-    /* ====== Search ====== */
+    /* ====== Search (progressively widen radius; then text search) ====== */
     function findAdventure(searchParams,parentFilter,subLabel){
       if(!placesService||!currentUserLocation)return;
       resultsListScreen.style.display='none';
@@ -476,7 +467,7 @@
       };
       const text=()=>{
         const city=currentLocality||'';
-        const query = kw ? `${kw} ${city ? 'in '+city : ''}`.trim() : `${subLabel} ${city ? 'in '+city : ''}`.trim();
+        const query = kw ? `${kw} ${city ? 'in '+city : ''}`.trim() : `${subLabel||''} ${city ? 'in '+city : ''}`.trim();
         placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
           if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
             const filtered=filterByCategory(res,parentFilter,reqType,kw);
@@ -498,7 +489,7 @@
     function getPlaceDetails(summary){
       resultsListScreen.style.display='none';
       resultScreen.style.display='flex';
-      funFactContainer.style.display='none';
+      funFactContainer.style.display='none'; // hide facts ONLY on detail
       panorama.setPosition(summary.geometry.location);
       panoramaContainer.classList.add('shown');
 
@@ -650,7 +641,7 @@
       if(watchId!=null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
     }
 
-    /* ====== Donate modal + Venmo (fixed selector) ====== */
+    /* ====== Donate modal + Venmo ====== */
     function openDonate(){
       donateModal.style.display='flex';
       donateDialog.focus();
@@ -704,7 +695,7 @@
     function handleLocationError(){
       locationStatus.textContent="Couldn't get your location. Please enter one manually.";
       manualLocationEntry.classList.remove('hidden');
-      getFunFact({lat:51.5074,lng:-0.1278});
+      getFunFact({lat:51.5074,lng:-0.1278}); // seed UI
       toggleFilterButtons(false);
     }
     function reverseGeocodeSetLocation(coords){
@@ -735,7 +726,10 @@
       locationStatus.textContent=`Exploring: ${label}`;
       manualLocationEntry.classList.add('hidden');
       toggleFilterButtons(false);
+      // Always (re)start facts after location is set:
       getFunFact(coords);
+      // Ensure facts visible on the home screen:
+      funFactContainer.style.display='block';
     }
 
     /* ====== UI & Events ====== */
@@ -750,6 +744,7 @@
       closeCompass(); closeDonate();
       resultScreen.style.display='none'; resultsListScreen.style.display='none';
       mainScreen.classList.remove('hidden');
+      // Facts MUST be visible on home:
       funFactContainer.style.display='block';
       hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
       if(currentUserLocation) locationStatus.textContent='Location set! Where to next?';
@@ -782,7 +777,7 @@
           if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id];
           else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href};
           localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); updateSaveButtonState(); break;
-        case 'compass-button': openCompass(); break;
+        case 'compass-button': compassModal.style.display='flex'; compassDialog.focus(); startCompass(); document.addEventListener('keydown', trapCompassTab); break;
         case 'close-compass': closeCompass(); break;
         case 'guide-button':
           guideSpeaking = !guideSpeaking;
@@ -793,7 +788,7 @@
             } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
           } else { try{ speechSynthesis.cancel(); }catch{} }
           break;
-        case 'donate-button': openDonate(); break;
+        case 'donate-button': donateModal.style.display='flex'; donateDialog.focus(); document.addEventListener('keydown', donateTrap); break;
         case 'donate-close': closeDonate(); break;
       }
     });
