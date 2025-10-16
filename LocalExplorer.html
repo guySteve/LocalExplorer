@@ -2,25 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- iPhone-friendly viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-
-  <!-- PWA -->
   <meta name="theme-color" content="#111827" />
   <link rel="manifest" href="./manifest.json" />
-
-  <!-- iOS (standalone, status bar, title) -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Local Explorer" />
   <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
-
   <title>Local Explorer</title>
 
-  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
@@ -46,7 +37,7 @@
     .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
     .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
-    /* Results overlay (darker for readability) */
+    /* Results overlay */
     #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
       background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     #results-list-card{background:rgba(17,24,39,.97);color:#f8f7f2;border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
@@ -117,7 +108,6 @@
         <button data-filter="outdoor" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🏞️</span> Outdoors</button>
         <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🐾</span> Pet Friendly</button>
         <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🛠️</span> Utilities & Help</button>
-        <!-- Donate fills the last cell -->
         <button id="donate-button" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">❤️</span> Donate</button>
       </nav>
 
@@ -232,14 +222,14 @@
   </section>
 
   <script>
-    /* ====== PWA (relative paths for GitHub Pages) ====== */
+    /* ====== PWA ====== */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./serviceworker.js').catch(err => console.log('SW registration failed:', err));
       });
     }
 
-    /* ====== Element Refs ====== */
+    /* ====== Refs ====== */
     const funFactContainer = document.getElementById('fun-fact-container');
     const funFactText = document.getElementById('fun-fact-text');
 
@@ -320,28 +310,16 @@
     let stepIndex = 0;
     let stepTarget = null;
 
-    /* ====== Categories (includes Outdoors; Dark is location-based) ====== */
+    /* ====== Categories ====== */
     const subFilterMap = {
       eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
       see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
       night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},
       gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
-      outdoor:{
-        "Hikes":{type:"park", keyword:"trail hiking"},
-        "Beaches":{type:"tourist_attraction", keyword:"beach"},
-        "Waterfalls":{type:"tourist_attraction", keyword:"waterfall"},
-        "Scenic Overlooks":{type:"tourist_attraction", keyword:"scenic overlook view point"},
-        "Lakes":{type:"tourist_attraction", keyword:"lake"},
-        "Playgrounds":{type:"park", keyword:"playground"}
-      },
+      outdoor:{"Hikes":{type:"park",keyword:"trail hiking"},"Beaches":{type:"tourist_attraction",keyword:"beach"},"Waterfalls":{type:"tourist_attraction",keyword:"waterfall"},"Scenic Overlooks":{type:"tourist_attraction",keyword:"scenic overlook view point"},"Lakes":{type:"tourist_attraction",keyword:"lake"},"Playgrounds":{type:"park",keyword:"playground"}},
       pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
       utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}},
-      dark:{
-        "Cemeteries":{type:"cemetery"},
-        "Haunted Tours":{type:"tourist_attraction", keyword:"ghost tour haunted tour"},
-        "Haunted Sites":{type:"tourist_attraction", keyword:"haunted site haunted house"},
-        "Crime Museums":{type:"museum", keyword:"crime history museum"}
-      }
+      dark:{"Cemeteries":{type:"cemetery"},"Haunted Tours":{type:"tourist_attraction",keyword:"ghost tour haunted tour"},"Haunted Sites":{type:"tourist_attraction",keyword:"haunted site haunted house"},"Crime Museums":{type:"museum",keyword:"crime history museum"}}
     };
 
     const allowedByCategory = {
@@ -367,7 +345,6 @@
     function dedupe(items){const s=new Set(),o=[];for(const it of items){if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)}}return o}
     function sortResults(a){return a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name))}
 
-    // Category filters
     function isRestaurantCandidate(p,kw,reqType){
       const t=new Set(p.types||[]);
       const ish=t.has('restaurant')||[...t].some(x=>x.endsWith('_restaurant'))||t.has('cafe')||t.has('bakery')||t.has('meal_takeaway');
@@ -406,7 +383,7 @@
       });
     }
 
-    /* ====== Local Facts (fix: 2-step fetch for extracts) ====== */
+    /* ====== Local Facts ====== */
     async function getFunFact(coords){
       try{
         funFactText.textContent = "Finding local facts...";
@@ -446,7 +423,7 @@
     /* ====== Results List ====== */
     function showResultsList(parentFilter, subLabel){
       resultsListScreen.style.display='flex';
-      funFactContainer.style.display='none'; // hide facts when showing results
+      funFactContainer.style.display='none';
       resultsTitle.textContent=subLabel;
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
       resultsList.innerHTML='';
@@ -477,7 +454,7 @@
       });
     }
 
-    /* ====== Search (expand radius to whole city if needed) ====== */
+    /* ====== Search ====== */
     function findAdventure(searchParams,parentFilter,subLabel){
       if(!placesService||!currentUserLocation)return;
       resultsListScreen.style.display='none';
@@ -521,7 +498,7 @@
     function getPlaceDetails(summary){
       resultsListScreen.style.display='none';
       resultScreen.style.display='flex';
-      funFactContainer.style.display='none'; // hide facts on detail
+      funFactContainer.style.display='none';
       panorama.setPosition(summary.geometry.location);
       panoramaContainer.classList.add('shown');
 
@@ -535,7 +512,7 @@
       document.getElementById('reviews-block').classList.add('hidden');
       document.getElementById('place-reviews').innerHTML='';
 
-      // Reset nav state
+      // reset nav
       routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
 
       placesService.getDetails({
@@ -625,7 +602,6 @@
       updateCompassUI();
     }
 
-    /* ====== Compass modal controls ====== */
     function openCompass(){
       if(!currentPlace) return;
       compassModal.style.display='flex';
@@ -674,7 +650,7 @@
       if(watchId!=null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
     }
 
-    /* ====== Donate modal controls + Venmo ====== */
+    /* ====== Donate modal + Venmo (fixed selector) ====== */
     function openDonate(){
       donateModal.style.display='flex';
       donateDialog.focus();
@@ -688,24 +664,22 @@
     function donateTrap(e){
       if(e.key==='Escape'){ closeDonate(); return; }
       if(e.key!=='Tab') return;
-      const focusable = donateDialog.querySelectorAll('button,[href],[tabindex]:not([tabindex="-1"])']);
+      const focusable = donateDialog.querySelectorAll('button,[href],[tabindex]:not([tabindex="-1"])');
       const first = focusable[0], last = focusable[focusable.length-1];
       if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
       else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
     }
     donateModal.addEventListener('click', (e)=>{ if(e.target===donateModal) closeDonate(); });
 
-    const VENMO_USER = 'Stephen-Mohamed-1'; // your handle (no @)
+    const VENMO_USER = 'Stephen-Mohamed-1';
     if (venmoWeb) venmoWeb.href = `https://venmo.com/${VENMO_USER}`;
-
     function openVenmo(amount) {
       const note = encodeURIComponent('Local Explorer support');
       const scheme = `venmo://pay?recipients=${encodeURIComponent(VENMO_USER)}${amount?`&amount=${amount}`:''}&note=${note}`;
-      let timer = setTimeout(() => { window.open(`https://venmo.com/${VENMO_USER}`, '_blank'); }, 1200);
+      setTimeout(() => { window.open(`https://venmo.com/${VENMO_USER}`, '_blank'); }, 1200);
       const iframe = document.createElement('iframe'); iframe.style.display='none'; iframe.src = scheme;
       document.body.appendChild(iframe); setTimeout(()=>document.body.removeChild(iframe), 2000);
     }
-
     venmoBtn?.addEventListener('click', () => openVenmo());
     venmo3?.addEventListener('click', () => openVenmo(3));
     venmo5?.addEventListener('click', () => openVenmo(5));
@@ -730,7 +704,6 @@
     function handleLocationError(){
       locationStatus.textContent="Couldn't get your location. Please enter one manually.";
       manualLocationEntry.classList.remove('hidden');
-      // seed a fun fact (e.g., London) so the UI isn't empty
       getFunFact({lat:51.5074,lng:-0.1278});
       toggleFilterButtons(false);
     }
