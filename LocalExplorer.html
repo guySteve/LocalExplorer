@@ -28,17 +28,15 @@
     #dark-side-button{ position:fixed; bottom:1rem; left:1rem; font-size:1.5rem; opacity:.3; transition:opacity .2s; cursor:pointer; z-index:20; }
     #dark-side-button:hover{ opacity:1; }
 
-    /* Result card (details) */
+    /* Detail card */
     #result-card{ background:rgba(17,24,39,.9); color:#f8f7f2; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
       transition:transform .5s cubic-bezier(.19,1,.22,1), opacity .5s ease-out; max-height:90vh; overflow-y:auto;
       border-top:1px solid rgba(248,247,242,.2); }
-    #result-screen.hidden #result-card, #result-screen.hidden #result-buttons-container{ opacity:0; transform:translateY(100%); }
-    #result-buttons-container{ transition:transform .5s cubic-bezier(.19,1,.22,1), opacity .5s ease-out; }
     .place-type-tag{ background:rgba(248,247,242,.1); border:1px solid rgba(248,247,242,.2); padding:2px 10px; border-radius:9999px; font-size:.75rem; text-transform:capitalize; font-weight:600; }
 
-    /* Prevent hidden panorama from blocking clicks */
-    #panorama-container { pointer-events: none; }
-    #panorama-container.opacity-100 { pointer-events: auto; }
+    /* Prevent hidden panorama from blocking / showing */
+    #panorama-container { pointer-events:none; opacity:0; visibility:hidden; }
+    #panorama-container.shown { pointer-events:auto; opacity:1; visibility:visible; transition:opacity 1s; }
 
     /* Compass overlay */
     #compass-overlay {
@@ -56,7 +54,7 @@
     }
     #compass-dist { font-size: 11px; color: #e5e7eb; }
 
-    /* Results list screen */
+    /* Results list */
     #results-list-screen { position:fixed; inset:0; z-index:20; display:none; flex-direction:column; padding:1rem; }
     #results-list-card { background:rgba(17,24,39,.9); color:#f8f7f2; border-top-left-radius:1rem; border-top-right-radius:1rem; padding:1rem; max-width:42rem; width:100%; margin:0 auto; }
     .result-item { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:0.75rem; padding:0.75rem; display:flex; gap:0.75rem; }
@@ -68,8 +66,8 @@
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
 
-  <!-- Street View backdrop -->
-  <div id="panorama-container" class="fixed inset-0 transition-opacity duration-1000 opacity-0">
+  <!-- Street View backdrop (hidden until place opened) -->
+  <div id="panorama-container" class="fixed inset-0">
     <div id="panorama"></div>
   </div>
 
@@ -124,8 +122,8 @@
 
   <button id="dark-side-button" data-filter="dark">👻</button>
 
-  <!-- Results LIST screen -->
-  <div id="results-list-screen" class="hidden">
+  <!-- Results LIST screen (hidden inline) -->
+  <div id="results-list-screen" style="display:none;">
     <div id="results-list-card" class="w-full">
       <div class="flex items-center justify-between mb-3">
         <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
@@ -136,8 +134,8 @@
     </div>
   </div>
 
-  <!-- Detail RESULT screen -->
-  <div id="result-screen" class="hidden fixed inset-0 z-20 flex flex-col justify-end items-center p-4">
+  <!-- Detail RESULT screen (hidden inline) -->
+  <div id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
       <img id="place-photo" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Photo of the location" class="w-full h-48 object-cover rounded-lg mb-4" />
       <div class="flex justify-between items-start">
@@ -150,7 +148,7 @@
 
       <div class="flex justify-center items-center gap-3 text-base my-2">
         <div class="star-row" id="place-stars"></div>
-        <p class="font-semibold text-orange-400" id="place-rating">★ ...</p>
+        <p class="font-semibold text-orange-400" id="place-rating">...</p>
         <p class="font-semibold text-green-400" id="place-price">...</p>
         <a id="phone-link" href="#" class="text-blue-300 hover:underline text-sm"></a>
       </div>
@@ -277,7 +275,7 @@
       dark: { "Cemeteries": { type: "cemetery" }, "Historic Crimes": { keyword: "haunted tour" }, "Notable Tombs": { type: "cemetery", keyword: "famous grave" } }
     };
 
-    // Category-specific allowed types (strict)
+    // Strict category filter
     const allowedByCategory = {
       eat: new Set([
         'restaurant','cafe','bakery','meal_takeaway',
@@ -297,7 +295,7 @@
 
     // Stars util
     function renderStars(container, rating){
-      const r = Math.round((rating || 0));
+      const r = Math.round(rating || 0);
       container.innerHTML = '';
       for (let i=1; i<=5; i++){
         const span = document.createElement('span');
@@ -306,6 +304,14 @@
         container.appendChild(span);
         if (i<5) container.appendChild(document.createTextNode(' '));
       }
+    }
+    function renderStarsHTML(rating){
+      const r = Math.round(rating || 0);
+      let html = '';
+      for (let i=1;i<=5;i++){
+        html += `<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`;
+      }
+      return html;
     }
 
     // My List
@@ -403,8 +409,7 @@
     // LIST RENDER
     function showResultsList(parentFilter, subLabel, requestedType){
       funFactContainer.classList.add('hidden');
-      resultsListScreen.classList.remove('hidden');
-      resultsListScreen.classList.add('flex');
+      resultsListScreen.style.display = 'flex';
       resultsTitle.textContent = `${subLabel}`;
       const n = currentResults.length;
       resultsMeta.textContent = n ? `${n} results` : 'No results';
@@ -416,7 +421,7 @@
         const photoUrl = (p.photos && p.photos[0]) ? p.photos[0].getUrl({maxWidth: 200, maxHeight: 200}) : 'https://placehold.co/200x200/111827/fff?text=No+Photo';
         const rating = p.rating ?? null;
         const price = p.price_level ? '$'.repeat(p.price_level) : '';
-        const distanceText = p.vicinity || '';
+        const vicinity = p.vicinity || '';
 
         card.innerHTML = `
           <img class="result-thumb" src="${photoUrl}" alt="">
@@ -430,23 +435,14 @@
               <div class="text-sm text-orange-300">${rating ? rating.toFixed(1) : 'N/A'}</div>
               <div class="text-xs text-gray-400">(${p.user_ratings_total ?? 0})</div>
             </div>
-            <div class="text-xs text-gray-300 mt-1">${distanceText}</div>
+            <div class="text-xs text-gray-300 mt-1">${vicinity}</div>
             <div class="mt-2 flex gap-2">
               <button class="action-card px-2 py-1 rounded-md text-xs open-details" data-id="${p.place_id}">Details</button>
-              <a class="action-card px-2 py-1 rounded-md text-xs" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name + ', ' + (p.vicinity||''))}">Map</a>
+              <a class="action-card px-2 py-1 rounded-md text-xs" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name + ', ' + vicinity)}">Map</a>
             </div>
           </div>`;
         resultsList.appendChild(card);
       });
-    }
-
-    function renderStarsHTML(rating){
-      const r = Math.round(rating || 0);
-      let html = '';
-      for (let i=1;i<=5;i++){
-        html += `<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`;
-      }
-      return html;
     }
 
     // SEARCH
@@ -465,20 +461,13 @@
             ? (p) => /pizza/i.test(p.name || '') || (p.types || []).includes('pizza_restaurant')
             : null;
 
-          // strict filter
           let filtered = filterResultsByCategory(results, parentFilter, requestedType, guard);
-
-          // If empty, keep category but drop specific type requirement (still category-safe)
           if (!filtered.length) filtered = filterResultsByCategory(results, parentFilter, null, null);
 
-          // Sort: rating desc, then reviews desc, then name
           filtered.sort((a,b) => (b.rating??0)-(a.rating??0) || (b.user_ratings_total??0)-(a.user_ratings_total??0) || a.name.localeCompare(b.name));
-
           currentResults = filtered;
 
-          // Show list (every business in that category)
           showResultsList(parentFilter, subLabel, requestedType);
-
           toggleFilterButtons(false);
           backToMainFiltersButton.disabled = false;
           return;
@@ -492,7 +481,6 @@
           return;
         }
 
-        // error
         locationStatus.textContent = "Search failed. Check API key/billing or try again.";
         toggleFilterButtons(false);
         backToMainFiltersButton.disabled = false;
@@ -508,12 +496,12 @@
 
     function getPlaceDetails(placeSummary){
       funFactContainer.classList.add('hidden');
-      resultsListScreen.classList.add('hidden');
-      resultsListScreen.classList.remove('flex');
+      resultsListScreen.style.display = 'none';
 
-      resultScreen.classList.remove('hidden');
+      resultScreen.style.display = 'flex';
       panorama.setPosition(placeSummary.geometry.location);
-      panoramaContainer.classList.add('opacity-100');
+      panoramaContainer.classList.add('shown');
+
       currentPlace = placeSummary;
       updateSaveButtonState();
 
@@ -536,7 +524,7 @@
           currentPlace = place;
           placeNameEl.textContent = place.name;
           renderStars(placeStarsEl, place.rating ?? 0);
-          placeRatingEl.textContent = place.rating ? `${place.rating.toFixed(1)}` : 'N/A';
+          placeRatingEl.textContent = place.rating ? place.rating.toFixed(1) : 'N/A';
           placePriceEl.textContent = place.price_level ? '$'.repeat(place.price_level) : '';
           if (place.photos?.length) placePhotoEl.src = place.photos[0].getUrl({ maxWidth: 600, maxHeight: 400 });
           if (place.website){ websiteLink.href = place.website; websiteLink.classList.remove('hidden'); }
@@ -567,15 +555,13 @@
 
     // Geodesy helpers for compass
     const toRad = d => d * Math.PI / 180;
-    const toDeg = r => r * 180 / Math.PI;
     const norm = a => (a % 360 + 360) % 360;
-
     function bearingFromTo(a, b) {
       const φ1 = toRad(a.lat), φ2 = toRad(b.lat);
       const Δλ = toRad(b.lng - a.lng);
       const y = Math.sin(Δλ) * Math.cos(φ2);
       const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
-      return norm(toDeg(Math.atan2(y, x)));
+      return norm((Math.atan2(y, x) * 180) / Math.PI);
     }
     function haversineMeters(a, b) {
       const R = 6371000;
@@ -594,7 +580,6 @@
       const meters = haversineMeters(currentUserLocation, destinationLatLng);
       compassDist.textContent = meters >= 1000 ? `${(meters/1000).toFixed(2)} km` : `${Math.round(meters)} m`;
     }
-
     function onOrientation(e) {
       if (typeof e.webkitCompassHeading === 'number') {
         headingDeg = e.webkitCompassHeading;
@@ -603,7 +588,6 @@
       }
       updateCompassUI();
     }
-
     function startCompass() {
       if (!destinationLatLng) return;
       compassActive = true;
@@ -629,7 +613,6 @@
         );
       }
     }
-
     function stopCompass() {
       compassActive = false;
       compassOverlay.style.display = 'none';
@@ -690,7 +673,7 @@
       getFunFact(coords);
     }
 
-    // UI nav
+    // UI nav helpers using explicit display toggles
     function showSubMenu(filter){
       filterContainer.classList.add('hidden');
       randomButton.classList.add('hidden');
@@ -719,16 +702,15 @@
 
     function resetApp(hidePanorama = true){
       stopCompass();
-      resultScreen.classList.add('hidden');
-      resultsListScreen.classList.add('hidden');
-      resultsListScreen.classList.remove('flex');
+      resultScreen.style.display = 'none';
+      resultsListScreen.style.display = 'none';
       mainScreen.classList.remove('hidden');
       funFactContainer.classList.remove('hidden');
       hideSubMenu();
       toggleFilterButtons(false);
       backToMainFiltersButton.disabled = false;
       if (currentUserLocation) locationStatus.textContent = "Location set! Where to next?";
-      if (hidePanorama) panoramaContainer.classList.remove('opacity-100');
+      if (hidePanorama) panoramaContainer.classList.remove('shown');
     }
 
     // Events (delegation)
@@ -768,14 +750,12 @@
         case 'dark-side-button': showSubMenu('dark'); break;
         case 'back-to-main-filters': hideSubMenu(); break;
         case 'close-results-button':
-          resultsListScreen.classList.add('hidden');
-          resultsListScreen.classList.remove('flex');
+          resultsListScreen.style.display = 'none';
           funFactContainer.classList.remove('hidden');
           break;
         case 'try-again-button': resetApp(); break;
         case 'search-button': geocodeLocation(); break;
         case 'next-suggestion-button':
-          // In list mode, just reopen list; in detail mode, go to next item if exists
           if (currentResults.length) {
             const idx = currentResults.findIndex(r => r.place_id === (currentPlace?.place_id || ''));
             const next = currentResults[(idx + 1) % currentResults.length];
@@ -804,6 +784,6 @@
   </script>
 
   <!-- Load Google Maps *after* initApp is defined -->
-  <script defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&libraries=places&callback=initApp"></script>
+  <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places&callback=initApp"></script>
 </body>
 </html>
