@@ -165,7 +165,7 @@
 
       <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
         <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
-        <button id="next-suggestion-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
+        <button id="next-suggestion-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl" style="display:none">Next</button>
       </div>
     </div>
   </section>
@@ -285,6 +285,7 @@
     const compassDist=document.getElementById('compass-dist');
     const randomButton=document.getElementById('random-button');
     const darkSideButton=document.getElementById('dark-side-button');
+    const nextBtn=document.getElementById('next-suggestion-button');
     // Reviews
     const reviewsModal=document.getElementById('reviews-modal');
     const reviewsList=document.getElementById('reviews-list');
@@ -325,8 +326,6 @@
     const dedupe=items=>{const s=new Set(),o=[];for(const it of items)if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)}return o};
     const sortResults=a=>a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
     const toRad=d=>d*Math.PI/180,toDeg=r=>r*180/Math.PI,norm=a=>((a%360)+360)%360;
-    const ua=(navigator.userAgent||'').toLowerCase(); const isIOS=/iphone|ipad|ipod/.test(ua); const isAndroid=/android/.test(ua);
-
     function uiStatus(msg){ console.warn(msg); if(locationStatus) locationStatus.textContent=msg; }
 
     function isCandidate(p,kw,reqType,allowedSet){
@@ -345,54 +344,43 @@
       savePlaceButton.textContent=pressed?'★':'☆';
     }
 
-    /* ===== Speech (with platform-aware picker) ===== */
+    /* ===== Next visibility (NEW) ===== */
+    function updateNextVisibility(){
+      const show = Array.isArray(currentResults) && currentResults.length > 1;
+      nextBtn.style.display = show ? 'inline-block' : 'none';
+      nextBtn.disabled = !show;
+    }
+
+    /* ===== Speech (platform-aware) ===== */
+    let voicesCache=[], chosenVoiceName=localStorage.getItem('ttsVoiceName')||'', chosenRate=parseFloat(localStorage.getItem('ttsRate')||'1')||1;
+    const ua=(navigator.userAgent||'').toLowerCase(); const isIOS=/iphone|ipad|ipod/.test(ua); const isAndroid=/android/.test(ua);
     function getVoicesSafe(){ try{return window.speechSynthesis.getVoices()||[]}catch{return[]} }
     function bestDefaultVoice(voices){
-      // Prefer platform voices: Siri (iOS), Google (Android), else en-US local
       const langPref=(navigator.language||'en-US').toLowerCase();
       const by=(pred)=>voices.find(v=>pred(v));
       if(isIOS){ const siri=by(v=>/siri/i.test(v.name)); if(siri) return siri; }
-      if(isAndroid){ const g=en=>v=>/google/i.test(v.name)&&/english/i.test(v.name||'')&&/en-us/i.test((v.lang||'').toLowerCase()); const gv=voices.find(g()); if(gv) return gv; }
-      const langMatch=by(v=>(v.localService!==false)&& (v.lang||'').toLowerCase().startsWith(langPref.slice(0,2)));
-      if(langMatch) return langMatch;
+      if(isAndroid){ const gv=voices.find(v=>/google/i.test(v.name)&&/en-us/i.test((v.lang||'').toLowerCase())); if(gv) return gv; }
+      const local=by(v=>(v.localService!==false)&& (v.lang||'').toLowerCase().startsWith(langPref.slice(0,2))); if(local) return local;
       return voices[0]||null;
     }
     function populateVoicePicker(){
       voicesCache=getVoicesSafe();
       voiceSelect.innerHTML='';
-      if(!voicesCache.length){
-        const opt=document.createElement('option'); opt.value=''; opt.textContent='No voices available'; voiceSelect.appendChild(opt); return;
-      }
-      // Sort: platform-preferred first, then localService, then lang match, then alpha
-      const prefRank=v=>{
-        let r=0;
-        if(isIOS && /siri/i.test(v.name)) r-=3;
-        if(isAndroid && /google/i.test(v.name)) r-=3;
-        if(v.localService!==false) r-=1;
-        if((v.lang||'').toLowerCase().startsWith((navigator.language||'en').slice(0,2).toLowerCase())) r-=1;
-        return r;
-      };
+      if(!voicesCache.length){ const opt=document.createElement('option'); opt.value=''; opt.textContent='No voices available'; voiceSelect.appendChild(opt); return; }
+      const prefRank=v=>{let r=0; if(isIOS && /siri/i.test(v.name)) r-=3; if(isAndroid && /google/i.test(v.name)) r-=3; if(v.localService!==false) r-=1; if((v.lang||'').toLowerCase().startsWith((navigator.language||'en').slice(0,2).toLowerCase())) r-=1; return r;};
       const list=[...voicesCache].sort((a,b)=>prefRank(a)-prefRank(b)||a.name.localeCompare(b.name));
-      list.forEach(v=>{
-        const opt=document.createElement('option');
-        opt.value=v.name;
-        opt.textContent=`${v.name} (${v.lang})${v.localService===false?' • online':''}`;
-        voiceSelect.appendChild(opt);
-      });
-      // pick saved or best default
-      let pick = voicesCache.find(v=>v.name===chosenVoiceName) || bestDefaultVoice(voicesCache);
-      if(pick){ voiceSelect.value = pick.name; chosenVoiceName = pick.name; }
+      list.forEach(v=>{ const opt=document.createElement('option'); opt.value=v.name; opt.textContent=`${v.name} (${v.lang})${v.localService===false?' • online':''}`; voiceSelect.appendChild(opt); });
+      const pick=voicesCache.find(v=>v.name===chosenVoiceName) || bestDefaultVoice(voicesCache);
+      if(pick){ voiceSelect.value=pick.name; chosenVoiceName=pick.name; }
       voiceRate.value = chosenRate.toFixed(2);
       voiceRateValue.textContent = chosenRate.toFixed(2);
     }
-    // Ensure voices load on iOS/Android
     function initVoices(){
       populateVoicePicker();
       try{
-        window.speechSynthesis.onvoiceschanged = ()=>populateVoicePicker();
-        // Nudge some browsers to load voices
-        setTimeout(()=>populateVoicePicker(), 300);
-        setTimeout(()=>populateVoicePicker(), 1200);
+        window.speechSynthesis.onvoiceschanged=()=>populateVoicePicker();
+        setTimeout(()=>populateVoicePicker(),300);
+        setTimeout(()=>populateVoicePicker(),1200);
       }catch{}
     }
     function speak(text){
@@ -401,8 +389,7 @@
         const u=new SpeechSynthesisUtterance(text);
         const v=voicesCache.find(x=>x.name===chosenVoiceName) || bestDefaultVoice(voicesCache);
         if(v) u.voice=v;
-        u.rate = chosenRate;
-        u.pitch=1; u.volume=1;
+        u.rate=chosenRate; u.pitch=1; u.volume=1;
         speechSynthesis.speak(u);
       }catch{}
     }
@@ -502,7 +489,7 @@
     function getPlaceDetails(summary){
       resultsListScreen.style.display='none'; resultScreen.style.display='flex'; funFactContainer.style.display='none';
       panorama.setPosition(summary.geometry.location); panoramaContainer.classList.add('shown');
-      currentPlace=summary; updateSaveButtonState();
+      currentPlace=summary; updateSaveButtonState(); updateNextVisibility();
       placeNameEl.textContent='Loading Details...';
       placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
       placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
@@ -516,8 +503,8 @@
       placesService.getDetails({placeId:summary.place_id,fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance','reviews','url']},(place,status)=>{
         if(status===google.maps.places.PlacesServiceStatus.OK && place){
           currentPlace=place;
-          placeNameEl.textContent=place.name;
           renderStars(placeStarsEl, place.rating??0);
+          placeNameEl.textContent=place.name;
           placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
           placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
           if(place.photos?.length){ const photo=place.photos[0]; placePhotoEl.src=photo.getUrl({maxWidth:600,maxHeight:400}); }
@@ -531,7 +518,7 @@
           buildRouteTo(place.geometry.location);
 
           currentReviews=place.reviews||[]; updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
-          updateSaveButtonState();
+          updateSaveButtonState(); updateNextVisibility();
         } else { uiStatus(`Place details: ${status}`); }
       });
     }
@@ -670,7 +657,15 @@
         case 'search-button': geocodeLocation(); break;
         case 'random-button': findRandomAdventure(); break;
         case 'next-suggestion-button':
-          if(currentResults.length){ const idx=currentResults.findIndex(r=>r.place_id===(currentPlace?.place_id||'')); const next=currentResults[(idx+1)%currentResults.length]; if(next) getPlaceDetails(next); }
+          // Improved: only active if at least 2 results; robust fallback if current not found
+          if(!Array.isArray(currentResults) || currentResults.length < 2) { updateNextVisibility(); break; }
+          nextBtn.disabled = true;
+          const curId = currentPlace?.place_id || '';
+          let idx = currentResults.findIndex(r => r.place_id === curId);
+          if (idx < 0) idx = 0; // fallback if not found
+          const next = currentResults[(idx + 1) % currentResults.length];
+          if (next) getPlaceDetails(next);
+          setTimeout(()=>{ nextBtn.disabled = false; }, 400); // avoid double-tap races
           break;
         case 'save-place-button':
           if(currentPlace){ if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id]; else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href}; localStorage.setItem('savedPlaces',JSON.stringify(savedPlaces)); updateSaveButtonState(); }
