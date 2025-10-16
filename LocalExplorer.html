@@ -44,7 +44,7 @@
     .accordion-content{ max-height:0; overflow:hidden; transition:max-height .3s ease-out; }
     #save-place-button.saved{ transform:scale(1.25); }
 
-    /* ✅ Prevent hidden panorama from blocking clicks */
+    /* Prevent hidden panorama from blocking clicks */
     #panorama-container { pointer-events: none; }
     #panorama-container.opacity-100 { pointer-events: auto; }
   </style>
@@ -127,7 +127,7 @@
 
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
 
-      <!-- Summary block (referenced in code) -->
+      <!-- Summary block -->
       <div id="place-summary" class="text-left text-sm space-y-2 hidden"></div>
 
       <!-- Accordion -->
@@ -324,42 +324,60 @@
       }
     }
 
-    // Google Places
-    function findAdventure(searchParams, retries = 3){
+    // Google Places — KEEP SUBMENU OPEN on zero results
+    function findAdventure(searchParams, retries = 2){
       if (!placesService || !currentUserLocation) return;
       lastSearchRequest = searchParams;
       toggleFilterButtons(true);
       backToMainFiltersButton.disabled = true;
       locationStatus.textContent = "Searching for the perfect spot...";
 
-      const request = { location: currentUserLocation, radius: '5000', openNow: true, ...searchParams };
+      // Numeric radius; start without openNow to avoid empty sets in sparse areas
+      const request = { location: currentUserLocation, radius: 5000, /* openNow: true, */ ...searchParams };
+
       const utilityTypes = Object.values(subFilterMap.utilities).map(f => f.type);
       const darkTypes = Object.values(subFilterMap.dark).map(f => f.type).filter(Boolean);
-      const isUtilityOrDarkSearch = utilityTypes.includes(request.type) || darkTypes.includes(request.type) || searchParams.keyword;
+      const isUtilityOrDarkSearch = utilityTypes.includes(request.type) || darkTypes.includes(request.type) || !!searchParams.keyword;
 
       const previouslyShown = currentPlace?.place_id ? [currentPlace.place_id] : [];
 
       placesService.nearbySearch(request, (results, status) => {
+        console.log('[nearbySearch]', status, results?.length ?? 0, request);
+
         if (status === google.maps.places.PlacesServiceStatus.OK && results?.length){
-          let goodPlaces = isUtilityOrDarkSearch ? results : results.filter(p => p.rating >= 4.2 && p.user_ratings_total > 25);
-          goodPlaces = goodPlaces.filter(p => !previouslyShown.includes(p.place_id));
-          if (goodPlaces.length){
-            getPlaceDetails(goodPlaces[Math.floor(Math.random() * goodPlaces.length)]);
-          } else if (retries > 0){
-            findAdventure(searchParams, retries-1);
-          } else {
-            locationStatus.textContent = `Couldn't find top-rated spots. Try another filter!`;
-            resetApp(false);
+          let good = isUtilityOrDarkSearch ? results
+            : results.filter(p => (p.rating ?? 0) >= 4.2 && (p.user_ratings_total ?? 0) > 25);
+
+          good = good.filter(p => !previouslyShown.includes(p.place_id));
+
+          // Progressive relaxation if too strict
+          if (!good.length && !isUtilityOrDarkSearch) {
+            const relaxed = results.filter(p => (p.rating ?? 0) >= 4.0 && (p.user_ratings_total ?? 0) > 5);
+            if (relaxed.length) good = relaxed;
           }
-        } else {
-          locationStatus.textContent = "Sorry, the place search failed. Please try again.";
-          resetApp(false);
+          if (!good.length) good = results;
+
+          getPlaceDetails(good[Math.floor(Math.random() * good.length)]);
+          return;
         }
+
+        // ✅ Keep submenu visible; no bounce home
+        if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          locationStatus.textContent = "No places found here. Try another sub-filter or widen the radius.";
+          toggleFilterButtons(false);
+          backToMainFiltersButton.disabled = false;
+          return;
+        }
+
+        // API/network error
+        locationStatus.textContent = "Search failed. Check API key/billing or try again.";
+        console.error('Places error:', status);
+        toggleFilterButtons(false);
+        backToMainFiltersButton.disabled = false;
       });
     }
 
     function getPlaceDetails(placeSummary){
-      mainScreen.classList.remove('hidden'); // keep main screen; we overlay result screen
       resultScreen.classList.remove('hidden');
       panorama.setPosition(placeSummary.geometry.location);
       panoramaContainer.classList.add('opacity-100');
@@ -385,6 +403,7 @@
         fields: ['name','rating','user_ratings_total','price_level','photos','website','opening_hours','vicinity','types','formatted_phone_number','editorial_summary','reviews','geometry','wheelchair_accessible_entrance']
       };
       placesService.getDetails(request, (place, status) => {
+        console.log('[getDetails]', status, place?.name || '');
         if (status === google.maps.places.PlacesServiceStatus.OK && place){
           currentPlace = place;
           placeNameEl.textContent = place.name;
@@ -491,8 +510,7 @@
     // UI nav
     function showSubMenu(filter){
       filterContainer.classList.add('hidden');
-      // ✅ Only hide the button, not its parent container
-      randomButton.classList.add('hidden');
+      randomButton.classList.add('hidden'); // only hide the button, not its parent
       darkSideButton.style.display = 'none';
       subMenuContainer.innerHTML = '';
       const subFilters = subFilterMap[filter];
