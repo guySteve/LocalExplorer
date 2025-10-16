@@ -225,7 +225,8 @@
     const navSub = document.getElementById('nav-sub');
     const compassArrow = document.getElementById('compass-arrow');
     const compassDist = document.getElementById('compass-dist');
-    
+    const shareButton = document.getElementById('share-button');
+
     /* ====== State ====== */
     let placesService, panorama, geocoder, directionsService;
     let currentUserLocation;
@@ -307,7 +308,7 @@
         const photo=(p.photos&&p.photos[0])?p.photos[0].getUrl({maxWidth:200,maxHeight:200}):'https://placehold.co/200x200/111827/fff?text=N/A';
         const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
         const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
-        card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div></div><div class="text-xs text-gray-300 mt-1">${vic}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full bg-orange-500 text-white self-center"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
+        card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div></div><div class="text-xs text-gray-300 mt-1">${vic}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full bg-orange-500 text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
         resultsList.appendChild(card);
       });
     }
@@ -350,7 +351,47 @@
 
     /* ====== Details, Directions, Compass ====== */
     function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s); }
-    function getPlaceDetails(summary){ /* ... Functionality remains the same as previous build ... */ }
+    function getPlaceDetails(summary){ 
+        resultsListScreen.style.display = 'none';
+        resultScreen.style.display='flex';
+        funFactContainer.style.display='none';
+        panorama.setPosition(summary.geometry.location);
+        panoramaContainer.classList.add('shown');
+        currentPlace = summary; updateSaveButtonState();
+        placeNameEl.textContent = 'Loading Details...';
+        placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
+        placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
+        placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
+        phoneLink.textContent=''; phoneLink.removeAttribute('href');
+        placeAccessibility.textContent=''; placeAccessibility.style.display='none';
+        
+        routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
+
+        placesService.getDetails({
+            placeId:summary.place_id,
+            fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
+        },(place,status)=>{
+            if(status===google.maps.places.PlacesServiceStatus.OK&&place){
+                currentPlace=place;
+                placeNameEl.textContent=place.name;
+                renderStars(placeStarsEl, place.rating??0);
+                placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
+                placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
+                if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
+                if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
+                if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
+                if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
+                if(place.types?.length){
+                    place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{
+                        const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s);
+                    });
+                }
+                const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
+                buildRouteTo(place.geometry.location);
+                updateSaveButtonState();
+            }
+      });
+     }
     function buildRouteTo(latLng){ /* ... Functionality remains the same as previous build ... */ }
     function setStep(i){ /* ... Functionality remains the same as previous build ... */ }
     const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360;
@@ -427,6 +468,13 @@
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
     function hideSubMenu(){subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block'}
+    function findRandomAdventure() {
+        const randomizableFilters = { ...subFilterMap };
+        ['utilities', 'pets', 'dark'].forEach(f => delete randomizableFilters[f]);
+        const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj));
+        hideSubMenu();
+        findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!");
+    }
     function resetApp(hide=true){
       closeCompass();
       resultScreen.style.display='none'; resultsListScreen.style.display='none';
@@ -439,6 +487,7 @@
 
     document.addEventListener('click', (e)=>{
       const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
+      if (e.target.closest('.map-link-icon')) return;
 
       if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
       if(btn.closest('.sub-menu') && btn.dataset.name){
@@ -470,12 +519,13 @@
             else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
           } else { try{ speechSynthesis.cancel(); }catch{} }
           break;
-        case 'donate-button': openDonate(); break;
-        case 'donate-close': closeDonate(); break;
+        case 'share-button': if (navigator.share && currentPlace) { navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href, });} break;
       }
     });
 
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
   </script>
+
 </body>
 </html>
+
