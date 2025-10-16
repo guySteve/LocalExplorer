@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -200,9 +201,13 @@
   <!-- Reviews Mini Window -->
   <div id="reviews-modal">
     <div id="reviews-card" role="dialog" aria-modal="true" aria-labelledby="reviews-title">
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
         <h3 id="reviews-title" class="font-header text-lg">Recent Reviews</h3>
         <div class="flex items-center gap-2">
+          <label class="flex items-center gap-2 text-sm opacity-90">
+            <input id="reviews-worst-toggle" type="checkbox" class="accent-orange-500">
+            <span>Worst (≤3★)</span>
+          </label>
           <a id="reviews-open-in-maps" class="action-card bg-orange-600 text-white font-bold py-2 px-3 rounded-lg hidden" target="_blank" rel="noopener">Open in Google Maps</a>
           <button id="close-reviews" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Close</button>
         </div>
@@ -265,6 +270,7 @@
     const closeReviewsBtn = document.getElementById('close-reviews');
     const reviewsButton = document.getElementById('reviews-button');
     const reviewsOpenInMaps = document.getElementById('reviews-open-in-maps');
+    const reviewsWorstToggle = document.getElementById('reviews-worst-toggle');
 
     /* ====== State ====== */
     let placesService, panorama, geocoder, directionsService;
@@ -276,6 +282,7 @@
     let localFacts = [], factInterval = null, currentFactIndex = 0;
     let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
     let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
+    let currentReviews = [];
 
     /* ====== Categories ====== */
     const subFilterMap = {
@@ -464,16 +471,17 @@
           // Build route (Walking)
           buildRouteTo(place.geometry.location);
 
-          // Build reviews panel
-          updateReviewsUI(place.reviews || []);
+          // Reviews data + panel
+          currentReviews = place.reviews || [];
+          updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
 
           updateSaveButtonState();
         }
       });
     }
 
-    // Reviews UI
-    function updateReviewsUI(reviews){
+    // Reviews UI (+ worst filter)
+    function updateReviewsUI(reviews, worstOnly=false){
       reviewsList.innerHTML = '';
       if(!reviews || !reviews.length){
         const empty = document.createElement('div');
@@ -482,8 +490,30 @@
         reviewsList.appendChild(empty);
         return;
       }
-      const sorted = [...reviews].sort((a,b)=> (b.time||0)-(a.time||0));
-      sorted.forEach(r=>{
+
+      let data = [...reviews];
+      if (worstOnly){
+        data = data.filter(r => typeof r.rating === 'number' && r.rating <= 3);
+        // sort by rating asc (worst first), then most recent within same rating
+        data.sort((a,b)=>{
+          const ar = a.rating ?? 999, br = b.rating ?? 999;
+          if (ar !== br) return ar - br;
+          return (b.time||0) - (a.time||0);
+        });
+      } else {
+        // default: most recent first
+        data.sort((a,b)=> (b.time||0)-(a.time||0));
+      }
+
+      if (!data.length){
+        const none = document.createElement('div');
+        none.className='text-sm opacity-80';
+        none.textContent = 'No reviews match this filter.';
+        reviewsList.appendChild(none);
+        return;
+      }
+
+      data.forEach(r=>{
         const card = document.createElement('div');
         card.className='review';
         const stars = renderStarsHTML(r.rating || 0);
@@ -492,8 +522,8 @@
         const text = r.text || '';
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <div class="reviewer">${user}</div>
-            <div class="review-meta">${when}</div>
+            <div class="reviewer">${escapeHtml(user)}</div>
+            <div class="review-meta">${escapeHtml(when)}</div>
           </div>
           <div class="star-row mt-1">${stars}</div>
           <p class="mt-2 text-sm truncate">${escapeHtml(text)}</p>
@@ -846,7 +876,13 @@
       }
     });
 
+    // Worst filter toggle
+    reviewsWorstToggle.addEventListener('change', ()=>{
+      updateReviewsUI(currentReviews, reviewsWorstToggle.checked);
+    });
+
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
   </script>
 </body>
 </html>
+```
