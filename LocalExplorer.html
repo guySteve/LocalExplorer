@@ -141,10 +141,6 @@
         </div>
       </div>
 
-      <div class="mt-3 flex gap-2 justify-center">
-        <button id="use-demo-nyc" class="action-card px-3 rounded-lg">Use Demo Location (Times Square)</button>
-      </div>
-
       <!-- Categories -->
       <nav id="filter-container" class="grid grid-cols-2 gap-4 mt-4">
         <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🍽️ Foodie Finds</button>
@@ -301,7 +297,6 @@
     const compassDist = document.getElementById('compass-dist');
     const randomButton = document.getElementById('random-button');
     const darkSideButton = document.getElementById('dark-side-button');
-    const demoBtn = document.getElementById('use-demo-nyc');
 
     // Reviews refs
     const reviewsModal = document.getElementById('reviews-modal');
@@ -889,12 +884,6 @@
 
     reviewsWorstToggle.addEventListener('change', ()=>{ updateReviewsUI(currentReviews, reviewsWorstToggle.checked); });
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
-    demoBtn?.addEventListener('click', ()=>{
-      const timesSq = { lat: 40.758, lng: -73.9855 };
-      reverseGeocodeSetLocation(timesSq);
-      locationStatus.textContent = "Exploring: Times Square, NY (demo)";
-      manualLocationEntry.classList.add('hidden');
-    });
 
     /* ===== REAL init (exposed for the stub) ===== */
     function initApp(){
