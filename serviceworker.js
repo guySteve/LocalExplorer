@@ -1,60 +1,62 @@
 const CACHE_NAME = 'local-explorer-v8';
-const APP_SHELL = [
+const urlsToCache = [
   './',
   './LocalExplorer.html',
-  './manifest.json'
-];
-const PRECACHE_EXTERNAL = [
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap'
+  './manifest.json',
+  // hint: add icons you actually ship so iOS add-to-home works offline for icon
+  // './icons/icon-192x192.png',
 ];
 
 // Install
-self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(APP_SHELL.concat(PRECACHE_EXTERNAL));
-    self.skipWaiting();
-  })());
+self.addEventListener('install', event => {
+  event.waitUntil(
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.addAll(urlsToCache);
+      } catch (e) {
+        // avoid failing install on opaque/404
+        console.log('SW: addAll failed (continuing):', e);
+      }
+    })()
+  );
+  self.skipWaiting();
 });
 
-// Activate
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => (k === CACHE_NAME) ? null : caches.delete(k)));
-    await self.clients.claim();
-  })());
+// Activate: clean old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map(k => (k === CACHE_NAME ? null : caches.delete(k)))
+      );
+    })()
+  );
+  self.clients.claim();
 });
 
-// Fetch
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+// Cache-first for same-origin GET, network fallback
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  if (request.method !== 'GET' || new URL(request.url).origin !== location.origin) return;
 
-  const url = new URL(req.url);
-  const sameOrigin = url.origin === self.location.origin;
-
-  if (sameOrigin) {
-    event.respondWith((async () => {
-      const cached = await caches.match(req);
+  event.respondWith(
+    (async () => {
+      const cached = await caches.match(request);
       if (cached) return cached;
       try {
-        const res = await fetch(req);
-        if (res && res.status === 200) {
+        const resp = await fetch(request);
+        if (resp && resp.status === 200) {
+          const copy = resp.clone();
           const cache = await caches.open(CACHE_NAME);
-          cache.put(req, res.clone());
+          cache.put(request, copy).catch(()=>{});
         }
-        return res;
+        return resp;
       } catch (e) {
-        if (req.mode === 'navigate') {
-          const fallback = await caches.match('./LocalExplorer.html');
-          if (fallback) return fallback;
-        }
-        throw e;
+        // optionally serve an offline page here
+        return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
       }
-    })());
-  } else {
-    // Network-first for cross-origin (don’t cache volatile APIs like Maps)
-    event.respondWith(fetch(req).catch(() => caches.match(req)));
-  }
+    })()
+  );
 });
