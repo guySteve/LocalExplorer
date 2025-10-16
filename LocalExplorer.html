@@ -38,27 +38,50 @@
     #panorama-container{pointer-events:none;opacity:0;visibility:hidden}
     #panorama-container.shown{pointer-events:auto;opacity:1;visibility:visible;transition:opacity 1s}
 
-    /* Results overlay: dark + blur so BG doesn’t distract */
+    /* Results overlay */
     #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
       background:rgba(0,0,0,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
     #results-list-card{background:rgba(17,24,39,.96);color:#f8f7f2;border-top-left-radius:1rem;border-top-right-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:0 auto}
     .result-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem;display:flex;gap:.75rem}
     .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.5rem;background:#111827}
-    .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
-    /* Wavy pop-out + animated compass */
-    #compass-hud{position:fixed;right:1rem;bottom:7.5rem;z-index:40;display:none;align-items:center;gap:.6rem}
+    .star-row{font-size:12px;letter-spacing:1px}
+    .star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
+
+    /* =========================
+       Compass Modal (popup)
+       ========================= */
+    #compass-modal{
+      position: fixed; inset: 0; z-index: 50; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    #compass-dialog{
+      width: min(92vw, 420px);
+      background: rgba(17,24,39,.97); color: var(--ivory);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5); padding: 14px;
+      outline: none;
+    }
+    #compass-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+    #modal-title{font-weight:700}
+    #compass-controls{display:flex;gap:.5rem;flex-wrap:wrap}
+    #close-compass{background:#374151}
+
+    /* Wavy pop-out next to compass */
     #nav-bubble{
-      position:relative;max-width:62vw;color:var(--ivory);padding:.65rem .8rem .7rem .85rem;font-size:13px;line-height:1.25;
+      position:relative;margin: 8px 0 12px 0;
+      color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;
       box-shadow:0 10px 24px rgba(0,0,0,.35);
       background:radial-gradient(120% 140% at 10% 0%, rgba(16,185,129,.16) 0%, rgba(245,158,11,.18) 35%, rgba(17,24,39,.96) 68%);
       border:1px solid rgba(255,255,255,.12);animation:blobMorph 9s ease-in-out infinite;
-      backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none
+      backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
     }
-    #nav-bubble::after{content:'';position:absolute;right:-10px;bottom:14px;width:0;height:0;border-left:12px solid rgba(17,24,39,.96);
-      border-top:10px solid transparent;border-bottom:10px solid transparent;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+    #nav-bubble::after{content:'';position:absolute;left:14px;top:100%;width:0;height:0;
+      border-top:12px solid rgba(17,24,39,.96);border-left:12px solid transparent;border-right:12px solid transparent;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
     #nav-main{font-weight:700;letter-spacing:.2px}
     #nav-sub{font-size:11.5px;opacity:.85;margin-top:2px}
+
     @keyframes blobMorph{
       0%{border-radius:24px 18px 22px 28px / 26px 18px 26px 22px}
       25%{border-radius:18px 26px 20px 24px / 18px 28px 18px 26px}
@@ -66,9 +89,15 @@
       75%{border-radius:20px 28px 24px 20px / 24px 18px 28px 18px}
       100%{border-radius:24px 18px 22px 28px / 26px 18px 26px 22px}
     }
+    @media (prefers-reduced-motion: reduce){
+      #nav-bubble{animation:none}
+      #compass-overlay::before,#compass-overlay::after{animation:none}
+    }
 
+    /* Compass disk */
     #compass-overlay{
-      width:100px;height:100px;border-radius:9999px;position:relative;
+      width:240px;height:240px;border-radius:22px;margin: 6px auto 10px auto; padding: 18px;
+      position:relative;
       background:
         radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
         conic-gradient(from 0deg, rgba(245,158,11,.5), rgba(245,158,11,.1) 30%, rgba(16,185,129,.5) 60%, rgba(16,185,129,.12) 75%, rgba(245,158,11,.35));
@@ -79,104 +108,107 @@
       background:conic-gradient(from 0deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.22) 6%, rgba(255,255,255,0) 12%);
       animation:sweep 4s linear infinite;mix-blend-mode:overlay}
     @keyframes sweep{to{transform:rotate(360deg)}}
-    #compass-overlay::after{content:'';position:absolute;width:84%;height:84%;border-radius:9999px;box-shadow:0 0 0 0 rgba(245,158,11,.35);animation:pulse 2.6s ease-out infinite}
+    #compass-overlay::after{content:'';position:absolute;width:84%;height:84%;border-radius:20px;box-shadow:0 0 0 0 rgba(245,158,11,.35);animation:pulse 2.6s ease-out infinite}
     @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.28)}70%{box-shadow:0 0 0 14px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
-    #compass-arrow{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:30px solid var(--amber);
-      transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(245,158,11,.45));margin-bottom:6px}
-    #compass-dist{font-size:12px;color:#e5e7eb;font-weight:600;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+    #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--amber);
+      transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(245,158,11,.45));margin-bottom:8px}
+    #compass-dist{font-size:14px;color:#e5e7eb;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 
-    /* Guide button */
-    #guide-button{white-space:nowrap}
+    /* Generic helpers */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
 
+  <!-- Street View backdrop -->
   <div id="panorama-container" class="fixed inset-0">
-    <div id="panorama"></div>
+    <div id="panorama" aria-hidden="true"></div>
   </div>
 
-  <div id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center">
-    <div id="main-screen">
-      <h1 class="text-4xl md:text-5xl font-header font-bold text-gray-900 mb-4">Local Explorer</h1>
+  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main">
+    <!-- Main -->
+    <section id="main-screen" aria-labelledby="app-title">
+      <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold text-gray-900 mb-4">Local Explorer</h1>
 
-      <div id="fun-fact-container" class="text-left mb-4 px-2">
-        <h3 class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h3>
+      <section class="text-left mb-4 px-2" aria-labelledby="fact-title">
+        <h2 id="fact-title" class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h2>
         <p id="fun-fact-text" class="text-sm text-gray-600 border-t-2 border-gray-200 pt-2">Loading...</p>
-      </div>
+      </section>
 
-      <p id="location-status" class="text-lg font-semibold text-gray-700 my-4 transition-all">Please allow location access...</p>
+      <p id="location-status" class="text-lg font-semibold text-gray-700 my-4 transition-all" aria-live="polite">Please allow location access...</p>
 
       <div id="manual-location-entry" class="hidden mb-6">
         <div class="flex items-center bg-white rounded-lg shadow-md">
-          <input type="text" id="location-input" placeholder="Enter a city or place" class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" />
-          <button id="search-button" class="action-card bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-r-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="location-input" inputmode="search" aria-label="Enter a city or place"
+                 placeholder="Enter a city or place" class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" />
+          <button id="search-button" class="action-card bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-r-lg" aria-label="Search">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
         </div>
       </div>
 
       <div class="flex items-center gap-4 mb-4">
-        <button id="my-list-button" class="action-card rounded-lg font-bold py-3 text-base flex-1 flex items-center justify-center gap-2">
-          <span class="text-xl">📋</span> My List
+        <button id="my-list-button" class="action-card rounded-lg font-bold py-3 text-base flex-1 flex items-center justify-center gap-2" aria-haspopup="dialog">
+          <span class="text-xl" aria-hidden="true">📋</span> My List
         </button>
       </div>
 
-      <div id="filter-container" class="grid grid-cols-2 gap-4">
-        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1">🍽️</span> Foodie Finds</button>
-        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1">🏛️</span> Iconic Sights</button>
-        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1">🌙</span> Night Out</button>
-        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1">💎</span> Hidden Gems</button>
-        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1">🐾</span> Pet Friendly</button>
-        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1">🛠️</span> Utilities & Help</button>
-      </div>
+      <nav id="filter-container" class="grid grid-cols-2 gap-4" aria-label="Categories">
+        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🍽️</span> Foodie Finds</button>
+        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🏛️</span> Iconic Sights</button>
+        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🌙</span> Night Out</button>
+        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">💎</span> Hidden Gems</button>
+        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🐾</span> Pet Friendly</button>
+        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center"><span class="text-2xl mb-1" aria-hidden="true">🛠️</span> Utilities & Help</button>
+      </nav>
 
       <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base flex items-center justify-center gap-2 bg-orange-500 text-white">
-        <span class="text-xl">🤷</span> Surprise Me!
+        <span class="text-xl" aria-hidden="true">🤷</span> Surprise Me!
       </button>
 
-      <div id="sub-menu-container" class="hidden mt-4"></div>
+      <div id="sub-menu-container" class="hidden mt-4" aria-live="polite"></div>
       <button id="back-to-main-filters" class="hidden mt-4 text-gray-600 underline">Back to main filters</button>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <button id="dark-side-button" data-filter="dark">👻</button>
+  <button id="dark-side-button" data-filter="dark" aria-label="Dark surprises">👻</button>
 
   <!-- Results LIST -->
-  <div id="results-list-screen" style="display:none;">
+  <section id="results-list-screen" role="dialog" aria-modal="true" aria-labelledby="results-title" style="display:none;">
     <div id="results-list-card" class="w-full">
       <div class="flex items-center justify-between mb-3">
         <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
-        <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Back</button>
+        <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg" aria-label="Close results">Back</button>
       </div>
-      <div id="results-meta" class="text-sm text-gray-300 mb-3"></div>
+      <div id="results-meta" class="text-sm text-gray-300 mb-3" aria-live="polite"></div>
       <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
-  </div>
+  </section>
 
   <!-- Detail RESULT -->
-  <div id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
+  <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;" aria-live="polite" aria-label="Place details">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
-      <img id="place-photo" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Photo of the location" class="w-full h-48 object-cover rounded-lg mb-4" />
+      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
       <div class="flex justify-between items-start">
         <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2>
         <div class="flex items-center gap-2">
-          <span id="place-accessibility" class="text-2xl"></span>
-          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform">☆</button>
+          <span id="place-accessibility" class="text-2xl" aria-label="Accessibility"></span>
+          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false" aria-label="Save place">☆</button>
         </div>
       </div>
 
-      <div class="flex justify-center items-center gap-3 text-base my-2">
-        <div class="star-row" id="place-stars"></div>
+      <div class="flex justify-center items-center gap-3 text-base my-2" aria-label="Ratings">
+        <div class="star-row" id="place-stars" aria-hidden="true"></div>
         <p class="font-semibold text-orange-400" id="place-rating">...</p>
         <p class="font-semibold text-green-400" id="place-price">...</p>
         <a id="phone-link" href="#" class="text-blue-300 hover:underline text-sm"></a>
       </div>
 
-      <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
+      <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3" aria-label="Place types"></div>
 
       <!-- Reviews -->
-      <div id="reviews-block" class="text-left mt-3 hidden">
-        <h3 class="font-bold mb-2">Recent Reviews</h3>
+      <div id="reviews-block" class="text-left mt-3 hidden" aria-labelledby="reviews-heading">
+        <h3 id="reviews-heading" class="font-bold mb-2">Recent Reviews</h3>
         <div id="place-reviews" class="space-y-2"></div>
       </div>
 
@@ -184,37 +216,50 @@
         <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-orange-500 text-white font-bold py-3 px-4 rounded-lg">Map View</a>
         <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hidden">Website</a>
         <button id="share-button" class="flex-1 action-card bg-teal-600 text-white font-bold py-3 px-4 rounded-lg">Share</button>
-        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg">Compass</button>
-        <button id="guide-button" class="action-card bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg">Guide Me ▶︎</button>
+        <!-- Compass now opens modal only -->
+        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg" aria-haspopup="dialog" aria-controls="compass-modal">Compass</button>
+        <!-- Audio guide toggle lives in modal for clarity -->
       </div>
 
-      <!-- Wavy compass HUD -->
-      <div id="compass-hud">
-        <div id="nav-bubble">
-          <div id="nav-main">Head toward destination</div>
-          <div id="nav-sub">Follow the arrow</div>
-        </div>
-        <div id="compass-overlay">
-          <div id="compass-arrow"></div>
-          <div id="compass-dist">--</div>
-        </div>
+      <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
+        <button id="try-again-button" class="flex-1 action-card bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
+        <button id="next-suggestion-button" class="flex-1 action-card bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
       </div>
     </div>
+  </section>
 
-    <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
-      <button id="try-again-button" class="flex-1 action-card bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
-      <button id="next-suggestion-button" class="flex-1 action-card bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
+  <!-- Compass Modal -->
+  <section id="compass-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div id="compass-dialog" tabindex="-1">
+      <header id="compass-header">
+        <h2 id="modal-title" class="font-header text-lg">Live Compass</h2>
+        <div id="compass-controls">
+          <button id="guide-button" class="action-card bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
+          <button id="close-compass" class="action-card text-white font-bold py-2 px-3 rounded-lg" aria-label="Close compass">Close</button>
+        </div>
+      </header>
+
+      <div id="nav-bubble" aria-live="polite">
+        <div id="nav-main">Head toward destination</div>
+        <div id="nav-sub">Follow the arrow</div>
+      </div>
+
+      <div id="compass-overlay" aria-label="Compass pointing to next step">
+        <div id="compass-arrow" aria-hidden="true"></div>
+        <div id="compass-dist">--</div>
+      </div>
     </div>
-  </div>
+  </section>
 
   <script>
-    /* ====== Basic setup (SW, elements, state) ====== */
+    /* ====== PWA ====== */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./serviceworker.js').catch(err => console.log('SW registration failed:', err));
       });
     }
 
+    /* ====== Elements ====== */
     const mainScreen = document.getElementById('main-screen');
     const resultsListScreen = document.getElementById('results-list-screen');
     const resultsTitle = document.getElementById('results-title');
@@ -231,7 +276,6 @@
     const subMenuContainer = document.getElementById('sub-menu-container');
     const backToMainFiltersButton = document.getElementById('back-to-main-filters');
     const randomButton = document.getElementById('random-button');
-    const funFactContainer = document.getElementById('fun-fact-container');
     const funFactText = document.getElementById('fun-fact-text');
     const darkSideButton = document.getElementById('dark-side-button');
 
@@ -248,19 +292,21 @@
     const savePlaceButton = document.getElementById('save-place-button');
     const nextSuggestionButton = document.getElementById('next-suggestion-button');
 
-    const compassHud = document.getElementById('compass-hud');
-    const compassOverlay = document.getElementById('compass-overlay');
-    const compassArrow = document.getElementById('compass-arrow');
-    const compassDist = document.getElementById('compass-dist');
+    /* Compass Modal */
+    const compassModal = document.getElementById('compass-modal');
+    const compassDialog = document.getElementById('compass-dialog');
+    const compassButton = document.getElementById('compass-button');
+    const closeCompassBtn = document.getElementById('close-compass');
+    const guideButton = document.getElementById('guide-button');
+
     const navBubble = document.getElementById('nav-bubble');
     const navMain = document.getElementById('nav-main');
     const navSub = document.getElementById('nav-sub');
+    const compassOverlay = document.getElementById('compass-overlay');
+    const compassArrow = document.getElementById('compass-arrow');
+    const compassDist = document.getElementById('compass-dist');
 
-    const guideButton = document.getElementById('guide-button');
-
-    const reviewsBlock = document.getElementById('reviews-block');
-    const placeReviews = document.getElementById('place-reviews');
-
+    /* ====== State ====== */
     let placesService, panorama, geocoder, directionsService;
     let currentUserLocation;
     let currentLocality = '';
@@ -270,16 +316,16 @@
 
     // Navigation state
     let compassActive = false;
-    let guideSpeaking = false; // audio only when true (user tapped)
+    let guideSpeaking = false; // audio only when enabled via Guide button
     let watchId = null;
     let headingDeg = 0;
 
     // Route/steps
     let routeSteps = [];
     let stepIndex = 0;
-    let stepTarget = null; // LatLng of current step's end
+    let stepTarget = null;
 
-    /* ====== Categories (same strict filters) ====== */
+    /* ====== Category config (strict) ====== */
     const subFilterMap = {
       eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
       see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
@@ -291,9 +337,12 @@
     };
     const allowedByCategory = {
       eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
-      night:new Set(['bar','night_club']), see:new Set(['museum','art_gallery','tourist_attraction']),
-      pets:new Set(['park','pet_store','veterinary_care']), utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
-      gems:new Set(['art_gallery','park','cafe']), dark:new Set(['cemetery'])
+      night:new Set(['bar','night_club']),
+      see:new Set(['museum','art_gallery','tourist_attraction']),
+      pets:new Set(['park','pet_store','veterinary_care']),
+      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
+      gems:new Set(['art_gallery','park','cafe']),
+      dark:new Set(['cemetery'])
     };
     const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store']);
 
@@ -302,15 +351,15 @@
     function toggleFilterButtons(d){document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d)}
     function renderStarsHTML(r){r=Math.round(r||0);let h='';for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`;return h}
     function renderStars(el,r){el.innerHTML=renderStarsHTML(r)}
-    function updateSaveButtonState(){if(!currentPlace)return;savePlaceButton.textContent=savedPlaces[currentPlace.place_id]?'★':'☆';savePlaceButton.classList.toggle('text-orange-400',!!savedPlaces[currentPlace.place_id])}
+    function updateSaveButtonState(){if(!currentPlace)return;const saved=!!savedPlaces[currentPlace.place_id];savePlaceButton.textContent=saved?'★':'☆';savePlaceButton.setAttribute('aria-pressed', String(saved));savePlaceButton.classList.toggle('text-orange-400',saved)}
     function isRestaurantCandidate(p,kw,reqType){const t=new Set(p.types||[]);const ish=t.has('restaurant')||[...t].some(x=>x.endsWith('_restaurant'))||t.has('cafe')||t.has('bakery')||t.has('meal_takeaway');if(!ish)return false;for(const x of t)if(bannedRetailish.has(x))return false;if(reqType&&!t.has(reqType)){if(!(t.has('restaurant')&&kw&&new RegExp(kw,'i').test(p.name||'')))return false}return true}
     function filterByCategory(results,parent,reqType,kw){const allow=allowedByCategory[parent];if(!allow)return results||[];return (results||[]).filter(p=>{const t=new Set(p.types||[]);const ok=[...t].some(x=>allow.has(x));if(!ok)return false;return parent==='eat'?isRestaurantCandidate(p,kw,reqType):true})}
     function dedupe(items){const s=new Set(),o=[];for(const it of items){if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)}}return o}
     function sortResults(a){return a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name))}
+    function stripHtml(h){const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||'';}
 
     /* ====== Results List ====== */
     function showResultsList(parentFilter, subLabel){
-      funFactContainer.classList.add('hidden');
       resultsListScreen.style.display='flex';
       resultsTitle.textContent=subLabel;
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
@@ -320,20 +369,20 @@
         const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
         const card=document.createElement('div'); card.className='result-item';
         card.innerHTML=`
-          <img class="result-thumb" src="${photo}" alt="">
+          <img class="result-thumb" loading="lazy" src="${photo}" alt="" />
           <div class="flex-1 text-left">
             <div class="flex items-center justify-between">
               <h3 class="font-semibold text-base">${p.name}</h3>
               <div class="text-xs text-gray-300">${price}</div>
             </div>
-            <div class="flex items-center gap-2 mt-1">
-              <div class="star-row">${renderStarsHTML(rating)}</div>
+            <div class="flex items-center gap-2 mt-1" aria-label="Rating ${rating?rating.toFixed(1):'N A'}">
+              <div class="star-row" aria-hidden="true">${renderStarsHTML(rating)}</div>
               <div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div>
               <div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div>
             </div>
             <div class="text-xs text-gray-300 mt-1">${vic}</div>
             <div class="mt-2 flex gap-2">
-              <button class="action-card px-2 py-1 rounded-md text-xs open-details" data-id="${p.place_id}">Details</button>
+              <button class="action-card px-2 py-1 rounded-md text-xs open-details" data-id="${p.place_id}" aria-label="Open details for ${p.name}">Details</button>
               <a class="action-card px-2 py-1 rounded-md text-xs" target="_blank" rel="noopener"
                  href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}">Map</a>
             </div>
@@ -345,6 +394,7 @@
     /* ====== Search Cascade ====== */
     function findAdventure(searchParams,parentFilter,subLabel){
       if(!placesService||!currentUserLocation)return;
+      resultsListScreen.style.display='none';
       toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
       locationStatus.textContent="Searching nearby..."; currentResults=[];
       const reqType=searchParams.type||null;
@@ -380,11 +430,12 @@
 
     /* ====== Details + Reviews ====== */
     function openDetailsById(placeId){const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s);}
-    function stripHtml(h){const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||'';}
 
     function getPlaceDetails(summary){
-      funFactContainer.classList.add('hidden'); resultsListScreen.style.display='none';
-      resultScreen.style.display='flex'; panorama.setPosition(summary.geometry.location); panoramaContainer.classList.add('shown');
+      resultsListScreen.style.display='none';
+      resultScreen.style.display='flex';
+      panorama.setPosition(summary.geometry.location);
+      panoramaContainer.classList.add('shown');
 
       currentPlace=summary; updateSaveButtonState();
       placeNameEl.textContent='Loading Details...';
@@ -393,12 +444,12 @@
       placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
       phoneLink.textContent=''; phoneLink.removeAttribute('href');
       placeAccessibility.textContent=''; placeAccessibility.style.display='none';
-      reviewsBlock.classList.add('hidden'); placeReviews.innerHTML='';
+      document.getElementById('reviews-block').classList.add('hidden');
+      document.getElementById('place-reviews').innerHTML='';
 
-      // Reset nav state
-      stopCompass(); // stop old watchers
+      // Reset nav state, but DO NOT open compass unless user clicks
+      stopCompass();
       routeSteps=[]; stepIndex=0; stepTarget=null;
-      compassHud.style.display='flex'; navBubble.style.display='block';
 
       placesService.getDetails({
         placeId:summary.place_id,
@@ -420,16 +471,16 @@
             });
           }
           const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
-          // Build route & sync compass with current step
+          // Precompute route (used once user opens compass)
           buildRouteTo(place.geometry.location);
           updateSaveButtonState();
         }
       });
     }
 
-    /* ====== Directions + Compass + Voice (only when pressed) ====== */
+    /* ====== Directions + Compass + Voice (voice only if Guide toggled) ====== */
     function speak(text){
-      if(!guideSpeaking) return; // only if user pressed the Guide button
+      if(!guideSpeaking) return;
       try{ const u=new SpeechSynthesisUtterance(text); u.rate=1.0; u.pitch=1.0; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch{}
     }
 
@@ -443,22 +494,17 @@
           setStep(stepIndex);
         } else {
           routeSteps=[]; stepIndex=0; stepTarget={lat:latLng.lat(),lng:latLng.lng()};
-          navMain.textContent='Head toward destination'; navSub.textContent='Follow the arrow'; // fallback
+          navMain.textContent='Head toward destination'; navSub.textContent='Follow the arrow';
         }
       });
     }
 
     function setStep(i){
       if(i>=routeSteps.length){
-        navMain.textContent='Arrived';
-        navSub.textContent='You made it 🎉';
-        stepTarget=null;
-        speak('Arrived.');
-        return;
+        navMain.textContent='Arrived'; navSub.textContent='You made it 🎉'; stepTarget=null; speak('Arrived.'); return;
       }
       const st=routeSteps[i];
-      const text=stripHtml(st.instructions||'Continue');
-      const dist=st.distance?.text||'';
+      const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||'';
       navMain.textContent=text; navSub.textContent=dist?`Next • ${dist}`:'';
       stepTarget={lat:st.end_location.lat(), lng:st.end_location.lng()};
       if(guideSpeaking) speak(`${text}${dist?'. '+dist:''}`);
@@ -488,12 +534,7 @@
       const m=haversineMeters(currentUserLocation, stepTarget);
       compassDist.textContent=metersToImperial(m);
       navSub.textContent=`${turnHint(delta)} • ${metersToImperial(m)}`;
-
-      // Step advance threshold (~50 ft)
-      if(m < 15.24){ // 5 meters
-        stepIndex++;
-        setStep(stepIndex);
-      }
+      if(m < 15.24){ stepIndex++; setStep(stepIndex); } // ~5m
     }
 
     function onOrientation(e){
@@ -502,20 +543,41 @@
       updateCompassUI();
     }
 
-    function startCompass(){
-      if(!currentPlace) return;
-      compassActive=true;
-      compassHud.style.display='flex';
-      navBubble.style.display='block';
+    /* ====== Compass modal controls ====== */
+    function openCompass(){
+      if(!currentPlace){ return; }
+      compassModal.style.display='flex';
+      compassDialog.focus();
+      startCompass();
+      // focus trap
+      document.addEventListener('keydown', trapTab);
+    }
+    function closeCompass(){
+      compassModal.style.display='none';
+      stopCompass();
+      guideSpeaking=false; guideButton.textContent='Guide Me ▶︎';
+      try{speechSynthesis.cancel();}catch{}
+      document.removeEventListener('keydown', trapTab);
+      compassButton.focus();
+    }
+    function trapTab(e){
+      if(e.key!=='Tab') return;
+      const focusable = compassDialog.querySelectorAll('button,[href],[tabindex]:not([tabindex="-1"])');
+      const first = focusable[0], last = focusable[focusable.length-1];
+      if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+    }
 
+    function startCompass(){
+      compassActive=true;
       if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==='function'){
         DeviceOrientationEvent.requestPermission().then(state=>{
           if(state==='granted') window.addEventListener('deviceorientation', onOrientation, true);
-          else { alert('Compass permission denied.'); stopCompass(); }
-        }).catch(()=>{ alert('Compass not available.'); stopCompass(); });
+          else { alert('Compass permission denied.'); closeCompass(); }
+        }).catch(()=>{ alert('Compass not available.'); closeCompass(); });
       } else if(window.DeviceOrientationEvent){
         window.addEventListener('deviceorientation', onOrientation, true);
-      } else { alert('Compass not supported.'); stopCompass(); }
+      } else { alert('Compass not supported.'); closeCompass(); return; }
 
       if(navigator.geolocation){
         watchId=navigator.geolocation.watchPosition(
@@ -524,14 +586,10 @@
         );
       }
     }
-
     function stopCompass(){
       compassActive=false;
-      compassHud.style.display='none';
-      navBubble.style.display='none';
       window.removeEventListener('deviceorientation', onOrientation, true);
       if(watchId!=null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
-      // do NOT change guideSpeaking here; user controls it
     }
 
     /* ====== Init / Geocode ====== */
@@ -584,7 +642,14 @@
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
     function hideSubMenu(){subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block'}
-    function resetApp(hide=true){stopCompass(); resultScreen.style.display='none'; resultsListScreen.style.display='none'; mainScreen.classList.remove('hidden'); funFactContainer.classList.remove('hidden'); hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false; if(currentUserLocation) locationStatus.textContent='Location set! Where to next?'; if(hide) panoramaContainer.classList.remove('shown')}
+    function resetApp(hide=true){
+      closeCompass();
+      resultScreen.style.display='none'; resultsListScreen.style.display='none';
+      mainScreen.classList.remove('hidden');
+      hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
+      if(currentUserLocation) locationStatus.textContent='Location set! Where to next?';
+      if(hide) panoramaContainer.classList.remove('shown');
+    }
 
     document.addEventListener('click', (e)=>{
       const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
@@ -601,7 +666,7 @@
       switch(btn.id){
         case 'dark-side-button': showSubMenu('dark'); break;
         case 'back-to-main-filters': hideSubMenu(); break;
-        case 'close-results-button': resultsListScreen.style.display='none'; funFactContainer.classList.remove('hidden'); break;
+        case 'close-results-button': resultsListScreen.style.display='none'; break;
         case 'try-again-button': resetApp(); break;
         case 'search-button': geocodeLocation(); break;
         case 'next-suggestion-button':
@@ -612,29 +677,27 @@
           if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id];
           else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href};
           localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); updateSaveButtonState(); break;
-        case 'compass-button':
-          if(compassActive){ stopCompass(); } else { startCompass(); }
-          break;
+        case 'compass-button': openCompass(); break;
+        case 'close-compass': closeCompass(); break;
         case 'guide-button':
-          // Toggle audio guidance ONLY by this button
           guideSpeaking = !guideSpeaking;
-          btn.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎';
+          guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎';
           if(guideSpeaking){
-            // read current step again
             if(routeSteps.length && stepIndex < routeSteps.length){
               const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`);
-            } else if(currentPlace){
-              speak(`Head toward ${currentPlace.name}`);
-            }
+            } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
           } else { try{ speechSynthesis.cancel(); }catch{} }
           break;
       }
     });
 
+    // ESC closes compass
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && compassModal.style.display==='flex'){ closeCompass(); } });
+
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
   </script>
 
-  <!-- Google Maps (keep your restricted key) -->
+  <!-- Google Maps -->
   <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places&callback=initApp"></script>
 </body>
 </html>
