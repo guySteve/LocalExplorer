@@ -1,4 +1,4 @@
-const CACHE_NAME = 'local-explorer-v12-navy-rugged';
+const CACHE_NAME = 'local-explorer-v1-final';
 const urlsToCache = [
     '/',
     'LocalExplorer.html',
@@ -6,21 +6,18 @@ const urlsToCache = [
     'js/main.js',
     'js/state.js',
     'js/api.js',
-    'js/ui.js',
-    'js/gestures.js',
-    'https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Roboto:wght@400;500&display=swap'
+    'js/ui.js'
 ];
 
+// On install, cache the app shell
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Service Worker: Caching app shell');
-                return cache.addAll(urlsToCache);
-            })
+            .then(cache => cache.addAll(urlsToCache))
     );
 });
 
+// On activate, clean up old caches
 self.addEventListener('activate', event => {
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
@@ -37,23 +34,21 @@ self.addEventListener('activate', event => {
     return self.clients.claim();
 });
 
+// Use a "Stale-while-revalidate" strategy for fetches
 self.addEventListener('fetch', event => {
-    if (event.request.method !== 'GET') return;
-
     event.respondWith(
-        caches.match(event.request)
-            .then(cachedResponse => {
-                if (cachedResponse) return cachedResponse;
-
-                return fetch(event.request).then(networkResponse => {
-                    if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-                        return networkResponse;
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.match(event.request).then(response => {
+                const fetchPromise = fetch(event.request).then(networkResponse => {
+                    // If we get a valid response, update the cache
+                    if (networkResponse && networkResponse.status === 200) {
+                        cache.put(event.request, networkResponse.clone());
                     }
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME)
-                        .then(cache => cache.put(event.request, responseToCache));
                     return networkResponse;
                 });
-            })
+                // Return the cached response immediately, then update the cache in the background
+                return response || fetchPromise;
+            });
+        })
     );
 });
