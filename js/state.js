@@ -30,10 +30,33 @@ const AppState = {
         this.dayPlan = JSON.parse(localStorage.getItem(this.STORAGE_KEYS.DAY_PLAN)) || [];
         this.achievements = new Set(JSON.parse(localStorage.getItem(this.STORAGE_KEYS.ACHIEVEMENTS)) || []);
     },
-
-    // ... (rest of the functions in this file remain the same) ...
-    save: function(key) { /*...*/ },
-    toggleSavedPlace: function(place) { /*...*/ },
-    addToDayPlan: function(place) { /*...*/ },
-    grantAchievement: function(badgeId) { /*...*/ }
+    save: function(key) {
+        const data = JSON.stringify(this[key]);
+        const storageKey = this.STORAGE_KEYS[key.replace(/([A-Z])/g, '_$1').toUpperCase()];
+        if (storageKey) {
+            localStorage.setItem(storageKey, data);
+        }
+    },
+    toggleSavedPlace: function(place) {
+        if (!place || !place.place_id) return;
+        if (this.savedPlaces[place.place_id]) {
+            delete this.savedPlaces[place.place_id];
+        } else {
+            this.savedPlaces[place.place_id] = { name: place.name, vicinity: place.vicinity };
+        }
+        this.save('savedPlaces');
+    },
+    addToDayPlan: function(place) {
+        if (place && place.place_id && !this.dayPlan.some(p => p.place_id === place.place_id)) {
+            this.dayPlan.push({ name: place.name, place_id: place.place_id });
+            this.save('dayPlan');
+        }
+    },
+    grantAchievement: function(badgeId) {
+        if (!this.achievements.has(badgeId)) {
+            this.achievements.add(badgeId);
+            this.save('achievements');
+            UI.showNotification(`🏆 Achievement Unlocked: ${badgeId}`);
+        }
+    }
 };
