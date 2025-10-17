@@ -12,10 +12,7 @@ const UI = {
             randomButton: document.getElementById('random-button'),
             darkSideButton: document.getElementById('dark-side-button'),
             resultScreen: document.getElementById('result-screen'),
-            resultCard: document.getElementById('result-card'),
-            placeName: document.getElementById('place-name'),
             dayPlanModal: document.getElementById('day-plan-modal'),
-            dayPlanList: document.getElementById('day-plan-list'),
         };
     },
 
@@ -37,25 +34,21 @@ const UI = {
             }
         });
 
-        // Other buttons
+        // Other main menu buttons
         this.elements.backButton.addEventListener('click', () => this.hideSubMenu());
         this.elements.randomButton.addEventListener('click', () => this.findRandomAdventure());
         this.elements.darkSideButton.addEventListener('click', () => this.showSubMenu('dark'));
-
-        // Event listeners for result card, compass, etc. remain
-        this.elements.resultCard.addEventListener('click', e => { /*...*/ });
-        document.getElementById('close-compass').addEventListener('click', () => this.closeCompass());
-        document.getElementById('open-day-plan-button').addEventListener('click', () => this.showDayPlan());
-        document.getElementById('close-day-plan').addEventListener('click', () => this.elements.dayPlanModal.style.display = 'none');
+        document.getElementById('open-day-plan-button').addEventListener('click', () => {/* Placeholder */});
     },
 
     // --- Restored Menu Logic ---
     showSubMenu: function(filter) {
         this.elements.filterContainer.classList.add('hidden');
         this.elements.randomButton.classList.add('hidden');
+        this.elements.darkSideButton.style.display = 'none';
 
         const subCategories = AppState.subFilterMap[filter];
-        this.elements.subMenuContainer.innerHTML = ''; // Clear previous
+        this.elements.subMenuContainer.innerHTML = '';
         
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-2 gap-3';
@@ -78,6 +71,7 @@ const UI = {
         this.elements.backButton.classList.add('hidden');
         this.elements.filterContainer.classList.remove('hidden');
         this.elements.randomButton.classList.remove('hidden');
+        this.elements.darkSideButton.style.display = 'block';
     },
 
     findRandomAdventure: function() {
@@ -93,20 +87,30 @@ const UI = {
     // --- End of Restored Menu Logic ---
 
     findAndDisplayPlaces: async function(params) {
-        this.hideSubMenu(); // Hide menus when search starts
+        this.hideSubMenu();
         this.updateStatus('Searching...');
-        // ... (rest of the function is the same)
+        // This function will be expanded in the next step to show a results list
+        console.log("Searching with params:", params);
+        // Placeholder for results
+        this.updateStatus('Search complete. Feature under construction.');
     },
     
-    // ... (rest of the functions in this file remain the same) ...
-    showNextSuggestion: async function() { /*...*/ },
-    renderPlaceCard: function(place) { /*...*/ },
-    toggleSaveCurrentPlace: function() { /*...*/ },
-    updateSaveButton: function() { /*...*/ },
-    updateStatus: function(text) { /*...*/ },
-    openCompass: function() { /*...*/ },
-    closeCompass: function() { /*...*/ },
-    showDayPlan: function() { /*...*/ },
-    showNotification: function(message) { /*...*/ },
-    init: function() { /*...*/ }
+    updateStatus: function(text) {
+        this.elements.locationStatus.textContent = text;
+    },
+    
+    showNotification: function(message) {
+        const el = document.createElement('div');
+        el.className = 'fixed top-5 left-1/2 -translate-x-1/2 font-bold p-3 rounded-lg shadow-lg z-50';
+        el.style.background = 'var(--accent-gold)';
+        el.style.color = 'var(--navy-darkest)';
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+    },
+
+    init: function() {
+        this.cacheElements();
+        this.initEventListeners();
+    }
 };
