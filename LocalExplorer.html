@@ -20,14 +20,11 @@
                 <a href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" id="venmo-button" class="action-card">Donate</a>
             </div>
         </header>
-
         <section id="fun-fact-container" class="mb-4">
             <h2 class="font-header text-sm" style="color:var(--accent-gold)">Local Intel</h2>
             <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="border-color:var(--border-color)">Loading...</p>
         </section>
-
         <p id="location-status" class="text-lg font-semibold my-3 text-center">Initializing...</p>
-
         <nav id="filter-container" class="grid grid-cols-2 gap-3">
             <button data-filter="eat" class="action-card">🍽️ Foodie Finds</button>
             <button data-filter="see" class="action-card">🏛️ Iconic Sights</button>
@@ -36,11 +33,17 @@
             <button data-filter="pets" class="action-card">🐾 Pet Friendly</button>
             <button data-filter="utilities" class="action-card">🛠️ Utilities & Help</button>
         </nav>
-
         <div id="sub-menu-container" class="hidden mt-3"></div>
         <button id="back-to-main-filters" class="action-card w-full mt-3 hidden">Back</button>
-
         <button id="random-button" class="action-card w-full mt-3">🤷 Surprise Me!</button>
+
+        <section id="results-list-screen" class="absolute inset-0 bg-navy-darkest p-4 z-40 hidden">
+            <div class="flex items-center justify-between mb-3">
+                <h2 id="results-title" class="text-xl font-header">Results</h2>
+                <button id="close-results-button" class="action-card">Back</button>
+            </div>
+            <div id="results-list" class="space-y-2 overflow-y-auto max-h-[70vh]"></div>
+        </section>
 
         <section id="result-screen" style="display:none;"></section>
     </main>
