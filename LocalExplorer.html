@@ -4,63 +4,125 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Local Explorer</title>
-    <link rel="Manifest" href="./manifest.json" />
+    <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="style.css">
-
+    <script src="https://maps.googleapis.com/maps/api/js?key=<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Local Explorer</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="stylesheet" href="style.css">
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places&callback=initApp" async defer></script>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
 
     <div id="panorama-container" class="fixed inset-0"></div>
 
     <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto">
         <header class="flex items-center justify-between mb-3">
-            <h1 class="text-3xl md:text-4xl font-header">Local Explorer</h1>
-            <button id="open-day-plan-button" class="action-card icon-btn">
-                <span class="btn-label">Plan</span>
-            </button>
+            <h1 class="text-3xl font-header">Local Explorer</h1>
+            <button id="open-day-plan-button" class="action-card">Plan</button>
         </header>
 
         <section id="fun-fact-container" class="mb-4">
-            <h2 class="font-header text-sm tracking-wider uppercase" style="color:var(--accent-gold)">Local Intel</h2>
+            <h2 class="font-header text-sm" style="color:var(--accent-gold)">Local Intel</h2>
             <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="border-color:var(--border-color)">Loading...</p>
         </section>
 
         <p id="location-status" class="text-lg font-semibold my-3 text-center">Initializing...</p>
 
         <nav id="filter-container" class="grid grid-cols-2 gap-3">
-            <button data-filter='{"type":"restaurant"}' class="action-card font-bold py-3">🍽️ Foodie Finds</button>
-            <button data-filter='{"type":"tourist_attraction"}' class="action-card font-bold py-3">🏛️ Iconic Sights</button>
-            <button data-filter='{"type":"bar"}' class="action-card font-bold py-3">🌙 Night Out</button>
-            <button data-filter='{"keyword":"park"}' class="action-card font-bold py-3">💎 Hidden Gems</button>
+            <button data-filter='{"type":"restaurant"}' class="action-card">🍽️ Foodie Finds</button>
+            <button data-filter='{"type":"tourist_attraction"}' class="action-card">🏛️ Iconic Sights</button>
+            <button data-filter='{"type":"bar"}' class="action-card">🌙 Night Out</button>
+            <button data-filter='{"keyword":"park"}' class="action-card">💎 Hidden Gems</button>
         </nav>
 
-        <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
+        <section id="result-screen" class="fixed inset-0 z-20 flex-col justify-end items-center p-4" style="display:none;">
             <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
                 <div class="swipe-indicator"></div>
                 <h2 id="place-name" class="text-2xl font-header mb-3">...</h2>
-                <div class="icon-row my-3">
-                    <button id="compass-button" class="icon-btn action-card"><span class="btn-label">Compass</span></button>
-                    <button id="reviews-button" class="icon-btn action-card"><span class="btn-label">Reviews</span></button>
-                    <button id="save-place-button" class="icon-btn action-card"><span class="btn-label">Save</span></button>
+                <div class="flex justify-center gap-3 my-3">
+                    <button id="compass-button" class="action-card">Compass</button>
+                    <button id="save-place-button" class="action-card">Save</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <div id="compass-modal" class="fixed inset-0 z-50 items-center justify-center" style="display:none;">
+    <div id="compass-modal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
         <div id="compass-dialog" class="p-4 rounded-lg">
             <h2 class="font-header text-center mb-4">NAVIGATING</h2>
-            <div id="compass-overlay">
-                <div class="sonar-ping"></div>
-                <div id="compass-arrow"></div>
-            </div>
+            <div id="compass-overlay"><div class="sonar-ping"></div><div id="compass-arrow"></div></div>
             <div id="compass-dist" class="text-center font-bold text-xl mt-4">--</div>
-            <button id="close-compass" class="action-card w-full mt-4">Close Compass</button>
+            <button id="close-compass" class="action-card w-full mt-4">Close</button>
         </div>
     </div>
 
-    <div id="day-plan-modal" class="fixed inset-0 z-50 items-center justify-center" style="display:none;">
+    <div id="day-plan-modal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
+        <div id="day-plan-card" class="p-4 rounded-lg w-full max-w-md">
+            <h2 class="font-header text-xl text-center">My Day Plan</h2>
+            <div id="day-plan-list" class="my-4 space-y-2"></div>
+            <button id="close-day-plan" class="action-card w-full mt-4">Close</button>
+        </div>
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/gestures.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>&libraries=places&callback=initApp" async defer></script>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div id="panorama-container" class="fixed inset-0"></div>
+
+    <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto">
+        <header class="flex items-center justify-between mb-3">
+            <h1 class="text-3xl font-header">Local Explorer</h1>
+            <button id="open-day-plan-button" class="action-card">Plan</button>
+        </header>
+
+        <section id="fun-fact-container" class="mb-4">
+            <h2 class="font-header text-sm" style="color:var(--accent-gold)">Local Intel</h2>
+            <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="border-color:var(--border-color)">Loading...</p>
+        </section>
+
+        <p id="location-status" class="text-lg font-semibold my-3 text-center">Initializing...</p>
+
+        <nav id="filter-container" class="grid grid-cols-2 gap-3">
+            <button data-filter='{"type":"restaurant"}' class="action-card">🍽️ Foodie Finds</button>
+            <button data-filter='{"type":"tourist_attraction"}' class="action-card">🏛️ Iconic Sights</button>
+            <button data-filter='{"type":"bar"}' class="action-card">🌙 Night Out</button>
+            <button data-filter='{"keyword":"park"}' class="action-card">💎 Hidden Gems</button>
+        </nav>
+
+        <section id="result-screen" class="fixed inset-0 z-20 flex-col justify-end items-center p-4" style="display:none;">
+            <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
+                <div class="swipe-indicator"></div>
+                <h2 id="place-name" class="text-2xl font-header mb-3">...</h2>
+                <div class="flex justify-center gap-3 my-3">
+                    <button id="compass-button" class="action-card">Compass</button>
+                    <button id="save-place-button" class="action-card">Save</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="compass-modal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
+        <div id="compass-dialog" class="p-4 rounded-lg">
+            <h2 class="font-header text-center mb-4">NAVIGATING</h2>
+            <div id="compass-overlay"><div class="sonar-ping"></div><div id="compass-arrow"></div></div>
+            <div id="compass-dist" class="text-center font-bold text-xl mt-4">--</div>
+            <button id="close-compass" class="action-card w-full mt-4">Close</button>
+        </div>
+    </div>
+
+    <div id="day-plan-modal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
         <div id="day-plan-card" class="p-4 rounded-lg w-full max-w-md">
             <h2 class="font-header text-xl text-center">My Day Plan</h2>
             <div id="day-plan-list" class="my-4 space-y-2"></div>
