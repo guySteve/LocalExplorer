@@ -17,7 +17,7 @@
             <h1 class="text-3xl font-header">Local Explorer</h1>
             <div class="flex items-center gap-2">
                 <button id="open-day-plan-button" class="action-card">Plan</button>
-                <a href="https://venmo.com/u/your-username" target="_blank" rel="noopener" id="venmo-button" class="action-card">Donate</a>
+                <a href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" id="venmo-button" class="action-card">Donate</a>
             </div>
         </header>
 
@@ -42,22 +42,13 @@
 
         <button id="random-button" class="action-card w-full mt-3">🤷 Surprise Me!</button>
 
-        <section id="result-screen" class="fixed inset-0 z-20 flex-col justify-end items-center p-4" style="display:none;">
-            <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
-                <div class="swipe-indicator"></div>
-                <h2 id="place-name" class="text-2xl font-header mb-3">...</h2>
-                <div class="flex justify-center gap-3 my-3">
-                    <button id="compass-button" class="action-card">Compass</button>
-                    <button id="save-place-button" class="action-card">Save</button>
-                </div>
-            </div>
-        </section>
+        <section id="result-screen" style="display:none;"></section>
     </main>
 
     <button id="dark-side-button" class="action-card fixed bottom-4 left-4 z-30">👻</button>
 
-    <div id="compass-modal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">...</div>
-    <div id="day-plan-modal" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">...</div>
+    <div id="compass-modal" style="display:none;"></div>
+    <div id="day-plan-modal" style="display:none;"></div>
 
     <script src="js/state.js"></script>
     <script src="js/api.js"></script>
