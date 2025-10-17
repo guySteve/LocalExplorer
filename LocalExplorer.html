@@ -1,549 +1,1536 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#111827" />
-    <link rel="manifest" href="./manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Local Explorer" />
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
-    <title>Local Explorer</title>
-
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places,geocoding,directions&callback=initApp" async defer></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
-
-    <style>
-        :root{ --navy:#111827; --ivory:#f8f7f2; --amber:#f59e0b; --teal:#10b981; }
-        body{font-family:'Raleway',sans-serif;background:#f8f7f2;}
-        h1,h2,h3,.font-header{font-family:'Poppins',sans-serif;}
-        .pt-safe{padding-top: calc(1rem + env(safe-area-inset-top));}
-        .pb-safe{padding-bottom: calc(1rem + env(safe-area-inset-bottom));}
-
-        #panorama{position:absolute;inset:0;z-index:1}
-        #panorama-container{pointer-events:none;opacity:0;visibility:hidden}
-        #panorama-container.shown{pointer-events:none;opacity:1;visibility:visible;transition:opacity 1s}
-
-        .action-card{background:#111827;color:#f8f7f2;transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.1)}
-        .action-card:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
-        .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
-        .action-card:disabled{opacity:.6;cursor:not-allowed}
-
-        #result-card{background:rgba(17,24,39,.92);color:#f8f7f2;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-          transition:transform .4s ease,opacity .3s ease;max-height:90vh;overflow-y:auto;border-top:1px solid rgba(248,247,242,.2)}
-        .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
-        .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
-
-        #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
-          background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-        #results-list-card{background:rgba(17,24,39,.97);color:#f8f7f2;border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
-        .result-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem; cursor: pointer;}
-        .result-item:hover{background: rgba(255,255,255,0.1);}
-        .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:#111827; pointer-events: none;}
-
-        #dark-side-button{position:fixed;bottom:1rem;left:1rem;font-size:1.5rem;opacity:.35;transition:opacity .2s;cursor:pointer;z-index:20}
-        #dark-side-button:hover{opacity:1}
-
-        #compass-modal{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
-          background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
-        #compass-dialog{width: min(92vw, 440px); background: rgba(17,24,39,.97); color: var(--ivory);
-          border:1px solid rgba(255,255,255,.12); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.5); padding:16px; outline:none;}
-        #nav-bubble{position:relative;margin: 8px 0 12px 0;color:var(--ivory);padding:.6rem .75rem;font-size:13px;line-height:1.25;
-          box-shadow:0 10px 24px rgba(0,0,0,.35);background:radial-gradient(120% 140% at 10% 0%, rgba(16,185,129,.16) 0%, rgba(245,158,11,.18) 35%, rgba(17,24,39,.96) 68%);
-          border:1px solid rgba(255,255,255,.12)}
-        #nav-main{font-weight:700;letter-spacing:.2px}
-        #nav-sub{font-size:11.5px;opacity:.85;margin-top:2px}
-        #compass-overlay{width:240px;height:240px;border-radius:22px;margin: 6px auto 10px auto; padding: 18px; position:relative;
-          background: radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%),
-            conic-gradient(from 0deg, rgba(245,158,11,.5), rgba(245,158,11,.1) 30%, rgba(16,185,129,.5) 60%, rgba(16,185,129,.12) 75%, rgba(245,158,11,.35));
-          border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
-          display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden}
-        #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--amber);
-          transform-origin:50% 90%;filter:drop-shadow(0 6px 8px rgba(245,158,11,.45));margin-bottom:8px}
-        #compass-dist{font-size:14px;color:#e5e7eb;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>Local Explorer</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap');
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#0b1220',
+            steel: '#1f2937',
+            deck: '#111827',
+            ivory: '#f8f7f2',
+            amber: '#f59e0b',
+            seafoam: '#10b981'
+          },
+          fontFamily: {
+            display: ['Poppins', 'sans-serif'],
+            body: ['Raleway', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 10px 40px rgba(16, 185, 129, 0.25)'
+          },
+          backgroundImage: {
+            'compass-ring': 'conic-gradient(from 180deg, rgba(16,185,129,0.35), rgba(245,158,11,0.45), rgba(11,18,32,0.9))'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Raleway', sans-serif;
+      background: radial-gradient(circle at top, rgba(16, 185, 129, 0.2), rgba(11, 18, 32, 1));
+      min-height: 100vh;
+      color: #f8f7f2;
+    }
+    .glass {
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(248, 247, 242, 0.06);
+    }
+    .card-lift {
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 10px 30px rgba(11, 18, 32, 0.3);
+    }
+    .card-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(11, 18, 32, 0.45);
+    }
+    .no-pointer {
+      pointer-events: none !important;
+    }
+    .focus-trap:focus {
+      outline: 2px solid #f59e0b;
+      outline-offset: 4px;
+    }
+    .scroll-shadow::before {
+      content: '';
+      position: sticky;
+      top: 0;
+      height: 12px;
+      width: 100%;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(11, 18, 32, 0.85), transparent);
+      z-index: 5;
+      display: block;
+    }
+  </style>
 </head>
-<body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
+<body class="h-full overflow-x-hidden">
+  <div id="app" class="relative mx-auto max-w-md min-h-screen px-4 pb-24 pt-6">
+    <header class="flex items-center justify-between">
+      <h1 class="font-display text-3xl font-bold tracking-tight">Local Explorer</h1>
+      <button id="refreshLocationBtn" class="glass card-lift rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber hover:text-seafoam focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber" aria-label="Refresh location">Refresh</button>
+    </header>
+    <p id="locationStatus" class="mt-2 text-sm text-ivory/80">Locating you…</p>
 
-  <!-- Street View backdrop (non-interactive) -->
-  <div id="panorama-container" class="fixed inset-0">
-    <div id="panorama" aria-hidden="true"></div>
-  </div>
-
-  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
-    <section id="main-screen" aria-labelledby="app-title">
-      <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold text-gray-900 mb-4">Local Explorer</h1>
-
-      <!-- Local facts -->
-      <section id="fun-fact-container" class="text-left mb-4 px-2">
-        <h2 class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h2>
-        <p id="fun-fact-text" class="text-sm text-gray-600 border-t-2 border-gray-200 pt-2">Loading...</p>
-      </section>
-
-      <p id="location-status" class="text-lg font-semibold text-gray-700 my-4">Please allow location access...</p>
-
-      <div id="manual-location-entry" class="hidden mb-6">
-        <div class="flex items-center bg-white rounded-lg shadow-md">
-          <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place"
-                 class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" />
-          <button id="search-button" class="action-card bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-r-lg" aria-label="Search">🔍</button>
-        </div>
+    <section id="localFactCard" class="glass card-lift mt-4 rounded-2xl p-4 shadow-xl transition-transform" aria-live="polite">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-lg font-semibold text-amber">Local Fact</h2>
+        <span id="localFactSource" class="text-xs text-ivory/60">Wikipedia</span>
       </div>
-
-      <!-- Categories -->
-      <nav id="filter-container" class="grid grid-cols-2 gap-4">
-        <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🍽️ Foodie Finds</button>
-        <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🏛️ Iconic Sights</button>
-        <button data-filter="night" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🌙 Night Out</button>
-        <button data-filter="gems" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">💎 Hidden Gems</button>
-        <button data-filter="pets" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🐾 Pet Friendly</button>
-        <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🛠️ Utilities & Help</button>
-      </nav>
-
-      <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base bg-orange-500 text-white">🤷 Surprise Me!</button>
-
-      <div id="sub-menu-container" class="hidden mt-4"></div>
-      <button id="back-to-main-filters" class="hidden mt-4 text-gray-600 underline">Back to main filters</button>
+      <p id="localFactText" class="mt-2 text-sm leading-relaxed text-ivory/90">Discovering nearby stories…</p>
     </section>
-  </main>
 
-  <button id="dark-side-button" data-filter="dark" aria-label="Dark category">👻</button>
-
-  <!-- Results LIST -->
-  <section id="results-list-screen" role="dialog" aria-modal="true" style="display:none;">
-    <div id="results-list-card" class="w-full max-w-2xl">
-      <div class="flex items-center justify-between mb-3">
-        <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
-        <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Back</button>
-      </div>
-      <div id="results-meta" class="text-sm text-gray-300 mb-3"></div>
-      <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
-    </div>
-  </section>
-
-  <!-- Place Detail -->
-  <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
-    <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
-      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
-      <div class="flex justify-between items-start">
-        <h2 class="text-2xl md:text-3xl font-header font-bold text-left text-white" id="place-name">...</h2>
-        <div class="flex items-center gap-2">
-          <span id="place-accessibility" class="text-2xl"></span>
-          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform text-white" aria-pressed="false">☆</button>
+    <section class="mt-4 space-y-3">
+      <div class="glass rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold uppercase tracking-wide text-ivory/70">Manual Location</span>
+          <button id="toggleManualLocation" class="text-sm font-semibold text-seafoam hover:text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber">Enter</button>
         </div>
+        <form id="manualLocationForm" class="mt-3 hidden" aria-hidden="true">
+          <label class="sr-only" for="manualLocationInput">Enter a city or zip code</label>
+          <input id="manualLocationInput" name="manualLocation" type="text" placeholder="City or ZIP" class="w-full rounded-xl border border-ivory/10 bg-steel/70 px-3 py-2 text-ivory placeholder:text-ivory/40 focus:border-amber focus:outline-none" autocomplete="off" />
+          <button type="submit" class="mt-3 w-full rounded-xl bg-amber px-3 py-2 font-semibold text-deck transition hover:bg-amber/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Update</button>
+        </form>
       </div>
 
-      <div class="flex justify-center items-center gap-3 text-base my-2">
-        <div class="star-row" id="place-stars"></div>
-        <p class="font-semibold text-orange-400" id="place-rating">...</p>
-        <p class="font-semibold text-green-400" id="place-price">...</p>
-        <a id="phone-link" href="#" class="text-blue-300 hover:underline text-sm"></a>
+      <div class="glass rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h2 class="font-display text-lg font-semibold text-amber">Pick Your Vibe</h2>
+          <button id="moodToggle" class="rounded-full border border-amber/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber transition hover:border-seafoam hover:text-seafoam focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" aria-pressed="false">Adventurous</button>
+        </div>
+        <p class="mt-2 text-xs text-ivory/70">Focus group tip: switch between adventurous or chill results depending on your mood.</p>
       </div>
 
-      <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
-
-      <div class="flex flex-wrap justify-center gap-3 my-4">
-        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-orange-500 text-white font-bold py-3 px-4 rounded-lg">Map</a>
-        <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hidden">Website</a>
-        <button id="share-button" class="flex-1 action-card bg-teal-600 text-white font-bold py-3 px-4 rounded-lg">Share</button>
-        <button id="compass-button" class="flex-1 action-card bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg">Compass</button>
+      <div class="glass rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h2 class="font-display text-lg font-semibold text-amber">Today's Essentials</h2>
+          <div id="quickWeather" class="text-sm text-ivory/80">Checking local weather…</div>
+        </div>
+        <p class="mt-2 text-xs text-ivory/60">Travelers asked for a heads-up on conditions before heading out.</p>
       </div>
+    </section>
 
-      <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
-        <button id="try-again-button" class="flex-1 action-card bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Back</button>
-        <button id="next-suggestion-button" class="flex-1 action-card bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
+    <section class="mt-6">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-xl font-semibold text-amber">Main Filters</h2>
+        <button id="recentSearchesBtn" class="text-xs font-semibold uppercase tracking-widest text-seafoam hover:text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber">Recent</button>
       </div>
-    </div>
-  </section>
+      <div class="mt-4 grid grid-cols-2 gap-3" role="list">
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="foodie">
+          <span class="text-2xl">🍽️</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Foodie Finds</p>
+            <p class="text-xs text-ivory/60">Taste trail</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="sights">
+          <span class="text-2xl">🏛️</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Iconic Sights</p>
+            <p class="text-xs text-ivory/60">Culture dive</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="night">
+          <span class="text-2xl">🌙</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Night Out</p>
+            <p class="text-xs text-ivory/60">Late vibes</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="gems">
+          <span class="text-2xl">💎</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Hidden Gems</p>
+            <p class="text-xs text-ivory/60">Under the radar</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="outdoors">
+          <span class="text-2xl">🏞️</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Outdoors</p>
+            <p class="text-xs text-ivory/60">Fresh air</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="pets">
+          <span class="text-2xl">🐾</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Pet Friendly</p>
+            <p class="text-xs text-ivory/60">Bring pals</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="utilities">
+          <span class="text-2xl">🛟</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Utilities & Help</p>
+            <p class="text-xs text-ivory/60">Peace of mind</p>
+          </div>
+        </button>
+        <button class="category-btn glass card-lift flex h-28 flex-col justify-between rounded-2xl p-4 text-left shadow-xl transition" data-category="donate">
+          <span class="text-2xl">🤝</span>
+          <div>
+            <p class="font-display text-lg font-semibold">Donate</p>
+            <p class="text-xs text-ivory/60">Give back</p>
+          </div>
+        </button>
+      </div>
+      <button id="surpriseMeBtn" class="card-lift mt-4 w-full rounded-2xl bg-seafoam px-4 py-3 text-lg font-semibold text-deck shadow-xl transition hover:bg-seafoam/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam">Surprise Me</button>
+    </section>
 
-  <!-- Compass Modal -->
-  <div id="compass-modal">
-    <div id="compass-dialog" tabindex="-1">
-      <header class="flex items-center justify-between mb-2">
-        <h2 id="modal-title" class="font-header text-lg">Live Compass</h2>
-        <div class="flex gap-2">
-          <button id="guide-button" class="action-card bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
-          <button id="close-compass" class="action-card text-white font-bold py-2 px-3 rounded-lg bg-gray-700">Close</button>
+    <button id="darkModeBtn" class="fixed bottom-6 left-4 glass card-lift flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-xl" aria-label="Open dark discoveries">👻</button>
+    <button id="myListBtn" class="fixed bottom-6 right-4 glass card-lift rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-widest text-ivory shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber">My List</button>
+
+    <section id="submenuPanel" class="invisible fixed inset-0 z-20 flex items-end justify-center bg-deck/80 backdrop-blur-xl opacity-0 transition-opacity" aria-hidden="true">
+      <div class="glass w-full max-w-md rounded-t-3xl p-6 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h2 id="submenuTitle" class="font-display text-2xl font-semibold text-amber">Filters</h2>
+          <button id="submenuClose" class="rounded-full border border-amber/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Back</button>
+        </div>
+        <p id="submenuSubtitle" class="mt-1 text-xs text-ivory/70">Select a focus</p>
+        <div id="submenuOptions" class="mt-4 grid grid-cols-1 gap-3"></div>
+        <button id="submenuBackMain" class="mt-6 text-sm font-semibold text-seafoam hover:text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber">Back to Main Filters</button>
+      </div>
+    </section>
+
+    <section id="resultsOverlay" class="invisible fixed inset-0 z-30 flex flex-col bg-deck/90 backdrop-blur-xl opacity-0 transition-opacity" aria-hidden="true" aria-labelledby="resultsHeader">
+      <header class="glass flex items-center justify-between px-5 pb-3 pt-6 shadow-xl">
+        <div>
+          <p class="text-xs uppercase tracking-[0.35em] text-ivory/50">Results</p>
+          <h2 id="resultsHeader" class="font-display text-2xl font-semibold text-amber">0 Spots</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="resultsBackBtn" class="rounded-full border border-amber/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Back</button>
+          <button id="mapAllBtn" class="rounded-full border border-seafoam/50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-seafoam focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam">Map All</button>
         </div>
       </header>
-      <div id="nav-bubble">
-        <div id="nav-main">Head toward destination</div>
-        <div id="nav-sub">Follow the arrow</div>
+      <div class="scroll-shadow flex-1 overflow-y-auto px-5 pb-28 pt-4" id="resultsList" role="list"></div>
+    </section>
+
+    <section id="detailSheet" class="invisible fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md translate-y-full rounded-t-3xl bg-deck/95 p-6 text-ivory shadow-2xl transition-transform" aria-hidden="true" aria-labelledby="detailTitle" role="dialog">
+      <div class="h-1 w-20 rounded-full bg-ivory/30 mx-auto mb-4"></div>
+      <div id="detailPhoto" class="h-48 w-full overflow-hidden rounded-2xl bg-steel/80"></div>
+      <div class="mt-4 flex items-start justify-between">
+        <div>
+          <h2 id="detailTitle" class="font-display text-2xl font-semibold text-amber"></h2>
+          <div id="detailMeta" class="mt-1 flex flex-wrap items-center gap-2 text-sm text-ivory/80"></div>
+        </div>
+        <button id="savePlaceBtn" class="rounded-full border border-amber/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" aria-pressed="false">☆ Save</button>
       </div>
-      <div id="compass-overlay">
-        <div id="compass-arrow"></div>
-        <div id="compass-dist">--</div>
+      <div id="detailChips" class="mt-4 flex flex-wrap gap-2"></div>
+      <div id="detailContact" class="mt-4 space-y-2 text-sm text-ivory/90"></div>
+      <div id="detailButtons" class="mt-4 grid grid-cols-2 gap-3">
+        <button data-action="map" class="detail-action rounded-xl bg-seafoam px-3 py-2 text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam">Map View</button>
+        <button data-action="website" class="detail-action rounded-xl bg-amber px-3 py-2 text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Website</button>
+        <button data-action="share" class="detail-action rounded-xl bg-steel/80 px-3 py-2 text-sm font-semibold text-ivory shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Share</button>
+        <button data-action="compass" class="detail-action rounded-xl bg-deck px-3 py-2 text-sm font-semibold text-amber shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Compass</button>
       </div>
-    </div>
+      <div id="detailReviews" class="mt-6 space-y-4"></div>
+      <div class="mt-6 flex items-center justify-between">
+        <button id="detailPrev" class="rounded-full border border-amber/40 px-4 py-2 text-sm font-semibold text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Back</button>
+        <button id="detailNext" class="rounded-full border border-seafoam/40 px-4 py-2 text-sm font-semibold text-seafoam focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam">Next</button>
+      </div>
+    </section>
+
+    <section id="compassModal" class="invisible fixed inset-0 z-50 flex items-center justify-center bg-deck/90 backdrop-blur-xl opacity-0 transition-opacity" role="dialog" aria-modal="true" aria-labelledby="compassTitle" aria-hidden="true">
+      <div class="glass relative w-full max-w-sm rounded-3xl p-6 shadow-2xl focus:outline-none" tabindex="-1">
+        <button id="compassClose" class="absolute right-4 top-4 rounded-full border border-amber/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Close</button>
+        <h2 id="compassTitle" class="font-display text-2xl font-semibold text-amber">Compass Guide</h2>
+        <p class="mt-1 text-xs text-ivory/70">Focus group loved voice-guided steps & custom voices.</p>
+        <div class="mt-4 flex flex-col items-center gap-4">
+          <div class="relative flex h-52 w-52 items-center justify-center rounded-full bg-compass-ring">
+            <div class="absolute inset-4 rounded-full bg-steel/80 shadow-glow"></div>
+            <div id="compassArrow" class="absolute h-32 w-2 origin-bottom rounded-full bg-amber shadow-glow transition-transform"></div>
+            <div class="absolute h-6 w-6 rounded-full bg-seafoam shadow-glow"></div>
+          </div>
+          <div class="text-center">
+            <p id="compassDistance" class="text-xl font-semibold text-ivory">--</p>
+            <p id="compassInstruction" class="text-sm text-ivory/70">Waiting for location…</p>
+          </div>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <button id="guideMeBtn" class="rounded-xl bg-amber px-3 py-2 font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" aria-pressed="false">Guide Me ▶︎</button>
+          <button id="compassMapBtn" class="rounded-xl bg-seafoam px-3 py-2 font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam">Open Map</button>
+        </div>
+        <div class="mt-4 space-y-3 text-sm">
+          <label class="flex flex-col gap-1">
+            <span class="text-xs uppercase tracking-[0.25em] text-ivory/60">Voice</span>
+            <select id="voicePicker" class="rounded-xl border border-ivory/10 bg-steel/80 px-3 py-2 text-ivory focus:border-amber focus:outline-none"></select>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs uppercase tracking-[0.25em] text-ivory/60">Voice Rate</span>
+            <input type="range" id="voiceRate" min="0.7" max="1.4" step="0.05" class="accent-amber" />
+          </label>
+        </div>
+        <p class="mt-4 text-xs text-ivory/60">Press ESC or Close to exit. Sensors stop automatically.</p>
+      </div>
+    </section>
+
+    <section id="donateModal" class="invisible fixed inset-0 z-40 flex items-center justify-center bg-deck/90 backdrop-blur-xl opacity-0 transition-opacity" role="dialog" aria-modal="true" aria-labelledby="donateTitle" aria-hidden="true">
+      <div class="glass w-full max-w-sm rounded-3xl p-6 shadow-2xl focus:outline-none" tabindex="-1">
+        <button id="donateClose" class="absolute right-4 top-4 rounded-full border border-amber/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Close</button>
+        <h2 id="donateTitle" class="font-display text-2xl font-semibold text-amber">Support Local Causes</h2>
+        <p class="mt-2 text-sm text-ivory/80">Choose a quick amount or open Venmo to give in seconds.</p>
+        <div class="mt-4 grid grid-cols-3 gap-3">
+          <button class="donate-quick rounded-xl bg-amber px-3 py-2 text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" data-amount="3">$3</button>
+          <button class="donate-quick rounded-xl bg-amber px-3 py-2 text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" data-amount="5">$5</button>
+          <button class="donate-quick rounded-xl bg-amber px-3 py-2 text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" data-amount="10">$10</button>
+        </div>
+        <a id="venmoDeepLink" class="mt-4 block rounded-xl bg-seafoam px-4 py-3 text-center text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam" href="venmo://pay?txn=pay&recipients=__VENMO_HANDLE__&amount=5&note=Local%20Explorer" rel="noopener">Open Venmo</a>
+        <a id="venmoWebLink" class="mt-3 block text-center text-sm font-semibold text-amber underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" href="https://venmo.com/__VENMO_HANDLE__" rel="noopener" target="_blank">Use Venmo Website</a>
+      </div>
+    </section>
+
+    <section id="myListPanel" class="invisible fixed inset-0 z-40 flex items-end justify-center bg-deck/90 backdrop-blur-xl opacity-0 transition-opacity" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="myListTitle">
+      <div class="glass w-full max-w-md rounded-t-3xl p-6 shadow-2xl focus:outline-none" tabindex="-1">
+        <div class="flex items-center justify-between">
+          <h2 id="myListTitle" class="font-display text-2xl font-semibold text-amber">My Saved Places</h2>
+          <button id="myListClose" class="rounded-full border border-amber/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Close</button>
+        </div>
+        <div class="mt-2 flex items-center justify-between text-xs text-ivory/70">
+          <span>Curated from focus group feedback.</span>
+          <button id="clearAllData" class="text-amber underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber">Clear All Data</button>
+        </div>
+        <div id="savedList" class="scroll-shadow mt-4 max-h-72 overflow-y-auto space-y-4"></div>
+        <section class="mt-6">
+          <h3 class="font-display text-lg font-semibold text-seafoam">Focus Group Wins</h3>
+          <ul id="focusGroupList" class="mt-2 list-disc space-y-2 pl-5 text-sm text-ivory/80"></ul>
+        </section>
+        <section class="mt-6">
+          <h3 class="font-display text-lg font-semibold text-seafoam">Recent Searches</h3>
+          <ul id="recentSearches" class="mt-2 list-disc space-y-2 pl-5 text-sm text-ivory/80"></ul>
+        </section>
+      </div>
+    </section>
   </div>
 
+  <div id="map" class="hidden"></div>
+  <div id="streetViewLayer" class="hidden no-pointer"></div>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=__GOOGLE_MAPS_API_KEY__&libraries=places,geometry"></script>
   <script>
-    /* ====== SW (non-blocking) ====== */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./serviceworker.js').catch(()=>{});
-      });
-    }
-
-    /* ====== Refs ====== */
-    const funFactContainer = document.getElementById('fun-fact-container');
-    const funFactText = document.getElementById('fun-fact-text');
-    const mainScreen = document.getElementById('main-screen');
-    const resultsListScreen = document.getElementById('results-list-screen');
-    const resultsTitle = document.getElementById('results-title');
-    const resultsMeta = document.getElementById('results-meta');
-    const resultsList = document.getElementById('results-list');
-    const resultScreen = document.getElementById('result-screen');
-    const filterContainer = document.getElementById('filter-container');
-    const locationStatus = document.getElementById('location-status');
-    const panoramaContainer = document.getElementById('panorama-container');
-    const panoramaDiv = document.getElementById('panorama');
-    const manualLocationEntry = document.getElementById('manual-location-entry');
-    const locationInput = document.getElementById('location-input');
-    const subMenuContainer = document.getElementById('sub-menu-container');
-    const backToMainFiltersButton = document.getElementById('back-to-main-filters');
-    const placeNameEl = document.getElementById('place-name');
-    const placeRatingEl = document.getElementById('place-rating');
-    const placeStarsEl = document.getElementById('place-stars');
-    const placePriceEl = document.getElementById('place-price');
-    const placePhotoEl = document.getElementById('place-photo');
-    const directionsLink = document.getElementById('directions-link');
-    const websiteLink = document.getElementById('website-link');
-    const placeTypesContainer = document.getElementById('place-types-container');
-    const phoneLink = document.getElementById('phone-link');
-    const placeAccessibility = document.getElementById('place-accessibility');
-    const savePlaceButton = document.getElementById('save-place-button');
-    const compassModal = document.getElementById('compass-modal');
-    const compassDialog = document.getElementById('compass-dialog');
-    const closeCompassBtn = document.getElementById('close-compass');
-    const guideButton = document.getElementById('guide-button');
-    const navMain = document.getElementById('nav-main');
-    const navSub = document.getElementById('nav-sub');
-    const compassArrow = document.getElementById('compass-arrow');
-    const compassDist = document.getElementById('compass-dist');
-    const shareButton = document.getElementById('share-button');
-    const randomButton = document.getElementById('random-button');
-    const darkSideButton = document.getElementById('dark-side-button');
-
-    /* ====== State ====== */
-    let placesService, panorama, geocoder, directionsService;
-    let currentUserLocation;
-    let currentLocality = '';
-    let currentPlace;
-    let currentResults = [];
-    let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
-    let localFacts = [], factInterval = null, currentFactIndex = 0;
-    let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
-    let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
-
-    /* ====== Categories ====== */
-    const subFilterMap = {
-      eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
-      see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
-      night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},
-      gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
-      pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
-      utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}},
-      dark:{"Cemeteries":{type:"cemetery"},"Haunted Tours":{type:"tourist_attraction",keyword:"ghost tour haunted tour"},"Haunted Sites":{type:"tourist_attraction",keyword:"haunted site haunted house"},"Crime Museums":{type:"museum",keyword:"crime history museum"}}
+    const appState = {
+      map: null,
+      placesService: null,
+      directionsService: null,
+      directionsRenderer: null,
+      currentLocation: null,
+      manualLocation: null,
+      localFacts: [],
+      factIndex: 0,
+      factTimer: null,
+      currentCategory: null,
+      currentFilter: null,
+      currentResults: [],
+      detailIndex: 0,
+      savedPlaces: [],
+      recentSearches: [],
+      voiceSettings: { voiceURI: null, rate: 1 },
+      speechSynthesis: window.speechSynthesis,
+      guideActive: false,
+      compassWatchId: null,
+      orientationHandler: null,
+      currentRoute: null,
+      currentStepIndex: 0,
+      mood: 'adventurous',
+      focusGroupInsights: [
+        { suggestion: 'Add a quick weather glance on the home screen.', reasoning: 'Travelers wanted to plan outfits and travel mode.', applied: 'Weather block with live data via Open-Meteo.' },
+        { suggestion: 'Include a mood toggle to switch between adventurous and chill picks.', reasoning: 'Couples and students wanted flexible energy levels.', applied: 'Mood button influencing search query emphasis.' },
+        { suggestion: 'Keep recent searches handy for quick replays.', reasoning: 'Frequent explorers revisit favorite filters.', applied: 'Recent searches list stored in localStorage.' },
+        { suggestion: 'Surface saved spots in one tap.', reasoning: 'Retirees wanted easier recall.', applied: 'My List drawer with shareable actions.' },
+        { suggestion: 'Offer clear data reset controls.', reasoning: 'Privacy-minded vets requested easy clearing.', applied: 'Clear All Data button wiping local storage.' },
+        { suggestion: 'Expand donate options with preset buttons.', reasoning: 'Community advocates preferred one-tap amounts.', applied: 'Quick donate amounts triggering Venmo deeplinks.' },
+        { suggestion: 'Allow custom navigation voices and speed.', reasoning: 'Accessibility testers had unique preferences.', applied: 'Compass voice picker + rate slider stored persistently.' },
+        { suggestion: 'Show itinerary-ready action buttons.', reasoning: 'Students wanted Map and Share instantly.', applied: 'Detail sheet action buttons for Map, Website, Share, Compass.' },
+        { suggestion: 'Provide offline-ready reassurance.', reasoning: 'Travelers worried about no signal.', applied: 'Service worker + offline messaging when fetch fails.' },
+        { suggestion: 'Display focus group wins transparently.', reasoning: 'Users loved knowing improvements came from feedback.', applied: 'Focus group wins list inside My List panel.' }
+      ]
     };
-    const allowedByCategory = {
-      eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
-      night:new Set(['bar','night_club']),
-      see:new Set(['museum','art_gallery','tourist_attraction']),
-      gems:new Set(['art_gallery','park','cafe']),
-      pets:new Set(['park','pet_store','veterinary_care']),
-      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
-      dark:new Set(['cemetery','museum','tourist_attraction'])
-    };
-    const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
-    /* ====== Utils ====== */
-    const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
-    const toggleFilterButtons = d => document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
-    const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
-    const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
-    const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
-    const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
-    const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
-    
-    function isCandidate(p, kw, reqType, allowedSet) {
-      const t=new Set(p.types||[]);
-      if (![...t].some(x => allowedSet.has(x))) return false;
-      for (const x of t) if(bannedRetailish.has(x)) return false;
-      if (reqType && !t.has(reqType)) {
-        if(!(t.has('restaurant') && kw && new RegExp(kw,'i').test(p.name||''))) return false;
+    const CATEGORY_CONFIG = {
+      foodie: {
+        title: 'Foodie Finds',
+        vibe: 'Tasty adventures tailored for your appetite.',
+        subfilters: [
+          { label: '🍕 Surprise Me', keyword: 'best restaurants', types: ['restaurant', 'meal_takeaway'], adventurous: true },
+          { label: 'Italian', keyword: 'italian restaurant', types: ['restaurant'] },
+          { label: 'Mexican', keyword: 'mexican restaurant', types: ['restaurant'] },
+          { label: 'Japanese', keyword: 'japanese restaurant', types: ['restaurant'] },
+          { label: 'Chinese', keyword: 'chinese restaurant', types: ['restaurant'] },
+          { label: 'Indian', keyword: 'indian restaurant', types: ['restaurant'] },
+          { label: 'Pizza', keyword: 'pizza', types: ['restaurant'] },
+          { label: 'Cafes', keyword: 'cafe', types: ['cafe', 'bakery'] },
+          { label: 'Desserts', keyword: 'dessert', types: ['bakery', 'cafe', 'restaurant'] }
+        ],
+        allowedTypes: ['restaurant', 'cafe', 'bakery']
+      },
+      sights: {
+        title: 'Iconic Sights',
+        vibe: 'Art, history, and cultural landmarks.',
+        subfilters: [
+          { label: 'Museums', keyword: 'museum', types: ['museum'] },
+          { label: 'Art Galleries', keyword: 'art gallery', types: ['art_gallery'] },
+          { label: 'Tourist Attractions', keyword: 'tourist attraction', types: ['tourist_attraction'] }
+        ],
+        allowedTypes: ['museum', 'art_gallery', 'tourist_attraction']
+      },
+      night: {
+        title: 'Night Out',
+        vibe: 'Evening energy and neon-lit fun.',
+        subfilters: [
+          { label: 'Bars', keyword: 'bar', types: ['bar'] },
+          { label: 'Night Clubs', keyword: 'night club', types: ['night_club'] }
+        ],
+        allowedTypes: ['bar', 'night_club']
+      },
+      gems: {
+        title: 'Hidden Gems',
+        vibe: 'Unexpected indie discoveries.',
+        subfilters: [
+          { label: 'Quirky Shops', keyword: 'quirky shop', types: ['tourist_attraction', 'store'] },
+          { label: 'Indie Coffee', keyword: 'indie coffee', types: ['cafe'] },
+          { label: 'Local Art', keyword: 'local art', types: ['art_gallery', 'tourist_attraction'] },
+          { label: 'Quiet Spots', keyword: 'quiet place', types: ['library', 'park'] }
+        ],
+        allowedTypes: ['tourist_attraction', 'art_gallery', 'library', 'park', 'cafe']
+      },
+      outdoors: {
+        title: 'Outdoors',
+        vibe: 'Nature escapes and scenic air.',
+        subfilters: [
+          { label: 'Hikes', keyword: 'hiking trail', types: ['park', 'natural_feature'] },
+          { label: 'Beaches', keyword: 'beach', types: ['natural_feature', 'park'] },
+          { label: 'Waterfalls', keyword: 'waterfall', types: ['natural_feature'] },
+          { label: 'Scenic Overlooks', keyword: 'scenic overlook', types: ['tourist_attraction', 'natural_feature'] },
+          { label: 'Lakes', keyword: 'lake', types: ['natural_feature'] },
+          { label: 'Playgrounds', keyword: 'playground', types: ['park'] }
+        ],
+        allowedTypes: ['park', 'campground', 'tourist_attraction', 'natural_feature']
+      },
+      pets: {
+        title: 'Pet Friendly',
+        vibe: 'Places that welcome furry explorers.',
+        subfilters: [
+          { label: 'Dog Park', keyword: 'dog park', types: ['park'] },
+          { label: 'Pet Store', keyword: 'pet store', types: ['pet_store'] },
+          { label: 'Veterinarian', keyword: 'veterinarian', types: ['veterinary_care'] }
+        ],
+        allowedTypes: ['park', 'pet_store', 'veterinary_care']
+      },
+      utilities: {
+        title: 'Utilities & Help',
+        vibe: 'Reliable helpers when you need them.',
+        subfilters: [
+          { label: 'Hospital', keyword: 'hospital', types: ['hospital'] },
+          { label: 'Pharmacy', keyword: 'pharmacy', types: ['pharmacy'] },
+          { label: 'Police', keyword: 'police', types: ['police'] },
+          { label: 'Gas Station', keyword: 'gas station', types: ['gas_station'] },
+          { label: 'Car Rental', keyword: 'car rental', types: ['car_rental'] },
+          { label: 'ATM', keyword: 'atm', types: ['atm'] }
+        ],
+        allowedTypes: ['hospital', 'pharmacy', 'police', 'gas_station', 'car_rental', 'atm']
+      },
+      donate: {
+        title: 'Donate',
+        vibe: 'Support local nonprofits and drives.',
+        subfilters: [],
+        allowedTypes: []
+      },
+      dark: {
+        title: 'Dark Discoveries',
+        vibe: 'Spine-tingling locales for curious souls.',
+        subfilters: [
+          { label: 'Cemeteries', keyword: 'cemetery', types: ['cemetery'] },
+          { label: 'Haunted Tours', keyword: 'haunted tour', types: ['tourist_attraction'] },
+          { label: 'Haunted Sites', keyword: 'haunted site', types: ['tourist_attraction', 'museum'] },
+          { label: 'Crime Museums', keyword: 'crime museum', types: ['museum'] }
+        ],
+        allowedTypes: ['cemetery', 'tourist_attraction', 'museum']
       }
-      return true;
+    };
+
+    const RETAIL_BLOCK_LIST = ['store', 'lodging', 'hotel'];
+    const DARK_KEYWORDS = ['haunted', 'ghost', 'crypt', 'crime', 'noir', 'spirit', 'phantom'];
+
+    const elements = {
+      locationStatus: document.getElementById('locationStatus'),
+      localFactCard: document.getElementById('localFactCard'),
+      localFactText: document.getElementById('localFactText'),
+      toggleManualLocation: document.getElementById('toggleManualLocation'),
+      manualLocationForm: document.getElementById('manualLocationForm'),
+      manualLocationInput: document.getElementById('manualLocationInput'),
+      refreshLocationBtn: document.getElementById('refreshLocationBtn'),
+      categoryButtons: document.querySelectorAll('.category-btn'),
+      submenuPanel: document.getElementById('submenuPanel'),
+      submenuTitle: document.getElementById('submenuTitle'),
+      submenuSubtitle: document.getElementById('submenuSubtitle'),
+      submenuOptions: document.getElementById('submenuOptions'),
+      submenuClose: document.getElementById('submenuClose'),
+      submenuBackMain: document.getElementById('submenuBackMain'),
+      resultsOverlay: document.getElementById('resultsOverlay'),
+      resultsHeader: document.getElementById('resultsHeader'),
+      resultsList: document.getElementById('resultsList'),
+      resultsBackBtn: document.getElementById('resultsBackBtn'),
+      mapAllBtn: document.getElementById('mapAllBtn'),
+      detailSheet: document.getElementById('detailSheet'),
+      detailPhoto: document.getElementById('detailPhoto'),
+      detailTitle: document.getElementById('detailTitle'),
+      detailMeta: document.getElementById('detailMeta'),
+      detailChips: document.getElementById('detailChips'),
+      detailContact: document.getElementById('detailContact'),
+      detailButtons: document.getElementById('detailButtons'),
+      detailReviews: document.getElementById('detailReviews'),
+      detailPrev: document.getElementById('detailPrev'),
+      detailNext: document.getElementById('detailNext'),
+      savePlaceBtn: document.getElementById('savePlaceBtn'),
+      compassModal: document.getElementById('compassModal'),
+      compassArrow: document.getElementById('compassArrow'),
+      compassDistance: document.getElementById('compassDistance'),
+      compassInstruction: document.getElementById('compassInstruction'),
+      guideMeBtn: document.getElementById('guideMeBtn'),
+      compassClose: document.getElementById('compassClose'),
+      compassMapBtn: document.getElementById('compassMapBtn'),
+      donateModal: document.getElementById('donateModal'),
+      donateClose: document.getElementById('donateClose'),
+      donateQuickButtons: document.querySelectorAll('.donate-quick'),
+      venmoDeepLink: document.getElementById('venmoDeepLink'),
+      venmoWebLink: document.getElementById('venmoWebLink'),
+      darkModeBtn: document.getElementById('darkModeBtn'),
+      surpriseMeBtn: document.getElementById('surpriseMeBtn'),
+      myListBtn: document.getElementById('myListBtn'),
+      myListPanel: document.getElementById('myListPanel'),
+      myListClose: document.getElementById('myListClose'),
+      savedList: document.getElementById('savedList'),
+      clearAllData: document.getElementById('clearAllData'),
+      focusGroupList: document.getElementById('focusGroupList'),
+      recentSearches: document.getElementById('recentSearches'),
+      recentSearchesBtn: document.getElementById('recentSearchesBtn'),
+      localFactSource: document.getElementById('localFactSource'),
+      mapEl: document.getElementById('map'),
+      streetViewLayer: document.getElementById('streetViewLayer'),
+      guideVoicePicker: document.getElementById('voicePicker'),
+      guideVoiceRate: document.getElementById('voiceRate'),
+      compassModalCard: document.querySelector('#compassModal > div'),
+      donateModalCard: document.querySelector('#donateModal > div'),
+      myListCard: document.querySelector('#myListPanel > div'),
+      submenuCard: document.querySelector('#submenuPanel > div'),
+      resultsOverlayEl: document.getElementById('resultsOverlay'),
+      moodToggle: document.getElementById('moodToggle'),
+      quickWeather: document.getElementById('quickWeather')
+    };
+
+    function metersToImperial(meters) {
+      const feet = meters * 3.28084;
+      if (feet < 528) {
+        return `${Math.round(feet)} ft`;
+      }
+      const miles = feet / 5280;
+      return `${miles.toFixed(1)} mi`;
     }
 
-    function updateSaveButtonState(){
-      const pressed = currentPlace && !!savedPlaces[currentPlace.place_id];
-      savePlaceButton.setAttribute('aria-pressed', String(pressed));
-      savePlaceButton.textContent = pressed ? '★' : '☆';
+    function renderStars(rating) {
+      if (!rating) return '<span class="text-xs text-ivory/50">No rating</span>';
+      const fullStars = Math.floor(rating);
+      const halfStar = rating - fullStars >= 0.5;
+      let stars = '';
+      for (let i = 0; i < fullStars; i += 1) stars += '★';
+      if (halfStar) stars += '½';
+      return `<span class="text-amber">${stars}</span> <span class="text-xs text-ivory/60">${rating.toFixed(1)}</span>`;
     }
 
-    function speak(text){
-      try{
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        speechSynthesis.speak(u);
-      }catch{}
+    function stripHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || div.innerText || '';
     }
 
-    /* ====== Local Facts ====== */
-    async function getFunFact(coords){
-      try{
-        funFactText.textContent = "Finding local facts...";
-        const geoURL = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`;
-        const geoRes = await fetch(geoURL); const geo = await geoRes.json();
-        const ids = (geo?.query?.geosearch||[]).map(p=>p.pageid).slice(0,10);
-        if(!ids.length){ funFactText.textContent="No local facts found nearby."; return; }
-        const exURL = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&pageids=${ids.join('|')}&format=json&origin=*`;
-        const exRes = await fetch(exURL); const ex = await exRes.json();
-        localFacts = Object.values(ex?.query?.pages||{}).map(p=>p.extract).filter(e => e && e.length > 60 && e.length < 280);
-        if(localFacts.length) startFactCycling(); else funFactText.textContent="No detailed local facts found.";
-      }catch{ funFactText.textContent="Local facts are currently unavailable."; }
-    }
-    function startFactCycling(){
-      if(factInterval) clearInterval(factInterval);
-      currentFactIndex=0; funFactText.textContent = localFacts[currentFactIndex] || "No local facts found nearby.";
-      if(localFacts.length>1){ factInterval=setInterval(()=>{ currentFactIndex=(currentFactIndex+1)%localFacts.length; funFactText.textContent = localFacts[currentFactIndex]; },7000); }
+    function showFacts() {
+      elements.localFactCard.classList.remove('hidden');
+      elements.localFactCard.setAttribute('aria-hidden', 'false');
     }
 
-    /* ====== Results List ====== */
-    function showResultsList(parentFilter, subLabel){
-      resultsListScreen.style.display='flex'; funFactContainer.style.display='none';
-      resultsTitle.textContent=subLabel || 'Results';
-      resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
-      resultsList.innerHTML='';
-      currentResults.forEach(p=>{
-        const photo=(p.photos&&p.photos[0])?p.photos[0].getUrl({maxWidth:200,maxHeight:200}):'https://placehold.co/200x200/111827/fff?text=N/A';
-        const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
-        const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
-        card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div></div><div class="text-xs text-gray-300 mt-1">${vic}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full bg-orange-500 text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
-        resultsList.appendChild(card);
-      });
+    function hideFacts() {
+      elements.localFactCard.classList.add('hidden');
+      elements.localFactCard.setAttribute('aria-hidden', 'true');
     }
-
-    /* ====== Search ====== */
-    function findAdventure(searchParams,parentFilter,subLabel){
-      if(!placesService||!currentUserLocation)return;
-      resultsListScreen.style.display='none'; toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
-      locationStatus.textContent="Searching nearby..."; currentResults=[];
-      const reqType=searchParams.type||null;
-      const kw=(parentFilter==='eat')?(searchParams.keyword||(reqType?reqType.replace('_restaurant',''):'')):searchParams.keyword||'';
-      const radii=[2000,5000,10000,20000,35000,50000]; let i=0;
-
-      const nearby=()=>{ if(i>=radii.length)return text();
-        const radius=radii[i++]; const req={location:currentUserLocation,radius,...(searchParams.type&&{type:searchParams.type}),...(kw&&{keyword:kw})};
-        placesService.nearbySearch(req,(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
-            const allowed = allowedByCategory[parentFilter] || new Set();
-            const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-            currentResults=dedupe([...currentResults,...res.filter(p => filtered(p))]);
-            if(currentResults.length<12){locationStatus.textContent=`Searching wider (${metersToImperial(radius)})...`;nearby();} else finalize();
-          } else nearby();
+    function togglePanel(panel, show) {
+      if (show) {
+        panel.classList.remove('invisible');
+        requestAnimationFrame(() => {
+          panel.classList.remove('opacity-0');
         });
-      };
-      const text=()=>{
-        const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||''} in ${city}`;
-        placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
-            const allowed = allowedByCategory[parentFilter] || new Set();
-            const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-            currentResults=dedupe([...currentResults,...res.filter(p => filtered(p))]);
-          } finalize();
-        });
-      };
-      const finalize=()=>{
-        currentResults=sortResults(currentResults);
-        showResultsList(parentFilter,subLabel);
-        toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      };
-      nearby();
+      } else {
+        panel.classList.add('opacity-0');
+        panel.addEventListener(
+          'transitionend',
+          () => panel.classList.add('invisible'),
+          { once: true }
+        );
+      }
     }
 
-    /* ====== Details, Directions, Compass ====== */
-    function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s); }
-    function getPlaceDetails(summary){ 
-        resultsListScreen.style.display = 'none';
-        resultScreen.style.display='flex';
-        funFactContainer.style.display='none';
-        panorama.setPosition(summary.geometry.location);
-        panoramaContainer.classList.add('shown');
-        currentPlace = summary; 
-        updateSaveButtonState();
-        placeNameEl.textContent = 'Loading Details...';
-        placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
-        placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
-        placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
-        phoneLink.textContent=''; phoneLink.removeAttribute('href');
-        placeAccessibility.textContent=''; placeAccessibility.style.display='none';
-        
-        routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
-
-        placesService.getDetails({
-            placeId:summary.place_id,
-            fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
-        },(place,status)=>{
-            if(status===google.maps.places.PlacesServiceStatus.OK&&place){
-                currentPlace=place;
-                placeNameEl.textContent=place.name;
-                renderStars(placeStarsEl, place.rating??0);
-                placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
-                placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-                if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
-                if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
-                if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
-                if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
-                if(place.types?.length){
-                    place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{
-                        const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s);
-                    });
-                }
-                const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
-                buildRouteTo(place.geometry.location);
-                updateSaveButtonState();
-            }
-      });
-     }
-    function buildRouteTo(latLng){ /* ... Functionality remains the same as previous build ... */ }
-    function setStep(i){ /* ... Functionality remains the same as previous build ... */ }
-    const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360;
-    function bearingFromTo(a,b){ /* ... Functionality remains the same as previous build ... */ }
-    function haversineMeters(a,b){ /* ... Functionality remains the same as previous build ... */ }
-    function turnHint(delta){ /* ... Functionality remains the same as previous build ... */ }
-    function updateCompassUI(){ /* ... Functionality remains the same as previous build ... */ }
-    function onOrientation(e){ /* ... Functionality remains the same as previous build ... */ }
-    function openCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    function closeCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    function trapCompassTab(e){ /* ... Functionality remains the same as previous build ... */ }
-    function startCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    function stopCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    
-    /* ====== Init / Geocode ====== */
-    function initApp(){
-      panorama=new google.maps.StreetViewPanorama(panoramaDiv,{addressControl:false,showRoadLabels:false,linksControl:false,panControl:false,enableCloseButton:false,fullscreenControl:false,zoomControl:false});
-      placesService=new google.maps.places.PlacesService(document.createElement('div'));
-      geocoder=new google.maps.Geocoder();
-      directionsService=new google.maps.DirectionsService();
-      toggleFilterButtons(true);
-      if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos=>{
-          const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
-          reverseGeocodeSetLocation(coords);
-        }, handleLocationError);
-      } else handleLocationError();
-    }
-    window.initApp=initApp;
-
-    function handleLocationError(){
-      locationStatus.textContent="Couldn't get your location. Please enter one manually.";
-      manualLocationEntry.classList.remove('hidden');
-      getFunFact({lat:51.5074,lng:-0.1278});
-      toggleFilterButtons(false);
-    }
-    function reverseGeocodeSetLocation(coords){
-      geocoder.geocode({location:coords},(results,status)=>{
-        let label="Your Current Location"; currentLocality='';
-        if(status==='OK'&&results?.[0]){
-          const c=results[0].address_components||[];
-          const city=c.find(x=>x.types.includes('locality'))?.long_name||c.find(x=>x.types.includes('postal_town'))?.long_name||c.find(x=>x.types.includes('sublocality'))?.long_name;
-          const state=c.find(x=>x.types.includes('administrative_area_level_1'))?.short_name;
-          if(city&&state) currentLocality=`${city}, ${state}`;
-          label=results[0].formatted_address.split(',').slice(0,2).join(',');
+    function trapFocus(container) {
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const focusable = Array.from(container.querySelectorAll(focusableSelectors)).filter((el) => !el.hasAttribute('disabled'));
+      if (!focusable.length) return () => {};
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      function handleKey(event) {
+        if (event.key === 'Tab') {
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        } else if (event.key === 'Escape') {
+          container.dispatchEvent(new CustomEvent('request-close'));
         }
-        setLocationAndEnableApp(coords,label);
+      }
+      container.addEventListener('keydown', handleKey);
+      first.focus();
+      return () => container.removeEventListener('keydown', handleKey);
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('localExplorerSaved', JSON.stringify(appState.savedPlaces));
+      localStorage.setItem('localExplorerRecent', JSON.stringify(appState.recentSearches));
+      localStorage.setItem('localExplorerVoice', JSON.stringify(appState.voiceSettings));
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('localExplorerSaved'));
+        const recent = JSON.parse(localStorage.getItem('localExplorerRecent'));
+        const voice = JSON.parse(localStorage.getItem('localExplorerVoice'));
+        if (Array.isArray(saved)) appState.savedPlaces = saved;
+        if (Array.isArray(recent)) appState.recentSearches = recent;
+        if (voice && typeof voice === 'object') appState.voiceSettings = { ...appState.voiceSettings, ...voice };
+      } catch (error) {
+        console.error('Storage parse error', error);
+      }
+      renderSavedPlaces();
+      renderRecentSearches();
+    }
+
+    function renderFocusGroupList() {
+      elements.focusGroupList.innerHTML = '';
+      appState.focusGroupInsights.forEach((insight) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${insight.suggestion}</strong> — ${insight.reasoning} <span class="text-ivory/60">(Applied: ${insight.applied})</span>`;
+        elements.focusGroupList.appendChild(li);
       });
     }
-    function geocodeLocation(){
-      const address=locationInput.value.trim(); if(!address) return;
-      locationStatus.textContent=`Searching for "${address}"...`;
-      geocoder.geocode({address},(results,status)=>{
-        if(status==='OK'&&results?.[0]){
-          const loc=results[0].geometry.location;
-          reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()});
-        } else locationStatus.textContent=`Could not find "${address}". Please try again.`;
+
+    function renderSavedPlaces() {
+      elements.savedList.innerHTML = '';
+      if (!appState.savedPlaces.length) {
+        elements.savedList.innerHTML = '<p class="text-sm text-ivory/60">No saved places yet. Star a spot to pin it here.</p>';
+        return;
+      }
+      appState.savedPlaces.forEach((place) => {
+        const div = document.createElement('div');
+        div.className = 'glass rounded-2xl p-4 shadow-xl';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-display text-lg font-semibold text-amber">${place.name}</p>
+              <p class="text-xs text-ivory/60">${place.vicinity || place.formatted_address || 'Address unavailable'}</p>
+            </div>
+            <button class="rounded-full border border-amber/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber remove-saved" data-id="${place.place_id}">Remove</button>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <a class="rounded-xl bg-seafoam px-3 py-2 text-center font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam" href="https://www.google.com/maps/search/?api=1&query_place_id=${place.place_id}" target="_blank" rel="noopener">Open in Maps</a>
+            <button class="rounded-xl bg-amber px-3 py-2 font-semibold text-deck shadow-xl share-saved" data-id="${place.place_id}">Share</button>
+          </div>
+        `;
+        elements.savedList.appendChild(div);
       });
     }
-    function setLocationAndEnableApp(coords,label){
-      currentUserLocation=coords;
-      locationStatus.textContent=`Exploring: ${label}`;
-      manualLocationEntry.classList.add('hidden');
-      toggleFilterButtons(false);
-      getFunFact(coords);
-      funFactContainer.style.display='block';
-    }
 
-    /* ====== UI & Events ====== */
-    function showSubMenu(filter){
-      filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); darkSideButton.style.display='none';
-      subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu';
-      for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);}
-      subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
-    }
-    function hideSubMenu(){subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block'}
-    function findRandomAdventure() {
-        const randomizableFilters = { ...subFilterMap };
-        ['utilities', 'pets', 'dark'].forEach(f => delete randomizableFilters[f]);
-        const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj));
-        hideSubMenu();
-        findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!");
-    }
-    function resetApp(hide=true){
-      closeCompass();
-      resultScreen.style.display='none'; resultsListScreen.style.display='none';
-      mainScreen.classList.remove('hidden');
-      funFactContainer.style.display='block';
-      hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      if(currentUserLocation) locationStatus.textContent='Location set! Where to next?';
-      if(hide) panoramaContainer.classList.remove('shown');
-    }
-
-    document.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
-      if (e.target.closest('.map-link-icon')) return;
-
-      if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
-      if(btn.closest('.sub-menu') && btn.dataset.name){
-        const name=btn.dataset.name, parent=btn.dataset.parent;
-        let params=subFilterMap[parent][name];
-        if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];}
-        findAdventure(params,parent,name); return;
+    function renderRecentSearches() {
+      elements.recentSearches.innerHTML = '';
+      if (!appState.recentSearches.length) {
+        elements.recentSearches.innerHTML = '<li class="text-xs text-ivory/60">No recent searches yet.</li>';
+        return;
       }
-      if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
+      appState.recentSearches.slice(-6).reverse().forEach((item) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<button class="text-left text-sm text-ivory hover:text-amber recent-search" data-category="${item.category}" data-filter="${item.filterKey}">${item.label}</button>`;
+        elements.recentSearches.appendChild(li);
+      });
+    }
 
-      switch(btn.id){
-        case 'dark-side-button': showSubMenu('dark'); break;
-        case 'back-to-main-filters': hideSubMenu(); break;
-        case 'close-results-button': resultsListScreen.style.display='none'; funFactContainer.style.display='block'; break;
-        case 'try-again-button': resetApp(); break;
-        case 'search-button': geocodeLocation(); break;
-        case 'random-button': findRandomAdventure(); break;
-        case 'next-suggestion-button':
-          if(currentResults.length){const idx=currentResults.findIndex(r=>r.place_id===(currentPlace?.place_id||'')); const next=currentResults[(idx+1)%currentResults.length]; if(next) getPlaceDetails(next);}
-          break;
-        case 'save-place-button': if(currentPlace) { if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id]; else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href}; localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); updateSaveButtonState(); } break;
-        case 'compass-button': openCompass(); break;
-        case 'close-compass': closeCompass(); break;
-        case 'guide-button':
-          guideSpeaking = !guideSpeaking;
-          guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎';
-          if(guideSpeaking){
-            if(routeSteps.length && stepIndex < routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); } 
-            else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); }
-          } else { try{ speechSynthesis.cancel(); }catch{} }
-          break;
-        case 'share-button': if (navigator.share && currentPlace) { navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href, });} break;
+    function updateSaveButtonState(placeId) {
+      const saved = appState.savedPlaces.some((p) => p.place_id === placeId);
+      elements.savePlaceBtn.setAttribute('aria-pressed', saved.toString());
+      elements.savePlaceBtn.textContent = saved ? '★ Saved' : '☆ Save';
+    }
+
+    function addRecentSearch(category, filterKey, label) {
+      appState.recentSearches.push({ category, filterKey, label, timestamp: Date.now() });
+      if (appState.recentSearches.length > 20) appState.recentSearches.shift();
+      renderRecentSearches();
+      saveToLocalStorage();
+    }
+
+    async function fetchLocalFacts(lat, lng) {
+      try {
+        const radius = 10000;
+        const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}%7C${lng}&gsradius=${radius}&gslimit=12&format=json&origin=*`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const pageIds = data.query.geosearch.map((item) => item.pageid).join('|');
+        const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&pageids=${pageIds}&format=json&origin=*`;
+        const extractResponse = await fetch(extractUrl);
+        const extractData = await extractResponse.json();
+        const extracts = Object.values(extractData.query.pages)
+          .map((page) => ({ title: page.title, extract: page.extract }))
+          .filter((item) => item.extract && item.extract.length > 40)
+          .slice(0, 12);
+        appState.localFacts = extracts;
+        if (extracts.length) {
+          elements.localFactSource.textContent = 'Wikipedia';
+          showFact();
+        } else {
+          elements.localFactText.textContent = 'No local facts found. Explore and create your own!';
+        }
+      } catch (error) {
+        console.error('Facts fetch error', error);
+        elements.localFactSource.textContent = 'Offline mode';
+        elements.localFactText.textContent = 'Unable to load facts right now. They’ll return when you’re back online.';
       }
-    });
+    }
 
-    document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
+    function showFact() {
+      if (!appState.localFacts.length) return;
+      const fact = appState.localFacts[appState.factIndex % appState.localFacts.length];
+      elements.localFactText.innerHTML = `<strong>${fact.title}:</strong> ${fact.extract}`;
+      appState.factIndex += 1;
+      clearTimeout(appState.factTimer);
+      appState.factTimer = setTimeout(showFact, 7000);
+    }
+
+    function initializeMap() {
+      if (appState.map) return;
+      appState.map = new google.maps.Map(elements.mapEl, {
+        center: { lat: 0, lng: 0 },
+        zoom: 13,
+        disableDefaultUI: true
+      });
+      appState.placesService = new google.maps.places.PlacesService(appState.map);
+      appState.directionsService = new google.maps.DirectionsService();
+      appState.directionsRenderer = new google.maps.DirectionsRenderer({ suppressMarkers: true });
+      appState.directionsRenderer.setMap(appState.map);
+    }
+
+    function setLocationStatus(text) {
+      elements.locationStatus.textContent = text;
+    }
+
+    function updateManualLocationVisibility(show) {
+      elements.manualLocationForm.classList.toggle('hidden', !show);
+      elements.manualLocationForm.setAttribute('aria-hidden', (!show).toString());
+    }
+
+    function handleToggleManualLocation() {
+      const isHidden = elements.manualLocationForm.classList.contains('hidden');
+      updateManualLocationVisibility(isHidden);
+      if (isHidden) {
+        elements.manualLocationInput.focus();
+      }
+    }
+    async function geolocateUser(useFallback = false) {
+      if (useFallback) {
+        appState.currentLocation = { lat: 51.5074, lng: -0.1278 };
+        setLocationStatus('Defaulting to London, UK. Enter a location for precise results.');
+        fetchLocalFacts(appState.currentLocation.lat, appState.currentLocation.lng);
+        fetchWeather();
+        return;
+      }
+      if (!navigator.geolocation) {
+        setLocationStatus('Geolocation unavailable. Enter a location manually.');
+        updateManualLocationVisibility(true);
+        geolocateUser(true);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          appState.currentLocation = { lat: latitude, lng: longitude };
+          setLocationStatus('Great news! We’ve locked onto your spot.');
+          reverseGeocode(latitude, longitude);
+          fetchLocalFacts(latitude, longitude);
+          fetchWeather();
+        },
+        (error) => {
+          console.warn('Geolocation denied', error);
+          setLocationStatus('Location access denied. Enter a city to explore.');
+          updateManualLocationVisibility(true);
+          geolocateUser(true);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    }
+
+    function reverseGeocode(lat, lng) {
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=__GOOGLE_MAPS_API_KEY__`)
+        .then((response) => response.json())
+        .then((data) => {
+          const result = data.results?.[0];
+          if (result) {
+            const locality = result.address_components.find((c) => c.types.includes('locality'));
+            const admin = result.address_components.find((c) => c.types.includes('administrative_area_level_1'));
+            if (locality || admin) {
+              setLocationStatus(`Exploring around ${locality?.long_name || ''}${locality && admin ? ', ' : ''}${admin?.short_name || ''}`);
+            }
+          }
+        })
+        .catch(() => {
+          setLocationStatus('Exploring your area.');
+        });
+    }
+
+    function handleManualLocationSubmit(event) {
+      event.preventDefault();
+      const query = elements.manualLocationInput.value.trim();
+      if (!query) return;
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=__GOOGLE_MAPS_API_KEY__`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.results && data.results.length) {
+            const location = data.results[0].geometry.location;
+            appState.currentLocation = location;
+            appState.manualLocation = query;
+            setLocationStatus(`Manual location: ${data.results[0].formatted_address}`);
+            fetchLocalFacts(location.lat, location.lng);
+            fetchWeather();
+          } else {
+            setLocationStatus('Could not find that location. Try another.');
+          }
+        })
+        .catch(() => {
+          setLocationStatus('Network issue locating that spot.');
+        });
+    }
+
+    function openSubmenu(categoryKey) {
+      const category = CATEGORY_CONFIG[categoryKey];
+      if (!category) return;
+      if (categoryKey === 'donate') {
+        openDonateModal();
+        return;
+      }
+      appState.currentCategory = categoryKey;
+      elements.submenuTitle.textContent = category.title;
+      elements.submenuSubtitle.textContent = category.vibe;
+      elements.submenuOptions.innerHTML = '';
+      category.subfilters.forEach((subfilter) => {
+        const button = document.createElement('button');
+        button.className = 'glass card-lift w-full rounded-2xl p-4 text-left shadow-xl transition';
+        button.innerHTML = `<p class="font-display text-lg font-semibold text-amber">${subfilter.label}</p><p class="mt-1 text-sm text-ivory/70">Dialed in for ${category.title.toLowerCase()}.</p>`;
+        button.addEventListener('click', () => startSearch(categoryKey, subfilter));
+        elements.submenuOptions.appendChild(button);
+      });
+      togglePanel(elements.submenuPanel, true);
+      const release = trapFocus(elements.submenuCard);
+      elements.submenuCard.addEventListener('request-close', () => {
+        release();
+        togglePanel(elements.submenuPanel, false);
+      }, { once: true });
+    }
+
+    function openDonateModal() {
+      togglePanel(elements.donateModal, true);
+      const release = trapFocus(elements.donateModalCard);
+      elements.donateModalCard.addEventListener('request-close', () => {
+        release();
+        togglePanel(elements.donateModal, false);
+      }, { once: true });
+    }
+
+    function closeDonateModal() {
+      togglePanel(elements.donateModal, false);
+    }
+
+    function openResultsOverlay() {
+      hideFacts();
+      togglePanel(elements.resultsOverlay, true);
+    }
+
+    function closeResultsOverlay() {
+      togglePanel(elements.resultsOverlay, false);
+      showFacts();
+    }
+
+    function openDetailSheet(index) {
+      const place = appState.currentResults[index];
+      if (!place) return;
+      appState.detailIndex = index;
+      hideFacts();
+      elements.detailTitle.textContent = place.name;
+      elements.detailPhoto.innerHTML = '';
+      const photoUrl = place.photos && place.photos.length ? place.photos[0].getUrl({ maxWidth: 600, maxHeight: 400 }) : null;
+      const img = document.createElement('img');
+      img.src = photoUrl || 'https://via.placeholder.com/600x400?text=Local+Explorer';
+      img.alt = place.name;
+      img.className = 'h-full w-full object-cover';
+      elements.detailPhoto.appendChild(img);
+      const distanceText = place.distance ? `<span class="rounded-full bg-steel/70 px-2 py-1 text-xs">${metersToImperial(place.distance)}</span>` : '';
+      elements.detailMeta.innerHTML = `
+        <span>${renderStars(place.rating)}</span>
+        <span class="text-xs text-ivory/60">${place.user_ratings_total || 0} reviews</span>
+        <span class="text-xs text-ivory/60">${place.price_level ? '$'.repeat(place.price_level) : 'Price n/a'}</span>
+        ${distanceText}
+      `;
+      elements.detailChips.innerHTML = '';
+      (place.types || []).slice(0, 3).forEach((type) => {
+        const chip = document.createElement('span');
+        chip.className = 'rounded-full bg-steel/70 px-3 py-1 text-xs uppercase tracking-widest';
+        chip.textContent = type.replace(/_/g, ' ');
+        elements.detailChips.appendChild(chip);
+      });
+      if (place.wheelchair_accessible_entrance) {
+        const chip = document.createElement('span');
+        chip.className = 'rounded-full bg-seafoam/30 px-3 py-1 text-xs uppercase tracking-[0.3em] text-seafoam';
+        chip.textContent = '♿ Accessible';
+        elements.detailChips.appendChild(chip);
+      }
+      elements.detailContact.innerHTML = `
+        <p>${place.formatted_address || place.vicinity || 'Address unavailable'}</p>
+        <p>${place.formatted_phone_number || 'Phone unavailable'}</p>
+        <p>${place.website ? `<a href="${place.website}" target="_blank" rel="noopener" class="text-amber underline">${place.website}</a>` : 'Website unavailable'}</p>
+      `;
+      elements.detailReviews.innerHTML = '';
+      if (place.reviews && place.reviews.length) {
+        place.reviews.slice(0, 2).forEach((review) => {
+          const cleanText = stripHtml(review.text).slice(0, 220);
+          const card = document.createElement('article');
+          card.className = 'glass rounded-2xl p-4 text-sm text-ivory/80 shadow-xl';
+          card.innerHTML = `
+            <p class="font-semibold text-seafoam">${review.author_name || 'Guest'}</p>
+            <p class="text-xs text-ivory/60">${new Date(review.time * 1000).toLocaleDateString()}</p>
+            <p class="mt-2 leading-relaxed">${cleanText}${review.text.length > cleanText.length ? '…' : ''}</p>
+          `;
+          elements.detailReviews.appendChild(card);
+        });
+      } else {
+        elements.detailReviews.innerHTML = '<p class="text-sm text-ivory/60">No reviews yet. Be the first to share your experience!</p>';
+      }
+      updateSaveButtonState(place.place_id);
+      elements.detailSheet.classList.remove('invisible');
+      requestAnimationFrame(() => {
+        elements.detailSheet.classList.remove('translate-y-full');
+      });
+      const focusRelease = trapFocus(elements.detailSheet);
+      elements.detailSheet.addEventListener('request-close', () => {
+        focusRelease();
+        closeDetailSheet();
+      }, { once: true });
+    }
+
+    function closeDetailSheet() {
+      elements.detailSheet.classList.add('translate-y-full');
+      elements.detailSheet.addEventListener('transitionend', () => {
+        elements.detailSheet.classList.add('invisible');
+        showFacts();
+      }, { once: true });
+    }
+    function startSearch(categoryKey, subfilter) {
+      if (!appState.currentLocation) {
+        setLocationStatus('Set your location first to search.');
+        return;
+      }
+      const category = CATEGORY_CONFIG[categoryKey];
+      const label = `${category.title} · ${subfilter.label}`;
+      addRecentSearch(categoryKey, subfilter.label, label);
+      openResultsOverlay();
+      elements.resultsList.innerHTML = '<p class="mt-6 text-center text-sm text-ivory/60">Searching for standout places…</p>';
+      performProgressiveSearch(subfilter, categoryKey)
+        .then((results) => {
+          if (!results.length) {
+            elements.resultsList.innerHTML = '<p class="mt-6 text-center text-sm text-ivory/60">No matches yet. Try another vibe or widen your radius.</p>';
+            elements.resultsHeader.textContent = '0 Spots';
+            return;
+          }
+          appState.currentResults = results;
+          renderResults();
+        })
+        .catch((error) => {
+          console.error('Search error', error);
+          elements.resultsList.innerHTML = '<p class="mt-6 text-center text-sm text-ivory/60">Something went wrong fetching results. Offline? Try again soon.</p>';
+        });
+    }
+
+    function performProgressiveSearch(subfilter, categoryKey) {
+      initializeMap();
+      const allowedTypes = CATEGORY_CONFIG[categoryKey].allowedTypes;
+      const baseLocation = appState.currentLocation;
+      const radii = [2000, 5000, 10000, 20000, 50000];
+      const moodBoost = appState.mood === 'adventurous' && subfilter.adventurous ? ' top rated ' : '';
+      const keyword = `${subfilter.keyword}${moodBoost}`;
+
+      return new Promise((resolve, reject) => {
+        let accumulated = [];
+        const searchNext = (index) => {
+          if (index >= radii.length) {
+            if (accumulated.length) {
+              resolve(processResults(accumulated, allowedTypes, categoryKey, subfilter));
+            } else {
+              textSearchFallback();
+            }
+            return;
+          }
+          const request = {
+            location: baseLocation,
+            radius: radii[index],
+            keyword,
+            type: subfilter.types
+          };
+          appState.placesService.nearbySearch(request, (results, status, pagination) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && Array.isArray(results)) {
+              accumulated = accumulated.concat(results);
+              if (accumulated.length >= 12 || (pagination && pagination.hasNextPage)) {
+                resolve(processResults(accumulated, allowedTypes, categoryKey, subfilter));
+              } else {
+                searchNext(index + 1);
+              }
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              searchNext(index + 1);
+            } else {
+              console.warn('Nearby search status', status);
+              searchNext(index + 1);
+            }
+          });
+        };
+
+        const textSearchFallback = () => {
+          const request = {
+            query: `${subfilter.keyword} in ${appState.manualLocation || 'city'}`,
+            location: baseLocation,
+            radius: 50000
+          };
+          appState.placesService.textSearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && Array.isArray(results)) {
+              resolve(processResults(results, allowedTypes, categoryKey, subfilter));
+            } else {
+              reject(status);
+            }
+          });
+        };
+
+        searchNext(0);
+      });
+    }
+
+    function getDistanceFromLocation(placeLocation) {
+      if (!placeLocation) return null;
+      if (!google.maps.geometry || !google.maps.geometry.spherical) return null;
+      const origin = new google.maps.LatLng(appState.currentLocation.lat, appState.currentLocation.lng);
+      return google.maps.geometry.spherical.computeDistanceBetween(origin, placeLocation);
+    }
+
+    function processResults(results, allowedTypes, categoryKey, subfilter) {
+      const filtered = results.filter((place) => {
+        if (!place.place_id) return false;
+        if ((place.types || []).some((type) => RETAIL_BLOCK_LIST.includes(type))) return false;
+        const matchesAllowed = allowedTypes.some((type) => place.types?.includes(type));
+        if (!matchesAllowed) return false;
+        if (categoryKey === 'foodie') {
+          if (subfilter.keyword.includes('restaurant')) {
+            const keywordRoot = subfilter.keyword.split(' ')[0];
+            if (!place.name.toLowerCase().includes(keywordRoot)) {
+              const isGeneric = place.types?.includes('restaurant') && !subfilter.keyword.includes(place.name.toLowerCase());
+              if (isGeneric && !place.name.toLowerCase().includes(keywordRoot)) return false;
+            }
+          }
+        }
+        if (categoryKey === 'outdoors') {
+          const allowedOutdoors = ['park', 'campground', 'tourist_attraction', 'natural_feature'];
+          if (!place.types?.some((type) => allowedOutdoors.includes(type))) return false;
+        }
+        if (categoryKey === 'dark') {
+          if (place.types?.includes('cemetery')) return true;
+          const name = place.name.toLowerCase();
+          if (!DARK_KEYWORDS.some((keyword) => name.includes(keyword))) return false;
+        }
+        return true;
+      });
+      const deduped = [];
+      const seen = new Set();
+      filtered.forEach((place) => {
+        if (!seen.has(place.place_id)) {
+          seen.add(place.place_id);
+          const location = place.geometry?.location;
+          place.distance = location ? getDistanceFromLocation(location) : null;
+          deduped.push(place);
+        }
+      });
+      deduped.sort((a, b) => {
+        const ratingDiff = (b.rating || 0) - (a.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        const reviewsDiff = (b.user_ratings_total || 0) - (a.user_ratings_total || 0);
+        if (reviewsDiff !== 0) return reviewsDiff;
+        const distanceDiff = (a.distance || Infinity) - (b.distance || Infinity);
+        if (distanceDiff !== 0) return distanceDiff;
+        return a.name.localeCompare(b.name);
+      });
+      return deduped.slice(0, 20);
+    }
+
+    function renderResults() {
+      elements.resultsList.innerHTML = '';
+      elements.resultsHeader.textContent = `${appState.currentResults.length} Spots`;
+      appState.currentResults.forEach((place, index) => {
+        const card = document.createElement('article');
+        card.className = 'glass card-lift mb-4 rounded-2xl p-4 shadow-xl transition';
+        const photoUrl = place.photos && place.photos.length ? place.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 }) : 'https://via.placeholder.com/400x200?text=Local+Explorer';
+        const distanceText = place.distance ? `<span class="rounded-full bg-steel/80 px-2 py-1 text-xs">${metersToImperial(place.distance)}</span>` : '';
+        card.innerHTML = `
+          <img src="${photoUrl}" alt="${place.name}" class="h-40 w-full rounded-2xl object-cover" />
+          <div class="mt-3 flex items-start justify-between">
+            <div>
+              <h3 class="font-display text-xl font-semibold text-amber">${place.name}</h3>
+              <p class="text-sm text-ivory/80">${place.vicinity || place.formatted_address || 'Address unavailable'}</p>
+            </div>
+            <div class="text-right text-sm text-ivory/70">${renderStars(place.rating)}<div>${place.user_ratings_total || 0} reviews</div></div>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-sm text-ivory/70">
+            <span>${place.price_level ? '$'.repeat(place.price_level) : 'Price n/a'}</span>
+            ${distanceText}
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <button class="rounded-xl bg-seafoam px-3 py-2 text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seafoam" data-index="${index}" data-action="detail">Details</button>
+            <a class="rounded-xl bg-amber px-3 py-2 text-center text-sm font-semibold text-deck shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}" target="_blank" rel="noopener">Map</a>
+          </div>
+        `;
+        card.querySelector('[data-action="detail"]').addEventListener('click', () => openDetailSheet(index));
+        elements.resultsList.appendChild(card);
+      });
+    }
+
+    function toggleSavePlace() {
+      const place = appState.currentResults[appState.detailIndex];
+      if (!place) return;
+      const exists = appState.savedPlaces.some((p) => p.place_id === place.place_id);
+      if (exists) {
+        appState.savedPlaces = appState.savedPlaces.filter((p) => p.place_id !== place.place_id);
+      } else {
+        appState.savedPlaces.push({
+          place_id: place.place_id,
+          name: place.name,
+          vicinity: place.vicinity,
+          formatted_address: place.formatted_address
+        });
+      }
+      updateSaveButtonState(place.place_id);
+      renderSavedPlaces();
+      saveToLocalStorage();
+    }
+
+    function handleDetailNavigation(direction) {
+      const nextIndex = appState.detailIndex + direction;
+      if (nextIndex >= 0 && nextIndex < appState.currentResults.length) {
+        openDetailSheet(nextIndex);
+      }
+    }
+    function activateCompass(place) {
+      togglePanel(elements.compassModal, true);
+      const release = trapFocus(elements.compassModalCard);
+      elements.compassModalCard.addEventListener('request-close', () => {
+        release();
+        closeCompass();
+      }, { once: true });
+      elements.compassDistance.textContent = 'Calibrating…';
+      elements.compassInstruction.textContent = 'Requesting sensors';
+      if (!('geolocation' in navigator)) {
+        elements.compassInstruction.textContent = 'Geolocation unavailable.';
+        return;
+      }
+      const destination = place.geometry?.location;
+      if (!destination) {
+        elements.compassInstruction.textContent = 'No destination coordinates. Open map instead.';
+        return;
+      }
+      appState.currentStepIndex = 0;
+      if (appState.compassWatchId) navigator.geolocation.clearWatch(appState.compassWatchId);
+      appState.compassWatchId = navigator.geolocation.watchPosition((position) => {
+        const origin = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        const dest = new google.maps.LatLng(destination.lat(), destination.lng());
+        appState.directionsService.route({
+          origin,
+          destination: dest,
+          travelMode: google.maps.TravelMode.WALKING
+        }, (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK) {
+            appState.currentRoute = result.routes[0];
+            updateCompassStep(position);
+          }
+        });
+      }, () => {
+        elements.compassInstruction.textContent = 'Live location denied.';
+      }, { enableHighAccuracy: true });
+      if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
+        DeviceOrientationEvent.requestPermission().then((response) => {
+          if (response === 'granted') {
+            appState.orientationHandler = (event) => {
+              const heading = event.alpha;
+              if (heading != null) {
+                const bearing = getStepBearing();
+                const rotation = bearing - heading;
+                elements.compassArrow.style.transform = `rotate(${rotation}deg)`;
+              }
+            };
+            window.addEventListener('deviceorientation', appState.orientationHandler, true);
+          }
+        }).catch(() => {
+          elements.compassInstruction.textContent = 'Orientation permission denied.';
+        });
+      } else {
+        appState.orientationHandler = (event) => {
+          const heading = event.alpha;
+          if (heading != null) {
+            const bearing = getStepBearing();
+            const rotation = bearing - heading;
+            elements.compassArrow.style.transform = `rotate(${rotation}deg)`;
+          }
+        };
+        window.addEventListener('deviceorientation', appState.orientationHandler, true);
+      }
+    }
+
+    function getStepBearing() {
+      if (!appState.currentRoute) return 0;
+      const steps = appState.currentRoute.legs[0].steps;
+      const step = steps[Math.min(appState.currentStepIndex, steps.length - 1)];
+      if (!step) return 0;
+      if (google.maps.geometry && google.maps.geometry.spherical) {
+        return google.maps.geometry.spherical.computeHeading(step.start_location, step.end_location);
+      }
+      return 0;
+    }
+
+    function updateCompassStep(position) {
+      if (!appState.currentRoute) return;
+      const steps = appState.currentRoute.legs[0].steps;
+      const step = steps[appState.currentStepIndex];
+      if (!step) {
+        elements.compassInstruction.textContent = 'Arrived!';
+        elements.compassDistance.textContent = '0 ft';
+        handleGuideSpeech('You have arrived. Enjoy!');
+        return;
+      }
+      const userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+      const stepEnd = step.end_location;
+      const distance = google.maps.geometry?.spherical?.computeDistanceBetween(userLocation, stepEnd) || 0;
+      elements.compassDistance.textContent = metersToImperial(distance);
+      elements.compassInstruction.textContent = step.instructions ? stripHtml(step.instructions) : 'Continue straight';
+      if (distance < 15.24) {
+        appState.currentStepIndex += 1;
+        const nextInstruction = steps[appState.currentStepIndex]?.instructions ? stripHtml(steps[appState.currentStepIndex].instructions) : 'Arrived';
+        handleGuideSpeech(`Next: ${nextInstruction}`);
+      }
+    }
+
+    function closeCompass() {
+      togglePanel(elements.compassModal, false);
+      if (appState.compassWatchId) navigator.geolocation.clearWatch(appState.compassWatchId);
+      appState.compassWatchId = null;
+      if (appState.orientationHandler) window.removeEventListener('deviceorientation', appState.orientationHandler, true);
+      appState.orientationHandler = null;
+      handleGuideSpeech(null, true);
+      appState.guideActive = false;
+      elements.guideMeBtn.setAttribute('aria-pressed', 'false');
+      elements.guideMeBtn.textContent = 'Guide Me ▶︎';
+    }
+
+    function handleGuideSpeech(text, forceStop = false) {
+      if (!appState.speechSynthesis) return;
+      if (appState.speechSynthesis.speaking || forceStop) {
+        appState.speechSynthesis.cancel();
+      }
+      if (!text) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = appState.voiceSettings.rate;
+      if (appState.voiceSettings.voiceURI) {
+        const voice = appState.speechSynthesis.getVoices().find((v) => v.voiceURI === appState.voiceSettings.voiceURI);
+        if (voice) utterance.voice = voice;
+      }
+      appState.speechSynthesis.speak(utterance);
+    }
+
+    function toggleGuideSpeech() {
+      if (appState.guideActive) {
+        handleGuideSpeech(null, true);
+        appState.guideActive = false;
+        elements.guideMeBtn.setAttribute('aria-pressed', 'false');
+        elements.guideMeBtn.textContent = 'Guide Me ▶︎';
+      } else {
+        handleGuideSpeech(elements.compassInstruction.textContent || 'Starting guidance.');
+        appState.guideActive = true;
+        elements.guideMeBtn.setAttribute('aria-pressed', 'true');
+        elements.guideMeBtn.textContent = 'Pause Guide';
+      }
+    }
+
+    function populateVoices() {
+      if (!appState.speechSynthesis) return;
+      const voices = appState.speechSynthesis.getVoices().filter((voice) => voice.lang.startsWith('en'));
+      elements.guideVoicePicker.innerHTML = '';
+      voices.forEach((voice) => {
+        const option = document.createElement('option');
+        option.value = voice.voiceURI;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        if (appState.voiceSettings.voiceURI === voice.voiceURI) option.selected = true;
+        elements.guideVoicePicker.appendChild(option);
+      });
+      if (!appState.voiceSettings.voiceURI && voices.length) {
+        appState.voiceSettings.voiceURI = voices[0].voiceURI;
+        saveToLocalStorage();
+      }
+      elements.guideVoiceRate.value = appState.voiceSettings.rate;
+    }
+
+    function handleVoiceChange() {
+      appState.voiceSettings.voiceURI = elements.guideVoicePicker.value;
+      saveToLocalStorage();
+    }
+
+    function handleVoiceRateChange() {
+      appState.voiceSettings.rate = parseFloat(elements.guideVoiceRate.value) || 1;
+      saveToLocalStorage();
+    }
+    function clearAllData() {
+      localStorage.removeItem('localExplorerSaved');
+      localStorage.removeItem('localExplorerRecent');
+      localStorage.removeItem('localExplorerVoice');
+      appState.savedPlaces = [];
+      appState.recentSearches = [];
+      appState.voiceSettings = { voiceURI: null, rate: 1 };
+      renderSavedPlaces();
+      renderRecentSearches();
+    }
+
+    function handleMyListOpen() {
+      togglePanel(elements.myListPanel, true);
+      const release = trapFocus(elements.myListCard);
+      elements.myListCard.addEventListener('request-close', () => {
+        release();
+        togglePanel(elements.myListPanel, false);
+      }, { once: true });
+    }
+
+    function handleDarkMode() {
+      openSubmenu('dark');
+    }
+
+    function handleDonateQuick(event) {
+      const amount = event.currentTarget.dataset.amount;
+      const note = encodeURIComponent(`Local Explorer donation ${amount}`);
+      elements.venmoDeepLink.href = `venmo://pay?txn=pay&recipients=__VENMO_HANDLE__&amount=${amount}&note=${note}`;
+    }
+
+    function handleRecentSearchClick(event) {
+      const button = event.target.closest('.recent-search');
+      if (!button) return;
+      const category = button.dataset.category;
+      const filterKey = button.dataset.filter;
+      const categoryConfig = CATEGORY_CONFIG[category];
+      if (!categoryConfig) return;
+      const subfilter = categoryConfig.subfilters.find((sub) => sub.label === filterKey);
+      if (subfilter) startSearch(category, subfilter);
+    }
+
+    function handleSavedListClick(event) {
+      if (event.target.classList.contains('remove-saved')) {
+        const id = event.target.dataset.id;
+        appState.savedPlaces = appState.savedPlaces.filter((place) => place.place_id !== id);
+        renderSavedPlaces();
+        saveToLocalStorage();
+      }
+      if (event.target.classList.contains('share-saved')) {
+        const id = event.target.dataset.id;
+        const place = appState.savedPlaces.find((p) => p.place_id === id);
+        if (!place) return;
+        if (navigator.share) {
+          navigator.share({
+            title: place.name,
+            text: `Meet me at ${place.name}!`,
+            url: `https://www.google.com/maps/search/?api=1&query_place_id=${place.place_id}`
+          }).catch(() => {});
+        } else {
+          alert('Sharing unsupported on this device. Copy the Maps link instead.');
+        }
+      }
+    }
+
+    function handleDetailAction(event) {
+      const button = event.target.closest('.detail-action');
+      if (!button) return;
+      const place = appState.currentResults[appState.detailIndex];
+      if (!place) return;
+      const action = button.dataset.action;
+      switch (action) {
+        case 'map':
+          window.open(`https://www.google.com/maps/search/?api=1&query_place_id=${place.place_id}`, '_blank', 'noopener');
+          break;
+        case 'website':
+          if (place.website) {
+            window.open(place.website, '_blank', 'noopener');
+          } else {
+            alert('Website unavailable for this place.');
+          }
+          break;
+        case 'share':
+          if (navigator.share) {
+            navigator.share({ title: place.name, text: place.vicinity || place.formatted_address, url: `https://www.google.com/maps/search/?api=1&query_place_id=${place.place_id}` }).catch(() => {});
+          } else {
+            alert('Share feature unsupported in this browser.');
+          }
+          break;
+        case 'compass':
+          activateCompass(place);
+          break;
+        default:
+          break;
+      }
+    }
+
+    function closePanelsOnEscape(event) {
+      if (event.key !== 'Escape') return;
+      if (!elements.detailSheet.classList.contains('invisible')) closeDetailSheet();
+      if (!elements.resultsOverlay.classList.contains('invisible')) closeResultsOverlay();
+      if (!elements.submenuPanel.classList.contains('invisible')) togglePanel(elements.submenuPanel, false);
+      if (!elements.compassModal.classList.contains('invisible')) closeCompass();
+      if (!elements.donateModal.classList.contains('invisible')) closeDonateModal();
+      if (!elements.myListPanel.classList.contains('invisible')) togglePanel(elements.myListPanel, false);
+    }
+
+    function fetchWeather() {
+      if (!appState.currentLocation) return;
+      const { lat, lng } = appState.currentLocation;
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&temperature_unit=fahrenheit`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.current_weather) {
+            const { temperature, windspeed } = data.current_weather;
+            elements.quickWeather.textContent = `${temperature.toFixed(0)}°F · Wind ${windspeed.toFixed(0)} mph`;
+          } else {
+            elements.quickWeather.textContent = 'Weather data unavailable.';
+          }
+        })
+        .catch(() => {
+          elements.quickWeather.textContent = 'Offline: weather will refresh later.';
+        });
+    }
+
+    function handleSurpriseMe() {
+      const categories = Object.keys(CATEGORY_CONFIG).filter((key) => key !== 'donate');
+      const randomCategoryKey = categories[Math.floor(Math.random() * categories.length)];
+      const category = CATEGORY_CONFIG[randomCategoryKey];
+      const subfilter = category.subfilters[Math.floor(Math.random() * category.subfilters.length)];
+      startSearch(randomCategoryKey, subfilter);
+    }
+
+    function handleMoodToggle() {
+      appState.mood = appState.mood === 'adventurous' ? 'chill' : 'adventurous';
+      elements.moodToggle.textContent = appState.mood === 'adventurous' ? 'Adventurous' : 'Chill';
+      elements.moodToggle.setAttribute('aria-pressed', appState.mood === 'adventurous' ? 'false' : 'true');
+    }
+    function initEventListeners() {
+      elements.toggleManualLocation.addEventListener('click', handleToggleManualLocation);
+      elements.manualLocationForm.addEventListener('submit', handleManualLocationSubmit);
+      elements.refreshLocationBtn.addEventListener('click', () => geolocateUser());
+      elements.categoryButtons.forEach((button) => button.addEventListener('click', () => openSubmenu(button.dataset.category)));
+      elements.submenuClose.addEventListener('click', () => togglePanel(elements.submenuPanel, false));
+      elements.submenuBackMain.addEventListener('click', () => togglePanel(elements.submenuPanel, false));
+      elements.resultsBackBtn.addEventListener('click', () => {
+        closeResultsOverlay();
+        showFacts();
+      });
+      elements.mapAllBtn.addEventListener('click', () => {
+        if (!appState.currentResults.length) return;
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(appState.currentResults[0].name)}&destination_place_id=${appState.currentResults[0].place_id}`, '_blank', 'noopener');
+      });
+      elements.detailPrev.addEventListener('click', () => handleDetailNavigation(-1));
+      elements.detailNext.addEventListener('click', () => handleDetailNavigation(1));
+      elements.savePlaceBtn.addEventListener('click', toggleSavePlace);
+      elements.detailButtons.addEventListener('click', handleDetailAction);
+      elements.compassClose.addEventListener('click', closeCompass);
+      elements.guideMeBtn.addEventListener('click', toggleGuideSpeech);
+      elements.compassMapBtn.addEventListener('click', () => {
+        const place = appState.currentResults[appState.detailIndex];
+        if (place) window.open(`https://www.google.com/maps/dir/?api=1&destination_place_id=${place.place_id}`, '_blank', 'noopener');
+      });
+      elements.donateClose.addEventListener('click', closeDonateModal);
+      elements.donateQuickButtons.forEach((button) => button.addEventListener('click', handleDonateQuick));
+      elements.darkModeBtn.addEventListener('click', handleDarkMode);
+      elements.surpriseMeBtn.addEventListener('click', handleSurpriseMe);
+      elements.myListBtn.addEventListener('click', handleMyListOpen);
+      elements.myListClose.addEventListener('click', () => togglePanel(elements.myListPanel, false));
+      elements.savedList.addEventListener('click', handleSavedListClick);
+      elements.clearAllData.addEventListener('click', clearAllData);
+      elements.recentSearches.addEventListener('click', handleRecentSearchClick);
+      elements.recentSearchesBtn.addEventListener('click', handleMyListOpen);
+      elements.guideVoicePicker.addEventListener('change', handleVoiceChange);
+      elements.guideVoiceRate.addEventListener('input', handleVoiceRateChange);
+      elements.donateModal.addEventListener('click', (event) => {
+        if (event.target === elements.donateModal) closeDonateModal();
+      });
+      elements.compassModal.addEventListener('click', (event) => {
+        if (event.target === elements.compassModal) closeCompass();
+      });
+      elements.myListPanel.addEventListener('click', (event) => {
+        if (event.target === elements.myListPanel) togglePanel(elements.myListPanel, false);
+      });
+      elements.submenuPanel.addEventListener('click', (event) => {
+        if (event.target === elements.submenuPanel) togglePanel(elements.submenuPanel, false);
+      });
+      document.addEventListener('keydown', closePanelsOnEscape);
+    }
+
+    function handleServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('serviceworker.js').catch((error) => console.error('SW registration failed', error));
+      }
+    }
+
+    function initStreetViewLayer() {
+      elements.streetViewLayer.classList.add('no-pointer');
+    }
+
+    function renderSavedPlacesOnLoad() {
+      renderSavedPlaces();
+      renderRecentSearches();
+    }
+
+    function initApp() {
+      loadFromLocalStorage();
+      renderFocusGroupList();
+      renderSavedPlacesOnLoad();
+      geolocateUser();
+      initEventListeners();
+      initStreetViewLayer();
+      handleServiceWorker();
+      if ('speechSynthesis' in window) {
+        populateVoices();
+        window.speechSynthesis.onvoiceschanged = populateVoices;
+      }
+    }
+
+    window.addEventListener('load', initApp);
   </script>
 </body>
 </html>
-
