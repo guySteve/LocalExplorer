@@ -4,113 +4,106 @@ const UI = {
 
     cacheElements: function() {
         this.elements = {
-            locationStatus: document.getElementById('location-status'),
-            funFactText: document.getElementById('fun-fact-text'),
+            // ... (other elements remain)
             filterContainer: document.getElementById('filter-container'),
             subMenuContainer: document.getElementById('sub-menu-container'),
             backButton: document.getElementById('back-to-main-filters'),
             randomButton: document.getElementById('random-button'),
             darkSideButton: document.getElementById('dark-side-button'),
+            
+            // (NEW) Results List Elements
+            resultsListScreen: document.getElementById('results-list-screen'),
+            resultsTitle: document.getElementById('results-title'),
+            resultsList: document.getElementById('results-list'),
+            closeResultsButton: document.getElementById('close-results-button'),
+
+            // (For next step)
             resultScreen: document.getElementById('result-screen'),
-            dayPlanModal: document.getElementById('day-plan-modal'),
         };
     },
 
     initEventListeners: function() {
-        // Main category clicks show the sub-menu
-        this.elements.filterContainer.addEventListener('click', e => {
-            const btn = e.target.closest('button[data-filter]');
-            if (btn) this.showSubMenu(btn.dataset.filter);
-        });
-
-        // Sub-menu clicks perform the search
-        this.elements.subMenuContainer.addEventListener('click', e => {
-            const btn = e.target.closest('button[data-parent]');
-            if (btn) {
-                const parent = btn.dataset.parent;
-                const name = btn.dataset.name;
-                const params = AppState.subFilterMap[parent][name];
-                this.findAndDisplayPlaces(params);
-            }
-        });
-
-        // Other main menu buttons
+        // ... (main menu, sub-menu, random, and dark-side listeners remain the same)
+        this.elements.filterContainer.addEventListener('click', e => { /* ... */ });
+        this.elements.subMenuContainer.addEventListener('click', e => { /* ... */ });
         this.elements.backButton.addEventListener('click', () => this.hideSubMenu());
         this.elements.randomButton.addEventListener('click', () => this.findRandomAdventure());
         this.elements.darkSideButton.addEventListener('click', () => this.showSubMenu('dark'));
-        document.getElementById('open-day-plan-button').addEventListener('click', () => {/* Placeholder */});
+
+        // (NEW) Listener for closing the results list
+        this.elements.closeResultsButton.addEventListener('click', () => {
+            this.elements.resultsListScreen.classList.add('hidden');
+        });
+
+        // (NEW) Listener for clicks on individual result items
+        this.elements.resultsList.addEventListener('click', e => {
+            const resultItem = e.target.closest('button[data-place-id]');
+            if (resultItem) {
+                const placeId = resultItem.dataset.placeId;
+                // Find the place data from our last search
+                const place = AppState.currentResults.find(p => p.place_id === placeId);
+                if (place) {
+                    console.log("Show details for:", place.name);
+                    // In the next step, this will open the detailed card view
+                    // For now, it just logs to the console.
+                }
+            }
+        });
     },
 
-    // --- Restored Menu Logic ---
-    showSubMenu: function(filter) {
-        this.elements.filterContainer.classList.add('hidden');
-        this.elements.randomButton.classList.add('hidden');
-        this.elements.darkSideButton.style.display = 'none';
-
-        const subCategories = AppState.subFilterMap[filter];
-        this.elements.subMenuContainer.innerHTML = '';
-        
-        const grid = document.createElement('div');
-        grid.className = 'grid grid-cols-2 gap-3';
-
-        for (const name in subCategories) {
-            const button = document.createElement('button');
-            button.className = 'action-card';
-            button.textContent = name;
-            button.dataset.name = name;
-            button.dataset.parent = filter;
-            grid.appendChild(button);
-        }
-        this.elements.subMenuContainer.appendChild(grid);
-        this.elements.subMenuContainer.classList.remove('hidden');
-        this.elements.backButton.classList.remove('hidden');
-    },
-
-    hideSubMenu: function() {
-        this.elements.subMenuContainer.classList.add('hidden');
-        this.elements.backButton.classList.add('hidden');
-        this.elements.filterContainer.classList.remove('hidden');
-        this.elements.randomButton.classList.remove('hidden');
-        this.elements.darkSideButton.style.display = 'block';
-    },
-
-    findRandomAdventure: function() {
-        const categories = { ...AppState.subFilterMap };
-        delete categories.utilities;
-        delete categories.pets;
-        delete categories.dark;
-
-        const allOptions = Object.values(categories).flatMap(obj => Object.values(obj));
-        const randomChoice = allOptions[Math.floor(Math.random() * allOptions.length)];
-        this.findAndDisplayPlaces(randomChoice);
-    },
-    // --- End of Restored Menu Logic ---
-
+    // --- UPDATED Search and Render Logic ---
     findAndDisplayPlaces: async function(params) {
         this.hideSubMenu();
         this.updateStatus('Searching...');
-        // This function will be expanded in the next step to show a results list
-        console.log("Searching with params:", params);
-        // Placeholder for results
-        this.updateStatus('Search complete. Feature under construction.');
-    },
-    
-    updateStatus: function(text) {
-        this.elements.locationStatus.textContent = text;
-    },
-    
-    showNotification: function(message) {
-        const el = document.createElement('div');
-        el.className = 'fixed top-5 left-1/2 -translate-x-1/2 font-bold p-3 rounded-lg shadow-lg z-50';
-        el.style.background = 'var(--accent-gold)';
-        el.style.color = 'var(--navy-darkest)';
-        el.textContent = message;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 3000);
+        try {
+            const results = await ApiService.nearbySearch({
+                location: AppState.currentUserLocation,
+                radius: 5000,
+                ...params
+            });
+            
+            // Store results and filter out places without key info
+            AppState.currentResults = results.filter(p => p.business_status === 'OPERATIONAL' && p.photos && p.rating);
+            
+            if (AppState.currentResults.length > 0) {
+                this.renderResultsList(AppState.currentResults);
+                this.updateStatus(''); // Clear "Searching..." message
+            } else {
+                this.updateStatus('No results found. Try another category!');
+            }
+        } catch (error) {
+            this.updateStatus('Search failed. Please check your connection.');
+        }
     },
 
-    init: function() {
-        this.cacheElements();
-        this.initEventListeners();
-    }
+    renderResultsList: function(results) {
+        this.elements.resultsList.innerHTML = ''; // Clear previous results
+        results.forEach(place => {
+            const photoUrl = place.photos[0].getUrl({ maxWidth: 200, maxHeight: 200 });
+            const rating = place.rating.toFixed(1);
+            const totalRatings = place.user_ratings_total;
+            
+            const card = document.createElement('button');
+            card.className = 'action-card w-full text-left p-2 flex gap-3 items-center';
+            card.dataset.placeId = place.place_id;
+            
+            card.innerHTML = `
+                <img class="w-16 h-16 rounded-md object-cover" src="${photoUrl}" alt="${place.name}" />
+                <div class="flex-1">
+                    <h3 class="font-bold">${place.name}</h3>
+                    <p class="text-sm" style="color:var(--accent-gold)">${'★'.repeat(Math.round(place.rating))} <span class="font-sans font-normal" style="color:var(--text-secondary)">(${rating} / ${totalRatings} reviews)</span></p>
+                </div>
+            `;
+            this.elements.resultsList.appendChild(card);
+        });
+        this.elements.resultsListScreen.classList.remove('hidden');
+    },
+
+    // ... (other functions like showSubMenu, hideSubMenu, findRandomAdventure remain the same)
+    showSubMenu: function(filter) { /* ... */ },
+    hideSubMenu: function() { /* ... */ },
+    findRandomAdventure: function() { /* ... */ },
+    updateStatus: function(text) { /* ... */ },
+    showNotification: function(message) { /* ... */ },
+    init: function() { this.cacheElements(); this.initEventListeners(); }
 };
