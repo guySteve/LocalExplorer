@@ -2,130 +2,149 @@
 * UI CONTROLLER
 *
 * Handles all direct manipulation of the DOM, event listeners, and rendering logic.
-* It keeps the application state (AppState) and API logic (ApiService) separate from the
-* presentation layer.
 ***************************************************************************************************/
 
 const UI = {
-    // --- Element References (cached for performance) ---
     elements: {},
 
-    /**
-     * Caches all necessary DOM element references on startup.
-     */
     cacheElements: function() {
         this.elements.locationStatus = document.getElementById('location-status');
         this.elements.funFactText = document.getElementById('fun-fact-text');
         this.elements.filterContainer = document.getElementById('filter-container');
         this.elements.resultScreen = document.getElementById('result-screen');
+        this.elements.resultCard = document.getElementById('result-card');
         this.elements.placeName = document.getElementById('place-name');
-        // ... cache all other frequently accessed elements here
+        this.elements.compassModal = document.getElementById('compass-modal');
+        this.elements.compassDist = document.getElementById('compass-dist');
+        this.elements.dayPlanModal = document.getElementById('day-plan-modal');
+        this.elements.dayPlanList = document.getElementById('day-plan-list');
     },
 
-    /**
-     * Initializes all event listeners for the application.
-     */
     initEventListeners: function() {
-        // Main category filter clicks
         this.elements.filterContainer.addEventListener('click', (e) => {
             const filterButton = e.target.closest('button[data-filter]');
             if (filterButton) {
-                const category = filterButton.dataset.filter;
-                // In a real app, you would show a sub-menu here
-                console.log(`Category selected: ${category}`);
-                // For now, let's just trigger a search for "restaurant"
-                this.findAndDisplayPlaces({ type: 'restaurant' }, category, 'Restaurants');
+                const params = JSON.parse(filterButton.dataset.filter);
+                this.findAndDisplayPlaces(params, 'Category', filterButton.textContent);
             }
         });
 
-        // Example: Add listener for a "Try Again" button on the result screen
-        // document.getElementById('try-again-button').addEventListener('click', () => this.showNextSuggestion());
+        // Use event delegation for buttons inside the result card
+        this.elements.resultCard.addEventListener('click', (e) => {
+            if (e.target.closest('#compass-button')) this.openCompass();
+            if (e.target.closest('#save-place-button')) this.toggleSaveCurrentPlace();
+        });
+        
+        document.getElementById('close-compass').addEventListener('click', () => this.closeCompass());
+        document.getElementById('open-day-plan-button').addEventListener('click', () => this.showDayPlan());
+        document.getElementById('close-day-plan').addEventListener('click', () => this.elements.dayPlanModal.style.display = 'none');
     },
 
-    /**
-     * High-level function to orchestrate a place search and display the results.
-     * @param {object} params Search parameters for the API.
-     * @param {string} category The parent category.
-     * @param {string} label The display label for the search.
-     */
     findAndDisplayPlaces: async function(params, category, label) {
         this.updateStatus('Searching nearby...');
         try {
             const results = await ApiService.nearbySearch({
                 location: AppState.currentUserLocation,
-                radius: 5000, // 5km search radius
+                radius: 5000,
                 ...params
             });
-            
-            AppState.currentResults = results;
-            
-            if (results.length > 0) {
-                this.showNextSuggestion();
-                // When a search is successful, grant the 'FIRST_FIND' achievement
-                AppState.grantAchievement('FIRST_FIND');
-            } else {
-                this.updateStatus('No results found. Try a different category!');
-            }
+            AppState.currentResults = results.filter(p => p.business_status === 'OPERATIONAL');
+            if (AppState.currentResults.length > 0) this.showNextSuggestion();
+            else this.updateStatus('No results found. Try another category!');
         } catch (error) {
-            this.updateStatus('Could not complete search. Please try again.');
+            this.updateStatus('Could not complete search.');
         }
     },
-    
-    /**
-     * Displays the next available place from the currentResults list.
-     */
+
     showNextSuggestion: async function() {
         if (AppState.currentResults.length === 0) {
             this.updateStatus('No more suggestions!');
             this.elements.resultScreen.style.display = 'none';
             return;
         }
-
-        // Pop the first result off the array to show it
         const placeSummary = AppState.currentResults.shift();
-
         try {
-            this.updateStatus('Loading details...');
             const placeDetails = await ApiService.getPlaceDetails(placeSummary.place_id);
             AppState.currentPlace = placeDetails;
             this.renderPlaceCard(placeDetails);
         } catch (error) {
-            // If details fail, just try the next one
-            this.showNextSuggestion(); 
+            this.showNextSuggestion();
         }
     },
 
-    /**
-     * Renders the details of a place into the main result card.
-     * @param {object} place The full place details object.
-     */
     renderPlaceCard: function(place) {
         this.elements.placeName.textContent = place.name;
-        // ... update rating, price, photos, etc.
-        
-        // Update the save button state
-        const saveButton = document.getElementById('save-place-button');
-        const isSaved = !!AppState.savedPlaces[place.place_id];
-        saveButton.textContent = isSaved ? '★ Saved' : '☆ Save';
-        
+        this.updateSaveButton();
         this.elements.resultScreen.style.display = 'flex';
-        
-        // Initialize gestures on the newly displayed card
-        const card = document.getElementById('result-card');
-        GestureManager.init(card);
+        GestureManager.init(this.elements.resultCard);
     },
 
-    /**
-     * Updates the main status message shown to the user.
-     * @param {string} text The message to display.
-     */
+    toggleSaveCurrentPlace: function() {
+        AppState.toggleSavedPlace(AppState.currentPlace);
+        this.updateSaveButton();
+    },
+
+    updateSaveButton: function() {
+        const saveButton = document.getElementById('save-place-button').querySelector('.btn-label');
+        const isSaved = !!AppState.savedPlaces[AppState.currentPlace.place_id];
+        saveButton.textContent = isSaved ? '★ Saved' : '☆ Save';
+    },
+
     updateStatus: function(text) {
         this.elements.locationStatus.textContent = text;
     },
+    
+    // --- Compass Logic ---
+    openCompass: function() {
+        if (!AppState.currentPlace) return;
+        this.elements.compassModal.style.display = 'flex';
+        // This is a simplified compass loop for demonstration
+        this.compassInterval = setInterval(() => {
+            // In a real app, you would get heading from device orientation
+            // and location from a geolocation watch.
+            // For now, we simulate getting closer.
+            const dist = Math.random() * 100; // Simulate distance
+            this.elements.compassDist.textContent = `${dist.toFixed(0)}m`;
+            if (dist < 20) {
+                AppState.grantAchievement('EXPLORER_BADGE');
+                this.showNotification('🏆 Achievement Unlocked: Explorer!');
+                this.closeCompass();
+            }
+        }, 1000);
+    },
+    
+    closeCompass: function() {
+        clearInterval(this.compassInterval);
+        this.elements.compassModal.style.display = 'none';
+    },
+    
+    // --- Day Planner Logic ---
+    showDayPlan: function() {
+        this.elements.dayPlanList.innerHTML = ''; // Clear previous list
+        if (AppState.dayPlan.length === 0) {
+            this.elements.dayPlanList.innerHTML = `<p class="text-center text-secondary">Your plan is empty. Swipe right on a place to add it!</p>`;
+        } else {
+            AppState.dayPlan.forEach(place => {
+                const item = document.createElement('div');
+                item.className = 'p-2 rounded bg-navy-light';
+                item.textContent = place.name;
+                this.elements.dayPlanList.appendChild(item);
+            });
+        }
+        this.elements.dayPlanModal.style.display = 'flex';
+    },
 
-    /**
-     * Main initialization method for the UI module.
-     */
+    // --- Notification Logic ---
+    showNotification: function(message) {
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-5 left-1/2 -translate-x-1/2 bg-accent-gold text-navy-darkest font-bold p-3 rounded-lg shadow-lg z-50';
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    },
+
     init: function() {
         this.cacheElements();
         this.initEventListeners();
