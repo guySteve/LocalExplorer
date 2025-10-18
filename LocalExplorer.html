@@ -896,21 +896,21 @@ let streetViewVisible = false;
     // list is used to populate the facts deck, and the fact widget border
     // changes colour to indicate fallback mode.
     const quirkyFacts = [
-      "The average person in the United Kingdom has visited 10 countries; Germans have been to eight; the average French person has travelled to five, and only 29% of Americans have even been abroad【62498633393745†L126-L133】.",
-      "Women who vacation at least twice a year have a significantly lower risk of heart attack, while men who don’t take a yearly vacation have a 20% higher risk of death and a 30% greater risk of heart disease【62498633393745†L131-L134】.",
-      "Travelling dramatically lowers stress and increases your sense of connection with people from different cultures【62498633393745†L135-L145】.",
-      "Every country in the European Union guarantees at least four weeks of paid vacation, whereas the United States is the only developed nation without any legally required paid vacation days【62498633393745†L146-L148】.",
-      "France is the most visited country on Earth, welcoming over 82 million international visitors per year; the United States and Spain each draw around 75.6 million travellers【62498633393745†L149-L154】.",
-      "Malaysia’s First World Hotel holds the record as the world’s largest hotel with 7,351 rooms; in second place is the Venetian–Palazzo complex in Las Vegas with 7,117 rooms and over 40 restaurants【62498633393745†L155-L158】.",
-      "Studies show that spending money on travel makes people happier than spending the same amount on material goods【62498633393745†L159-L160】.",
-      "Working during vacation can cut your vacation memories almost in half – researchers found that for every hour you work, you recall 43% fewer vacation memories【62498633393745†L178-L181】.",
-      "Hodophobia is the clinical term for the fear of travelling【62498633393745†L182-L183】.",
-      "Over four billion people flew commercially in 2017, and at peak times more than 16,000 planes are in the air at once【62498633393745†L216-L220】.",
-      "The world’s longest scheduled flight, from Jeddah to Los Angeles, takes about 17 hours; by contrast, the world’s shortest scheduled flight between Westray and Papa Westray in Scotland can last less than a minute【62498633393745†L222-L229】.",
-      "The Arba’een pilgrimage in Iraq is recognised as the world’s largest annual public gathering, drawing millions of participants【62498633393745†L222-L229】.",
-      "Bangkok is currently the most visited city in the world, ahead of London and Paris【62498633393745†L234-L236】.",
-      "Through WWOOF (Worldwide Opportunities on Organic Farms) travellers can work on farms around the world in exchange for free food and accommodation【62498633393745†L174-L175】.",
-      "Scientists have proposed a ‘wanderlust gene’: variations in a dopamine receptor may make some people more prone to seek adventure and travel【62498633393745†L201-L204】."
+      "The average person in the United Kingdom has visited 10 countries; Germans have been to eight; the average French person has travelled to five, and only 29% of Americans have even been abroad.",
+      "Women who vacation at least twice a year have a significantly lower risk of heart attack, while men who don’t take a yearly vacation have a 20% higher risk of death and a 30% greater risk of heart disease.",
+      "Travelling dramatically lowers stress and increases your sense of connection with people from different cultures.",
+      "Every country in the European Union guarantees at least four weeks of paid vacation, whereas the United States is the only developed nation without any legally required paid vacation days.",
+      "France is the most visited country on Earth, welcoming over 82 million international visitors per year; the United States and Spain each draw around 75.6 million travellers.",
+      "Malaysia’s First World Hotel holds the record as the world’s largest hotel with 7,351 rooms; in second place is the Venetian–Palazzo complex in Las Vegas with 7,117 rooms and over 40 restaurants.",
+      "Studies show that spending money on travel makes people happier than spending the same amount on material goods.",
+      "Working during vacation can cut your vacation memories almost in half – researchers found that for every hour you work, you recall 43% fewer vacation memories.",
+      "Hodophobia is the clinical term for the fear of travelling.",
+      "Over four billion people flew commercially in 2017, and at peak times more than 16,000 planes are in the air at once.",
+      "The world’s longest scheduled flight, from Jeddah to Los Angeles, takes about 17 hours; by contrast, the world’s shortest scheduled flight between Westray and Papa Westray in Scotland can last less than a minute.",
+      "The Arba’een pilgrimage in Iraq is recognised as the world’s largest annual public gathering, drawing millions of participants.",
+      "Bangkok is currently the most visited city in the world, ahead of London and Paris.",
+      "Through WWOOF (Worldwide Opportunities on Organic Farms) travellers can work on farms around the world in exchange for free food and accommodation.",
+      "Scientists have proposed a ‘wanderlust gene’: variations in a dopamine receptor may make some people more prone to seek adventure and travel."
     ];
 
     // Categories definition
@@ -2168,21 +2168,35 @@ let streetViewVisible = false;
         });
         const factsList = uniqueFacts;
         if (factsList.length > 0) {
-          // Build the interactive fact deck with area-specific facts
+          // Area-specific facts found: reset indicator, set heading, and build deck
           if (factWidgetEl) factWidgetEl.classList.remove('no-facts');
+          const factTitleEl = $("factTitle");
+          if (factTitleEl) factTitleEl.textContent = "Local Info";
           buildFactDeck(factsList);
         } else {
-          // If there are no local facts, highlight fallback mode and show quirky travel facts instead
+          // No local facts: highlight fallback, set heading, and show travel trivia with a notice
           if (factWidgetEl) factWidgetEl.classList.add('no-facts');
-          buildFactDeck(quirkyFacts);
+          const factTitleEl = $("factTitle");
+          if (factTitleEl) factTitleEl.textContent = "Travel Trivia";
+          const fallbackArray = [
+            'No local facts found for this area – displaying general travel trivia.',
+            ...quirkyFacts
+          ];
+          buildFactDeck(fallbackArray);
         }
         return;
       } catch (err) {
         console.error(err);
-        // On failure, apply fallback mode and show quirky travel facts
+        // On failure, apply fallback mode, update heading, and show travel trivia
         const factWidgetElCatch = $("factWidget");
         if (factWidgetElCatch) factWidgetElCatch.classList.add('no-facts');
-        buildFactDeck(quirkyFacts);
+        const factTitleEl = $("factTitle");
+        if (factTitleEl) factTitleEl.textContent = "Travel Trivia";
+        const fallbackArray = [
+          'Unable to fetch local facts – displaying general travel trivia.',
+          ...quirkyFacts
+        ];
+        buildFactDeck(fallbackArray);
       }
     }
 
