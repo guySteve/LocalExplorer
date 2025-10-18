@@ -120,8 +120,8 @@
     /* Fact widget header */
     #factHeader {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      position: relative;
       width: 100%;
       margin-bottom: 0.3rem;
     }
@@ -130,6 +130,8 @@
       font-family: 'Poppins', sans-serif;
       color: var(--text-light);
       letter-spacing: 0.03rem;
+      flex-grow: 1;
+      text-align: center;
     }
     #toggleFacts {
       background: none;
@@ -138,6 +140,12 @@
       font-size: 1.1rem;
       cursor: pointer;
       transition: transform 0.3s ease;
+    }
+    /* Position the toggle icon to the top right of the header */
+    #factHeader #toggleFacts {
+      position: absolute;
+      right: 0;
+      top: 0;
     }
 
     /* Rotate the toggle icon when collapsed */
@@ -161,6 +169,8 @@
       flex-shrink: 0;
       width: 100%;
       padding: 0.7rem 1rem;
+      /* Add vertical spacing between cards when scrolled */
+      margin: 0.35rem 0;
       background-color: var(--card);
       color: var(--text-light);
       border: 2px solid var(--accent);
@@ -996,20 +1006,17 @@ let streetViewVisible = false;
       console.warn('Geolocation failed', err);
       $("locationDisplay").textContent = "Enter a location to begin";
       showManualInput();
-      // Display fallback facts when we cannot determine location to avoid infinite loading
-      const fallbackFacts = [
-        'The USS Constitution, launched in 1797, is the world\'s oldest commissioned warship afloat.',
-        'Florida is known as the Sunshine State and has the longest coastline in the contiguous United States.',
-        'The Gulf of Mexico\'s waters near Sarasota host an annual migration of gentle manatees.',
-        'Palm trees are not native to Florida; many were imported to line boulevards and beaches.',
-        'The term “scuttlebutt” comes from sailors\' gossip around the ship\'s water cask.',
-        'Lighthouses have guided seafarers for centuries, with over 30 historic towers along Florida\'s coasts.',
-        'Sarasota\'s Ringling Brothers Circus legacy includes world‑class art, museums and performances.',
-        'Compass roses on old nautical charts helped mariners orient their ships to the winds and stars.',
-        'The Naval Observatory was founded in 1830 to keep accurate time for the U.S. Navy.',
-        'The Gulf Coast is home to vibrant coral reefs and marine life, protected by national preserves.'
-      ];
-      buildFactDeck(fallbackFacts);
+      // Show a message when we cannot determine location
+      const wrapper = $("factCardsWrapper");
+      if (wrapper) {
+        wrapper.innerHTML = '<div class="fact-card">Enter a location to see nearby facts.</div>';
+        const prevBtnEl = $("prevFact");
+        const nextBtnEl = $("nextFact");
+        if (prevBtnEl && nextBtnEl) {
+          prevBtnEl.style.display = 'none';
+          nextBtnEl.style.display = 'none';
+        }
+      }
     }
 
     function showManualInput() {
@@ -2123,43 +2130,38 @@ let streetViewVisible = false;
         facts.forEach(f => {
           if (!uniqueFacts.includes(f)) uniqueFacts.push(f);
         });
-        let factsList;
-        if (uniqueFacts.length === 0) {
-          // Provide some interesting fallback facts if none can be retrieved from Wikipedia
-          factsList = [
-            'The USS Constitution, launched in 1797, is the world\'s oldest commissioned warship afloat.',
-            'Florida is known as the Sunshine State and has the longest coastline in the contiguous United States.',
-            'The Gulf of Mexico\'s waters near Sarasota host an annual migration of gentle manatees.',
-            'Palm trees are not native to Florida; many were imported to line boulevards and beaches.',
-            'The term “scuttlebutt” comes from sailors\' gossip around the ship\'s water cask.',
-            'Lighthouses have guided seafarers for centuries, with over 30 historic towers along Florida\'s coasts.',
-            'Sarasota\'s Ringling Brothers Circus legacy includes world‑class art, museums and performances.',
-            'Compass roses on old nautical charts helped mariners orient their ships to the winds and stars.',
-            'The Naval Observatory was founded in 1830 to keep accurate time for the U.S. Navy.',
-            'The Gulf Coast is home to vibrant coral reefs and marine life, protected by national preserves.'
-          ];
+        const factsList = uniqueFacts;
+        if (factsList.length > 0) {
+          // Build the interactive fact deck with area-specific facts
+          buildFactDeck(factsList);
         } else {
-          factsList = uniqueFacts;
+          // If there are no local facts, display a simple message
+          const wrapper = $("factCardsWrapper");
+          if (wrapper) {
+            wrapper.innerHTML = '<div class="fact-card">No local facts found for this area.</div>';
+            // Hide navigation buttons when only one message is shown
+            const prevBtnEl = $("prevFact");
+            const nextBtnEl = $("nextFact");
+            if (prevBtnEl && nextBtnEl) {
+              prevBtnEl.style.display = 'none';
+              nextBtnEl.style.display = 'none';
+            }
+          }
         }
-        // Build the interactive fact deck
-        buildFactDeck(factsList);
         return;
       } catch (err) {
         console.error(err);
-        // If fetching fails, fall back to a predefined list of facts so the deck is never empty
-        const fallbackFacts = [
-          'The USS Constitution, launched in 1797, is the world\'s oldest commissioned warship afloat.',
-          'Florida is known as the Sunshine State and has the longest coastline in the contiguous United States.',
-          'The Gulf of Mexico\'s waters near Sarasota host an annual migration of gentle manatees.',
-          'Palm trees are not native to Florida; many were imported to line boulevards and beaches.',
-          'The term “scuttlebutt” comes from sailors\' gossip around the ship\'s water cask.',
-          'Lighthouses have guided seafarers for centuries, with over 30 historic towers along Florida\'s coasts.',
-          'Sarasota\'s Ringling Brothers Circus legacy includes world‑class art, museums and performances.',
-          'Compass roses on old nautical charts helped mariners orient their ships to the winds and stars.',
-          'The Naval Observatory was founded in 1830 to keep accurate time for the U.S. Navy.',
-          'The Gulf Coast is home to vibrant coral reefs and marine life, protected by national preserves.'
-        ];
-        buildFactDeck(fallbackFacts);
+        // On failure, display an informative message instead of generic fallback facts
+        const wrapper = $("factCardsWrapper");
+        if (wrapper) {
+          wrapper.innerHTML = '<div class="fact-card">Unable to fetch facts right now.</div>';
+          const prevBtnEl = $("prevFact");
+          const nextBtnEl = $("nextFact");
+          if (prevBtnEl && nextBtnEl) {
+            prevBtnEl.style.display = 'none';
+            nextBtnEl.style.display = 'none';
+          }
+        }
       }
     }
 
