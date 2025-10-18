@@ -37,11 +37,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --background: #f8f7f2;
-      --card: #111827;
-      --primary: #ff4500;
-      --text-dark: #111827;
+      /* Modern rugged naval explorer palette */
+      --background: #f5f5f2; /* off‑white */
+      --card: #061f3e;      /* deep navy blue reminiscent of naval uniforms */
+      --primary: #e95420;   /* bright orange accent for call‑to‑actions */
+      --secondary: #0a324a; /* dark teal for secondary highlights */
+      --text-dark: #061f3e;
       --text-light: #ffffff;
+      --accent: #b38a5e;    /* rope‑tan accent colour */
       --radius: 12px;
     }
     * {
@@ -60,16 +63,22 @@
       margin: 0;
     }
     h1 {
-      font-size: 1.6rem;
+      font-size: 1.8rem;
       color: var(--card);
       text-align: center;
       padding: 1rem 0;
+      letter-spacing: 0.05rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-bottom: 3px solid var(--accent);
     }
     #locationDisplay {
       text-align: center;
       margin-bottom: 0.5rem;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--card);
+      font-weight: 500;
+      letter-spacing: 0.02rem;
     }
     #manualInputContainer {
       display: none;
@@ -78,13 +87,16 @@
     }
     #manualInputContainer input {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.6rem;
       border-radius: var(--radius);
-      border: 1px solid var(--card);
+      border: 1px solid var(--accent);
       font-size: 1rem;
+      background-color: var(--background);
+      color: var(--card);
+      outline: none;
     }
     #factWidget {
-      background-color: var(--card);
+      background-color: var(--secondary);
       color: var(--text-light);
       margin: 0.5rem auto;
       padding: 0.75rem 1rem;
@@ -95,7 +107,8 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      border: 2px dashed var(--accent);
     }
     .filters {
       display: grid;
@@ -107,19 +120,20 @@
     .filter-btn {
       background-color: var(--card);
       color: var(--text-light);
-      border: none;
+      border: 1px solid var(--accent);
       border-radius: var(--radius);
       padding: 0.75rem;
-      font-size: 0.9rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
       cursor: pointer;
-      transition: transform 0.1s ease;
+      transition: transform 0.1s ease, background-color 0.2s ease;
     }
     .filter-btn:active {
-      transform: scale(0.97);
+      transform: scale(0.96);
+      background-color: var(--secondary);
     }
     #primaryActions {
       max-width: 90%;
@@ -140,12 +154,15 @@
       gap: 0.5rem;
     }
     #myListBtn {
-      background-color: var(--card);
+      background-color: var(--secondary);
       color: var(--text-light);
+      border: 1px solid var(--accent);
     }
     #surpriseBtn {
       background-color: var(--primary);
       color: var(--text-light);
+      font-weight: 600;
+      border: 1px solid var(--primary);
     }
     #ghostBtn {
       position: fixed;
@@ -153,14 +170,15 @@
       left: 1rem;
       background: transparent;
       border: none;
-      font-size: 1.8rem;
+      font-size: 2.2rem;
       opacity: 0.4;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, transform 0.3s;
       z-index: 30;
     }
     #ghostBtn:hover {
       opacity: 1;
+      transform: rotate(5deg);
     }
     /* Modal overlay */
     .modal {
@@ -169,7 +187,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       display: none;
       flex-direction: column;
       align-items: center;
@@ -178,16 +196,24 @@
     }
     .modal.active {
       display: flex;
+      /* Blur underlying content for focus */
+      backdrop-filter: blur(2px);
+    }
+
+    /* When a modal is open, prevent scrolling on body */
+    body.modal-open {
+      overflow: hidden;
     }
     .modal-content {
       background-color: var(--background);
       border-radius: var(--radius);
       max-height: 80vh;
       overflow-y: auto;
-      width: 90%;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 92%;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
       padding: 1rem;
       position: relative;
+      border: 2px solid var(--accent);
     }
     .modal-header {
       display: flex;
@@ -243,6 +269,7 @@
       font-family: 'Poppins', sans-serif;
       font-size: 1rem;
       color: var(--text-light);
+      letter-spacing: 0.03rem;
     }
     .results-info .rating {
       font-size: 0.8rem;
@@ -373,32 +400,77 @@
       font-size: 0.9rem;
       margin: 1rem 0;
     }
-    /* Compass overlay */
+    /* Compass & navigation overlay */
     #compassOverlay {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      width: 200px;
-      height: 200px;
-      background: rgba(17,24,39,0.9);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      transform: translateY(100%);
+      width: 300px;
+      max-width: 90%;
+      background: var(--card);
+      color: var(--text-light);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       z-index: 40;
-      transition: transform 0.3s ease;
+      transition: transform 0.4s ease;
+      overflow: hidden;
     }
     #compassOverlay.active {
-      transform: translate(-50%, -50%) scale(1);
+      transform: translateY(0);
+    }
+    #compassTop {
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
     }
     #compassArrow {
       width: 0;
       height: 0;
-      border-top: 60px solid var(--primary);
+      border-top: 50px solid var(--primary);
       border-left: 15px solid transparent;
       border-right: 15px solid transparent;
-      transform-origin: 50% 60px;
+      transform-origin: 50% 50px;
+    }
+    #compassControls {
+      padding: 0.5rem 1rem 1rem 1rem;
+      border-top: 1px solid var(--secondary);
+      background-color: var(--secondary);
+    }
+    #voiceSelect {
+      width: 100%;
+      padding: 0.4rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      margin-bottom: 0.5rem;
+      background-color: var(--card);
+      color: var(--text-light);
+    }
+    #navigationButtons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    #navigationButtons button {
+      flex: 1;
+      padding: 0.4rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      background-color: var(--card);
+      color: var(--text-light);
+      cursor: pointer;
+    }
+    #navigationButtons button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #directionsList {
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      line-height: 1.3;
     }
     /* Hide map container used for Places Service */
     #hiddenMap {
@@ -496,9 +568,20 @@
     </div>
   </div>
 
-  <!-- Compass overlay -->
+  <!-- Compass & navigation overlay -->
   <div id="compassOverlay">
-    <div id="compassArrow"></div>
+    <div id="compassTop">
+      <div id="compassArrow"></div>
+    </div>
+    <div id="compassControls">
+      <select id="voiceSelect"></select>
+      <div id="navigationButtons">
+        <button id="startNavigationBtn">Start</button>
+        <button id="stopNavigationBtn" disabled>Stop</button>
+        <button id="closeCompassBtn">Close</button>
+      </div>
+      <div id="directionsList"></div>
+    </div>
   </div>
 
   <!-- Google Maps script (API key placeholder) -->
@@ -683,10 +766,12 @@
         list.appendChild(btn);
       });
       $("subMenuModal").classList.add('active');
+      document.body.classList.add('modal-open');
     }
 
     function closeSubMenu() {
       $("subMenuModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
     }
     $("closeSubMenu").addEventListener('click', closeSubMenu);
 
@@ -698,11 +783,12 @@
       }
       const request = {
         location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
-        radius: 5000,
-        type: item.type
+        radius: 7000,
+        type: item.type || undefined,
+        keyword: item.keyword || undefined,
+        rankBy: google.maps.places.RankBy.PROMINENCE
       };
-      if (item.keyword) request.keyword = item.keyword;
-      // Use nearbySearch
+      // Use nearbySearch for relevant results
       placesService.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           // Filter by rating if needed
@@ -760,9 +846,11 @@
         list.appendChild(btn);
       });
       $("resultsModal").classList.add('active');
+      document.body.classList.add('modal-open');
     }
     $("closeResults").addEventListener('click', () => {
       $("resultsModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
     });
 
     // Surprise Me search
@@ -848,11 +936,26 @@
             }
           };
           $("compassBtn").onclick = () => openCompass(loc);
-          // Show sheet
+          // Show sheet and lock background scroll
           $("detailsSheet").classList.add('active');
+          document.body.classList.add('modal-open');
         }
       });
     }
+
+    // Close details sheet helper
+    function closeDetails() {
+      $("detailsSheet").classList.remove('active');
+      document.body.classList.remove('modal-open');
+    }
+
+    // Tap outside details content closes sheet
+    $("detailsSheet").addEventListener('click', function(e) {
+      // When clicking on sheet background (not the content overlay)
+      if (e.target.id === 'detailsSheet') {
+        closeDetails();
+      }
+    });
 
     // Populate reviews accordion
     function populateReviews(reviews) {
@@ -946,9 +1049,11 @@
     $("myListBtn").addEventListener('click', () => {
       loadMyList();
       $("myListModal").classList.add('active');
+      document.body.classList.add('modal-open');
     });
     $("closeMyList").addEventListener('click', () => {
       $("myListModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
     });
     function loadMyList() {
       const list = getSavedList();
@@ -993,55 +1098,157 @@
       }
     }
 
-    // Details sheet close when clicked outside
+    // Update details sheet close click to use closeDetails()
     $("detailsSheet").addEventListener('click', (e) => {
       if (e.target === $("detailsSheet")) {
-        $("detailsSheet").classList.remove('active');
+        closeDetails();
       }
     });
 
-    // Compass logic
+    /*
+      Compass & Navigation Logic
+
+      When a user taps the compass button in the details sheet, a modern navigation
+      overlay slides up from the bottom of the screen. It calculates a route from
+      the user's current location to the selected place using the Google Directions
+      Service, displays the step‑by‑step directions, and provides voice guidance
+      via the Web Speech API. Users can choose from available device voices and
+      start/stop the spoken navigation. A close button hides the overlay and
+      cleans up listeners.
+    */
+    let navigationStopped = false;
     function openCompass(destLatLng) {
       const overlay = $("compassOverlay");
       overlay.classList.add('active');
-      if (compassWatching) return;
-      compassWatching = true;
-      let headingFunc;
-      // Listen for device orientation
-      function updateCompass(event) {
-        const arrow = $("compassArrow");
+      document.body.classList.add('modal-open');
+      // Populate voice selector
+      const voiceSelect = $("voiceSelect");
+      function populateVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return;
+        voiceSelect.innerHTML = '';
+        voices.forEach((voice, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = `${voice.name}${voice.lang ? ' (' + voice.lang + ')' : ''}`;
+          voiceSelect.appendChild(opt);
+        });
+      }
+      populateVoices();
+      // Some browsers load voices asynchronously
+      window.speechSynthesis.onvoiceschanged = populateVoices;
+      // Reset buttons
+      $("startNavigationBtn").disabled = false;
+      $("stopNavigationBtn").disabled = true;
+      // Clear directions list
+      const directionsList = $("directionsList");
+      directionsList.innerHTML = 'Calculating route…';
+      // Initialize compass arrow updates
+      let orientationListener;
+      const updateCompassArrow = (event) => {
+        // Compute heading using Google geometry library
         if (!currentPosition) return;
         const heading = google.maps.geometry.spherical.computeHeading(currentPosition, destLatLng);
         const deviceHeading = event.alpha;
         if (typeof heading === 'number' && typeof deviceHeading === 'number') {
           const rotation = heading - deviceHeading;
-          arrow.style.transform = `rotate(${rotation}deg)`;
+          $("compassArrow").style.transform = `rotate(${rotation}deg)`;
         }
-      }
+      };
+      // Request permission for device orientation (iOS) if needed
       if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS 13+ requires permission
         window.DeviceOrientationEvent.requestPermission().then(response => {
           if (response === 'granted') {
-            window.addEventListener('deviceorientation', updateCompass, true);
+            orientationListener = updateCompassArrow;
+            window.addEventListener('deviceorientation', orientationListener, true);
           }
         }).catch(console.error);
       } else if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', updateCompass, true);
+        orientationListener = updateCompassArrow;
+        window.addEventListener('deviceorientation', orientationListener, true);
       }
-      // Watch user location
+      // Start watching geolocation for orientation updates
       if (navigator.geolocation) {
+        if (compassWatchId) navigator.geolocation.clearWatch(compassWatchId);
         compassWatchId = navigator.geolocation.watchPosition((pos) => {
           currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         });
       }
-      // Close compass when clicking overlay
-      overlay.onclick = () => {
-          overlay.classList.remove('active');
-          if (navigator.geolocation && compassWatchId) {
-            navigator.geolocation.clearWatch(compassWatchId);
+      // Use DirectionsService to compute route
+      const directionsService = new google.maps.DirectionsService();
+      directionsService.route({
+        origin: currentPosition,
+        destination: destLatLng,
+        travelMode: google.maps.TravelMode.DRIVING
+      }, (result, status) => {
+        directionsList.innerHTML = '';
+        if (status === google.maps.DirectionsStatus.OK) {
+          const steps = result.routes[0].legs[0].steps;
+          // Populate list
+          steps.forEach((step, index) => {
+            const div = document.createElement('div');
+            div.dataset.index = index;
+            div.innerHTML = step.instructions;
+            directionsList.appendChild(div);
+          });
+          // Start navigation function
+          function startNavigation() {
+            navigationStopped = false;
+            $("startNavigationBtn").disabled = true;
+            $("stopNavigationBtn").disabled = false;
+            let idx = 0;
+            function speakNext() {
+              if (navigationStopped || idx >= steps.length) {
+                $("startNavigationBtn").disabled = false;
+                $("stopNavigationBtn").disabled = true;
+                return;
+              }
+              // Highlight current step
+              Array.from(directionsList.children).forEach(el => el.classList.remove('active'));
+              const currentEl = directionsList.children[idx];
+              if (currentEl) currentEl.classList.add('active');
+              // Remove HTML tags from instructions
+              const text = steps[idx].instructions.replace(/<[^>]+>/g, '');
+              const utter = new SpeechSynthesisUtterance(text);
+              const voices = window.speechSynthesis.getVoices();
+              const selectedVoice = voices[voiceSelect.value] || voices[0];
+              utter.voice = selectedVoice;
+              utter.rate = 1;
+              window.speechSynthesis.speak(utter);
+              idx++;
+              utter.onend = () => {
+                if (!navigationStopped) {
+                  // Small delay before next instruction
+                  setTimeout(speakNext, 3000);
+                }
+              };
+            }
+            speakNext();
           }
-          window.removeEventListener('deviceorientation', updateCompass, true);
-          compassWatching = false;
+          function stopNavigation() {
+            navigationStopped = true;
+            window.speechSynthesis.cancel();
+            $("startNavigationBtn").disabled = false;
+            $("stopNavigationBtn").disabled = true;
+          }
+          $("startNavigationBtn").onclick = startNavigation;
+          $("stopNavigationBtn").onclick = stopNavigation;
+        } else {
+          directionsList.textContent = 'Unable to compute route.';
+        }
+      });
+      // Close overlay button handler
+      $("closeCompassBtn").onclick = () => {
+        overlay.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        if (navigator.geolocation && compassWatchId) {
+          navigator.geolocation.clearWatch(compassWatchId);
+        }
+        if (orientationListener) {
+          window.removeEventListener('deviceorientation', orientationListener, true);
+        }
+        window.speechSynthesis.cancel();
+        navigationStopped = true;
       };
     }
 
