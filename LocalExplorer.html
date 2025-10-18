@@ -877,6 +877,9 @@
     // Store state
     let currentPosition = null;
     let currentAddress = '';
+    // Track the current state/region (e.g., US state abbreviation) so that we can
+    // display state‑specific facts when no local facts are available.
+    let currentState = '';
     let map, placesService, geocoder, streetViewPanorama;
     let currentResults = [];
     let factInterval;
@@ -912,6 +915,35 @@ let streetViewVisible = false;
       "Through WWOOF (Worldwide Opportunities on Organic Farms) travellers can work on farms around the world in exchange for free food and accommodation.",
       "Scientists have proposed a ‘wanderlust gene’: variations in a dopamine receptor may make some people more prone to seek adventure and travel."
     ];
+
+    // State‑specific trivia for fallback when no local facts are available. Each
+    // key corresponds to a two‑letter US state abbreviation. For now, only
+    // Florida (FL) facts are provided, because the user is located in
+    // Bradenton, FL. If the user searches in another state and no local
+    // Wikipedia facts are found, the code will fall back to these state
+    // facts when available. These strings omit citation markers to keep
+    // the UI clean, but references are preserved in the report.
+    const stateFacts = {
+      FL: [
+        "In Spanish, Florida means ‘Feast of Flowers’.",
+        "Approximately 1,000 people move to Florida every day.",
+        "Florida boasts more golf courses than any other U.S. state, with over 1,250 courses.",
+        "About 75% of all oranges grown in the United States come from Florida, and the state produces around 40% of the world’s orange juice.",
+        "Florida is the only state with two rivers sharing the same name: the Withlacoochee River.",
+        "Known as the Lightning Capital of the World, Florida experiences more lightning‑related deaths and injuries than any other state.",
+        "Walt Disney World Resort in Florida is the most visited vacation resort on the planet, attracting over 52 million visitors annually.",
+        "St. Augustine, founded in 1565, is the oldest European settlement in North America.",
+        "Fort Lauderdale’s network of canals has earned it the nickname ‘Venice of America’.",
+        "Key West has the highest average annual temperature in the U.S. and more bars per capita than any other city.",
+        "The city of Clearwater holds the record for the most consecutive days of sunshine in a single year – 361 days.",
+        "Wakulla Springs near Tallahassee is one of the deepest freshwater springs in the world."
+      ]
+    };
+
+    // Mapping of state abbreviations to full names for display in the facts header.
+    const stateNames = {
+      FL: 'Florida'
+    };
 
     // Categories definition
     const categories = {
@@ -1078,6 +1110,8 @@ let streetViewVisible = false;
               if (comp.types.includes('administrative_area_level_1')) state = comp.short_name || comp.long_name;
             });
           }
+          // Store the state abbreviation for state‑specific facts fallback
+          currentState = state;
           let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
           $("locationDisplay").innerHTML = locStr + '<br><span style="font-size:0.75rem; opacity:0.8;">' + currentPosition.lat.toFixed(4) + ', ' + currentPosition.lng.toFixed(4) + '</span>';
           fetchLocalFacts(currentPosition);
@@ -1099,6 +1133,8 @@ let streetViewVisible = false;
               if (comp.types.includes('administrative_area_level_1')) state = comp.short_name || comp.long_name;
             });
           }
+          // Store the state abbreviation for state‑specific facts fallback
+          currentState = state;
           let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
           $("locationDisplay").innerHTML = locStr + '<br><span style="font-size:0.75rem; opacity:0.8;">' + pos.lat.toFixed(4) + ', ' + pos.lng.toFixed(4) + '</span>';
         } else {
@@ -2174,28 +2210,52 @@ let streetViewVisible = false;
           if (factTitleEl) factTitleEl.textContent = "Local Info";
           buildFactDeck(factsList);
         } else {
-          // No local facts: highlight fallback, set heading, and show travel trivia with a notice
+          // No local facts: choose state facts when available, otherwise use general travel trivia.
           if (factWidgetEl) factWidgetEl.classList.add('no-facts');
           const factTitleEl = $("factTitle");
-          if (factTitleEl) factTitleEl.textContent = "Travel Trivia";
-          const fallbackArray = [
-            'No local facts found for this area – displaying general travel trivia.',
-            ...quirkyFacts
-          ];
+          // Determine if we have facts for the current state
+          let list = [];
+          let heading = '';
+          if (currentState && stateFacts[currentState] && stateFacts[currentState].length > 0) {
+            // Use state-specific facts
+            list = stateFacts[currentState];
+            const fullName = stateNames[currentState] || currentState;
+            heading = `${fullName} Facts`;
+          } else {
+            // Default to general travel trivia
+            list = quirkyFacts;
+            heading = 'Travel Trivia';
+          }
+          if (factTitleEl) factTitleEl.textContent = heading;
+          // Build notice message based on the heading
+          const notice = currentState && stateFacts[currentState] && stateFacts[currentState].length > 0 ?
+            `No local facts found for this area – displaying facts about ${stateNames[currentState] || currentState}.` :
+            'No local facts found for this area – displaying general travel trivia.';
+          const fallbackArray = [notice, ...list];
           buildFactDeck(fallbackArray);
         }
         return;
       } catch (err) {
         console.error(err);
-        // On failure, apply fallback mode, update heading, and show travel trivia
+        // On failure, apply fallback mode and choose state facts when available
         const factWidgetElCatch = $("factWidget");
         if (factWidgetElCatch) factWidgetElCatch.classList.add('no-facts');
         const factTitleEl = $("factTitle");
-        if (factTitleEl) factTitleEl.textContent = "Travel Trivia";
-        const fallbackArray = [
-          'Unable to fetch local facts – displaying general travel trivia.',
-          ...quirkyFacts
-        ];
+        let list = [];
+        let heading = '';
+        if (currentState && stateFacts[currentState] && stateFacts[currentState].length > 0) {
+          list = stateFacts[currentState];
+          const fullName = stateNames[currentState] || currentState;
+          heading = `${fullName} Facts`;
+        } else {
+          list = quirkyFacts;
+          heading = 'Travel Trivia';
+        }
+        if (factTitleEl) factTitleEl.textContent = heading;
+        const notice = currentState && stateFacts[currentState] && stateFacts[currentState].length > 0 ?
+          `Unable to fetch local facts – displaying facts about ${stateNames[currentState] || currentState}.` :
+          'Unable to fetch local facts – displaying general travel trivia.';
+        const fallbackArray = [notice, ...list];
         buildFactDeck(fallbackArray);
       }
     }
