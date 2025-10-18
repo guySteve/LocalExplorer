@@ -8,12 +8,15 @@
   ensuring the app continues to work offline.
 */
 
-const CACHE_NAME = 'local-explorer-cache-v1';
+// Update cache name to invalidate old caches when file structure changes
+const CACHE_NAME = 'local-explorer-cache-v2';
+// List of core assets to precache (app shell)
 const URLS_TO_CACHE = [
   'local-explorer.html',
   'manifest.json',
   'icon-192.png',
-  'icon-512.png'
+  'icon-512.png',
+  'keys.js'
 ];
 
 // Install: pre-cache static assets
@@ -40,29 +43,26 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
+  const requestUrl = new URL(event.request.url);
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      // Serve from cache if available
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      // Otherwise fetch from network and cache the response
-      return fetch(event.request)
+      // Perform network fetch regardless to update the cache in the background
+      const fetchPromise = fetch(event.request)
         .then(networkResponse => {
-          // Only cache successful responses and same origin requests
-          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-            return networkResponse;
+          // Cache the response if it is a same‑origin request and OK
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, networkResponse.clone());
+            });
           }
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
           return networkResponse;
         })
         .catch(() => {
-          // Fallback to the main page when offline or request fails
-          return caches.match('local-explorer.html');
+          // Network request failed; return cached response if available
+          return cachedResponse || caches.match('local-explorer.html');
         });
+      // Return cached response immediately if present (stale‑while‑revalidate)
+      return cachedResponse || fetchPromise;
     })
   );
 });
