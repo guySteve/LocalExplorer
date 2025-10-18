@@ -235,6 +235,7 @@
       font-size: 1.5rem;
       cursor: pointer;
       color: var(--card);
+      padding: 0.2rem;
     }
     .subMenuList button,
     .results-list button {
@@ -903,6 +904,14 @@
     $("closeResults").addEventListener('click', () => {
       $("resultsModal").classList.remove('active');
       document.body.classList.remove('modal-open');
+    });
+
+    // Allow closing the results modal by tapping outside its content
+    $("resultsModal").addEventListener('click', (e) => {
+      if (e.target.id === 'resultsModal') {
+        $("resultsModal").classList.remove('active');
+        document.body.classList.remove('modal-open');
+      }
     });
 
     // Surprise Me search
