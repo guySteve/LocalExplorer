@@ -35,7 +35,8 @@
   <meta name="theme-color" content="#f8f7f2">
   <!-- Include Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="keys.js"></script>
+  <!-- Load API keys from external file early so global variables are available -->
+  <script src="keys.js"></script>
   <style>
     :root {
       /* Modern rugged naval explorer palette */
@@ -766,13 +767,14 @@
     </div>
   </div>
 
-  <!-- Load API keys from external file -->
-  <script src="keys.js"></script>
   <!-- Dynamically inject Google Maps script using the key defined in keys.js -->
   <script>
     // Create the script tag for Google Maps after reading the API key from keys.js
     (function() {
-      const mapsKey = window.MAPS_API_KEY || '';
+      // Use the key defined in keys.js, or fall back to the user‑provided key if the
+      // external file fails to load. This ensures the Maps API always receives a key.
+      const fallbackKey = 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
+      const mapsKey = window.MAPS_API_KEY || fallbackKey;
       const mapsScript = document.createElement('script');
       mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
       mapsScript.async = true;
@@ -1118,7 +1120,9 @@ let streetViewVisible = false;
         alert('Please provide a location first.');
         return;
       }
-      const apiKey = window.TICKETMASTER_API_KEY || '';
+      // Use the key from keys.js or fall back to the user‑provided Ticketmaster key
+      const fallbackTicketmasterKey = 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
+      const apiKey = window.TICKETMASTER_API_KEY || fallbackTicketmasterKey;
       if (!apiKey) {
         alert('Ticketmaster API key missing. Please define TICKETMASTER_API_KEY in keys.js');
         return;
