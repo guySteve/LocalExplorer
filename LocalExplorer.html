@@ -111,31 +111,76 @@
       overflow: hidden;
       font-size: 0.95rem;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
     }
-
-    /* Single fact bubble styling */
-    #factBubble {
+    /* Fact widget header */
+    #factHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 0.3rem;
+    }
+    #factHeader #factTitle {
+      font-size: 0.95rem;
+      font-family: 'Poppins', sans-serif;
+      color: var(--text-light);
+      letter-spacing: 0.03rem;
+    }
+    #toggleFacts {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    /* Fact deck and navigation */
+    #factDeck {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+    #factCardsWrapper {
+      display: flex;
+      transition: transform 0.4s ease;
+      width: 100%;
+    }
+    .fact-card {
+      flex-shrink: 0;
+      width: 100%;
+      padding: 0.7rem 1rem;
       background-color: var(--card);
       color: var(--text-light);
-      padding: 0.7rem 1rem;
-      border-radius: 1rem;
       border: 2px solid var(--accent);
-      /* Expand to full width within its container for better readability */
-      max-width: 100%;
-      min-height: 80px;
-      margin: auto;
-      text-align: center;
-      line-height: 1.4;
-      font-size: 1rem;
+      border-radius: 1rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      transition: transform 0.4s ease, opacity 0.4s ease;
+      line-height: 1.4;
+      font-size: 0.9rem;
+      text-align: center;
     }
-    /* Out animation for bubble */
-    #factBubble.out {
-      transform: translateY(20px);
-      opacity: 0;
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+    #prevFact { left: -10px; }
+    #nextFact { right: -10px; }
+    /* Hide deck when collapsed */
+    #factWidget.collapsed #factDeck {
+      display: none;
     }
     .filters {
       display: grid;
@@ -629,7 +674,15 @@
     <input type="text" id="manualInput" placeholder="Enter a location">
   </div>
   <div id="factWidget">
-    <div id="factBubble">Fetching local facts…</div>
+    <div id="factHeader">
+      <span id="factTitle">Local Info</span>
+      <button id="toggleFacts" class="toggle-icon">▼</button>
+    </div>
+    <div id="factDeck">
+      <button id="prevFact" class="nav-btn">‹</button>
+      <div id="factCardsWrapper"></div>
+      <button id="nextFact" class="nav-btn">›</button>
+    </div>
   </div>
   <div class="filters" id="filterGrid">
     <!-- Buttons populated by JS -->
@@ -2009,11 +2062,16 @@ let streetViewVisible = false;
 
     // Local facts from Wikipedia
     async function fetchLocalFacts(pos) {
-      // Cancel any existing fact interval
+      // Cancel any existing fact rotation
       clearInterval(factInterval);
-      const bubble = $("factBubble");
-      if (!bubble) return;
-      bubble.textContent = 'Fetching local facts…';
+      // Show a loading placeholder in the facts deck
+      const deckWrapper = $("factCardsWrapper");
+      if (deckWrapper) {
+        deckWrapper.innerHTML = '<div class="fact-card">Fetching local facts…</div>';
+        factsListGlobal = [];
+        currentFactIndex = 0;
+        updateFactCardPosition();
+      }
       try {
         // Query Wikipedia for up to 20 nearby pages within a 20 km radius to gather a wider variety of facts
         const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=20000&gslimit=20&format=json&origin=*`;
@@ -2057,28 +2115,95 @@ let streetViewVisible = false;
         } else {
           factsList = uniqueFacts;
         }
-        // Index to track which fact is currently displayed
-        let idx = 0;
-        function showNextFact() {
-          // Drop current bubble out
-          bubble.classList.add('out');
-          setTimeout(() => {
-            bubble.textContent = factsList[idx];
-            bubble.classList.remove('out');
-            idx = (idx + 1) % factsList.length;
-          }, 400);
-        }
-        // Show first fact immediately
-        idx = 0;
-        bubble.textContent = factsList[idx];
-        // Start rotation interval
-        clearInterval(factInterval);
-        factInterval = setInterval(showNextFact, 8000);
+        // Build the interactive fact deck
+        buildFactDeck(factsList);
+        return;
       } catch (err) {
         console.error(err);
-        bubble.textContent = 'Unable to fetch facts.';
+        const deckWrapper = $("factCardsWrapper");
+        if (deckWrapper) {
+          deckWrapper.innerHTML = '<div class="fact-card">Unable to fetch facts.</div>';
+          factsListGlobal = [];
+          currentFactIndex = 0;
+          updateFactCardPosition();
+        }
       }
     }
+
+    /*
+      Fact Deck Controls
+
+      The facts widget now presents information as a horizontally scrollable
+      deck of cards with left/right navigation and a collapse toggle. The
+      following helper functions build the deck, update its position,
+      handle navigation, and manage auto‑rotation.
+    */
+    function buildFactDeck(array) {
+      factsListGlobal = array || [];
+      const wrapper = $("factCardsWrapper");
+      if (!wrapper) return;
+      wrapper.innerHTML = '';
+      factsListGlobal.forEach(txt => {
+        const card = document.createElement('div');
+        card.className = 'fact-card';
+        card.textContent = txt;
+        wrapper.appendChild(card);
+      });
+      currentFactIndex = 0;
+      updateFactCardPosition();
+      clearInterval(factInterval);
+      factInterval = setInterval(() => {
+        nextFact();
+      }, 8000);
+    }
+
+    function updateFactCardPosition() {
+      const wrapper = $("factCardsWrapper");
+      if (!wrapper) return;
+      wrapper.style.transform = `translateX(-${currentFactIndex * 100}%)`;
+    }
+
+    function nextFact() {
+      if (!factsListGlobal || factsListGlobal.length === 0) return;
+      currentFactIndex = (currentFactIndex + 1) % factsListGlobal.length;
+      updateFactCardPosition();
+    }
+
+    function prevFact() {
+      if (!factsListGlobal || factsListGlobal.length === 0) return;
+      currentFactIndex = (currentFactIndex - 1 + factsListGlobal.length) % factsListGlobal.length;
+      updateFactCardPosition();
+    }
+
+    // Attach navigation and collapse controls once the DOM elements exist
+    (() => {
+      const prevBtn = $("prevFact");
+      const nextBtn = $("nextFact");
+      const toggleBtn = $("toggleFacts");
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          clearInterval(factInterval);
+          prevFact();
+          factInterval = setInterval(nextFact, 8000);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          clearInterval(factInterval);
+          nextFact();
+          factInterval = setInterval(nextFact, 8000);
+        });
+      }
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const widget = $("factWidget");
+          if (widget) {
+            widget.classList.toggle('collapsed');
+            toggleBtn.textContent = widget.classList.contains('collapsed') ? '▲' : '▼';
+          }
+        });
+      }
+    })();
 
     // Initialize accordions
     setupAccordions();
