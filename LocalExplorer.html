@@ -1,135 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"/>
-  <title>Local Explorer</title>
-  <meta name="theme-color" content="#111827"/>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="icon" href="icon-192.png"/>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet"/>
-  <!-- Keys file (optional). App falls back to inline keys if this isn't served. -->
-  <script src="keys.js" defer></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"/>
+<title>Local Explorer</title>
+<meta name="theme-color" content="#111827"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="keys.js" defer></script>
+<style>
+:root{
+  --bg:#f8f7f2; --ink:#111827; --cta:#ff4500; --accent:#d4b48a;
+  --steel1:#48586b; --steel2:#7b8b9e; --card:#0f1522; --shadow:0 10px 24px rgba(0,0,0,.25);
+  --radius:18px;
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:var(--bg);color:#e8ecf8;font-family:'Raleway',system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:12px 12px 100px}
 
-  <style>
-    :root{
-      --bg:#f8f7f2; --ink:#111827; --cta:#ff4500; --accent:#d4b48a;
-      --steel1:#48586b; --steel2:#7b8b9e; --card:#0f1522; --shadow:0 10px 24px rgba(0,0,0,.25);
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:#e8ecf8;font-family:'Raleway',system-ui,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:980px;margin:0 auto;padding:12px 12px 84px}
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;margin:10px auto 6px;border-radius:20px;background:var(--ink);box-shadow:var(--shadow)}
+h1{margin:0;color:#fff;font:700 22px/1.1 'Poppins',sans-serif;letter-spacing:.3px}
+.loc{color:#dbe2ff;font-size:12px;line-height:1.15;text-align:right}
+.loc .city{font-weight:600;color:#fff}
+.loc .coords{opacity:.7;font-size:11px}
+.loc .edit{display:inline-block;margin-top:4px;font-size:12px;color:var(--cta);text-decoration:underline;cursor:pointer}
 
-    header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;margin:10px auto 6px;border-radius:20px;background:var(--ink);box-shadow:var(--shadow)}
-    h1{margin:0;color:#fff;font:700 22px/1.1 'Poppins',sans-serif;letter-spacing:.3px}
-    .loc{color:#dbe2ff;font-size:12px;line-height:1.15;text-align:right}
-    .loc .city{font-weight:600;color:#fff}
-    .loc .coords{opacity:.7;font-size:11px}
-    .loc .edit{display:inline-block;margin-top:4px;font-size:12px;color:var(--cta);text-decoration:underline;cursor:pointer}
+/* Facts (single card) */
+#factWidget{margin:10px auto 12px;padding:10px 12px 14px;background:var(--ink);border-radius:var(--radius);border:2px dashed var(--accent);box-shadow:var(--shadow)}
+#factWidget.no-facts{border-color:var(--cta)}
+#factHeader{position:relative;display:flex;align-items:center;justify-content:center;padding:2px 0 8px}
+#factTitle{font:700 16px/1 'Poppins',sans-serif;color:#fff;text-align:center}
+#factCardsWrapper{display:block;width:100%}
+.fact-card{display:block;width:100%;background:var(--card);color:#f0f3ff;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;line-height:1.35;font-size:14px;box-shadow:0 8px 18px rgba(0,0,0,.35);margin:.4rem 0}
 
-    /* Facts widget (single card) */
-    #factWidget{margin:10px auto 12px;padding:10px 12px 14px;background:var(--ink);border-radius:var(--radius);border:2px dashed var(--accent);box-shadow:var(--shadow)}
-    #factWidget.no-facts{border-color:var(--cta)}
-    #factHeader{position:relative;display:flex;align-items:center;justify-content:center;padding:2px 0 8px}
-    #factTitle{font:700 16px/1 'Poppins',sans-serif;color:#fff;text-align:center}
-    #factCardsWrapper{display:block;width:100%}
-    .fact-card{display:block;width:100%;background:var(--card);color:#f0f3ff;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;line-height:1.35;font-size:14px;box-shadow:0 8px 18px rgba(0,0,0,.35);margin:.4rem 0}
+/* Filters */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 8px}
+@media(min-width:520px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.btn{border:1px solid rgba(255,255,255,.12);background:var(--ink);color:#fff;border-radius:16px;padding:14px 12px;text-align:center;font-weight:600;box-shadow:var(--shadow);transition:transform .08s ease,background .15s ease}
+.btn:active{transform:scale(.98);background:#0f1624}
+.btn.cta{background:var(--cta);color:#fff;border:none}
+.btn-steel{background:linear-gradient(145deg,var(--steel1),var(--steel2));border:1px solid #a4b0bc;color:#fff;box-shadow:inset 1px 1px 2px rgba(255,255,255,.25),0 8px 18px rgba(0,0,0,.35)}
 
-    /* Grid */
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 8px}
-    @media(min-width:520px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-    .btn{border:1px solid rgba(255,255,255,.12);background:var(--ink);color:#fff;border-radius:16px;padding:14px 12px;text-align:center;font-weight:600;box-shadow:var(--shadow);transition:transform .08s ease,background .15s ease}
-    .btn:active{transform:scale(.98);background:#0f1624}
-    .btn.cta{background:var(--cta);color:#fff;border:none}
+/* Modals */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+.modal.active{display:flex}
+.sheet{width:100%;max-width:980px;background:var(--ink);border-radius:20px 20px 0 0;box-shadow:var(--shadow);padding:12px 12px 16px;max-height:84vh;overflow:auto}
+.sheet h3{margin:6px 4px 10px;font:700 18px/1 'Poppins',sans-serif;color:#fff}
+.x{float:right;border:none;background:transparent;color:#fff;font-size:22px;cursor:pointer}
 
-    /* Steel look */
-    .btn-steel{background:linear-gradient(145deg,var(--steel1),var(--steel2));border:1px solid #a4b0bc;color:#fff;box-shadow:inset 1px 1px 2px rgba(255,255,255,.25),0 8px 18px rgba(0,0,0,.35)}
+/* Ghost + CTA aligned side-by-side */
+#ghost{position:fixed;left:12px;bottom:16px;opacity:.7;z-index:60;font-size:28px;display:block;pointer-events:auto}
+#surprise{width:calc(100% - 64px);margin-left:64px;border-radius:16px}
 
-    /* Modal */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:0 0 env(safe-area-inset-bottom)}
-    .modal.active{display:flex}
-    .sheet{width:100%;max-width:980px;background:var(--ink);border-radius:20px 20px 0 0;box-shadow:var(--shadow);padding:12px 12px 16px;max-height:84vh;overflow:auto}
-    .sheet h3{margin:6px 4px 10px;font:700 18px/1 'Poppins',sans-serif;color:#fff}
-    .x{float:right;border:none;background:transparent;color:#fff;font-size:22px;cursor:pointer}
+/* Bottom bar */
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--ink);padding:10px 12px;display:flex;gap:10px;z-index:55;box-shadow:0 -8px 18px rgba(0,0,0,.35)}
+.bottom .btn{flex:1}
 
-    /* Ghost + CTA: keep side-by-side on mobile */
-    #ghost{position:fixed;left:12px;bottom:12px;opacity:.55;z-index:40;font-size:28px;display:block}
-    #surprise{width:calc(100% - 56px);margin-left:56px;border-radius:16px}
-
-    /* Bottom bar */
-    .bottom{position:fixed;left:0;right:0;bottom:0;background:var(--ink);padding:10px 12px;display:flex;gap:10px;z-index:30;box-shadow:0 -8px 18px rgba(0,0,0,.35)}
-    .bottom .btn{flex:1}
-
-    .hide{display:none!important}
-  </style>
+.hide{display:none!important}
+.subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+.small{padding:10px 10px;border-radius:12px}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Local Explorer</h1>
-      <div class="loc">
-        <div class="city" id="cityLine">Locating…</div>
-        <div class="coords" id="coordLine"></div>
-        <span class="edit" id="editLocation">Enter location</span>
-      </div>
-    </header>
-
-    <!-- Facts -->
-    <section id="factWidget">
-      <div id="factHeader"><div id="factTitle">Local Info</div></div>
-      <div id="factCardsWrapper"><div class="fact-card">Fetching local facts…</div></div>
-    </section>
-
-    <!-- Filters -->
-    <section class="grid" id="filters">
-      <button class="btn" data-cat="Food">🍽️ Foodie Finds</button>
-      <button class="btn" data-cat="Sights">🏛️ Iconic Sights</button>
-      <button class="btn" data-cat="Night">🌙 Night Out</button>
-      <button class="btn" data-cat="Hidden">💎 Hidden Gems</button>
-      <button class="btn" data-cat="Pet">🐾 Pet Friendly</button>
-      <button class="btn" data-cat="Utilities">🛠️ Utilities & Help</button>
-    </section>
-
-    <!-- Primary actions -->
-    <section class="grid" style="grid-template-columns:repeat(1,1fr);">
-      <button class="btn cta" id="surprise">🤷 Surprise Me!</button>
-      <button class="btn btn-steel" id="donate">⚓ Donate</button>
-    </section>
-
-    <!-- Ghost (home only) -->
-    <div id="ghost">👻</div>
-  </div>
-
-  <!-- Results modal -->
-  <div class="modal" id="resultsModal" aria-hidden="true">
-    <div class="sheet">
-      <button class="x" id="closeResults">&times;</button>
-      <h3 id="resultsTitle">Results</h3>
-      <div id="resultsList"></div>
+<div class="wrap">
+  <header>
+    <h1>Local Explorer</h1>
+    <div class="loc">
+      <div class="city" id="cityLine">Locating…</div>
+      <div class="coords" id="coordLine"></div>
+      <span class="edit" id="editLocation">Enter location</span>
     </div>
-  </div>
+  </header>
 
-  <!-- Bottom bar -->
-  <div class="bottom">
-    <button class="btn" id="myListBtn">📋 My List</button>
-    <button class="btn" id="eventsBtn">🎟️ Local Events</button>
+  <!-- Facts -->
+  <section id="factWidget">
+    <div id="factHeader"><div id="factTitle">Local Info</div></div>
+    <div id="factCardsWrapper"><div class="fact-card">Fetching local facts…</div></div>
+  </section>
+
+  <!-- Filters -->
+  <section class="grid" id="filters">
+    <button class="btn" data-cat="Food">🍽️ Foodie Finds</button>
+    <button class="btn" data-cat="Sights">🏛️ Iconic Sights</button>
+    <button class="btn" data-cat="Night">🌙 Night Out</button>
+    <button class="btn" data-cat="Hidden">💎 Hidden Gems</button>
+    <button class="btn" data-cat="Pet">🐾 Pet Friendly</button>
+    <button class="btn" data-cat="Utilities">🛠️ Utilities & Help</button>
+    <button class="btn" data-cat="Outdoor">🌲 Outdoor</button>
+  </section>
+
+  <!-- Primary actions -->
+  <section class="grid" style="grid-template-columns:repeat(1,1fr);">
+    <button class="btn cta" id="surprise">🤷 Surprise Me!</button>
+    <button class="btn btn-steel" id="donate">⚓ Donate</button>
+  </section>
+
+  <!-- Ghost (home only) -->
+  <button id="ghost" title="Dark Side">👻</button>
+</div>
+
+<!-- Results modal -->
+<div class="modal" id="resultsModal" aria-hidden="true">
+  <div class="sheet">
+    <button class="x" id="closeResults">&times;</button>
+    <h3 id="resultsTitle">Results</h3>
+    <div id="resultsList"></div>
   </div>
+</div>
+
+<!-- Submenu modal -->
+<div class="modal" id="submenuModal" aria-hidden="true">
+  <div class="sheet">
+    <button class="x" id="closeSubmenu">&times;</button>
+    <h3 id="submenuTitle">Choose a category</h3>
+    <div id="submenuList" class="subgrid"></div>
+  </div>
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom">
+  <button class="btn" id="myListBtn">📋 My List</button>
+  <button class="btn" id="eventsBtn">🎟️ Local Events</button>
+</div>
 
 <script>
 /* ===== Keys (fallbacks if keys.js is missing) ===== */
 const INLINE_MAPS_KEY = "AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY";
-const INLINE_TM_KEY   = "XmzfrRHZilGDGfD63SmdamF288GZ3FxH";
 
-/* ===== Quick DOM helpers & globals ===== */
+/* ===== Helpers & globals ===== */
 const $ = (id)=>document.getElementById(id);
-let currentPosition = null;
-let currentAddress  = "";
-let currentState    = ""; // e.g., "FL"
-let maps; let geocoder;
+let currentPosition=null, currentAddress="", currentState="";
+let maps, geocoder;
 
-/* ===== State map and facts (seed Florida) ===== */
+/* ===== State names + facts ===== */
 const stateNames = { FL:"Florida" };
 const stateFacts = {
   FL: [
@@ -139,7 +144,7 @@ const stateFacts = {
     "St. Augustine (1565) is the oldest continuously occupied European-established city in the continental U.S."
   ]
 };
-/* General trivia (fallback) */
+/* Travel trivia fallback */
 const quirkyFacts = [
   "Spending money on travel tends to make people happier than buying things.",
   "There’s a word for longing to travel: ‘fernweh’ (far-sickness).",
@@ -148,8 +153,8 @@ const quirkyFacts = [
 ];
 
 /* ===== UI helpers ===== */
-function setCityLine(city, state){ $("cityLine").textContent = city && state ? `${city}, ${state}` : (city || state || "Unknown") }
-function setCoordLine(lat,lng){ $("coordLine").textContent = (lat&&lng)? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : "" }
+function setCityLine(city, state){ $("cityLine").textContent = city && state ? `${city}, ${state}` : (city || state || "Unknown"); }
+function setCoordLine(lat,lng){ $("coordLine").textContent = (lat&&lng)? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : ""; }
 function setFactsMode(mode, stateAbbrev=""){
   const w=$("factWidget"), t=$("factTitle"); if(!w||!t) return;
   if(mode==="local"){ w.classList.remove("no-facts"); t.textContent="Local Info"; }
@@ -162,18 +167,16 @@ function pickFirstGoodExtract(pages){
   return "";
 }
 
-/* ===== Facts: single-card reliable flow ===== */
+/* ===== Facts (single-card) ===== */
 async function fetchLocalFacts(pos){
   const deck=$("factCardsWrapper");
-  if(deck) deck.innerHTML = '<div class="fact-card">Fetching local facts…</div>';
-
+  if(deck) deck.innerHTML='<div class="fact-card">Fetching local facts…</div>';
   if(!pos || typeof pos.lat!=="number" || typeof pos.lng!=="number"){
     setFactsMode("trivia");
     if(deck) deck.innerHTML = `<div class="fact-card">${quirkyFacts[0]}</div>`;
     return;
   }
   try{
-    // 1) Nearby pages
     const gsURL=`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=10000&gslimit=10&format=json&origin=*`;
     const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),6000);
     const gs=await fetch(gsURL,{signal:ctrl.signal}).then(r=>r.json()).catch(()=>null); clearTimeout(to);
@@ -185,90 +188,134 @@ async function fetchLocalFacts(pos){
       const ex=await fetch(exURL).then(r=>r.json()).catch(()=>null);
       if(ex?.query?.pages){ extractText = pickFirstGoodExtract(ex.query.pages); }
     }
-
-    if(extractText){
-      setFactsMode("local");
-      if(deck) deck.innerHTML = `<div class="fact-card">${extractText}</div>`;
-      return;
-    }
-    // State fallback (no preface)
-    if(currentState && stateFacts[currentState]?.length){
-      setFactsMode("state", currentState);
-      if(deck) deck.innerHTML = `<div class="fact-card">${stateFacts[currentState][0]}</div>`;
-      return;
-    }
-    // Trivia fallback (no preface)
-    setFactsMode("trivia");
-    if(deck) deck.innerHTML = `<div class="fact-card">${quirkyFacts[0]}</div>`;
-  }catch(_){
-    setFactsMode("trivia");
-    if(deck) deck.innerHTML = `<div class="fact-card">Unable to fetch local facts right now.</div>`;
-  }
+    if(extractText){ setFactsMode("local"); if(deck) deck.innerHTML = `<div class="fact-card">${extractText}</div>`; return; }
+    if(currentState && stateFacts[currentState]?.length){ setFactsMode("state", currentState); if(deck) deck.innerHTML = `<div class="fact-card">${stateFacts[currentState][0]}</div>`; return; }
+    setFactsMode("trivia"); if(deck) deck.innerHTML = `<div class="fact-card">${quirkyFacts[0]}</div>`;
+  }catch(_){ setFactsMode("trivia"); if(deck) deck.innerHTML = `<div class="fact-card">Unable to fetch local facts right now.</div>`; }
 }
 
-/* ===== Geocoding ===== */
-function reverseGeocode(pos){
-  if(!geocoder) geocoder = new maps.Geocoder();
-  geocoder.geocode({location:{lat:pos.lat,lng:pos.lng}},(results,status)=>{
-    if(status==="OK" && results[0]){
-      currentAddress = results[0].formatted_address;
-      let city="",state="";
-      (results[0].address_components||[]).forEach(c=>{
-        if(c.types.includes("locality")) city = c.long_name;
-        if(c.types.includes("administrative_area_level_1")) state = c.short_name || c.long_name;
-      });
-      currentState = state || currentState;
-      setCityLine(city || currentAddress,state); setCoordLine(pos.lat,pos.lng);
-    }
-    fetchLocalFacts(pos);
+/* ===== Submenus ===== */
+const SUBMENUS = {
+  Food: [
+    {label:"🍔 Burgers", type:"restaurant", keyword:"burger"},
+    {label:"🍕 Pizza",   type:"restaurant", keyword:"pizza"},
+    {label:"☕ Cafes",   type:"cafe"},
+    {label:"🍣 Sushi",   type:"restaurant", keyword:"sushi"}
+  ],
+  Sights: [
+    {label:"🏛️ Landmarks", type:"tourist_attraction"},
+    {label:"🖼️ Museums",   type:"museum"},
+    {label:"🎨 Galleries", type:"art_gallery"}
+  ],
+  Night: [
+    {label:"🍺 Bars",      type:"bar"},
+    {label:"🎵 Live Music",type:"bar", keyword:"live music"},
+    {label:"🎲 Casinos",   type:"casino"}
+  ],
+  Hidden: [
+    {label:"💎 Hidden Gems", type:"tourist_attraction", keyword:"hidden gem"},
+    {label:"📷 Photo Spots", type:"tourist_attraction", keyword:"viewpoint"}
+  ],
+  Pet: [
+    {label:"🐾 Dog Parks", type:"park", keyword:"dog"},
+    {label:"🐶 Pet Stores",type:"pet_store"}
+  ],
+  Utilities: [
+    {label:"🏧 ATM",       type:"atm"},
+    {label:"🛠️ Hardware", type:"hardware_store"},
+    {label:"🏥 Hospital",  type:"hospital"},
+    {label:"🧻 Pharmacy",  type:"pharmacy"}
+  ],
+  Outdoor: [
+    {label:"🌲 Parks",     type:"park"},
+    {label:"🥾 Trails",    type:"tourist_attraction", keyword:"trail"},
+    {label:"🏖️ Beaches",   type:"tourist_attraction", keyword:"beach"}
+  ]
+};
+
+document.querySelectorAll('#filters .btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const cat=b.dataset.cat;
+    const items=SUBMENUS[cat]||[];
+    $("submenuTitle").textContent = cat;
+    $("submenuList").innerHTML = items.map((it,i)=>`<button class="btn small" data-idx="${i}">${it.label}</button>`).join('') || `<div class="fact-card">No options.</div>`;
+    $("submenuModal").classList.add("active");
+    // hook clicks
+    Array.from($("submenuList").querySelectorAll("button")).forEach(btn=>{
+      btn.onclick = ()=> runPlacesSearch(cat, items[+btn.dataset.idx]);
+    });
   });
-}
-function geocodeAddress(address){
-  if(!geocoder) geocoder = new maps.Geocoder();
-  geocoder.geocode({address},(results,status)=>{
-    if(status==="OK" && results[0]){
-      const loc=results[0].geometry.location;
-      currentPosition={lat:loc.lat(),lng:loc.lng()};
-      currentAddress=results[0].formatted_address;
-      let city="",state="";
-      (results[0].address_components||[]).forEach(c=>{
-        if(c.types.includes("locality")) city = c.long_name;
-        if(c.types.includes("administrative_area_level_1")) state = c.short_name || c.long_name;
-      });
-      currentState = state || currentState;
-      setCityLine(city || currentAddress,state); setCoordLine(currentPosition.lat,currentPosition.lng);
-      fetchLocalFacts(currentPosition);
-    }else{
-      $("cityLine").textContent="Search failed"; $("coordLine").textContent="";
-      fetchLocalFacts(null);
-    }
-  });
-}
+});
+$("closeSubmenu").onclick=()=>$("submenuModal").classList.remove("active");
 
-/* ===== Surprise Me! (real search) ===== */
-$("surprise").addEventListener("click", doSurpriseMe);
-async function doSurpriseMe(){
-  if(!currentPosition){ alert("Need a location first. Tap ‘Enter location’ up top."); return; }
+/* ===== Places search and results ===== */
+function runPlacesSearch(cat, opt){
+  $("submenuModal").classList.remove("active");
+  if(!currentPosition){ alert("Need a location first. Tap ‘Enter location’."); return; }
   const svc = new google.maps.places.PlacesService(document.createElement("div"));
-  const TYPES = ["restaurant","cafe","bar","tourist_attraction","park","museum","art_gallery","bakery","book_store","shopping_mall"];
-  const pick = TYPES[Math.floor(Math.random()*TYPES.length)];
-  const req = { location:new google.maps.LatLng(currentPosition.lat,currentPosition.lng), radius:5000, type:pick, opennow:false };
+  const req = {
+    location:new google.maps.LatLng(currentPosition.lat,currentPosition.lng),
+    radius: 6000,
+    type: opt.type
+  };
+  if(opt.keyword) req.keyword = opt.keyword;
+
+  // Quality filter for most categories; utilities skip ratings
+  const qualityFilter = !["Utilities"].includes(cat);
+
+  svc.nearbySearch(req,(results,status)=>{
+    if(status!==google.maps.places.PlacesServiceStatus.OK || !results?.length){
+      alert("No results. Try a different sub-category.");
+      return;
+    }
+    let list = results;
+    if(qualityFilter){
+      list = results.filter(p=>(p.rating||0)>=4.2 && (p.user_ratings_total||0)>=60);
+      if(!list.length) list = results;
+    }
+    renderResults(opt.label, list);
+  });
+}
+
+function renderResults(title, list){
+  $("resultsTitle").textContent = title;
+  $("resultsList").innerHTML = list.map(p=>`
+    <div class="fact-card" style="display:flex;gap:10px;align-items:center">
+      <div style="flex:1">
+        <div style="font-weight:700">${p.name||"Unknown"}</div>
+        <div style="opacity:.8">${p.vicinity||""}</div>
+        <div>⭐ ${p.rating||"—"} (${p.user_ratings_total||0})</div>
+      </div>
+      <div>
+        <a target="_blank" rel="noopener"
+           href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name)}&query_place_id=${p.place_id}">Maps</a>
+      </div>
+    </div>`).join('');
+  $("resultsModal").classList.add("active");
+}
+$("closeResults").onclick=()=>$("resultsModal").classList.remove("active");
+
+/* ===== Surprise Me! ===== */
+$("surprise").addEventListener("click", doSurpriseMe);
+function doSurpriseMe(){
+  if(!currentPosition){ alert("Need a location first. Tap ‘Enter location’."); return; }
+  const svc=new google.maps.places.PlacesService(document.createElement("div"));
+  const TYPES=["restaurant","cafe","bar","tourist_attraction","park","museum","art_gallery","bakery","book_store","shopping_mall"];
+  const pick=TYPES[Math.floor(Math.random()*TYPES.length)];
+  const req={location:new google.maps.LatLng(currentPosition.lat,currentPosition.lng),radius:5000,type:pick,opennow:false};
   svc.nearbySearch(req,(results,status)=>{
     if(status!==google.maps.places.PlacesServiceStatus.OK || !results?.length){ alert("No options found. Try again!"); return; }
-    const good = results.filter(p=> (p.rating||0)>=4.2 && (p.user_ratings_total||0)>=100);
-    const pool = good.length? good: results;
-    const chosen = pool[Math.floor(Math.random()*pool.length)];
-    $("resultsTitle").textContent = `Surprise: ${chosen.name}`;
-    $("resultsList").innerHTML = `
+    const good=results.filter(p=>(p.rating||0)>=4.2 && (p.user_ratings_total||0)>=100);
+    const pool=good.length?good:results; const chosen=pool[Math.floor(Math.random()*pool.length)];
+    $("resultsTitle").textContent=`Surprise: ${chosen.name}`;
+    $("resultsList").innerHTML=`
       <div style="padding:10px">
         <div><strong>${chosen.name}</strong></div>
-        <div>${chosen.vicinity || ""}</div>
-        <div>⭐ ${chosen.rating || "—"} (${chosen.user_ratings_total || 0})</div>
+        <div>${chosen.vicinity||""}</div>
+        <div>⭐ ${chosen.rating||"—"} (${chosen.user_ratings_total||0})</div>
         <div style="margin-top:8px">
           <a target="_blank" rel="noopener"
-             href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(chosen.name)}&query_place_id=${chosen.place_id}">
-            Open in Google Maps
-          </a>
+             href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(chosen.name)}&query_place_id=${chosen.place_id}">Open in Google Maps</a>
         </div>
       </div>`;
     $("resultsModal").classList.add("active");
@@ -277,17 +324,56 @@ async function doSurpriseMe(){
 
 /* ===== Donate quick action ===== */
 $("donate").addEventListener("click",()=>{
-  const handle="@Stephen-Mohamed-1";
+  const handle='@Stephen-Mohamed-1';
   navigator.clipboard?.writeText(handle);
   alert(`Venmo handle copied: ${handle}`);
 });
 
-/* ===== Modal close ===== */
-$("closeResults").addEventListener("click",()=>$("resultsModal").classList.remove("active"));
+/* ===== Geocoding & init ===== */
+function reverseGeocode(pos){
+  if(!geocoder) geocoder=new maps.Geocoder();
+  geocoder.geocode({location:{lat:pos.lat,lng:pos.lng}},(results,status)=>{
+    if(status==="OK" && results[0]){
+      currentAddress=results[0].formatted_address;
+      let city="",state="";
+      (results[0].address_components||[]).forEach(c=>{
+        if(c.types.includes("locality")) city=c.long_name;
+        if(c.types.includes("administrative_area_level_1")) state=c.short_name||c.long_name;
+      });
+      currentState=state||currentState;
+      setCityLine(city||currentAddress,state); setCoordLine(pos.lat,pos.lng);
+    }
+    fetchLocalFacts(pos);
+  });
+}
+function geocodeAddress(address){
+  if(!geocoder) geocoder=new maps.Geocoder();
+  geocoder.geocode({address},(results,status)=>{
+    if(status==="OK" && results[0]){
+      const loc=results[0].geometry.location;
+      currentPosition={lat:loc.lat(),lng:loc.lng()};
+      currentAddress=results[0].formatted_address;
+      let city="",state="";
+      (results[0].address_components||[]).forEach(c=>{
+        if(c.types.includes("locality")) city=c.long_name;
+        if(c.types.includes("administrative_area_level_1")) state=c.short_name||c.long_name;
+      });
+      currentState=state||currentState;
+      setCityLine(city||currentAddress,state); setCoordLine(currentPosition.lat,currentPosition.lng);
+      fetchLocalFacts(currentPosition);
+    }else{ $("cityLine").textContent="Search failed"; $("coordLine").textContent=""; fetchLocalFacts(null); }
+  });
+}
 
-/* ===== Init Maps & geolocation ===== */
+/* Enter location prompt */
+$("editLocation").addEventListener("click",()=>{
+  const addr=prompt("Enter a city or address:");
+  if(addr && addr.trim()) geocodeAddress(addr.trim());
+});
+
+/* Init Maps */
 function initMap(){
-  maps = google.maps; geocoder = new maps.Geocoder();
+  maps=google.maps; geocoder=new maps.Geocoder();
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       p=>{ currentPosition={lat:p.coords.latitude,lng:p.coords.longitude}; reverseGeocode(currentPosition); },
@@ -305,14 +391,11 @@ function initMap(){
   s.async=true;s.defer=true;document.head.appendChild(s);
 })();
 
-/* Enter location prompt */
-$("editLocation").addEventListener("click",()=>{
-  const addr=prompt("Enter a city or address:");
-  if(addr && addr.trim()) geocodeAddress(addr.trim());
-});
-
 /* Service worker */
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
+
+/* Ghost click (kept simple) */
+$("ghost").addEventListener("click",()=>alert("Boo 👻"));
 </script>
 </body>
 </html>
