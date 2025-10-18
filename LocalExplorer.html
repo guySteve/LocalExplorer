@@ -165,6 +165,16 @@
       font-weight: 600;
       border: 1px solid var(--primary);
     }
+    #myPlanBtn {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+    }
+    #donateBtn {
+      background-color: var(--accent);
+      color: var(--card);
+      border: 1px solid var(--accent);
+    }
     #ghostBtn {
       position: fixed;
       bottom: 1rem;
@@ -575,7 +585,9 @@
   </div>
   <div id="primaryActions">
     <button id="myListBtn">📋 My List</button>
+    <button id="myPlanBtn">🗺️ My Plan</button>
     <button id="surpriseBtn">🤷 Surprise Me!</button>
+    <button id="donateBtn">❤️ Donate</button>
   </div>
   <button id="ghostBtn">👻</button>
 
@@ -616,6 +628,22 @@
     </div>
   </div>
 
+  <!-- Plan modal -->
+  <div id="planModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>My Plan</h3>
+        <button class="close-btn" id="closePlan">×</button>
+      </div>
+      <div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div>
+      <div class="results-list" id="planContent"></div>
+      <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty. Add places to your plan from the details view.</div>
+      <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+        <button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Details sheet -->
   <div id="detailsSheet">
     <div id="detailsMap"></div>
@@ -632,6 +660,8 @@
         <button id="websiteBtn">🔗 Website</button>
         <button id="shareBtn">🔗 Share</button>
         <button id="compassBtn">🧭 Compass</button>
+        <button id="addToPlanBtn">🗺️ Add to Plan</button>
+        <button id="toggleStreetBtn">🖼️ Street View</button>
       </div>
       <button class="accordion" id="reviewsAccordion">Reviews</button>
       <div class="accordion-content" id="reviewsContent"></div>
@@ -694,6 +724,9 @@
     let compassWatching = false;
     let compassWatchId;
     let miniMap;
+// Track the visibility of Street View for the details view. By default the
+// panorama is hidden and a static photo is shown instead.
+let streetViewVisible = false;
 
     // Categories definition
     const categories = {
@@ -747,6 +780,13 @@
         { name: "Haunted Places", keyword: "haunted", type: "point_of_interest", ignoreRating: true }
       ]
       ,
+      "Outdoor": [
+        { name: "Parks", type: "park" },
+        { name: "Trails", keyword: "hiking trail", type: "park" },
+        { name: "Nature Reserves", keyword: "nature reserve", type: "park" },
+        { name: "Beaches", keyword: "beach", type: "park" },
+        { name: "Campgrounds", keyword: "campground", type: "campground" }
+      ],
       "Local Events": [
         { name: "All Events", value: "all" },
         { name: "Music", value: "music" },
@@ -768,6 +808,32 @@
         showManualInput();
       }
       populateFilterButtons();
+
+      // If a plan is encoded in the URL (as ?plan=...), decode it and load
+      // it into localStorage, then open the plan modal. The data is
+      // expected to be a base64-encoded, URI-encoded JSON string
+      // containing an object with an `items` array.
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('plan')) {
+          const encoded = params.get('plan');
+          const decoded = decodeURIComponent(atob(encoded));
+          const data = JSON.parse(decoded);
+          if (data && Array.isArray(data.items)) {
+            localStorage.setItem('myPlan', JSON.stringify(data.items));
+            localStorage.removeItem('visitedPlan');
+            // Open the plan modal after a brief delay to allow the UI to initialise
+            setTimeout(() => {
+              loadPlan();
+              $("planModal").classList.add('active');
+              document.body.classList.add('modal-open');
+              hideGhost();
+            }, 500);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to decode shared plan', e);
+      }
     }
 
     function onLocationSuccess(position) {
@@ -848,6 +914,7 @@
         case 'Pet Friendly': return '🐾';
         case 'Utilities & Help': return '🛠️';
         case 'Dark Side': return '👻';
+        case 'Outdoor': return '🌲';
         case 'Local Events': return '🎟️';
         default: return '';
       }
@@ -978,6 +1045,7 @@
         const title = document.createElement('h4');
         title.textContent = event.name;
         info.appendChild(title);
+        // Date/time information
         const dateSpan = document.createElement('span');
         dateSpan.className = 'rating';
         if (event.dates && event.dates.start) {
@@ -988,6 +1056,46 @@
           dateSpan.textContent = '';
         }
         info.appendChild(dateSpan);
+        // Venue and location information
+        const venueSpan = document.createElement('span');
+        venueSpan.className = 'rating';
+        if (event._embedded && event._embedded.venues && event._embedded.venues.length > 0) {
+          const venue = event._embedded.venues[0];
+          const city = venue.city ? venue.city.name : '';
+          const state = venue.state ? (venue.state.name || venue.state.stateCode) : '';
+          const locStr = city && state ? `${city}, ${state}` : city || state;
+          venueSpan.textContent = venue.name + (locStr ? ' — ' + locStr : '');
+        }
+        info.appendChild(venueSpan);
+        // Classification / genre information
+        const classSpan = document.createElement('span');
+        classSpan.className = 'rating';
+        if (event.classifications && event.classifications.length > 0) {
+          const cls = event.classifications[0];
+          const seg = cls.segment && cls.segment.name;
+          const genre = cls.genre && cls.genre.name;
+          const subg = cls.subGenre && cls.subGenre.name;
+          const parts = [];
+          if (genre && genre.toLowerCase() !== 'undefined') parts.push(genre);
+          if (subg && subg.toLowerCase() !== 'undefined' && subg !== genre) parts.push(subg);
+          if (parts.length === 0 && seg) parts.push(seg);
+          classSpan.textContent = parts.join(' / ');
+        }
+        info.appendChild(classSpan);
+        // Price range information
+        const priceSpan = document.createElement('span');
+        priceSpan.className = 'rating';
+        if (event.priceRanges && event.priceRanges.length > 0) {
+          const pr = event.priceRanges[0];
+          if (pr.min && pr.max) {
+            priceSpan.textContent = `$${pr.min.toFixed(0)}–$${pr.max.toFixed(0)} ${pr.currency || ''}`;
+          } else if (pr.min) {
+            priceSpan.textContent = `$${pr.min.toFixed(0)}+`;
+          } else if (pr.max) {
+            priceSpan.textContent = `$${pr.max.toFixed(0)}`;
+          }
+        }
+        info.appendChild(priceSpan);
         wrapper.appendChild(info);
         btn.appendChild(wrapper);
         btn.addEventListener('click', () => {
@@ -1092,34 +1200,44 @@
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','photos','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           currentPlaceDetails = place;
-          // Set Street View panorama with best available imagery
+          // Prepare Street View panorama and default to hidden. We request
+          // the panorama near the place and if none is available we
+          // position the viewer at the place's coordinates. After
+          // initialising, we hide the panorama and show a static photo.
           const loc = place.geometry.location;
           const streetService = new google.maps.StreetViewService();
           streetService.getPanorama({ location: loc, radius: 50 }, (data, status) => {
+            let panoOptions;
             if (status === google.maps.StreetViewStatus.OK && data && data.location) {
-              if (!streetViewPanorama) {
-                streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), {
-                  pano: data.location.pano,
-                  pov: { heading: 270, pitch: 0 },
-                  zoom: 1
-                });
-              } else {
-                streetViewPanorama.setPano(data.location.pano);
-                streetViewPanorama.setPov({ heading: 270, pitch: 0 });
-                streetViewPanorama.setZoom(1);
-              }
+              panoOptions = { pano: data.location.pano, pov: { heading: 270, pitch: 0 }, zoom: 1 };
             } else {
-              // Fallback: position street view at place location
-              if (!streetViewPanorama) {
-                streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), {
-                  position: loc,
-                  pov: { heading: 0, pitch: 0 },
-                  zoom: 0
-                });
-              } else {
-                streetViewPanorama.setPosition(loc);
-              }
+              panoOptions = { position: loc, pov: { heading: 0, pitch: 0 }, zoom: 0 };
             }
+            if (!streetViewPanorama) {
+              streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), panoOptions);
+            } else {
+              if (panoOptions.pano) {
+                streetViewPanorama.setPano(panoOptions.pano);
+              } else {
+                streetViewPanorama.setPosition(panoOptions.position);
+              }
+              streetViewPanorama.setPov(panoOptions.pov);
+              streetViewPanorama.setZoom(panoOptions.zoom);
+            }
+            // Hide the panorama initially
+            streetViewVisible = false;
+            streetViewPanorama.setVisible(false);
+            // Apply static background image if available
+            if (place.photos && place.photos.length > 0) {
+              const photoUrl = place.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
+              $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
+              $("detailsMap").style.backgroundSize = 'cover';
+              $("detailsMap").style.backgroundPosition = 'center';
+            } else {
+              $("detailsMap").style.backgroundImage = '';
+            }
+            const tBtn = $("toggleStreetBtn");
+            if (tBtn) tBtn.textContent = '🖼️ Street View';
           });
           // Name
           $("detailsName").textContent = place.name;
@@ -1156,6 +1274,8 @@
             }
           };
           $("compassBtn").onclick = () => openCompass(loc);
+          // Bind Street View toggle
+          $("toggleStreetBtn").onclick = toggleStreetView;
           // Show sheet and lock background scroll
           $("detailsSheet").classList.add('active');
           document.body.classList.add('modal-open');
@@ -1183,6 +1303,32 @@
     $("closeDetailsBtn").addEventListener('click', () => {
       closeDetails();
     });
+
+    /*
+      Toggle Street View visibility.
+      Street View imagery is disabled by default to reduce data usage. When
+      activated, the static background image is removed and the panorama
+      becomes visible. Toggling again hides the panorama and restores the
+      photo background if one exists.
+    */
+    function toggleStreetView() {
+      if (!streetViewPanorama) return;
+      streetViewVisible = !streetViewVisible;
+      streetViewPanorama.setVisible(streetViewVisible);
+      const btn = $("toggleStreetBtn");
+      if (streetViewVisible) {
+        if (btn) btn.textContent = '🖼️ Hide Street View';
+        $("detailsMap").style.backgroundImage = '';
+      } else {
+        if (btn) btn.textContent = '🖼️ Street View';
+        if (currentPlaceDetails && currentPlaceDetails.photos && currentPlaceDetails.photos.length > 0) {
+          const photoUrl = currentPlaceDetails.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
+          $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
+          $("detailsMap").style.backgroundSize = 'cover';
+          $("detailsMap").style.backgroundPosition = 'center';
+        }
+      }
+    }
 
     // Populate reviews accordion
     function populateReviews(reviews) {
@@ -1276,6 +1422,175 @@
       };
     }
 
+    /*
+      Plan management
+      Allows users to curate a list of places into a shareable plan. Plans are
+      stored in localStorage under the 'myPlan' key. A separate 'visitedPlan'
+      array tracks which places have been marked as visited to provide badge
+      progress for the user.
+    */
+    function getPlan() {
+      try {
+        const data = localStorage.getItem('myPlan');
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function savePlan(list) {
+      localStorage.setItem('myPlan', JSON.stringify(list));
+    }
+    function getVisitedPlan() {
+      try {
+        const data = localStorage.getItem('visitedPlan');
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function saveVisitedPlan(list) {
+      localStorage.setItem('visitedPlan', JSON.stringify(list));
+    }
+    function addToPlan(place) {
+      let list = getPlan();
+      if (!list.some(p => p.place_id === place.place_id)) {
+        list.push({
+          place_id: place.place_id,
+          name: place.name,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          address: place.formatted_address || '',
+          category: '',
+          photo: (place.photos && place.photos.length) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
+        });
+        savePlan(list);
+      }
+    }
+    function removeFromPlan(placeId) {
+      let list = getPlan();
+      list = list.filter(p => p.place_id !== placeId);
+      savePlan(list);
+    }
+    function toggleVisited(placeId) {
+      let visited = getVisitedPlan();
+      if (visited.includes(placeId)) {
+        visited = visited.filter(id => id !== placeId);
+      } else {
+        visited.push(placeId);
+      }
+      saveVisitedPlan(visited);
+    }
+    function loadPlan() {
+      const list = getPlan();
+      const content = $("planContent");
+      const empty = $("planEmpty");
+      const summary = $("planSummary");
+      content.innerHTML = '';
+      const visited = getVisitedPlan();
+      if (!list.length) {
+        empty.style.display = 'block';
+        summary.textContent = '';
+      } else {
+        empty.style.display = 'none';
+        // Summary and badge calculation
+        const visitedCount = list.filter(item => visited.includes(item.place_id)).length;
+        const totalCount = list.length;
+        let badge = '';
+        const ratio = visitedCount / totalCount;
+        if (ratio === 1) {
+          badge = '🎖️';
+        } else if (ratio >= 0.8) {
+          badge = '🥇';
+        } else if (ratio >= 0.5) {
+          badge = '🥈';
+        } else if (ratio >= 0.3) {
+          badge = '🥉';
+        } else {
+          badge = '🔰';
+        }
+        summary.textContent = `Visited ${visitedCount} of ${totalCount} places ${badge}`;
+        list.forEach(item => {
+          const btn = document.createElement('button');
+          btn.style.display = 'flex';
+          btn.style.justifyContent = 'space-between';
+          btn.style.alignItems = 'center';
+          btn.style.width = '100%';
+          const wrapper = document.createElement('div');
+          wrapper.className = 'results-item';
+          const img = document.createElement('img');
+          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
+          wrapper.appendChild(img);
+          const info = document.createElement('div');
+          info.className = 'results-info';
+          const title = document.createElement('h4');
+          title.textContent = item.name;
+          info.appendChild(title);
+          const visitedSpan = document.createElement('span');
+          visitedSpan.className = 'rating';
+          visitedSpan.textContent = visited.includes(item.place_id) ? 'Visited' : 'Not visited';
+          info.appendChild(visitedSpan);
+          wrapper.appendChild(info);
+          btn.appendChild(wrapper);
+          // Toggle visited on context menu (long press)
+          btn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            toggleVisited(item.place_id);
+            loadPlan();
+          });
+          // Clicking opens details
+          btn.addEventListener('click', () => {
+            showDetails(item.place_id);
+            closePlan();
+          });
+          content.appendChild(btn);
+        });
+      }
+    }
+    function closePlan() {
+      $("planModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    }
+
+    // Open My Plan modal from the main button
+    $("myPlanBtn").addEventListener('click', () => {
+      loadPlan();
+      $("planModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+    });
+
+    // Share Plan button handler. Encodes the current plan as a base64
+    // string and appends it as a query parameter to the current URL. If
+    // Web Share API is available the link is passed to navigator.share,
+    // otherwise a prompt is shown so the user can copy the link manually.
+    $("sharePlanBtn").addEventListener('click', () => {
+      const plan = getPlan();
+      if (!plan || plan.length === 0) {
+        alert('Your plan is empty. Add some places before sharing.');
+        return;
+      }
+      try {
+        const data = { items: plan };
+        const json = JSON.stringify(data);
+        const encoded = btoa(encodeURIComponent(json));
+        const base = window.location.origin + window.location.pathname;
+        const url = `${base}?plan=${encoded}`;
+        if (navigator.share) {
+          navigator.share({
+            title: 'My Local Explorer Plan',
+            text: 'Check out my travel plan on Local Explorer',
+            url: url
+          }).catch(err => console.log(err));
+        } else {
+          window.prompt('Copy and share this link to load your plan:', url);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Unable to share plan.');
+      }
+    });
+
     // My List modal
     $("myListBtn").addEventListener('click', () => {
       loadMyList();
@@ -1287,6 +1602,12 @@
       $("myListModal").classList.remove('active');
       document.body.classList.remove('modal-open');
       showGhost();
+    });
+
+    // Donate button handler opens the Venmo page in a new tab
+    $("donateBtn").addEventListener('click', () => {
+      const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
+      window.open(venmoUrl);
     });
     function loadMyList() {
       const list = getSavedList();
