@@ -253,6 +253,13 @@
       cursor: pointer;
       transition: background-color 0.2s;
     }
+
+    /* Special button for surprise actions */
+    .special-btn {
+      background: var(--primary);
+      color: var(--text-light);
+      font-weight: 600;
+    }
     .subMenuList button:hover,
     .results-list button:hover {
       background: #1e293b;
@@ -469,6 +476,16 @@
       border: 2px solid var(--primary);
       overflow: hidden;
     }
+    #miniMap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 0;
+    }
     #radar::before {
       content: '';
       position: absolute;
@@ -477,8 +494,8 @@
       width: 100%;
       height: 100%;
       transform-origin: left center;
-      background: linear-gradient(to right, transparent, var(--primary) 20%, transparent 40%);
-      animation: radarSweep 3s linear infinite;
+      background: linear-gradient(to right, transparent, var(--primary) 5%, transparent 15%);
+      animation: radarSweep 6s linear infinite;
     }
     @keyframes radarSweep {
       from { transform: rotate(0deg); }
@@ -521,6 +538,10 @@
       overflow-y: auto;
       font-size: 0.85rem;
       line-height: 1.3;
+    }
+
+    #radarControls label {
+      color: var(--text-light);
     }
     /* Hide map container used for Places Service */
     #hiddenMap {
@@ -623,6 +644,7 @@
   <div id="compassOverlay">
     <div id="compassTop">
       <div id="radar">
+        <div id="miniMap"></div>
         <div id="compassArrow"></div>
       </div>
     </div>
@@ -634,6 +656,14 @@
         <button id="closeCompassBtn">Close</button>
       </div>
       <div id="directionsList"></div>
+      <div id="radarControls">
+        <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Zoom
+          <input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;">
+        </label>
+        <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Brightness
+          <input type="range" id="radarBrightness" min="30" max="100" value="50" style="width:100%;">
+        </label>
+      </div>
     </div>
   </div>
 
@@ -644,6 +674,16 @@
     // Utility functions
     function $(id) { return document.getElementById(id); }
 
+    // Show/hide the ghost Easter egg depending on whether the user is on the main page
+    function hideGhost() {
+      const ghost = $("ghostBtn");
+      if (ghost) ghost.style.display = 'none';
+    }
+    function showGhost() {
+      const ghost = $("ghostBtn");
+      if (ghost) ghost.style.display = 'block';
+    }
+
     // Store state
     let currentPosition = null;
     let currentAddress = '';
@@ -653,6 +693,7 @@
     let currentPlaceDetails;
     let compassWatching = false;
     let compassWatchId;
+    let miniMap;
 
     // Categories definition
     const categories = {
@@ -704,6 +745,14 @@
         { name: "Psychic", keyword: "psychic", type: "point_of_interest", ignoreRating: true },
         { name: "Bars", type: "bar", ignoreRating: true },
         { name: "Haunted Places", keyword: "haunted", type: "point_of_interest", ignoreRating: true }
+      ]
+      ,
+      "Local Events": [
+        { name: "All Events", value: "all" },
+        { name: "Music", value: "music" },
+        { name: "Sports", value: "sports" },
+        { name: "Comedy", value: "comedy" },
+        { name: "Festivals", value: "festival" }
       ]
     };
 
@@ -799,12 +848,15 @@
         case 'Pet Friendly': return '🐾';
         case 'Utilities & Help': return '🛠️';
         case 'Dark Side': return '👻';
+        case 'Local Events': return '🎟️';
         default: return '';
       }
     }
 
     // Sub menu handling
     function openSubMenu(categoryName) {
+      // Hide ghost when navigating away from home screen
+      hideGhost();
       $("subMenuTitle").textContent = categoryName;
       const list = $("subMenuList");
       list.innerHTML = '';
@@ -818,6 +870,20 @@
         });
         list.appendChild(btn);
       });
+      // Foodie Finds special: add Surprise Me button
+      if (categoryName === 'Foodie Finds') {
+        const surpriseBtn = document.createElement('button');
+        surpriseBtn.className = 'special-btn';
+        surpriseBtn.textContent = '🤤 Surprise Me!';
+        surpriseBtn.addEventListener('click', () => {
+          // Randomly pick a subcategory for Foodie Finds
+          const options = categories['Foodie Finds'];
+          const randomItem = options[Math.floor(Math.random() * options.length)];
+          closeSubMenu();
+          performSearch('Foodie Finds', randomItem);
+        });
+        list.appendChild(surpriseBtn);
+      }
       $("subMenuModal").classList.add('active');
       document.body.classList.add('modal-open');
     }
@@ -825,6 +891,7 @@
     function closeSubMenu() {
       $("subMenuModal").classList.remove('active');
       document.body.classList.remove('modal-open');
+      showGhost();
     }
     $("closeSubMenu").addEventListener('click', closeSubMenu);
 
@@ -832,6 +899,11 @@
     function performSearch(category, item) {
       if (!currentPosition) {
         alert('Please provide a location first.');
+        return;
+      }
+      // Handle Local Events separately
+      if (category === 'Local Events') {
+        searchLocalEvents(item);
         return;
       }
       const request = {
@@ -861,6 +933,72 @@
           alert('No results found.');
         }
       });
+    }
+
+    // Search for local events using the Ticketmaster Discovery API.
+    // Note: Replace YOUR_TICKETMASTER_API_KEY with your actual API key.
+    async function searchLocalEvents(item) {
+      if (!currentPosition) {
+        alert('Please provide a location first.');
+        return;
+      }
+      const apiKey = 'YOUR_TICKETMASTER_API_KEY';
+      const classification = (item.value && item.value !== 'all') ? item.value : '';
+      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=50${classification ? '&classificationName=' + classification : ''}`;
+      try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const events = (data._embedded && data._embedded.events) || [];
+        displayEventResults(events, item.name);
+      } catch (err) {
+        console.error(err);
+        alert('Unable to fetch events.');
+      }
+    }
+
+    // Display event results in the results modal
+    function displayEventResults(events, subCategory) {
+      const list = $("resultsList");
+      list.innerHTML = '';
+      events.forEach(event => {
+        const btn = document.createElement('button');
+        btn.className = '';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'results-item';
+        const img = document.createElement('img');
+        let imgUrl = null;
+        if (event.images && event.images.length > 0) {
+          // Use the first image
+          imgUrl = event.images[0].url;
+        }
+        img.src = imgUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
+        wrapper.appendChild(img);
+        const info = document.createElement('div');
+        info.className = 'results-info';
+        const title = document.createElement('h4');
+        title.textContent = event.name;
+        info.appendChild(title);
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'rating';
+        if (event.dates && event.dates.start) {
+          const d = event.dates.start.localDate || '';
+          const t = event.dates.start.localTime || '';
+          dateSpan.textContent = d + (t ? ' ' + t : '');
+        } else {
+          dateSpan.textContent = '';
+        }
+        info.appendChild(dateSpan);
+        wrapper.appendChild(info);
+        btn.appendChild(wrapper);
+        btn.addEventListener('click', () => {
+          if (event.url) window.open(event.url);
+        });
+        list.appendChild(btn);
+      });
+      $("resultsTitle").textContent = subCategory + ' Events';
+      $("resultsModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
     }
 
     function displayResults(category, results) {
@@ -900,10 +1038,12 @@
       });
       $("resultsModal").classList.add('active');
       document.body.classList.add('modal-open');
+      hideGhost();
     }
     $("closeResults").addEventListener('click', () => {
       $("resultsModal").classList.remove('active');
       document.body.classList.remove('modal-open');
+      showGhost();
     });
 
     // Allow closing the results modal by tapping outside its content
@@ -911,6 +1051,7 @@
       if (e.target.id === 'resultsModal') {
         $("resultsModal").classList.remove('active');
         document.body.classList.remove('modal-open');
+        showGhost();
       }
     });
 
@@ -1018,6 +1159,7 @@
           // Show sheet and lock background scroll
           $("detailsSheet").classList.add('active');
           document.body.classList.add('modal-open');
+          hideGhost();
         }
       });
     }
@@ -1026,6 +1168,7 @@
     function closeDetails() {
       $("detailsSheet").classList.remove('active');
       document.body.classList.remove('modal-open');
+      showGhost();
     }
 
     // Tap outside details content closes sheet
@@ -1138,10 +1281,12 @@
       loadMyList();
       $("myListModal").classList.add('active');
       document.body.classList.add('modal-open');
+      hideGhost();
     });
     $("closeMyList").addEventListener('click', () => {
       $("myListModal").classList.remove('active');
       document.body.classList.remove('modal-open');
+      showGhost();
     });
     function loadMyList() {
       const list = getSavedList();
@@ -1209,6 +1354,7 @@
       const overlay = $("compassOverlay");
       overlay.classList.add('active');
       document.body.classList.add('modal-open');
+      hideGhost();
       // Populate voice selector
       const voiceSelect = $("voiceSelect");
       function populateVoices() {
@@ -1329,6 +1475,36 @@
           directionsList.textContent = 'Unable to compute route.';
         }
       });
+      // Initialize or update the mini map inside radar
+      if (typeof google !== 'undefined' && google.maps) {
+        if (miniMap) {
+          miniMap.setCenter(destLatLng);
+          miniMap.setZoom(15);
+        } else {
+          miniMap = new google.maps.Map($("miniMap"), {
+            center: destLatLng,
+            zoom: 15,
+            disableDefaultUI: true,
+            gestureHandling: 'none'
+          });
+        }
+      }
+      // Bind radar control sliders
+      const zoomSlider = $("radarZoom");
+      const brightnessSlider = $("radarBrightness");
+      if (zoomSlider) {
+        zoomSlider.oninput = () => {
+          const z = parseInt(zoomSlider.value);
+          if (miniMap) miniMap.setZoom(z);
+        };
+      }
+      if (brightnessSlider) {
+        brightnessSlider.oninput = () => {
+          const b = parseInt(brightnessSlider.value);
+          // Adjust overall radar brightness using CSS filter
+          $("radar").style.filter = `brightness(${b/50})`;
+        };
+      }
       // Close overlay button handler
       $("closeCompassBtn").onclick = () => {
         overlay.classList.remove('active');
@@ -1341,6 +1517,7 @@
         }
         window.speechSynthesis.cancel();
         navigationStopped = true;
+        showGhost();
       };
     }
 
