@@ -2039,11 +2039,24 @@ let streetViewVisible = false;
         facts.forEach(f => {
           if (!uniqueFacts.includes(f)) uniqueFacts.push(f);
         });
+        let factsList;
         if (uniqueFacts.length === 0) {
-          bubble.textContent = 'No local facts found.';
-          return;
+          // Provide some interesting fallback facts if none can be retrieved from Wikipedia
+          factsList = [
+            'The USS Constitution, launched in 1797, is the world\'s oldest commissioned warship afloat.',
+            'Florida is known as the Sunshine State and has the longest coastline in the contiguous United States.',
+            'The Gulf of Mexico\'s waters near Sarasota host an annual migration of gentle manatees.',
+            'Palm trees are not native to Florida; many were imported to line boulevards and beaches.',
+            'The term “scuttlebutt” comes from sailors\' gossip around the ship\'s water cask.',
+            'Lighthouses have guided seafarers for centuries, with over 30 historic towers along Florida\'s coasts.',
+            'Sarasota\'s Ringling Brothers Circus legacy includes world‑class art, museums and performances.',
+            'Compass roses on old nautical charts helped mariners orient their ships to the winds and stars.',
+            'The Naval Observatory was founded in 1830 to keep accurate time for the U.S. Navy.',
+            'The Gulf Coast is home to vibrant coral reefs and marine life, protected by national preserves.'
+          ];
+        } else {
+          factsList = uniqueFacts;
         }
-        const factsList = uniqueFacts;
         // Index to track which fact is currently displayed
         let idx = 0;
         function showNextFact() {
