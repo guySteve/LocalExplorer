@@ -942,7 +942,7 @@
         alert('Please provide a location first.');
         return;
       }
-      const apiKey = 'YOUR_TICKETMASTER_API_KEY';
+      const apiKey = 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
       const classification = (item.value && item.value !== 'all') ? item.value : '';
       const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=50${classification ? '&classificationName=' + classification : ''}`;
       try {
