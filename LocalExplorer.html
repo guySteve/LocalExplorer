@@ -57,6 +57,7 @@
       color: var(--text-dark);
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      overscroll-behavior: contain; /* Prevent scroll bounce on mobile */
     }
     h1, h2, h3 {
       font-family: 'Poppins', sans-serif;
@@ -214,6 +215,13 @@
       padding: 1rem;
       position: relative;
       border: 2px solid var(--accent);
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    /* Animate modal content expansion */
+    .modal.active .modal-content {
+      transform: scale(1) translateY(0);
     }
     .modal-header {
       display: flex;
@@ -291,6 +299,18 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+    }
+
+    /* Details sheet close button */
+    .sheet-close {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-light);
+      cursor: pointer;
     }
     #detailsSheet.active {
       transform: translateY(0);
@@ -429,10 +449,39 @@
     #compassArrow {
       width: 0;
       height: 0;
-      border-top: 50px solid var(--primary);
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      transform-origin: 50% 50px;
+      border-top: 45px solid var(--primary);
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      transform-origin: center bottom;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    /* Radar scanning container */
+    #radar {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(233,84,32,0.4) 0%, transparent 70%);
+      border: 2px solid var(--primary);
+      overflow: hidden;
+    }
+    #radar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform-origin: left center;
+      background: linear-gradient(to right, transparent, var(--primary) 20%, transparent 40%);
+      animation: radarSweep 3s linear infinite;
+    }
+    @keyframes radarSweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
     #compassControls {
       padding: 0.5rem 1rem 1rem 1rem;
@@ -549,6 +598,7 @@
   <div id="detailsSheet">
     <div id="detailsMap"></div>
     <div id="detailsContent">
+      <button id="closeDetailsBtn" class="sheet-close">×</button>
       <h3 id="detailsName"></h3>
       <div id="detailsRating"></div>
       <div id="detailsPhone"></div>
@@ -571,7 +621,9 @@
   <!-- Compass & navigation overlay -->
   <div id="compassOverlay">
     <div id="compassTop">
-      <div id="compassArrow"></div>
+      <div id="radar">
+        <div id="compassArrow"></div>
+      </div>
     </div>
     <div id="compassControls">
       <select id="voiceSelect"></select>
@@ -890,17 +942,35 @@
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','photos','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           currentPlaceDetails = place;
-          // Set map and Street View
+          // Set Street View panorama with best available imagery
           const loc = place.geometry.location;
-          if (!streetViewPanorama) {
-            streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), {
-              position: loc,
-              pov: { heading: 0, pitch: 0 },
-              zoom: 0
-            });
-          } else {
-            streetViewPanorama.setPosition(loc);
-          }
+          const streetService = new google.maps.StreetViewService();
+          streetService.getPanorama({ location: loc, radius: 50 }, (data, status) => {
+            if (status === google.maps.StreetViewStatus.OK && data && data.location) {
+              if (!streetViewPanorama) {
+                streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), {
+                  pano: data.location.pano,
+                  pov: { heading: 270, pitch: 0 },
+                  zoom: 1
+                });
+              } else {
+                streetViewPanorama.setPano(data.location.pano);
+                streetViewPanorama.setPov({ heading: 270, pitch: 0 });
+                streetViewPanorama.setZoom(1);
+              }
+            } else {
+              // Fallback: position street view at place location
+              if (!streetViewPanorama) {
+                streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), {
+                  position: loc,
+                  pov: { heading: 0, pitch: 0 },
+                  zoom: 0
+                });
+              } else {
+                streetViewPanorama.setPosition(loc);
+              }
+            }
+          });
           // Name
           $("detailsName").textContent = place.name;
           // Rating and price
@@ -955,6 +1025,11 @@
       if (e.target.id === 'detailsSheet') {
         closeDetails();
       }
+    });
+
+    // Close button inside details sheet
+    $("closeDetailsBtn").addEventListener('click', () => {
+      closeDetails();
     });
 
     // Populate reviews accordion
@@ -1013,6 +1088,10 @@
     function savePlace(place) {
       let list = getSavedList();
       if (!list.find(p => p.place_id === place.place_id)) {
+        // Limit stored places to 50 to avoid unbounded localStorage growth
+        if (list.length >= 50) {
+          list.shift();
+        }
         list.push({
           place_id: place.place_id,
           name: place.name,
@@ -1207,13 +1286,17 @@
               Array.from(directionsList.children).forEach(el => el.classList.remove('active'));
               const currentEl = directionsList.children[idx];
               if (currentEl) currentEl.classList.add('active');
-              // Remove HTML tags from instructions
-              const text = steps[idx].instructions.replace(/<[^>]+>/g, '');
+              // Remove HTML tags from instructions and preface with step number
+              const clean = steps[idx].instructions.replace(/<[^>]+>/g, '');
+              const text = `Step ${idx + 1}: ${clean}.`;
               const utter = new SpeechSynthesisUtterance(text);
               const voices = window.speechSynthesis.getVoices();
               const selectedVoice = voices[voiceSelect.value] || voices[0];
               utter.voice = selectedVoice;
-              utter.rate = 1;
+              // Slightly lower pitch and slower rate for a rugged, confident tone
+              utter.pitch = 0.85;
+              utter.rate = 0.95;
+              utter.volume = 1;
               window.speechSynthesis.speak(utter);
               idx++;
               utter.onend = () => {
