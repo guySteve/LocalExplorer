@@ -103,13 +103,42 @@
       padding: 0.75rem 1rem;
       border-radius: var(--radius);
       max-width: 90%;
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 0.95rem;
+      min-height: 80px;
       border: 2px dashed var(--accent);
+      perspective: 800px;
+      position: relative;
+      overflow: hidden;
+      font-size: 0.95rem;
+    }
+
+    #factCarousel {
+      width: 100%;
+      height: 100px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotateFacts 30s linear infinite;
+    }
+
+    .fact-bubble {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-style: preserve-3d;
+      transform-origin: center;
+      padding: 0.7rem 1rem;
+      border-radius: 999px;
+      background: var(--primary);
+      color: var(--text-light);
+      min-width: 50%;
+      max-width: 70%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      will-change: transform;
+    }
+
+    @keyframes rotateFacts {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(-360deg); }
     }
     .filters {
       display: grid;
@@ -171,9 +200,11 @@
       border: 1px solid var(--accent);
     }
     #donateBtn {
-      background-color: var(--accent);
-      color: var(--card);
-      border: 1px solid var(--accent);
+      /* Steel effect for rugged naval style */
+      background: linear-gradient(145deg, #48586b, #7b8b9e);
+      color: var(--text-light);
+      border: 1px solid #a4b0bc;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
     }
     #ghostBtn {
       position: fixed;
@@ -579,7 +610,9 @@
   <div id="manualInputContainer">
     <input type="text" id="manualInput" placeholder="Enter a location">
   </div>
-  <div id="factWidget">Fetching local facts…</div>
+  <div id="factWidget">
+    <div id="factCarousel">Fetching local facts…</div>
+  </div>
   <div class="filters" id="filterGrid">
     <!-- Buttons populated by JS -->
   </div>
@@ -587,7 +620,7 @@
     <button id="myListBtn">📋 My List</button>
     <button id="myPlanBtn">🗺️ My Plan</button>
     <button id="surpriseBtn">🤷 Surprise Me!</button>
-    <button id="donateBtn">❤️ Donate</button>
+    <button id="donateBtn">⚓ Support</button>
   </div>
   <button id="ghostBtn">👻</button>
 
@@ -640,6 +673,26 @@
       <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty. Add places to your plan from the details view.</div>
       <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
         <button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donate modal -->
+  <div id="donateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Support Local Explorer</h3>
+        <button class="close-btn" id="closeDonate">×</button>
+      </div>
+      <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">
+        If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!
+      </p>
+      <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">
+        Venmo: <strong>@Stephen-Mohamed-1</strong>
+      </p>
+      <div style="display:flex; gap:0.5rem;">
+        <button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button>
+        <button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button>
       </div>
     </div>
   </div>
@@ -697,10 +750,19 @@
     </div>
   </div>
 
-  <!-- Google Maps script (API key placeholder) -->
-  <!-- Include callback to initMap so the app initializes once the API loads -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY&libraries=places,geometry&callback=initMap"></script>
+  <!-- Load API keys from external file -->
+  <script src="keys.js"></script>
+  <!-- Dynamically inject Google Maps script using the key defined in keys.js -->
   <script>
+    // Create the script tag for Google Maps after reading the API key from keys.js
+    (function() {
+      const mapsKey = window.MAPS_API_KEY || '';
+      const mapsScript = document.createElement('script');
+      mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
+      mapsScript.async = true;
+      mapsScript.defer = true;
+      document.head.appendChild(mapsScript);
+    })();
     // Utility functions
     function $(id) { return document.getElementById(id); }
 
@@ -1009,7 +1071,11 @@ let streetViewVisible = false;
         alert('Please provide a location first.');
         return;
       }
-      const apiKey = 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
+      const apiKey = window.TICKETMASTER_API_KEY || '';
+      if (!apiKey) {
+        alert('Ticketmaster API key missing. Please define TICKETMASTER_API_KEY in keys.js');
+        return;
+      }
       const classification = (item.value && item.value !== 'all') ? item.value : '';
       const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=50${classification ? '&classificationName=' + classification : ''}`;
       try {
@@ -1606,8 +1672,39 @@ let streetViewVisible = false;
 
     // Donate button handler opens the Venmo page in a new tab
     $("donateBtn").addEventListener('click', () => {
+      // Open support modal instead of navigating away
+      $("donateModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+    });
+
+    // Close donate modal
+    $("closeDonate").addEventListener('click', () => {
+      $("donateModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    });
+    // Also close donate modal when tapping outside content
+    $("donateModal").addEventListener('click', (e) => {
+      if (e.target.id === 'donateModal') {
+        $("donateModal").classList.remove('active');
+        document.body.classList.remove('modal-open');
+        showGhost();
+      }
+    });
+    // Open Venmo page in new tab
+    $("openVenmoBtn").addEventListener('click', () => {
       const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
       window.open(venmoUrl);
+    });
+    // Copy Venmo handle to clipboard
+    $("copyVenmoBtn").addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('@Stephen-Mohamed-1');
+        alert('Venmo handle copied to clipboard!');
+      } catch (err) {
+        alert('Unable to copy. Please copy manually.');
+      }
     });
     function loadMyList() {
       const list = getSavedList();
@@ -1845,7 +1942,8 @@ let streetViewVisible = false;
     // Local facts from Wikipedia
     async function fetchLocalFacts(pos) {
       clearInterval(factInterval);
-      $("factWidget").textContent = 'Fetching local facts…';
+      // Show placeholder while loading facts
+      $("factCarousel").innerHTML = 'Fetching local facts…';
       try {
         const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=10000&gslimit=10&format=json&origin=*`;
         const geoData = await fetch(url).then(res => res.json());
@@ -1861,19 +1959,30 @@ let streetViewVisible = false;
             }
           }
         });
+        const carousel = $("factCarousel");
         if (facts.length === 0) {
-          $("factWidget").textContent = 'No local facts found.';
+          carousel.innerHTML = 'No local facts found.';
+          carousel.style.animation = 'none';
           return;
         }
-        let index = 0;
-        $("factWidget").textContent = facts[index];
-        factInterval = setInterval(() => {
-          index = (index + 1) % facts.length;
-          $("factWidget").textContent = facts[index];
-        }, 7000);
+        // Build 3D carousel of bubbles
+        carousel.innerHTML = '';
+        const count = facts.length;
+        facts.forEach((text, i) => {
+          const bubble = document.createElement('div');
+          bubble.className = 'fact-bubble';
+          bubble.textContent = text;
+          const angle = (360 / count) * i;
+          const radius = 200; // depth of the carousel
+          bubble.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
+          carousel.appendChild(bubble);
+        });
+        // Adjust rotation speed proportionally to number of facts (4s per fact, min 20s)
+        const duration = Math.max(count * 4, 20);
+        carousel.style.animation = `rotateFacts ${duration}s linear infinite`;
       } catch (err) {
         console.error(err);
-        $("factWidget").textContent = 'Unable to fetch facts.';
+        $("factCarousel").innerHTML = 'Unable to fetch facts.';
       }
     }
 
