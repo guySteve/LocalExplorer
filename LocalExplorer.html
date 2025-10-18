@@ -120,11 +120,13 @@
       padding: 0.7rem 1rem;
       border-radius: 1rem;
       border: 2px solid var(--accent);
-      max-width: 90%;
+      /* Expand to full width within its container for better readability */
+      max-width: 100%;
+      min-height: 80px;
       margin: auto;
       text-align: center;
-      line-height: 1.3;
-      font-size: 0.9rem;
+      line-height: 1.4;
+      font-size: 1rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       transition: transform 0.4s ease, opacity 0.4s ease;
     }
@@ -469,6 +471,19 @@
       color: var(--card);
       font-size: 0.9rem;
       margin: 1rem 0;
+    }
+
+    /* Improve styling for list and plan items */
+    #myListModal .results-list button,
+    #planModal .results-list button {
+      background-color: var(--secondary);
+      border: 1px solid var(--accent);
+      margin-bottom: 0.4rem;
+      padding: 0.7rem;
+    }
+    #myListModal .results-list button:hover,
+    #planModal .results-list button:hover {
+      background-color: #1e293b;
     }
     /* Compass & navigation overlay */
     #compassOverlay {
@@ -2003,7 +2018,11 @@ let streetViewVisible = false;
         const facts = [];
         Object.values(extracts.query.pages).forEach(page => {
           if (page.extract) {
-            const text = page.extract.replace(/\n+/g, ' ').trim();
+            // Flatten newlines and remove section headings (e.g., '== References ==')
+            let text = page.extract.replace(/\n+/g, ' ').trim();
+            text = text.replace(/==.*?==/g, '');
+            // Normalize multiple spaces
+            text = text.replace(/\s{2,}/g, ' ').trim();
             if (text.length >= 50 && text.length <= 280) {
               facts.push(text);
             }
