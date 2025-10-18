@@ -1,2251 +1,2292 @@
+<!--
+  Local Explorer Progressive Web App
+
+  This single‑file application helps users discover interesting, highly‑rated or
+  essential places near their current location. It leverages the Geolocation
+  API to determine the user's location and Google Maps services for reverse
+  geocoding and nearby searches. When the user grants permission, the app
+  reverse geocodes the current coordinates into a human‑readable address and
+  immediately enables category filters. If permission is denied or the device
+  cannot provide location data, a manual search field is displayed so the
+  traveller can type in a desired location. According to MDN, calls to
+  `navigator.geolocation` trigger a prompt asking for permission, and if
+  accepted the browser uses the best available capabilities (GPS, Wi‑Fi
+  positioning, etc.) to acquire coordinates【880464987856886†L189-L216】. Reverse
+  geocoding translates latitude/longitude into a formatted address
+  【646577427574699†L259-L263】. Results are cached by the service worker so
+  that repeat visits work offline【511078079400536†L226-L241】. A service worker
+  runs in its own thread and intercepts network requests, returning cached
+  responses when possible【511078079400536†L226-L241】. Favourites are stored
+  using `localStorage`, which persists key/value pairs across browser sessions
+  for the same origin【604651977893355†L193-L204】.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Local Explorer</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-    <meta name="theme-color" content="#f8f7f2">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="keys.js"></script>
-  <style>
-    :root {
-      /* Modern rugged naval explorer palette */
-      --background: #f5f5f2; /* off‑white */
-      --card: #061f3e;      /* deep navy blue reminiscent of naval uniforms */
-      --primary: #e95420;   /* bright orange accent for call‑to‑actions */
-      --secondary: #0a324a; /* dark teal for secondary highlights */
-      --text-dark: #061f3e;
-      --text-light: #ffffff;
-      --accent: #b38a5e;    /* rope‑tan accent colour */
-      --radius: 12px;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      font-family: 'Raleway', sans-serif;
-      background-color: var(--background);
-      color: var(--text-dark);
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      overscroll-behavior: contain; /* Prevent scroll bounce on mobile */
-    }
-    h1, h2, h3 {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: var(--card);
-      text-align: center;
-      padding: 1rem 0;
-      letter-spacing: 0.05rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      border-bottom: 3px solid var(--accent);
-    }
-    #locationDisplay {
-      text-align: center;
-      margin-bottom: 0.5rem;
-      font-size: 0.95rem;
-      color: var(--card);
-      font-weight: 500;
-      letter-spacing: 0.02rem;
-    }
-    #manualInputContainer {
-      display: none;
-      margin: 0.5rem auto;
-      max-width: 90%;
-    }
-    #manualInputContainer input {
-      width: 100%;
-      padding: 0.6rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--accent);
-      font-size: 1rem;
-      background-color: var(--background);
-      color: var(--card);
-      outline: none;
-    }
-    #factWidget {
-      background-color: var(--secondary);
-      color: var(--text-light);
-      margin: 0.5rem auto;
-      padding: 0.75rem 1rem;
-      border-radius: var(--radius);
-      max-width: 90%;
-      min-height: 80px;
-      border: 2px dashed var(--accent);
-      position: relative;
-      overflow: hidden;
-      font-size: 0.95rem;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: flex-start;
-      /* Add subtle drop shadow to distinguish the facts widget */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-    }
-    /* Fact widget header */
-    #factHeader {
-      display: flex;
-      align-items: center;
-      position: relative;
-      width: 100%;
-      margin-bottom: 0.3rem;
-    }
-    #factHeader #factTitle {
-      font-size: 0.95rem;
-      font-family: 'Poppins', sans-serif;
-      color: var(--text-light);
-      letter-spacing: 0.03rem;
-      flex-grow: 1;
-      text-align: center;
-    }
-    #toggleFacts {
-      background: none;
-      border: none;
-      color: var(--text-light);
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    /* Position the toggle icon to the top right of the header */
-    #factHeader #toggleFacts {
-      position: absolute;
-      right: 0;
-      top: 0;
-  s }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Explorer</title>
+  <!-- Link the manifest file for PWA installation -->
+  <link rel="manifest" href="manifest.json">
+  <!-- App icons for browsers and OS shortcuts -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <!-- Theme color for mobile address bar -->
+  <meta name="theme-color" content="#f8f7f2">
+  <!-- Include Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Load API keys from external file early so global variables are available -->
+  <script src="keys.js"></script>
+  <style>
+    :root {
+      /* Modern rugged naval explorer palette */
+      --background: #f5f5f2; /* off‑white */
+      --card: #061f3e;      /* deep navy blue reminiscent of naval uniforms */
+      --primary: #e95420;   /* bright orange accent for call‑to‑actions */
+      --secondary: #0a324a; /* dark teal for secondary highlights */
+      --text-dark: #061f3e;
+      --text-light: #ffffff;
+      --accent: #b38a5e;    /* rope‑tan accent colour */
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Raleway', sans-serif;
+      background-color: var(--background);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: contain; /* Prevent scroll bounce on mobile */
+    }
+    h1, h2, h3 {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--card);
+      text-align: center;
+      padding: 1rem 0;
+      letter-spacing: 0.05rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-bottom: 3px solid var(--accent);
+    }
+    #locationDisplay {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      color: var(--card);
+      font-weight: 500;
+      letter-spacing: 0.02rem;
+    }
+    #manualInputContainer {
+      display: none;
+      margin: 0.5rem auto;
+      max-width: 90%;
+    }
+    #manualInputContainer input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      font-size: 1rem;
+      background-color: var(--background);
+      color: var(--card);
+      outline: none;
+    }
+    #factWidget {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      margin: 0.5rem auto;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      max-width: 90%;
+      min-height: 80px;
+      border: 2px dashed var(--accent);
+      position: relative;
+      overflow: hidden;
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      /* Add subtle drop shadow to distinguish the facts widget */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
 
-    /* Rotate the toggle icon when collapsed */
-    #toggleFacts.rotated {
-      transform: rotate(180deg);
-    }
-    /* Fact deck and navigation */
-    #factDeck {
-      position: relative;
-      width: 100%;
-      overflow: hidden;
-      /* Add horizontal padding so navigation arrows don’t overlap cards */
-      padding: 0 1.5rem;
-    }
-    #factCardsWrapper {
-      display: flex;
-      transition: transform 0.4s ease;
-      width: 100%;
-    }
-    .fact-card {
-      flex-shrink: 0;
-      width: 100%;
-      padding: 0.7rem 1rem;
-      /* Add vertical spacing between cards when scrolled */
-      margin: 0.35rem 0;
-      background-color: var(--card);
-      color: var(--text-light);
-      border: 2px solid var(--accent);
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      line-height: 1.4;
-      font-size: 0.9rem;
-      text-align: center;
-    }
-    .nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--secondary);
-      color: var(--text-light);
-      border: 1px solid var(--accent);
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      opacity: 0.85;
-      z-index: 5;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    #prevFact { left: 0.25rem; }
-    #nextFact { right: 0.25rem; }
-    /* Hide deck when collapsed */
-    #factWidget.collapsed #factDeck {
-      display: none;
-    }
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 0.5rem;
-      max-width: 90%;
-      margin: 1rem auto;
-    }
-    .filter-btn {
-      background-color: var(--card);
-      color: var(--text-light);
-      border: 1px solid var(--accent);
-      border-radius: var(--radius);
-      padding: 0.75rem;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      transition: transform 0.1s ease, background-color 0.2s ease;
-    }
-    .filter-btn:active {
-      transform: scale(0.96);
-      background-color: var(--secondary);
-    }
+    /* When no local facts are found, highlight the border to signal fallback mode */
+    #factWidget.no-facts {
+      border-color: var(--primary);
+    }
+    /* Fact widget header */
+    #factHeader {
+      display: flex;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      margin-bottom: 0.3rem;
+    }
+    #factHeader #factTitle {
+      font-size: 0.95rem;
+      font-family: 'Poppins', sans-serif;
+      color: var(--text-light);
+      letter-spacing: 0.03rem;
+      flex-grow: 1;
+      text-align: center;
+    }
+    #toggleFacts {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    /* Position the toggle icon to the top right of the header */
+    #factHeader #toggleFacts {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
 
-    /* Special styling for the support button to evoke a steel anchor */
-    .support-btn {
-      background: linear-gradient(145deg, #48586b, #7b8b9e);
-      color: var(--text-light);
-      border: 1px solid #a4b0bc;
-      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
-    }
-    #primaryActions {
-      max-width: 90%;
-      margin: 1rem auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    #myListBtn, #surpriseBtn {
-      border: none;
-      border-radius: var(--radius);
-      font-size: 1rem;
-      padding: 0.8rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    #myListBtn {
-      background-color: var(--secondary);
-      color: var(--text-light);
-      border: 1px solid var(--accent);
-    }
-    #surpriseBtn {
-      background-color: var(--primary);
-      color: var(--text-light);
-      font-weight: 600;
-      border: 1px solid var(--primary);
-    }
-    #myPlanBtn {
-      background-color: var(--secondary);
-      color: var(--text-light);
-      border: 1px solid var(--accent);
-    }
-    #donateBtn {
-      /* Steel effect for rugged naval style */
-      background: linear-gradient(145deg, #48586b, #7b8b9e);
-      color: var(--text-light);
-      border: 1px solid #a4b0bc;
-      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
-    }
-    #ghostBtn {
-      position: fixed;
-      bottom: 1rem;
-      left: 1rem;
-      background: transparent;
-      border: none;
-      font-size: 2.2rem;
-      opacity: 0.4;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.3s;
-      z-index: 30;
-    }
-    #ghostBtn:hover {
-      opacity: 1;
-      transform: rotate(5deg);
-    }
-    /* Modal overlay */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-    }
-    .modal.active {
-      display: flex;
-      /* Blur underlying content for focus */
-      backdrop-filter: blur(2px);
-    }
+    /* Rotate the toggle icon when collapsed */
+    #toggleFacts.rotated {
+      transform: rotate(180deg);
+    }
+    /* Fact deck and navigation */
+    #factDeck {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      /* Add horizontal padding so navigation arrows don’t overlap cards */
+      padding: 0 1.5rem;
+    }
+    #factCardsWrapper {
+      display: flex;
+      transition: transform 0.4s ease;
+      width: 100%;
+    }
+    .fact-card {
+      flex-shrink: 0;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      /* Add vertical spacing between cards when scrolled */
+      margin: 0.35rem 0;
+      background-color: var(--card);
+      color: var(--text-light);
+      border: 2px solid var(--accent);
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      line-height: 1.4;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.85;
+      z-index: 5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    #prevFact { left: 0.25rem; }
+    #nextFact { right: 0.25rem; }
+    /* Hide deck when collapsed */
+    #factWidget.collapsed #factDeck {
+      display: none;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+      max-width: 90%;
+      margin: 1rem auto;
+    }
+    .filter-btn {
+      background-color: var(--card);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+    }
+    .filter-btn:active {
+      transform: scale(0.96);
+      background-color: var(--secondary);
+    }
 
-    /* When a modal is open, prevent scrolling on body */
-    body.modal-open {
-      overflow: hidden;
-    }
-    .modal-content {
-      background-color: var(--background);
-      border-radius: var(--radius);
-      max-height: 80vh;
-      overflow-y: auto;
-      width: 92%;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-      padding: 1rem;
-      position: relative;
-      border: 2px solid var(--accent);
-      transform: scale(0.95) translateY(20px);
-      transition: transform 0.3s ease;
-    }
+    /* Special styling for the support button to evoke a steel anchor */
+    .support-btn {
+      background: linear-gradient(145deg, #48586b, #7b8b9e);
+      color: var(--text-light);
+      border: 1px solid #a4b0bc;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
+    }
+    #primaryActions {
+      max-width: 90%;
+      margin: 1rem auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    #myListBtn, #surpriseBtn {
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      padding: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    #myListBtn {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+    }
+    #surpriseBtn {
+      background-color: var(--primary);
+      color: var(--text-light);
+      font-weight: 600;
+      border: 1px solid var(--primary);
+    }
+    #myPlanBtn {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+    }
+    #donateBtn {
+      /* Steel effect for rugged naval style */
+      background: linear-gradient(145deg, #48586b, #7b8b9e);
+      color: var(--text-light);
+      border: 1px solid #a4b0bc;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
+    }
+    #ghostBtn {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      background: transparent;
+      border: none;
+      font-size: 2.2rem;
+      opacity: 0.4;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.3s;
+      z-index: 30;
+    }
+    #ghostBtn:hover {
+      opacity: 1;
+      transform: rotate(5deg);
+    }
+    /* Modal overlay */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .modal.active {
+      display: flex;
+      /* Blur underlying content for focus */
+      backdrop-filter: blur(2px);
+    }
 
-    /* Animate modal content expansion */
-    .modal.active .modal-content {
-      transform: scale(1) translateY(0);
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--card);
-      padding: 0.2rem;
-    }
-    .subMenuList button,
-    .results-list button {
-      width: 100%;
-      background: var(--card);
-      color: var(--text-light);
-      border: none;
-      border-radius: var(--radius);
-      padding: 0.75rem;
-      font-size: 0.9rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
+    /* When a modal is open, prevent scrolling on body */
+    body.modal-open {
+      overflow: hidden;
+    }
+    .modal-content {
+      background-color: var(--background);
+      border-radius: var(--radius);
+      max-height: 80vh;
+      overflow-y: auto;
+      width: 92%;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      padding: 1rem;
+      position: relative;
+      border: 2px solid var(--accent);
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.3s ease;
+    }
 
-    /* Special button for surprise actions */
-    .special-btn {
-      background: var(--primary);
-      color: var(--text-light);
-      font-weight: 600;
-    }
-    .subMenuList button:hover,
-    .results-list button:hover {
-      background: #1e293b;
-    }
-    .results-item {
-      display: flex;
-      gap: 0.75rem;
-    }
-    .results-item img {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: var(--radius);
-      flex-shrink: 0;
-    }
-    .results-info {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .results-info h4 {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      font-size: 1rem;
-      color: var(--text-light);
-      letter-spacing: 0.03rem;
-    }
-    .results-info .rating {
-      font-size: 0.8rem;
-      color: #fbbf24;
-    }
-    /* Details sheet */
-    #detailsSheet {
-      position: fixed;
-      left: 0;
-      bottom: 0;
-      width: 100%;
-      height: 70vh;
-      background-color: var(--card);
-      color: var(--text-light);
-      border-radius: 20px 20px 0 0;
-      transform: translateY(100%);
-      transition: transform 0.35s ease;
-      z-index: 25;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    /* Animate modal content expansion */
+    .modal.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--card);
+      padding: 0.2rem;
+    }
+    .subMenuList button,
+    .results-list button {
+      width: 100%;
+      background: var(--card);
+      color: var(--text-light);
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
 
-    /* Details sheet close button */
-    .sheet-close {
-      position: absolute;
-      top: 0.3rem;
-      right: 0.5rem;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--text-light);
-      cursor: pointer;
-    }
-    #detailsSheet.active {
-      transform: translateY(0);
-    }
-    #detailsMap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 40%;
-      background: #000;
-    }
-    #detailsContent {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 60%;
-      overflow-y: auto;
-      padding: 1rem;
-      background: rgba(17,24,39,0.95);
-      backdrop-filter: blur(4px);
-    }
-    #detailsContent h3 {
-      margin-top: 0;
-      font-size: 1.4rem;
-    }
-    #detailsContent .stars {
-      color: #fbbf24;
-      font-size: 1.1rem;
-      margin-right: 0.5rem;
-    }
-    #detailsContent .price {
-      color: #fbbf24;
-      font-size: 1.1rem;
-    }
-    #detailsActions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
-    #detailsActions button {
-      flex: 1;
-      min-width: 100px;
-      border: none;
-      border-radius: var(--radius);
-      padding: 0.5rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    #saveBtn {
-      background: #4b5563;
-      color: var(--text-light);
-    }
-    #openMapsBtn, #websiteBtn {
-      background: #334155;
-      color: var(--text-light);
-    }
-    #shareBtn {
-      background: var(--primary);
-      color: var(--text-light);
-    }
-    #compassBtn {
-      background: #0f172a;
-      color: var(--text-light);
-    }
-    /* Accordion */
-    .accordion {
-      background: #1e293b;
-      color: var(--text-light);
-      border: none;
-      border-radius: var(--radius);
-      padding: 0.75rem;
-      width: 100%;
-      text-align: left;
-      outline: none;
-      cursor: pointer;
-      margin-top: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .accordion-content {
-      background: #1e293b;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-      border-radius: 0 0 var(--radius) var(--radius);
-      padding: 0 0.5rem;
-    }
-    .accordion.active + .accordion-content {
-      max-height: 300px;
-      padding: 0.5rem;
-    }
-    /* My List modal */
-    #myListModal .results-list button {
-      background: var(--card);
-    }
-    #myListModal .empty-state {
-      text-align: center;
-      color: var(--card);
-      font-size: 0.9rem;
-      margin: 1rem 0;
-    }
+    /* Special button for surprise actions */
+    .special-btn {
+      background: var(--primary);
+      color: var(--text-light);
+      font-weight: 600;
+    }
+    .subMenuList button:hover,
+    .results-list button:hover {
+      background: #1e293b;
+    }
+    .results-item {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .results-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .results-info {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .results-info h4 {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      color: var(--text-light);
+      letter-spacing: 0.03rem;
+    }
+    .results-info .rating {
+      font-size: 0.8rem;
+      color: #fbbf24;
+    }
+    /* Details sheet */
+    #detailsSheet {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 70vh;
+      background-color: var(--card);
+      color: var(--text-light);
+      border-radius: 20px 20px 0 0;
+      transform: translateY(100%);
+      transition: transform 0.35s ease;
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-    /* Improve styling for list and plan items */
-    #myListModal .results-list button,
-    #planModal .results-list button {
-      background-color: var(--secondary);
-      border: 1px solid var(--accent);
-      margin-bottom: 0.4rem;
-      padding: 0.7rem;
-    }
-    #myListModal .results-list button:hover,
-    #planModal .results-list button:hover {
-      background-color: #1e293b;
-  s }
-    /* Compass & navigation overlay */
-    #compassOverlay {
-      position: fixed;
-      bottom: 0.5rem;
-      right: 0.5rem;
-      transform: translateY(100%);
-      width: 300px;
-      max-width: 90%;
-      background: var(--card);
-      color: var(--text-light);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      z-index: 40;
-      transition: transform 0.4s ease;
-      overflow: hidden;
-    }
-    #compassOverlay.active {
-      transform: translateY(0);
-    }
-    #compassTop {
-      padding: 1rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-    #compassArrow {
-      width: 0;
-      height: 0;
-      border-top: 45px solid var(--primary);
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      transform-origin: center bottom;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    /* Radar scanning container */
-    #radar {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: radial-gradient(circle at center, rgba(233,84,32,0.4) 0%, transparent 70%);
-      border: 2px solid var(--primary);
-      overflow: hidden;
-    }
-    #miniMap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      overflow: hidden;
-      z-index: 0;
-    }
-    #radar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 100%;
-      height: 100%;
-      transform-origin: left center;
-      background: linear-gradient(to right, transparent, var(--primary) 5%, transparent 15%);
-      animation: radarSweep 6s linear infinite;
-    }
-    @keyframes radarSweep {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    #compassControls {
-      padding: 0.5rem 1rem 1rem 1rem;
-      border-top: 1px solid var(--secondary);
-      background-color: var(--secondary);
-    }
-    #voiceSelect {
-      width: 100%;
-      padding: 0.4rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--accent);
-      margin-bottom: 0.5rem;
-      background-color: var(--card);
-      color: var(--text-light);
-    }
-    #navigationButtons {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    #navigationButtons button {
-      flex: 1;
-      padding: 0.4rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--accent);
-      background-color: var(--card);
-      color: var(--text-light);
-      cursor: pointer;
-s }
-    #navigationButtons button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    #directionsList {
-      max-height: 150px;
-      overflow-y: auto;
-      font-size: 0.85rem;
-      line-height: 1.3;
-    }
+    /* Details sheet close button */
+    .sheet-close {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-light);
+      cursor: pointer;
+    }
+    #detailsSheet.active {
+      transform: translateY(0);
+    }
+    #detailsMap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 40%;
+      background: #000;
+    }
+    #detailsContent {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60%;
+      overflow-y: auto;
+      padding: 1rem;
+      background: rgba(17,24,39,0.95);
+      backdrop-filter: blur(4px);
+    }
+    #detailsContent h3 {
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+    #detailsContent .stars {
+      color: #fbbf24;
+      font-size: 1.1rem;
+      margin-right: 0.5rem;
+    }
+    #detailsContent .price {
+      color: #fbbf24;
+      font-size: 1.1rem;
+    }
+    #detailsActions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    #detailsActions button {
+      flex: 1;
+      min-width: 100px;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    #saveBtn {
+      background: #4b5563;
+      color: var(--text-light);
+    }
+    #openMapsBtn, #websiteBtn {
+      background: #334155;
+      color: var(--text-light);
+    }
+    #shareBtn {
+      background: var(--primary);
+      color: var(--text-light);
+    }
+    #compassBtn {
+      background: #0f172a;
+      color: var(--text-light);
+    }
+    /* Accordion */
+    .accordion {
+      background: #1e293b;
+      color: var(--text-light);
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      width: 100%;
+      text-align: left;
+      outline: none;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .accordion-content {
+      background: #1e293b;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 0 0.5rem;
+    }
+    .accordion.active + .accordion-content {
+      max-height: 300px;
+      padding: 0.5rem;
+    }
+    /* My List modal */
+    #myListModal .results-list button {
+      background: var(--card);
+    }
+    #myListModal .empty-state {
+      text-align: center;
+      color: var(--card);
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
 
-    #radarControls label {
-      color: var(--text-light);
-    }
-    /* Hide map container used for Places Service */
-    #hiddenMap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-    }
-    /* Responsive adjustments */
-    @media (min-width: 768px) {
-      h1 { font-size: 2rem; }
-      #detailsSheet {
-        height: 60vh;
-      }
-      #detailsMap { height: 45%; }
-      #detailsContent { height: 55%; }
-    }
-  </style>
+    /* Improve styling for list and plan items */
+    #myListModal .results-list button,
+    #planModal .results-list button {
+      background-color: var(--secondary);
+      border: 1px solid var(--accent);
+      margin-bottom: 0.4rem;
+      padding: 0.7rem;
+    }
+    #myListModal .results-list button:hover,
+    #planModal .results-list button:hover {
+      background-color: #1e293b;
+    }
+    /* Compass & navigation overlay */
+    #compassOverlay {
+      position: fixed;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      transform: translateY(100%);
+      width: 300px;
+      max-width: 90%;
+      background: var(--card);
+      color: var(--text-light);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 40;
+      transition: transform 0.4s ease;
+      overflow: hidden;
+    }
+    #compassOverlay.active {
+      transform: translateY(0);
+    }
+    #compassTop {
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    #compassArrow {
+      width: 0;
+      height: 0;
+      border-top: 45px solid var(--primary);
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      transform-origin: center bottom;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    /* Radar scanning container */
+    #radar {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(233,84,32,0.4) 0%, transparent 70%);
+      border: 2px solid var(--primary);
+      overflow: hidden;
+    }
+    #miniMap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 0;
+    }
+    #radar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform-origin: left center;
+      background: linear-gradient(to right, transparent, var(--primary) 5%, transparent 15%);
+      animation: radarSweep 6s linear infinite;
+    }
+    @keyframes radarSweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    #compassControls {
+      padding: 0.5rem 1rem 1rem 1rem;
+      border-top: 1px solid var(--secondary);
+      background-color: var(--secondary);
+    }
+    #voiceSelect {
+      width: 100%;
+      padding: 0.4rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      margin-bottom: 0.5rem;
+      background-color: var(--card);
+      color: var(--text-light);
+    }
+    #navigationButtons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    #navigationButtons button {
+      flex: 1;
+      padding: 0.4rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      background-color: var(--card);
+      color: var(--text-light);
+      cursor: pointer;
+    }
+    #navigationButtons button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #directionsList {
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      line-height: 1.3;
+    }
+
+    #radarControls label {
+      color: var(--text-light);
+    }
+    /* Hide map container used for Places Service */
+    #hiddenMap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+      h1 { font-size: 2rem; }
+      #detailsSheet {
+        height: 60vh;
+      }
+      #detailsMap { height: 45%; }
+      #detailsContent { height: 55%; }
+    }
+  </style>
 </head>
 <body>
-  <h1>Local Explorer</h1>
-  <div id="locationDisplay">Determining your location…</div>
-  <div id="manualInputContainer">
-    <input type="text" id="manualInput" placeholder="Enter a location">
-  </div>
-  <div id="factWidget">
-    <div id="factHeader">
-      <span id="factTitle">Local Info</span>
-      <button id="toggleFacts" class="toggle-icon">⚓</button>
-    </div>
-    <div id="factDeck">
-      <button id="prevFact" class="nav-btn">‹</button>
-      <div id="factCardsWrapper"></div>
-      <button id="nextFact" class="nav-btn">›</button>
-    </div>
-  </div>
-  <div class="filters" id="filterGrid">
-      </div>
-  <div id="primaryActions">
-    <button id="myListBtn">📋 My List</button>
-    <button id="myPlanBtn">🗺️ My Plan</button>
-    <button id="surpriseBtn">🤷 Surprise Me!</button>
-  </div>
-  <button id="ghostBtn">👻</button>
+  <h1>Local Explorer</h1>
+  <div id="locationDisplay">Determining your location…</div>
+  <div id="manualInputContainer">
+    <input type="text" id="manualInput" placeholder="Enter a location">
+  </div>
+  <div id="factWidget">
+    <div id="factHeader">
+      <span id="factTitle">Local Info</span>
+      <button id="toggleFacts" class="toggle-icon">⚓</button>
+    </div>
+    <div id="factDeck">
+      <button id="prevFact" class="nav-btn">‹</button>
+      <div id="factCardsWrapper"></div>
+      <button id="nextFact" class="nav-btn">›</button>
+    </div>
+  </div>
+  <div class="filters" id="filterGrid">
+    <!-- Buttons populated by JS -->
+  </div>
+  <div id="primaryActions">
+    <button id="myListBtn">📋 My List</button>
+    <button id="myPlanBtn">🗺️ My Plan</button>
+    <button id="surpriseBtn">🤷 Surprise Me!</button>
+  </div>
+  <button id="ghostBtn">👻</button>
 
-    <div id="hiddenMap"></div>
+  <!-- Hidden map for PlacesService and Geocoder -->
+  <div id="hiddenMap"></div>
 
-    <div id="subMenuModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="subMenuTitle">Categories</h3>
-        <button class="close-btn" id="closeSubMenu">×</button>
-      </div>
-      <div class="subMenuList" id="subMenuList"></div>
-    </div>
-  </div>
+  <!-- Sub‑menu modal -->
+  <div id="subMenuModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="subMenuTitle">Categories</h3>
+        <button class="close-btn" id="closeSubMenu">×</button>
+      </div>
+      <div class="subMenuList" id="subMenuList"></div>
+    </div>
+  </div>
 
-    <div id="resultsModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="resultsTitle">Results</h3>
-        <button class="close-btn" id="closeResults">×</button>
-      </div>
-      <div class="results-list" id="resultsList"></div>
-    </div>
-  </div>
+  <!-- Results modal -->
+  <div id="resultsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="resultsTitle">Results</h3>
+        <button class="close-btn" id="closeResults">×</button>
+      </div>
+      <div class="results-list" id="resultsList"></div>
+    </div>
+  </div>
 
-    <div id="myListModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>My List</h3>
-        <button class="close-btn" id="closeMyList">×</button>
-      </div>
-      <div class="results-list" id="myListContent"></div>
-      <div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div>
-    </div>
-  </div>
+  <!-- My List modal -->
+  <div id="myListModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>My List</h3>
+        <button class="close-btn" id="closeMyList">×</button>
+      </div>
+      <div class="results-list" id="myListContent"></div>
+      <div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div>
+    </div>
+  </div>
 
-    <div id="planModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>My Plan</h3>
-        <button class="close-btn" id="closePlan">×</button>
-      </div>
-      <div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div>
-      <div class="results-list" id="planContent"></div>
-      <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty. Add places to your plan from the details view.</div>
-      <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
-        <button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button>
-      </div>
-    </div>
-  </div>
+  <!-- Plan modal -->
+  <div id="planModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>My Plan</h3>
+        <button class="close-btn" id="closePlan">×</button>
+      </div>
+      <div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div>
+      <div class="results-list" id="planContent"></div>
+      <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty. Add places to your plan from the details view.</div>
+      <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+        <button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button>
+      </div>
+    </div>
+  </div>
 
-    <div id="donateModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Support Local Explorer</h3>
-        <button class="close-btn" id="closeDonate">×</button>
-      </div>
-      <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">
-        If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!
-      </p>
-      <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">
-        Venmo: <strong>@Stephen-Mohamed-1</strong>
-      </p>
-      <div style="display:flex; gap:0.5rem;">
-        <button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button>
-        <button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button>
-      </div>
-    </div>
-  </div>
+  <!-- Donate modal -->
+  <div id="donateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Support Local Explorer</h3>
+        <button class="close-btn" id="closeDonate">×</button>
+      </div>
+      <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">
+        If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!
+      </p>
+      <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">
+        Venmo: <strong>@Stephen-Mohamed-1</strong>
+      </p>
+      <div style="display:flex; gap:0.5rem;">
+        <button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button>
+        <button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button>
+      </div>
+    </div>
+  </div>
 
-    <div id="detailsSheet">
-    <div id="detailsMap"></div>
-    <div id="detailsContent">
-      <button id="closeDetailsBtn" class="sheet-close">×</button>
-      <h3 id="detailsName"></h3>
-      <div id="detailsRating"></div>
-      <div id="detailsPhone"></div>
-      <div id="detailsAddress"></div>
-      <div id="detailsPrice"></div>
-      <div id="detailsActions">
-        <button id="saveBtn">☆ Save</button>
-        <button id="openMapsBtn">📍 Open in Maps</button>
-        <button id="websiteBtn">🔗 Website</button>
-        <button id="shareBtn">🔗 Share</button>
-        <button id="compassBtn">🧭 Compass</button>
-        <button id="addToPlanBtn">🗺️ Add to Plan</button>
-        <button id="toggleStreetBtn">🖼️ Street View</button>
-      </div>
-      <button class="accordion" id="reviewsAccordion">Reviews</button>
-      <div class="accordion-content" id="reviewsContent"></div>
-      <button class="accordion" id="hoursAccordion">Weekly Hours</button>
-      <div class="accordion-content" id="hoursContent"></div>
-    </div>
-  </div>
+  <!-- Details sheet -->
+  <div id="detailsSheet">
+    <div id="detailsMap"></div>
+    <div id="detailsContent">
+      <button id="closeDetailsBtn" class="sheet-close">×</button>
+      <h3 id="detailsName"></h3>
+      <div id="detailsRating"></div>
+      <div id="detailsPhone"></div>
+      <div id="detailsAddress"></div>
+      <div id="detailsPrice"></div>
+      <div id="detailsActions">
+        <button id="saveBtn">☆ Save</button>
+        <button id="openMapsBtn">📍 Open in Maps</button>
+        <button id="websiteBtn">🔗 Website</button>
+        <button id="shareBtn">🔗 Share</button>
+        <button id="compassBtn">🧭 Compass</button>
+        <button id="addToPlanBtn">🗺️ Add to Plan</button>
+        <button id="toggleStreetBtn">🖼️ Street View</button>
+      </div>
+      <button class="accordion" id="reviewsAccordion">Reviews</button>
+      <div class="accordion-content" id="reviewsContent"></div>
+      <button class="accordion" id="hoursAccordion">Weekly Hours</button>
+      <div class="accordion-content" id="hoursContent"></div>
+    </div>
+  </div>
 
-    <div id="compassOverlay">
-    <div id="compassTop">
-      <div id="radar">
-        <div id="miniMap"></div>
-        <div id="compassArrow"></div>
-      </div>
-    </div>
-    <div id="compassControls">
-      <select id="voiceSelect"></select>
-      <div id="navigationButtons">
-        <button id="startNavigationBtn">Start</button>
-        <button id="stopNavigationBtn" disabled>Stop</button>
-        <button id="closeCompassBtn">Close</button>
-      </div>
-      <div id="directionsList"></div>
-      <div id="radarControls">
-        <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Zoom
-          <input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;">
-        </label>
-        <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Brightness
-          <input type="range" id="radarBrightness" min="30" max="100" value="50" style="width:100%;">
-        </label>
-      </div>
-    </div>
-  </div>
+  <!-- Compass & navigation overlay -->
+  <div id="compassOverlay">
+    <div id="compassTop">
+      <div id="radar">
+        <div id="miniMap"></div>
+        <div id="compassArrow"></div>
+      </div>
+    </div>
+    <div id="compassControls">
+      <select id="voiceSelect"></select>
+      <div id="navigationButtons">
+        <button id="startNavigationBtn">Start</button>
+        <button id="stopNavigationBtn" disabled>Stop</button>
+        <button id="closeCompassBtn">Close</button>
+      </div>
+      <div id="directionsList"></div>
+      <div id="radarControls">
+        <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Zoom
+          <input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;">
+        </label>
+        <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Brightness
+          <input type="range" id="radarBrightness" min="30" max="100" value="50" style="width:100%;">
+        </label>
+      </div>
+    </div>
+  </div>
 
-    <script>
-    // Create the script tag for Google Maps after reading the API key from keys.js
-    (function() {
-      // Use the key defined in keys.js, or fall back to the user‑provided key if the
-      // external file fails to load. This ensures the Maps API always receives a key.
-      const fallbackKey = 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
-      const mapsKey = window.MAPS_API_KEY || fallbackKey;
-      const mapsScript = document.createElement('script');
-      mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
-      mapsScript.async = true;
-      mapsScript.defer = true;
-      document.head.appendChild(mapsScript);
-    })();
-    // Utility functions
-    function $(id) { return document.getElementById(id); }
+  <!-- Dynamically inject Google Maps script using the key defined in keys.js -->
+  <script>
+    // Create the script tag for Google Maps after reading the API key from keys.js
+    (function() {
+      // Use the key defined in keys.js, or fall back to the user‑provided key if the
+      // external file fails to load. This ensures the Maps API always receives a key.
+      const fallbackKey = 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
+      const mapsKey = window.MAPS_API_KEY || fallbackKey;
+      const mapsScript = document.createElement('script');
+      mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
+      mapsScript.async = true;
+      mapsScript.defer = true;
+      document.head.appendChild(mapsScript);
+    })();
+    // Utility functions
+    function $(id) { return document.getElementById(id); }
 
-    // Show/hide the ghost Easter egg depending on whether the user is on the main page
-    function hideGhost() {
-      const ghost = $("ghostBtn");
-      if (ghost) ghost.style.display = 'none';
-    }
-    function showGhost() {
-      const ghost = $("ghostBtn");
-      if (ghost) ghost.style.display = 'block';
-    }
+    // Show/hide the ghost Easter egg depending on whether the user is on the main page
+    function hideGhost() {
+      const ghost = $("ghostBtn");
+      if (ghost) ghost.style.display = 'none';
+    }
+    function showGhost() {
+      const ghost = $("ghostBtn");
+      if (ghost) ghost.style.display = 'block';
+    }
 
-    // Store state
-    let currentPosition = null;
-    let currentAddress = '';
-    let map, placesService, geocoder, streetViewPanorama;
-    let currentResults = [];
-    let factInterval;
-    let currentPlaceDetails;
-    let compassWatching = false;
-    let compassWatchId;
-    let miniMap;
+    // Store state
+    let currentPosition = null;
+    let currentAddress = '';
+    let map, placesService, geocoder, streetViewPanorama;
+    let currentResults = [];
+    let factInterval;
+    let currentPlaceDetails;
+    let compassWatching = false;
+    let compassWatchId;
+    let miniMap;
 // Track the visibility of Street View for the details view. By default the
 // panorama is hidden and a static photo is shown instead.
 let streetViewVisible = false;
 
-    // Categories definition
-    const categories = {
-      "Foodie Finds": [
-        { name: "Italian", keyword: "italian restaurant", type: "restaurant" },
-        { name: "Pizza", keyword: "pizza", type: "restaurant" },
-        { name: "Cafes", keyword: "cafe", type: "cafe" },
-        { name: "Bakeries", keyword: "bakery", type: "bakery" },
-        { name: "Sushi", keyword: "sushi", type: "restaurant" }
-      ],
-      "Iconic Sights": [
-        { name: "Tourist Attractions", type: "tourist_attraction" },
-        { name: "Museums", type: "museum" },
-        { name: "Art Galleries", type: "art_gallery" },
-        { name: "Parks", type: "park" },
-        { name: "Landmarks", keyword: "landmark", type: "point_of_interest" }
-      ],
-      "Night Out": [
-        { name: "Bars", type: "bar" },
-        { name: "Night Clubs", type: "night_club" },
-        { name: "Movie Theaters", type: "movie_theater" },
-        { name: "Bowling Alleys", type: "bowling_alley" },
-        { name: "Concert Venues", keyword: "concert", type: "point_of_interest" }
-      ],
-      "Hidden Gems": [
-        { name: "Libraries", type: "library" },
-        { name: "Book Stores", type: "book_store" },
-        { name: "Gardens", keyword: "garden", type: "park" },
-        { name: "Historical Sites", keyword: "historical site", type: "point_of_interest" },
-        { name: "Local Favorites", keyword: "local favorite", type: "point_of_interest" }
-      ],
-      "Pet Friendly": [
-        { name: "Dog Parks", keyword: "dog park", type: "park" },
-        { name: "Pet Stores", type: "pet_store" },
-        { name: "Veterinary Care", type: "veterinary_care" },
-        { name: "Pet Friendly Cafes", keyword: "pet friendly cafe", type: "cafe" },
-        { name: "Pet Friendly Hotels", keyword: "pet friendly hotel", type: "lodging" }
-      ],
-      "Utilities & Help": [
-        { name: "Hospitals", type: "hospital", ignoreRating: true },
-        { name: "Pharmacies", type: "pharmacy", ignoreRating: true },
-        { name: "Police", type: "police", ignoreRating: true },
-        { name: "Gas Stations", type: "gas_station", ignoreRating: true },
-        { name: "ATMs", type: "atm", ignoreRating: true }
-      ],
-      "Dark Side": [
-        { name: "Cemeteries", type: "cemetery", ignoreRating: true },
-        { name: "Funeral Homes", type: "funeral_home", ignoreRating: true },
-        { name: "Psychic", keyword: "psychic", type: "point_of_interest", ignoreRating: true },
-        { name: "Bars", type: "bar", ignoreRating: true },
-        { name: "Haunted Places", keyword: "haunted", type: "point_of_interest", ignoreRating: true }
-      ]
-      ,
-      "Outdoor": [
-        { name: "Parks", type: "park" },
-        { name: "Trails", keyword: "hiking trail", type: "park" },
-        { name: "Nature Reserves", keyword: "nature reserve", type: "park" },
-        { name: "Beaches", keyword: "beach", type: "park" },
-        { name: "Campgrounds", keyword: "campground", type: "campground" }
-      ],
-      "Local Events": [
-        { name: "All Events", value: "all" },
-        { name: "Music", value: "music" },
-        { name: "Sports", value: "sports" },
-        { name: "Comedy", value: "comedy" },
-        { name: "Festivals", value: "festival" }
-      ]
-    };
+    // Fallback quirky travel facts list for when no local facts are available.
+    // These facts are drawn from reliable travel fact resources. Each entry is
+    // cited at the end of the sentence. They provide interesting trivia and
+    // helpful tips to entertain the user when Wikipedia can't return area‑specific
+    // information. If the local facts query returns no results or fails, this
+    // list is used to populate the facts deck, and the fact widget border
+    // changes colour to indicate fallback mode.
+    const quirkyFacts = [
+      "The average person in the United Kingdom has visited 10 countries; Germans have been to eight; the average French person has travelled to five, and only 29% of Americans have even been abroad【62498633393745†L126-L133】.",
+      "Women who vacation at least twice a year have a significantly lower risk of heart attack, while men who don’t take a yearly vacation have a 20% higher risk of death and a 30% greater risk of heart disease【62498633393745†L131-L134】.",
+      "Travelling dramatically lowers stress and increases your sense of connection with people from different cultures【62498633393745†L135-L145】.",
+      "Every country in the European Union guarantees at least four weeks of paid vacation, whereas the United States is the only developed nation without any legally required paid vacation days【62498633393745†L146-L148】.",
+      "France is the most visited country on Earth, welcoming over 82 million international visitors per year; the United States and Spain each draw around 75.6 million travellers【62498633393745†L149-L154】.",
+      "Malaysia’s First World Hotel holds the record as the world’s largest hotel with 7,351 rooms; in second place is the Venetian–Palazzo complex in Las Vegas with 7,117 rooms and over 40 restaurants【62498633393745†L155-L158】.",
+      "Studies show that spending money on travel makes people happier than spending the same amount on material goods【62498633393745†L159-L160】.",
+      "Working during vacation can cut your vacation memories almost in half – researchers found that for every hour you work, you recall 43% fewer vacation memories【62498633393745†L178-L181】.",
+      "Hodophobia is the clinical term for the fear of travelling【62498633393745†L182-L183】.",
+      "Over four billion people flew commercially in 2017, and at peak times more than 16,000 planes are in the air at once【62498633393745†L216-L220】.",
+      "The world’s longest scheduled flight, from Jeddah to Los Angeles, takes about 17 hours; by contrast, the world’s shortest scheduled flight between Westray and Papa Westray in Scotland can last less than a minute【62498633393745†L222-L229】.",
+      "The Arba’een pilgrimage in Iraq is recognised as the world’s largest annual public gathering, drawing millions of participants【62498633393745†L222-L229】.",
+      "Bangkok is currently the most visited city in the world, ahead of London and Paris【62498633393745†L234-L236】.",
+      "Through WWOOF (Worldwide Opportunities on Organic Farms) travellers can work on farms around the world in exchange for free food and accommodation【62498633393745†L174-L175】.",
+      "Scientists have proposed a ‘wanderlust gene’: variations in a dopamine receptor may make some people more prone to seek adventure and travel【62498633393745†L201-L204】."
+    ];
 
-    // Initialize the app after Google script loads
-    function initApp() {
-      map = new google.maps.Map($("hiddenMap"), { center: { lat: 0, lng: 0 }, zoom: 15 });
-      placesService = new google.maps.places.PlacesService(map);
-      geocoder = new google.maps.Geocoder();
-      // Attempt geolocation
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError);
-      } else {
-        showManualInput();
-      }
-      populateFilterButtons();
+    // Categories definition
+    const categories = {
+      "Foodie Finds": [
+        { name: "Italian", keyword: "italian restaurant", type: "restaurant" },
+        { name: "Pizza", keyword: "pizza", type: "restaurant" },
+        { name: "Cafes", keyword: "cafe", type: "cafe" },
+        { name: "Bakeries", keyword: "bakery", type: "bakery" },
+        { name: "Sushi", keyword: "sushi", type: "restaurant" }
+      ],
+      "Iconic Sights": [
+        { name: "Tourist Attractions", type: "tourist_attraction" },
+        { name: "Museums", type: "museum" },
+        { name: "Art Galleries", type: "art_gallery" },
+        { name: "Parks", type: "park" },
+        { name: "Landmarks", keyword: "landmark", type: "point_of_interest" }
+      ],
+      "Night Out": [
+        { name: "Bars", type: "bar" },
+        { name: "Night Clubs", type: "night_club" },
+        { name: "Movie Theaters", type: "movie_theater" },
+        { name: "Bowling Alleys", type: "bowling_alley" },
+        { name: "Concert Venues", keyword: "concert", type: "point_of_interest" }
+      ],
+      "Hidden Gems": [
+        { name: "Libraries", type: "library" },
+        { name: "Book Stores", type: "book_store" },
+        { name: "Gardens", keyword: "garden", type: "park" },
+        { name: "Historical Sites", keyword: "historical site", type: "point_of_interest" },
+        { name: "Local Favorites", keyword: "local favorite", type: "point_of_interest" }
+      ],
+      "Pet Friendly": [
+        { name: "Dog Parks", keyword: "dog park", type: "park" },
+        { name: "Pet Stores", type: "pet_store" },
+        { name: "Veterinary Care", type: "veterinary_care" },
+        { name: "Pet Friendly Cafes", keyword: "pet friendly cafe", type: "cafe" },
+        { name: "Pet Friendly Hotels", keyword: "pet friendly hotel", type: "lodging" }
+      ],
+      "Utilities & Help": [
+        { name: "Hospitals", type: "hospital", ignoreRating: true },
+        { name: "Pharmacies", type: "pharmacy", ignoreRating: true },
+        { name: "Police", type: "police", ignoreRating: true },
+        { name: "Gas Stations", type: "gas_station", ignoreRating: true },
+        { name: "ATMs", type: "atm", ignoreRating: true }
+      ],
+      "Dark Side": [
+        { name: "Cemeteries", type: "cemetery", ignoreRating: true },
+        { name: "Funeral Homes", type: "funeral_home", ignoreRating: true },
+        { name: "Psychic", keyword: "psychic", type: "point_of_interest", ignoreRating: true },
+        { name: "Bars", type: "bar", ignoreRating: true },
+        { name: "Haunted Places", keyword: "haunted", type: "point_of_interest", ignoreRating: true }
+      ]
+      ,
+      "Outdoor": [
+        { name: "Parks", type: "park" },
+        { name: "Trails", keyword: "hiking trail", type: "park" },
+        { name: "Nature Reserves", keyword: "nature reserve", type: "park" },
+        { name: "Beaches", keyword: "beach", type: "park" },
+        { name: "Campgrounds", keyword: "campground", type: "campground" }
+      ],
+      "Local Events": [
+        { name: "All Events", value: "all" },
+        { name: "Music", value: "music" },
+        { name: "Sports", value: "sports" },
+        { name: "Comedy", value: "comedy" },
+        { name: "Festivals", value: "festival" }
+      ]
+    };
 
-      // If a plan is encoded in the URL (as ?plan=...), decode it and load
-      // it into localStorage, then open the plan modal. The data is
-      // expected to be a base64-encoded, URI-encoded JSON string
-      // containing an object with an `items` array.
-      try {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('plan')) {
-          const encoded = params.get('plan');
-          const decoded = decodeURIComponent(atob(encoded));
-          const data = JSON.parse(decoded);
-          if (data && Array.isArray(data.items)) {
-            localStorage.setItem('myPlan', JSON.stringify(data.items));
-            localStorage.removeItem('visitedPlan');
-            // Open the plan modal after a brief delay to allow the UI to initialise
-            setTimeout(() => {
-              loadPlan();
-              $("planModal").classList.add('active');
-              document.body.classList.add('modal-open');
-              hideGhost();
-            }, 500);
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to decode shared plan', e);
-      }
-    }
+    // Initialize the app after Google script loads
+    function initApp() {
+      map = new google.maps.Map($("hiddenMap"), { center: { lat: 0, lng: 0 }, zoom: 15 });
+      placesService = new google.maps.places.PlacesService(map);
+      geocoder = new google.maps.Geocoder();
+      // Attempt geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError);
+      } else {
+        showManualInput();
+      }
+      populateFilterButtons();
 
-    function onLocationSuccess(position) {
-      currentPosition = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      // Reverse geocode to get address
-      reverseGeocode(currentPosition);
-      // Fetch local facts
-      fetchLocalFacts(currentPosition);
-    }
+      // If a plan is encoded in the URL (as ?plan=...), decode it and load
+      // it into localStorage, then open the plan modal. The data is
+      // expected to be a base64-encoded, URI-encoded JSON string
+      // containing an object with an `items` array.
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('plan')) {
+          const encoded = params.get('plan');
+          const decoded = decodeURIComponent(atob(encoded));
+          const data = JSON.parse(decoded);
+          if (data && Array.isArray(data.items)) {
+            localStorage.setItem('myPlan', JSON.stringify(data.items));
+            localStorage.removeItem('visitedPlan');
+            // Open the plan modal after a brief delay to allow the UI to initialise
+            setTimeout(() => {
+              loadPlan();
+              $("planModal").classList.add('active');
+              document.body.classList.add('modal-open');
+              hideGhost();
+            }, 500);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to decode shared plan', e);
+      }
+    }
 
-    function onLocationError(err) {
-      console.warn('Geolocation failed', err);
-      $("locationDisplay").textContent = "Enter a location to begin";
-      showManualInput();
-      // Show a message when we cannot determine location
-      const wrapper = $("factCardsWrapper");
-      if (wrapper) {
-        wrapper.innerHTML = '<div class="fact-card">Enter a location to see nearby facts.</div>';
-        const prevBtnEl = $("prevFact");
-        const nextBtnEl = $("nextFact");
-        if (prevBtnEl && nextBtnEl) {
-          prevBtnEl.style.display = 'none';
-          nextBtnEl.style.display = 'none';
-        }
-      }
-    }
+    function onLocationSuccess(position) {
+      currentPosition = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      // Reverse geocode to get address
+      reverseGeocode(currentPosition);
+      // Fetch local facts
+      fetchLocalFacts(currentPosition);
+    }
 
-    function showManualInput() {
-      $("manualInputContainer").style.display = 'block';
-      const input = $("manualInput");
-      input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          const addr = input.value.trim();
-          if (addr) {
-            geocodeAddress(addr);
-          }
-        }
-      });
-    }
+    function onLocationError(err) {
+      console.warn('Geolocation failed', err);
+      $("locationDisplay").textContent = "Enter a location to begin";
+      showManualInput();
+      // Show a message when we cannot determine location
+      const wrapper = $("factCardsWrapper");
+      if (wrapper) {
+        wrapper.innerHTML = '<div class="fact-card">Enter a location to see nearby facts.</div>';
+        const prevBtnEl = $("prevFact");
+        const nextBtnEl = $("nextFact");
+        if (prevBtnEl && nextBtnEl) {
+          prevBtnEl.style.display = 'none';
+          nextBtnEl.style.display = 'none';
+        }
+      }
+    }
 
-    function geocodeAddress(address) {
-      geocoder.geocode({ address: address }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-          currentPosition = {
-            lat: results[0].geometry.location.lat(),
-            lng: results[0].geometry.location.lng()
-          };
-          currentAddress = results[0].formatted_address;
-          // Display city/state with small coordinates beneath
-          let city = '', state = '';
-          if (results[0].address_components) {
-            results[0].address_components.forEach(comp => {
-              if (comp.types.includes('locality')) city = comp.long_name;
-              if (comp.types.includes('administrative_area_level_1')) state = comp.short_name || comp.long_name;
-            });
-          }
-          let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
-          $("locationDisplay").innerHTML = locStr + '<br><span style="font-size:0.75rem; opacity:0.8;">' + currentPosition.lat.toFixed(4) + ', ' + currentPosition.lng.toFixed(4) + '</span>';
-          fetchLocalFacts(currentPosition);
-        } else {
-          alert('Location not found. Please try again.');
-        }
-      });
-    }
+    function showManualInput() {
+      $("manualInputContainer").style.display = 'block';
+      const input = $("manualInput");
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const addr = input.value.trim();
+          if (addr) {
+            geocodeAddress(addr);
+          }
+        }
+      });
+    }
 
-    function reverseGeocode(pos) {
-      geocoder.geocode({ location: pos }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-          currentAddress = results[0].formatted_address;
-          // Extract city and state for a concise display
-          let city = '', state = '';
-          if (results[0].address_components) {
-            results[0].address_components.forEach(comp => {
-              if (comp.types.includes('locality')) city = comp.long_name;
-              if (comp.types.includes('administrative_area_level_1')) state = comp.short_name || comp.long_name;
-            });
-          }
-          let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
-          $("locationDisplay").innerHTML = locStr + '<br><span style="font-size:0.75rem; opacity:0.8;">' + pos.lat.toFixed(4) + ', ' + pos.lng.toFixed(4) + '</span>';
-        } else {
-          // Fallback: display coordinates if reverse geocoding fails
-          $("locationDisplay").innerHTML = '<span style="font-size:0.85rem;">' + pos.lat.toFixed(4) + ', ' + pos.lng.toFixed(4) + '</span>';
-        }
-      });
-    }
+    function geocodeAddress(address) {
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          currentPosition = {
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng()
+          };
+          currentAddress = results[0].formatted_address;
+          // Display city/state with small coordinates beneath
+          let city = '', state = '';
+          if (results[0].address_components) {
+            results[0].address_components.forEach(comp => {
+              if (comp.types.includes('locality')) city = comp.long_name;
+              if (comp.types.includes('administrative_area_level_1')) state = comp.short_name || comp.long_name;
+            });
+          }
+          let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
+          $("locationDisplay").innerHTML = locStr + '<br><span style="font-size:0.75rem; opacity:0.8;">' + currentPosition.lat.toFixed(4) + ', ' + currentPosition.lng.toFixed(4) + '</span>';
+          fetchLocalFacts(currentPosition);
+        } else {
+          alert('Location not found. Please try again.');
+        }
+      });
+    }
 
-    function populateFilterButtons() {
-      const grid = $("filterGrid");
-      grid.innerHTML = '';
-      Object.keys(categories).forEach(cat => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.innerHTML = `${getIconForCategory(cat)} ${cat}`;
-        btn.addEventListener('click', () => openSubMenu(cat));
-        grid.appendChild(btn);
-      });
+    function reverseGeocode(pos) {
+      geocoder.geocode({ location: pos }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          currentAddress = results[0].formatted_address;
+          // Extract city and state for a concise display
+          let city = '', state = '';
+          if (results[0].address_components) {
+            results[0].address_components.forEach(comp => {
+              if (comp.types.includes('locality')) city = comp.long_name;
+              if (comp.types.includes('administrative_area_level_1')) state = comp.short_name || comp.long_name;
+            });
+          }
+          let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
+          $("locationDisplay").innerHTML = locStr + '<br><span style="font-size:0.75rem; opacity:0.8;">' + pos.lat.toFixed(4) + ', ' + pos.lng.toFixed(4) + '</span>';
+        } else {
+          // Fallback: display coordinates if reverse geocoding fails
+          $("locationDisplay").innerHTML = '<span style="font-size:0.85rem;">' + pos.lat.toFixed(4) + ', ' + pos.lng.toFixed(4) + '</span>';
+        }
+      });
+    }
 
-      // Append donation button near the end of the filter grid
-      const supportBtn = document.createElement('button');
-      supportBtn.className = 'filter-btn support-btn';
-      // Clarify that this button is for donations, not technical support
-      supportBtn.innerHTML = '⚓ Donate';
-      supportBtn.addEventListener('click', () => {
-        $("donateModal").classList.add('active');
-        document.body.classList.add('modal-open');
-        hideGhost();
-      });
-      grid.appendChild(supportBtn);
-    }
+    function populateFilterButtons() {
+      const grid = $("filterGrid");
+      grid.innerHTML = '';
+      Object.keys(categories).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.innerHTML = `${getIconForCategory(cat)} ${cat}`;
+        btn.addEventListener('click', () => openSubMenu(cat));
+        grid.appendChild(btn);
+      });
 
-    function getIconForCategory(cat) {
-      switch (cat) {
-        case 'Foodie Finds': return '🍽️';
-        case 'Iconic Sights': return '🏛️';
-        case 'Night Out': return '🌙';
-        case 'Hidden Gems': return '💎';
-        case 'Pet Friendly': return '🐾';
-        case 'Utilities & Help': return '🛠️';
-        case 'Dark Side': return '👻';
-        case 'Outdoor': return '🌲';
-        case 'Local Events': return '🎟️';
-        default: return '';
-      }
-    }
+      // Append donation button near the end of the filter grid
+      const supportBtn = document.createElement('button');
+      supportBtn.className = 'filter-btn support-btn';
+      // Clarify that this button is for donations, not technical support
+      supportBtn.innerHTML = '⚓ Donate';
+      supportBtn.addEventListener('click', () => {
+        $("donateModal").classList.add('active');
+        document.body.classList.add('modal-open');
+        hideGhost();
+      });
+      grid.appendChild(supportBtn);
+    }
 
-    // Sub menu handling
-    function openSubMenu(categoryName) {
-      // Hide ghost when navigating away from home screen
-      hideGhost();
-      $("subMenuTitle").textContent = categoryName;
-      const list = $("subMenuList");
-      list.innerHTML = '';
-      const items = categories[categoryName];
-      items.forEach(item => {
-        const btn = document.createElement('button');
-        btn.textContent = item.name;
-        btn.addEventListener('click', () => {
-          closeSubMenu();
-          performSearch(categoryName, item);
-        });
-        list.appendChild(btn);
-      });
-      // Foodie Finds special: add Surprise Me button
-      if (categoryName === 'Foodie Finds') {
-        const surpriseBtn = document.createElement('button');
-        surpriseBtn.className = 'special-btn';
-        surpriseBtn.textContent = '🤤 Surprise Me!';
-        surpriseBtn.addEventListener('click', () => {
-          // Randomly pick a subcategory for Foodie Finds
-          const options = categories['Foodie Finds'];
-          const randomItem = options[Math.floor(Math.random() * options.length)];
-          closeSubMenu();
-          performSearch('Foodie Finds', randomItem);
-        });
-        list.appendChild(surpriseBtn);
-      }
-      $("subMenuModal").classList.add('active');
-      document.body.classList.add('modal-open');
-    }
+    function getIconForCategory(cat) {
+      switch (cat) {
+        case 'Foodie Finds': return '🍽️';
+        case 'Iconic Sights': return '🏛️';
+        case 'Night Out': return '🌙';
+        case 'Hidden Gems': return '💎';
+        case 'Pet Friendly': return '🐾';
+        case 'Utilities & Help': return '🛠️';
+        case 'Dark Side': return '👻';
+        case 'Outdoor': return '🌲';
+        case 'Local Events': return '🎟️';
+        default: return '';
+      }
+    }
 
-    function closeSubMenu() {
-      $("subMenuModal").classList.remove('active');
-      document.body.classList.remove('modal-open');
-      showGhost();
-    }
-    $("closeSubMenu").addEventListener('click', closeSubMenu);
+    // Sub menu handling
+    function openSubMenu(categoryName) {
+      // Hide ghost when navigating away from home screen
+      hideGhost();
+      $("subMenuTitle").textContent = categoryName;
+      const list = $("subMenuList");
+      list.innerHTML = '';
+      const items = categories[categoryName];
+      items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.textContent = item.name;
+        btn.addEventListener('click', () => {
+          closeSubMenu();
+          performSearch(categoryName, item);
+        });
+        list.appendChild(btn);
+      });
+      // Foodie Finds special: add Surprise Me button
+      if (categoryName === 'Foodie Finds') {
+        const surpriseBtn = document.createElement('button');
+        surpriseBtn.className = 'special-btn';
+        surpriseBtn.textContent = '🤤 Surprise Me!';
+        surpriseBtn.addEventListener('click', () => {
+          // Randomly pick a subcategory for Foodie Finds
+          const options = categories['Foodie Finds'];
+          const randomItem = options[Math.floor(Math.random() * options.length)];
+          closeSubMenu();
+          performSearch('Foodie Finds', randomItem);
+        });
+        list.appendChild(surpriseBtn);
+      }
+      $("subMenuModal").classList.add('active');
+      document.body.classList.add('modal-open');
+    }
 
-    // Results handling
-    function performSearch(category, item) {
-      if (!currentPosition) {
-        alert('Please provide a location first.');
-        return;
-      }
-      // Handle Local Events separately
-      if (category === 'Local Events') {
-        searchLocalEvents(item);
-        return;
-      }
-      const request = {
-        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
-        radius: 7000,
-        type: item.type || undefined,
-        keyword: item.keyword || undefined,
-        rankBy: google.maps.places.RankBy.PROMINENCE
-      };
-      // Use nearbySearch for relevant results
-      placesService.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          // Filter by rating if needed
-          let filtered = results;
-          if (!item.ignoreRating) {
-            filtered = results.filter(p => p.rating && p.rating >= 4.2 && p.user_ratings_total && p.user_ratings_total >= 20);
-          }
-          // Sort by rating then number of reviews
-          filtered.sort((a,b) => {
-            const rDiff = (b.rating || 0) - (a.rating || 0);
-            if (rDiff !== 0) return rDiff;
-            return (b.user_ratings_total || 0) - (a.user_ratings_total || 0);
-          });
-          currentResults = filtered;
-          displayResults(category, filtered);
-        } else {
-          alert('No results found.');
-        }
-      });
-    }
+    function closeSubMenu() {
+      $("subMenuModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    }
+    $("closeSubMenu").addEventListener('click', closeSubMenu);
 
-    // Search for local events using the Ticketmaster Discovery API.
-    // Note: Replace YOUR_TICKETMASTER_API_KEY with your actual API key.
-    async function searchLocalEvents(item) {
-      if (!currentPosition) {
-        alert('Please provide a location first.');
-        return;
-      }
-      // Use the key from keys.js or fall back to the user‑provided Ticketmaster key
-      const fallbackTicketmasterKey = 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
-      const apiKey = window.TICKETMASTER_API_KEY || fallbackTicketmasterKey;
-      if (!apiKey) {
-        alert('Ticketmaster API key missing. Please define TICKETMASTER_API_KEY in keys.js');
-        return;
-      }
-      const classification = (item.value && item.value !== 'all') ? item.value : '';
-      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=50${classification ? '&classificationName=' + classification : ''}`;
-      try {
-        const resp = await fetch(url);
-        const data = await resp.json();
-        const events = (data._embedded && data._embedded.events) || [];
-        displayEventResults(events, item.name);
-      } catch (err) {
-        console.error(err);
-        alert('Unable to fetch events.');
-      }
-    }
+    // Results handling
+    function performSearch(category, item) {
+      if (!currentPosition) {
+        alert('Please provide a location first.');
+        return;
+      }
+      // Handle Local Events separately
+      if (category === 'Local Events') {
+        searchLocalEvents(item);
+        return;
+      }
+      const request = {
+        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
+        radius: 7000,
+        type: item.type || undefined,
+        keyword: item.keyword || undefined,
+        rankBy: google.maps.places.RankBy.PROMINENCE
+      };
+      // Use nearbySearch for relevant results
+      placesService.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          // Filter by rating if needed
+          let filtered = results;
+          if (!item.ignoreRating) {
+            filtered = results.filter(p => p.rating && p.rating >= 4.2 && p.user_ratings_total && p.user_ratings_total >= 20);
+          }
+          // Sort by rating then number of reviews
+          filtered.sort((a,b) => {
+            const rDiff = (b.rating || 0) - (a.rating || 0);
+            if (rDiff !== 0) return rDiff;
+            return (b.user_ratings_total || 0) - (a.user_ratings_total || 0);
+          });
+          currentResults = filtered;
+          displayResults(category, filtered);
+        } else {
+          alert('No results found.');
+        }
+      });
+    }
 
-    // Display event results in the results modal
-    function displayEventResults(events, subCategory) {
-      const list = $("resultsList");
-      list.innerHTML = '';
-      events.forEach(event => {
-        const btn = document.createElement('button');
-        btn.className = '';
-        const wrapper = document.createElement('div');
-        wrapper.className = 'results-item';
-        const img = document.createElement('img');
-        let imgUrl = null;
-        if (event.images && event.images.length > 0) {
-          // Use the first image
-          imgUrl = event.images[0].url;
-        }
-        img.src = imgUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-        wrapper.appendChild(img);
-        const info = document.createElement('div');
-        info.className = 'results-info';
-        const title = document.createElement('h4');
-        title.textContent = event.name;
-        info.appendChild(title);
-        // Date/time information
-        const dateSpan = document.createElement('span');
-        dateSpan.className = 'rating';
-        if (event.dates && event.dates.start) {
-          const d = event.dates.start.localDate || '';
-          const t = event.dates.start.localTime || '';
-          dateSpan.textContent = d + (t ? ' ' + t : '');
-        } else {
-          dateSpan.textContent = '';
-        }
-        info.appendChild(dateSpan);
-        // Venue and location information
-        const venueSpan = document.createElement('span');
-        venueSpan.className = 'rating';
-        if (event._embedded && event._embedded.venues && event._embedded.venues.length > 0) {
-          const venue = event._embedded.venues[0];
-          const city = venue.city ? venue.city.name : '';
-          const state = venue.state ? (venue.state.name || venue.state.stateCode) : '';
-          const locStr = city && state ? `${city}, ${state}` : city || state;
-          venueSpan.textContent = venue.name + (locStr ? ' — ' + locStr : '');
-        }
-        info.appendChild(venueSpan);
-        // Classification / genre information
-        const classSpan = document.createElement('span');
-        classSpan.className = 'rating';
-        if (event.classifications && event.classifications.length > 0) {
-          const cls = event.classifications[0];
-          const seg = cls.segment && cls.segment.name;
-          const genre = cls.genre && cls.genre.name;
-          const subg = cls.subGenre && cls.subGenre.name;
-          const parts = [];
-          if (genre && genre.toLowerCase() !== 'undefined') parts.push(genre);
-          if (subg && subg.toLowerCase() !== 'undefined' && subg !== genre) parts.push(subg);
-          if (parts.length === 0 && seg) parts.push(seg);
-          classSpan.textContent = parts.join(' / ');
-        }
-        info.appendChild(classSpan);
-        // Price range information
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'rating';
-        if (event.priceRanges && event.priceRanges.length > 0) {
-          const pr = event.priceRanges[0];
-          if (pr.min && pr.max) {
-            priceSpan.textContent = `$${pr.min.toFixed(0)}–$${pr.max.toFixed(0)} ${pr.currency || ''}`;
-          } else if (pr.min) {
-            priceSpan.textContent = `$${pr.min.toFixed(0)}+`;
-          } else if (pr.max) {
-            priceSpan.textContent = `$${pr.max.toFixed(0)}`;
-          }
-        }
-        info.appendChild(priceSpan);
-        wrapper.appendChild(info);
-        btn.appendChild(wrapper);
-        btn.addEventListener('click', () => {
-          if (event.url) window.open(event.url);
-        });
-        list.appendChild(btn);
-      });
-      $("resultsTitle").textContent = subCategory + ' Events';
-      $("resultsModal").classList.add('active');
-      document.body.classList.add('modal-open');
-      hideGhost();
-    }
+    // Search for local events using the Ticketmaster Discovery API.
+    // Note: Replace YOUR_TICKETMASTER_API_KEY with your actual API key.
+    async function searchLocalEvents(item) {
+      if (!currentPosition) {
+        alert('Please provide a location first.');
+        return;
+      }
+      // Use the key from keys.js or fall back to the user‑provided Ticketmaster key
+      const fallbackTicketmasterKey = 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
+      const apiKey = window.TICKETMASTER_API_KEY || fallbackTicketmasterKey;
+      if (!apiKey) {
+        alert('Ticketmaster API key missing. Please define TICKETMASTER_API_KEY in keys.js');
+        return;
+      }
+      const classification = (item.value && item.value !== 'all') ? item.value : '';
+      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=50${classification ? '&classificationName=' + classification : ''}`;
+      try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const events = (data._embedded && data._embedded.events) || [];
+        displayEventResults(events, item.name);
+      } catch (err) {
+        console.error(err);
+        alert('Unable to fetch events.');
+      }
+    }
 
-    function displayResults(category, results) {
-      $("resultsTitle").textContent = `${category} Results`;
-      const list = $("resultsList");
-      list.innerHTML = '';
-      // Determine which places are saved in the current plan and which have been visited
-      const planIds = getPlan().map(p => p.place_id);
-      const visitedIds = getVisitedPlan();
-      results.forEach(place => {
-        const btn = document.createElement('button');
-        btn.addEventListener('click', () => showDetails(place.place_id));
-        const wrapper = document.createElement('div');
-        wrapper.className = 'results-item';
-        // Photo
-        const img = document.createElement('img');
-        if (place.photos && place.photos.length > 0) {
-          img.src = place.photos[0].getUrl({ maxWidth: 80, maxHeight: 80 });
-        } else {
-          img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-        }
-        wrapper.appendChild(img);
-        // Info
-        const info = document.createElement('div');
-        info.className = 'results-info';
-        const title = document.createElement('h4');
-        title.textContent = place.name;
-        info.appendChild(title);
-        const rating = document.createElement('span');
-        rating.className = 'rating';
-        if (place.rating) {
-          rating.textContent = `★${place.rating.toFixed(1)} (${place.user_ratings_total})`;
-        } else {
-          rating.textContent = 'No rating';
-        }
-        info.appendChild(rating);
-        // Visited indicator if the place is in the plan
-        if (planIds.includes(place.place_id)) {
-          const visitSpan = document.createElement('span');
-          visitSpan.className = 'rating';
-          // Show a filled check mark if visited, or an empty box if not yet visited
-          visitSpan.textContent = visitedIds.includes(place.place_id) ? '✔️' : '◻️';
-          visitSpan.style.marginLeft = '0.3rem';
-          info.appendChild(visitSpan);
-        }
-        wrapper.appendChild(info);
-        btn.appendChild(wrapper);
-        list.appendChild(btn);
-      });
-      $("resultsModal").classList.add('active');
-      document.body.classList.add('modal-open');
-      hideGhost();
-    }
-    $("closeResults").addEventListener('click', () => {
-      $("resultsModal").classList.remove('active');
-      document.body.classList.remove('modal-open');
-      showGhost();
-    });
+    // Display event results in the results modal
+    function displayEventResults(events, subCategory) {
+      const list = $("resultsList");
+      list.innerHTML = '';
+      events.forEach(event => {
+        const btn = document.createElement('button');
+        btn.className = '';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'results-item';
+        const img = document.createElement('img');
+        let imgUrl = null;
+        if (event.images && event.images.length > 0) {
+          // Use the first image
+          imgUrl = event.images[0].url;
+        }
+        img.src = imgUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
+        wrapper.appendChild(img);
+        const info = document.createElement('div');
+        info.className = 'results-info';
+        const title = document.createElement('h4');
+        title.textContent = event.name;
+        info.appendChild(title);
+        // Date/time information
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'rating';
+        if (event.dates && event.dates.start) {
+          const d = event.dates.start.localDate || '';
+          const t = event.dates.start.localTime || '';
+          dateSpan.textContent = d + (t ? ' ' + t : '');
+        } else {
+          dateSpan.textContent = '';
+        }
+        info.appendChild(dateSpan);
+        // Venue and location information
+        const venueSpan = document.createElement('span');
+        venueSpan.className = 'rating';
+        if (event._embedded && event._embedded.venues && event._embedded.venues.length > 0) {
+          const venue = event._embedded.venues[0];
+          const city = venue.city ? venue.city.name : '';
+          const state = venue.state ? (venue.state.name || venue.state.stateCode) : '';
+          const locStr = city && state ? `${city}, ${state}` : city || state;
+          venueSpan.textContent = venue.name + (locStr ? ' — ' + locStr : '');
+        }
+        info.appendChild(venueSpan);
+        // Classification / genre information
+        const classSpan = document.createElement('span');
+        classSpan.className = 'rating';
+        if (event.classifications && event.classifications.length > 0) {
+          const cls = event.classifications[0];
+          const seg = cls.segment && cls.segment.name;
+          const genre = cls.genre && cls.genre.name;
+          const subg = cls.subGenre && cls.subGenre.name;
+          const parts = [];
+          if (genre && genre.toLowerCase() !== 'undefined') parts.push(genre);
+          if (subg && subg.toLowerCase() !== 'undefined' && subg !== genre) parts.push(subg);
+          if (parts.length === 0 && seg) parts.push(seg);
+          classSpan.textContent = parts.join(' / ');
+        }
+        info.appendChild(classSpan);
+        // Price range information
+        const priceSpan = document.createElement('span');
+        priceSpan.className = 'rating';
+        if (event.priceRanges && event.priceRanges.length > 0) {
+          const pr = event.priceRanges[0];
+          if (pr.min && pr.max) {
+            priceSpan.textContent = `$${pr.min.toFixed(0)}–$${pr.max.toFixed(0)} ${pr.currency || ''}`;
+          } else if (pr.min) {
+            priceSpan.textContent = `$${pr.min.toFixed(0)}+`;
+          } else if (pr.max) {
+            priceSpan.textContent = `$${pr.max.toFixed(0)}`;
+          }
+        }
+        info.appendChild(priceSpan);
+        wrapper.appendChild(info);
+        btn.appendChild(wrapper);
+        btn.addEventListener('click', () => {
+          if (event.url) window.open(event.url);
+        });
+        list.appendChild(btn);
+      });
+      $("resultsTitle").textContent = subCategory + ' Events';
+      $("resultsModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+    }
 
-    // Allow closing the results modal by tapping outside its content
-    $("resultsModal").addEventListener('click', (e) => {
-      if (e.target.id === 'resultsModal') {
-        $("resultsModal").classList.remove('active');
-        document.body.classList.remove('modal-open');
-        showGhost();
-      }
-    });
+    function displayResults(category, results) {
+      $("resultsTitle").textContent = `${category} Results`;
+      const list = $("resultsList");
+      list.innerHTML = '';
+      // Determine which places are saved in the current plan and which have been visited
+      const planIds = getPlan().map(p => p.place_id);
+      const visitedIds = getVisitedPlan();
+      results.forEach(place => {
+        const btn = document.createElement('button');
+        btn.addEventListener('click', () => showDetails(place.place_id));
+        const wrapper = document.createElement('div');
+        wrapper.className = 'results-item';
+        // Photo
+        const img = document.createElement('img');
+        if (place.photos && place.photos.length > 0) {
+          img.src = place.photos[0].getUrl({ maxWidth: 80, maxHeight: 80 });
+        } else {
+          img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
+        }
+        wrapper.appendChild(img);
+        // Info
+        const info = document.createElement('div');
+        info.className = 'results-info';
+        const title = document.createElement('h4');
+        title.textContent = place.name;
+        info.appendChild(title);
+        const rating = document.createElement('span');
+        rating.className = 'rating';
+        if (place.rating) {
+          rating.textContent = `★${place.rating.toFixed(1)} (${place.user_ratings_total})`;
+        } else {
+          rating.textContent = 'No rating';
+        }
+        info.appendChild(rating);
+        // Visited indicator if the place is in the plan
+        if (planIds.includes(place.place_id)) {
+          const visitSpan = document.createElement('span');
+          visitSpan.className = 'rating';
+          // Show a filled check mark if visited, or an empty box if not yet visited
+          visitSpan.textContent = visitedIds.includes(place.place_id) ? '✔️' : '◻️';
+          visitSpan.style.marginLeft = '0.3rem';
+          info.appendChild(visitSpan);
+        }
+        wrapper.appendChild(info);
+        btn.appendChild(wrapper);
+        list.appendChild(btn);
+      });
+      $("resultsModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+    }
+    $("closeResults").addEventListener('click', () => {
+      $("resultsModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    });
 
-    // Surprise Me search
-    $("surpriseBtn").addEventListener('click', () => {
-      if (!currentPosition) {
-        alert('Please allow geolocation or search for a location first.');
-        return;
-      }
-      const request = {
-        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
-        radius: 8000,
-        rankBy: google.maps.places.RankBy.PROMINENCE,
-        type: ['tourist_attraction', 'point_of_interest']
-      };
-      placesService.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const good = results.filter(p => p.rating && p.rating >= 4.5 && p.user_ratings_total >= 50);
-          if (good.length > 0) {
-            const randomPlace = good[Math.floor(Math.random() * good.length)];
-            showDetails(randomPlace.place_id);
-          } else {
-            alert('No high‑quality places found nearby.');
-          }
-        } else {
-          alert('No results found.');
-        }
-      });
-    });
+    // Allow closing the results modal by tapping outside its content
+    $("resultsModal").addEventListener('click', (e) => {
+      if (e.target.id === 'resultsModal') {
+        $("resultsModal").classList.remove('active');
+        document.body.classList.remove('modal-open');
+        showGhost();
+      }
+    });
 
-    // Dark side Easter egg opens the Dark Side category menu
-    $("ghostBtn").addEventListener('click', () => {
-      openSubMenu('Dark Side');
-    });
+    // Surprise Me search
+    $("surpriseBtn").addEventListener('click', () => {
+      if (!currentPosition) {
+        alert('Please allow geolocation or search for a location first.');
+        return;
+      }
+      const request = {
+        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
+        radius: 8000,
+        rankBy: google.maps.places.RankBy.PROMINENCE,
+        type: ['tourist_attraction', 'point_of_interest']
+      };
+      placesService.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          const good = results.filter(p => p.rating && p.rating >= 4.5 && p.user_ratings_total >= 50);
+          if (good.length > 0) {
+            const randomPlace = good[Math.floor(Math.random() * good.length)];
+            showDetails(randomPlace.place_id);
+          } else {
+            alert('No high‑quality places found nearby.');
+          }
+        } else {
+          alert('No results found.');
+        }
+      });
+    });
 
-    // Results details view
-    function showDetails(placeId) {
-      placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','photos','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          currentPlaceDetails = place;
-          // Prepare Street View panorama and default to hidden. We request
-          // the panorama near the place and if none is available we
-          // position the viewer at the place's coordinates. After
-          // initialising, we hide the panorama and show a static photo.
-          const loc = place.geometry.location;
-          const streetService = new google.maps.StreetViewService();
-          streetService.getPanorama({ location: loc, radius: 50 }, (data, status) => {
-            let panoOptions;
-            if (status === google.maps.StreetViewStatus.OK && data && data.location) {
-              panoOptions = { pano: data.location.pano, pov: { heading: 270, pitch: 0 }, zoom: 1 };
-            } else {
-              panoOptions = { position: loc, pov: { heading: 0, pitch: 0 }, zoom: 0 };
-            }
-            if (!streetViewPanorama) {
-              streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), panoOptions);
-            } else {
-              if (panoOptions.pano) {
-                streetViewPanorama.setPano(panoOptions.pano);
-              } else {
-                streetViewPanorama.setPosition(panoOptions.position);
-              }
-              streetViewPanorama.setPov(panoOptions.pov);
-              streetViewPanorama.setZoom(panoOptions.zoom);
-            }
-            // Hide the panorama initially
-            streetViewVisible = false;
-            streetViewPanorama.setVisible(false);
-            // Apply static background image if available
-            if (place.photos && place.photos.length > 0) {
-              const photoUrl = place.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
-              $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
-              $("detailsMap").style.backgroundSize = 'cover';
-              $("detailsMap").style.backgroundPosition = 'center';
-            } else {
-              $("detailsMap").style.backgroundImage = '';
-            }
-            const tBtn = $("toggleStreetBtn");
-            if (tBtn) tBtn.textContent = '🖼️ Street View';
-          });
-          // Name
-          $("detailsName").textContent = place.name;
-          // Rating and price
-          let starStr = '';
-          if (place.rating) {
-            const full = Math.floor(place.rating);
-            const half = (place.rating - full) >= 0.5;
-            starStr = '★'.repeat(full) + (half ? '½' : '') + ` (${place.rating.toFixed(1)})`;
-          }
-          $("detailsRating").textContent = starStr;
-          $("detailsPrice").textContent = place.price_level ? '$'.repeat(place.price_level) : '';
-          $("detailsPhone").textContent = place.formatted_phone_number || '';
-          $("detailsAddress").textContent = place.formatted_address || '';
-          // Save button state
-          updateSaveButtonState(place.place_id);
-          // Reviews
-          populateReviews(place.reviews || []);
-          // Hours
-          populateHours(place.opening_hours);
-          // Actions
-          $("openMapsBtn").onclick = () => {
-            window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`);
-          };
-          $("websiteBtn").style.display = place.website ? 'inline-flex' : 'none';
-          $("websiteBtn").onclick = () => {
-            if (place.website) window.open(place.website);
-          };
-          $("shareBtn").onclick = () => {
-            if (navigator.share) {
-              navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(err => console.log(err));
-            } else {
-              alert('Sharing not supported on this device.');
-            }
-          };
-          $("compassBtn").onclick = () => openCompass(loc);
-          // Bind Street View toggle
-          $("toggleStreetBtn").onclick = toggleStreetView;
-          // Show sheet and lock background scroll
-          $("detailsSheet").classList.add('active');
-          document.body.classList.add('modal-open');
-          hideGhost();
-        }
-      });
-    }
+    // Dark side Easter egg opens the Dark Side category menu
+    $("ghostBtn").addEventListener('click', () => {
+      openSubMenu('Dark Side');
+    });
 
-    // Close details sheet helper
-    function closeDetails() {
-      $("detailsSheet").classList.remove('active');
-      document.body.classList.remove('modal-open');
-      showGhost();
-    }
+    // Results details view
+    function showDetails(placeId) {
+      placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','photos','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          currentPlaceDetails = place;
+          // Prepare Street View panorama and default to hidden. We request
+          // the panorama near the place and if none is available we
+          // position the viewer at the place's coordinates. After
+          // initialising, we hide the panorama and show a static photo.
+          const loc = place.geometry.location;
+          const streetService = new google.maps.StreetViewService();
+          streetService.getPanorama({ location: loc, radius: 50 }, (data, status) => {
+            let panoOptions;
+            if (status === google.maps.StreetViewStatus.OK && data && data.location) {
+              panoOptions = { pano: data.location.pano, pov: { heading: 270, pitch: 0 }, zoom: 1 };
+            } else {
+              panoOptions = { position: loc, pov: { heading: 0, pitch: 0 }, zoom: 0 };
+            }
+            if (!streetViewPanorama) {
+              streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), panoOptions);
+            } else {
+              if (panoOptions.pano) {
+                streetViewPanorama.setPano(panoOptions.pano);
+              } else {
+                streetViewPanorama.setPosition(panoOptions.position);
+              }
+              streetViewPanorama.setPov(panoOptions.pov);
+              streetViewPanorama.setZoom(panoOptions.zoom);
+            }
+            // Hide the panorama initially
+            streetViewVisible = false;
+            streetViewPanorama.setVisible(false);
+            // Apply static background image if available
+            if (place.photos && place.photos.length > 0) {
+              const photoUrl = place.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
+              $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
+              $("detailsMap").style.backgroundSize = 'cover';
+              $("detailsMap").style.backgroundPosition = 'center';
+            } else {
+              $("detailsMap").style.backgroundImage = '';
+            }
+            const tBtn = $("toggleStreetBtn");
+            if (tBtn) tBtn.textContent = '🖼️ Street View';
+          });
+          // Name
+          $("detailsName").textContent = place.name;
+          // Rating and price
+          let starStr = '';
+          if (place.rating) {
+            const full = Math.floor(place.rating);
+            const half = (place.rating - full) >= 0.5;
+            starStr = '★'.repeat(full) + (half ? '½' : '') + ` (${place.rating.toFixed(1)})`;
+          }
+          $("detailsRating").textContent = starStr;
+          $("detailsPrice").textContent = place.price_level ? '$'.repeat(place.price_level) : '';
+          $("detailsPhone").textContent = place.formatted_phone_number || '';
+          $("detailsAddress").textContent = place.formatted_address || '';
+          // Save button state
+          updateSaveButtonState(place.place_id);
+          // Reviews
+          populateReviews(place.reviews || []);
+          // Hours
+          populateHours(place.opening_hours);
+          // Actions
+          $("openMapsBtn").onclick = () => {
+            window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`);
+          };
+          $("websiteBtn").style.display = place.website ? 'inline-flex' : 'none';
+          $("websiteBtn").onclick = () => {
+            if (place.website) window.open(place.website);
+          };
+          $("shareBtn").onclick = () => {
+            if (navigator.share) {
+              navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(err => console.log(err));
+            } else {
+              alert('Sharing not supported on this device.');
+            }
+          };
+          $("compassBtn").onclick = () => openCompass(loc);
+          // Bind Street View toggle
+          $("toggleStreetBtn").onclick = toggleStreetView;
+          // Show sheet and lock background scroll
+          $("detailsSheet").classList.add('active');
+          document.body.classList.add('modal-open');
+          hideGhost();
+        }
+      });
+    }
 
-    // Tap outside details content closes sheet
-    $("detailsSheet").addEventListener('click', function(e) {
-      // When clicking on sheet background (not the content overlay)
-      if (e.target.id === 'detailsSheet') {
-        closeDetails();
-      }
-    });
+    // Close details sheet helper
+    function closeDetails() {
+      $("detailsSheet").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    }
 
-    // Close button inside details sheet
-    $("closeDetailsBtn").addEventListener('click', () => {
-      closeDetails();
-    });
+    // Tap outside details content closes sheet
+    $("detailsSheet").addEventListener('click', function(e) {
+      // When clicking on sheet background (not the content overlay)
+      if (e.target.id === 'detailsSheet') {
+        closeDetails();
+      }
+    });
 
-    /*
-      Toggle Street View visibility.
-      Street View imagery is disabled by default to reduce data usage. When
-      activated, the static background image is removed and the panorama
-      becomes visible. Toggling again hides the panorama and restores the
-      photo background if one exists.
-    */
-    function toggleStreetView() {
-      if (!streetViewPanorama) return;
-      streetViewVisible = !streetViewVisible;
-      streetViewPanorama.setVisible(streetViewVisible);
-      const btn = $("toggleStreetBtn");
-      if (streetViewVisible) {
-        if (btn) btn.textContent = '🖼️ Hide Street View';
-        $("detailsMap").style.backgroundImage = '';
-      } else {
-        if (btn) btn.textContent = '🖼️ Street View';
-        if (currentPlaceDetails && currentPlaceDetails.photos && currentPlaceDetails.photos.length > 0) {
-          const photoUrl = currentPlaceDetails.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
-          $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
-          $("detailsMap").style.backgroundSize = 'cover';
-          $("detailsMap").style.backgroundPosition = 'center';
-s       }
-      }
-    }
+    // Close button inside details sheet
+    $("closeDetailsBtn").addEventListener('click', () => {
+      closeDetails();
+    });
 
-    // Populate reviews accordion
-    function populateReviews(reviews) {
-      const reviewsContent = $("reviewsContent");
-      reviewsContent.innerHTML = '';
-      if (!reviews || reviews.length === 0) {
-        reviewsContent.innerHTML = '<p>No reviews available.</p>';
-      } else {
-        reviews.slice(0,5).forEach(r => {
-          const p = document.createElement('p');
-          p.style.marginBottom = '0.5rem';
-          p.textContent = `"${r.text}" — ${r.author_name}`;
-          reviewsContent.appendChild(p);
-        });
-      }
-    }
-    // Populate hours accordion
-    function populateHours(hours) {
-      const hoursContent = $("hoursContent");
-      hoursContent.innerHTML = '';
-      if (!hours || !hours.weekday_text) {
-        hoursContent.innerHTML = '<p>No hours available.</p>';
-      } else {
-        hours.weekday_text.forEach(l => {
-          const p = document.createElement('p');
-          p.textContent = l;
-          hoursContent.appendChild(p);
-        });
-      }
-    }
-    // Accordion toggling
-    function setupAccordions() {
-      document.querySelectorAll('.accordion').forEach(btn => {
-        btn.addEventListener('click', () => {
-          btn.classList.toggle('active');
-          const content = btn.nextElementSibling;
-          if (btn.classList.contains('active')) {
-            content.style.maxHeight = content.scrollHeight + 'px';
-          } else {
-            content.style.maxHeight = null;
-          }
-        });
-      });
-    }
+    /*
+      Toggle Street View visibility.
+      Street View imagery is disabled by default to reduce data usage. When
+      activated, the static background image is removed and the panorama
+      becomes visible. Toggling again hides the panorama and restores the
+      photo background if one exists.
+    */
+    function toggleStreetView() {
+      if (!streetViewPanorama) return;
+      streetViewVisible = !streetViewVisible;
+      streetViewPanorama.setVisible(streetViewVisible);
+      const btn = $("toggleStreetBtn");
+      if (streetViewVisible) {
+        if (btn) btn.textContent = '🖼️ Hide Street View';
+        $("detailsMap").style.backgroundImage = '';
+      } else {
+        if (btn) btn.textContent = '🖼️ Street View';
+        if (currentPlaceDetails && currentPlaceDetails.photos && currentPlaceDetails.photos.length > 0) {
+          const photoUrl = currentPlaceDetails.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
+          $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
+          $("detailsMap").style.backgroundSize = 'cover';
+          $("detailsMap").style.backgroundPosition = 'center';
+        }
+      }
+    }
 
-    // Save functionality using localStorage
-    function getSavedList() {
-      try {
-        const data = localStorage.getItem('myPlaces');
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-    function savePlace(place) {
-      let list = getSavedList();
-      if (!list.find(p => p.place_id === place.place_id)) {
-        // Limit stored places to 50 to avoid unbounded localStorage growth
-        if (list.length >= 50) {
-          list.shift();
-        }
-        list.push({
-          place_id: place.place_id,
-          name: place.name,
-          address: place.formatted_address,
-          rating: place.rating,
-          url: place.url,
-          photo: (place.photos && place.photos.length > 0) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
-        });
-        localStorage.setItem('myPlaces', JSON.stringify(list));
-      }
-    }
-    function removePlace(placeId) {
-      let list = getSavedList();
-      list = list.filter(p => p.place_id !== placeId);
-      localStorage.setItem('myPlaces', JSON.stringify(list));
-    }
-    function updateSaveButtonState(placeId) {
-      const list = getSavedList();
-      const saved = list.some(p => p.place_id === placeId);
-      $("saveBtn").textContent = saved ? '★ Saved' : '☆ Save';
-      $("saveBtn").onclick = () => {
-        if (list.some(p => p.place_id === placeId)) {
-          removePlace(placeId);
-          $("saveBtn").textContent = '☆ Save';
-        } else {
-          savePlace(currentPlaceDetails);
-          $("saveBtn").textContent = '★ Saved';
-        }
-        loadMyList();
-      };
-    }
+    // Populate reviews accordion
+    function populateReviews(reviews) {
+      const reviewsContent = $("reviewsContent");
+      reviewsContent.innerHTML = '';
+      if (!reviews || reviews.length === 0) {
+        reviewsContent.innerHTML = '<p>No reviews available.</p>';
+      } else {
+        reviews.slice(0,5).forEach(r => {
+          const p = document.createElement('p');
+          p.style.marginBottom = '0.5rem';
+          p.textContent = `"${r.text}" — ${r.author_name}`;
+          reviewsContent.appendChild(p);
+        });
+      }
+    }
+    // Populate hours accordion
+    function populateHours(hours) {
+      const hoursContent = $("hoursContent");
+      hoursContent.innerHTML = '';
+      if (!hours || !hours.weekday_text) {
+        hoursContent.innerHTML = '<p>No hours available.</p>';
+      } else {
+        hours.weekday_text.forEach(l => {
+          const p = document.createElement('p');
+          p.textContent = l;
+          hoursContent.appendChild(p);
+        });
+      }
+    }
+    // Accordion toggling
+    function setupAccordions() {
+      document.querySelectorAll('.accordion').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('active');
+          const content = btn.nextElementSibling;
+          if (btn.classList.contains('active')) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+          } else {
+            content.style.maxHeight = null;
+          }
+        });
+      });
+    }
 
-    /*
-      Plan management
-      Allows users to curate a list of places into a shareable plan. Plans are
-      stored in localStorage under the 'myPlan' key. A separate 'visitedPlan'
-      array tracks which places have been marked as visited to provide badge
-      progress for the user.
-    */
-    function getPlan() {
-      try {
-        const data = localStorage.getItem('myPlan');
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-    function savePlan(list) {
-      localStorage.setItem('myPlan', JSON.stringify(list));
-    }
-    function getVisitedPlan() {
-      try {
-        const data = localStorage.getItem('visitedPlan');
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-    function saveVisitedPlan(list) {
-      localStorage.setItem('visitedPlan', JSON.stringify(list));
-    }
-    function addToPlan(place) {
-      let list = getPlan();
-      if (!list.some(p => p.place_id === place.place_id)) {
-        list.push({
-          place_id: place.place_id,
-          name: place.name,
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
-          address: place.formatted_address || '',
-          category: '',
-          photo: (place.photos && place.photos.length) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
-        });
-        savePlan(list);
-      }
-    }
-    function removeFromPlan(placeId) {
-      let list = getPlan();
-      list = list.filter(p => p.place_id !== placeId);
-      savePlan(list);
-    }
-    function toggleVisited(placeId) {
-      let visited = getVisitedPlan();
-      if (visited.includes(placeId)) {
-        visited = visited.filter(id => id !== placeId);
-      } else {
-        visited.push(placeId);
-      }
-      saveVisitedPlan(visited);
-    }
-    function loadPlan() {
-      const list = getPlan();
-      const content = $("planContent");
-      const empty = $("planEmpty");
-      const summary = $("planSummary");
-      content.innerHTML = '';
-      const visited = getVisitedPlan();
-      if (!list.length) {
-        empty.style.display = 'block';
-        summary.textContent = '';
-      } else {
-        empty.style.display = 'none';
-        // Summary and badge calculation
-        const visitedCount = list.filter(item => visited.includes(item.place_id)).length;
-        const totalCount = list.length;
-        let badge = '';
-        const ratio = visitedCount / totalCount;
-        if (ratio === 1) {
-          badge = '🎖️';
-        } else if (ratio >= 0.8) {
-section           badge = '🥇';
-        } else if (ratio >= 0.5) {
-          badge = '🥈';
-        } else if (ratio >= 0.3) {
-          badge = '🥉';
-        } else {
-          badge = '🔰';
-        }
-        summary.textContent = `Visited ${visitedCount} of ${totalCount} places ${badge}`;
-        list.forEach(item => {
-          const btn = document.createElement('button');
-          btn.style.display = 'flex';
-          btn.style.justifyContent = 'space-between';
-          btn.style.alignItems = 'center';
-          btn.style.width = '100%';
-          const wrapper = document.createElement('div');
-          wrapper.className = 'results-item';
-          const img = document.createElement('img');
-          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-          wrapper.appendChild(img);
-          const info = document.createElement('div');
-          info.className = 'results-info';
-          const title = document.createElement('h4');
-          title.textContent = item.name;
-          info.appendChild(title);
-          const visitedSpan = document.createElement('span');
-          visitedSpan.className = 'rating';
-          visitedSpan.textContent = visited.includes(item.place_id) ? 'Visited' : 'Not visited';
-          info.appendChild(visitedSpan);
-          wrapper.appendChild(info);
-          btn.appendChild(wrapper);
-          // Toggle visited on context menu (long press)
-          btn.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            toggleVisited(item.place_id);
-            loadPlan();
-          });
-          // Clicking opens details
-          btn.addEventListener('click', () => {
-            showDetails(item.place_id);
-            closePlan();
-          });
-          content.appendChild(btn);
-        });
-      }
-    }
-    function closePlan() {
-      $("planModal").classList.remove('active');
-      document.body.classList.remove('modal-open');
-      showGhost();
-    }
+    // Save functionality using localStorage
+    function getSavedList() {
+      try {
+        const data = localStorage.getItem('myPlaces');
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function savePlace(place) {
+      let list = getSavedList();
+      if (!list.find(p => p.place_id === place.place_id)) {
+        // Limit stored places to 50 to avoid unbounded localStorage growth
+        if (list.length >= 50) {
+          list.shift();
+        }
+        list.push({
+          place_id: place.place_id,
+          name: place.name,
+          address: place.formatted_address,
+          rating: place.rating,
+          url: place.url,
+          photo: (place.photos && place.photos.length > 0) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
+        });
+        localStorage.setItem('myPlaces', JSON.stringify(list));
+      }
+    }
+    function removePlace(placeId) {
+      let list = getSavedList();
+      list = list.filter(p => p.place_id !== placeId);
+      localStorage.setItem('myPlaces', JSON.stringify(list));
+    }
+    function updateSaveButtonState(placeId) {
+      const list = getSavedList();
+      const saved = list.some(p => p.place_id === placeId);
+      $("saveBtn").textContent = saved ? '★ Saved' : '☆ Save';
+      $("saveBtn").onclick = () => {
+        if (list.some(p => p.place_id === placeId)) {
+          removePlace(placeId);
+          $("saveBtn").textContent = '☆ Save';
+        } else {
+          savePlace(currentPlaceDetails);
+          $("saveBtn").textContent = '★ Saved';
+        }
+        loadMyList();
+      };
+    }
 
-    // Open My Plan modal from the main button
-    $("myPlanBtn").addEventListener('click', () => {
-      loadPlan();
-      $("planModal").classList.add('active');
-      document.body.classList.add('modal-open');
-      hideGhost();
-    });
+    /*
+      Plan management
+      Allows users to curate a list of places into a shareable plan. Plans are
+      stored in localStorage under the 'myPlan' key. A separate 'visitedPlan'
+      array tracks which places have been marked as visited to provide badge
+      progress for the user.
+    */
+    function getPlan() {
+      try {
+        const data = localStorage.getItem('myPlan');
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function savePlan(list) {
+      localStorage.setItem('myPlan', JSON.stringify(list));
+    }
+    function getVisitedPlan() {
+      try {
+        const data = localStorage.getItem('visitedPlan');
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function saveVisitedPlan(list) {
+      localStorage.setItem('visitedPlan', JSON.stringify(list));
+    }
+    function addToPlan(place) {
+      let list = getPlan();
+      if (!list.some(p => p.place_id === place.place_id)) {
+        list.push({
+          place_id: place.place_id,
+          name: place.name,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          address: place.formatted_address || '',
+          category: '',
+          photo: (place.photos && place.photos.length) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
+        });
+        savePlan(list);
+      }
+    }
+    function removeFromPlan(placeId) {
+      let list = getPlan();
+      list = list.filter(p => p.place_id !== placeId);
+      savePlan(list);
+    }
+    function toggleVisited(placeId) {
+      let visited = getVisitedPlan();
+      if (visited.includes(placeId)) {
+        visited = visited.filter(id => id !== placeId);
+      } else {
+        visited.push(placeId);
+      }
+      saveVisitedPlan(visited);
+    }
+    function loadPlan() {
+      const list = getPlan();
+      const content = $("planContent");
+      const empty = $("planEmpty");
+      const summary = $("planSummary");
+      content.innerHTML = '';
+      const visited = getVisitedPlan();
+      if (!list.length) {
+        empty.style.display = 'block';
+        summary.textContent = '';
+      } else {
+        empty.style.display = 'none';
+        // Summary and badge calculation
+        const visitedCount = list.filter(item => visited.includes(item.place_id)).length;
+        const totalCount = list.length;
+        let badge = '';
+        const ratio = visitedCount / totalCount;
+        if (ratio === 1) {
+          badge = '🎖️';
+        } else if (ratio >= 0.8) {
+          badge = '🥇';
+        } else if (ratio >= 0.5) {
+          badge = '🥈';
+        } else if (ratio >= 0.3) {
+          badge = '🥉';
+        } else {
+          badge = '🔰';
+        }
+        summary.textContent = `Visited ${visitedCount} of ${totalCount} places ${badge}`;
+        list.forEach(item => {
+          const btn = document.createElement('button');
+          btn.style.display = 'flex';
+          btn.style.justifyContent = 'space-between';
+          btn.style.alignItems = 'center';
+          btn.style.width = '100%';
+          const wrapper = document.createElement('div');
+          wrapper.className = 'results-item';
+          const img = document.createElement('img');
+          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
+          wrapper.appendChild(img);
+          const info = document.createElement('div');
+          info.className = 'results-info';
+          const title = document.createElement('h4');
+          title.textContent = item.name;
+          info.appendChild(title);
+          const visitedSpan = document.createElement('span');
+          visitedSpan.className = 'rating';
+          visitedSpan.textContent = visited.includes(item.place_id) ? 'Visited' : 'Not visited';
+          info.appendChild(visitedSpan);
+          wrapper.appendChild(info);
+          btn.appendChild(wrapper);
+          // Toggle visited on context menu (long press)
+          btn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            toggleVisited(item.place_id);
+            loadPlan();
+          });
+          // Clicking opens details
+          btn.addEventListener('click', () => {
+            showDetails(item.place_id);
+            closePlan();
+          });
+          content.appendChild(btn);
+        });
+      }
+    }
+    function closePlan() {
+      $("planModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    }
 
-    // Share Plan button handler. Encodes the current plan as a base64
-    // string and appends it as a query parameter to the current URL. If
-    // Web Share API is available the link is passed to navigator.share,
-    // otherwise a prompt is shown so the user can copy the link manually.
-    $("sharePlanBtn").addEventListener('click', () => {
-      const plan = getPlan();
-      if (!plan || plan.length === 0) {
-        alert('Your plan is empty. Add some places before sharing.');
-        return;
-      }
-      try {
-        const data = { items: plan };
-        const json = JSON.stringify(data);
-        const encoded = btoa(encodeURIComponent(json));
-        const base = window.location.origin + window.location.pathname;
-        const url = `${base}?plan=${encoded}`;
-        if (navigator.share) {
-          navigator.share({
-            title: 'My Local Explorer Plan',
-section           text: 'Check out my travel plan on Local Explorer',
-            url: url
-          }).catch(err => console.log(err));
-        } else {
-          window.prompt('Copy and share this link to load your plan:', url);
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Unable to share plan.');
-      }
-    });
+    // Open My Plan modal from the main button
+    $("myPlanBtn").addEventListener('click', () => {
+      loadPlan();
+      $("planModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+    });
 
-    // My List modal
-    $("myListBtn").addEventListener('click', () => {
-      loadMyList();
-      $("myListModal").classList.add('active');
-      document.body.classList.add('modal-open');
-      hideGhost();
-    });
-    $("closeMyList").addEventListener('click', () => {
-      $("myListModal").classList.remove('active');
-      document.body.classList.remove('modal-open');
-      showGhost();
-    });
+    // Share Plan button handler. Encodes the current plan as a base64
+    // string and appends it as a query parameter to the current URL. If
+    // Web Share API is available the link is passed to navigator.share,
+    // otherwise a prompt is shown so the user can copy the link manually.
+    $("sharePlanBtn").addEventListener('click', () => {
+      const plan = getPlan();
+      if (!plan || plan.length === 0) {
+        alert('Your plan is empty. Add some places before sharing.');
+        return;
+      }
+      try {
+        const data = { items: plan };
+        const json = JSON.stringify(data);
+        const encoded = btoa(encodeURIComponent(json));
+        const base = window.location.origin + window.location.pathname;
+        const url = `${base}?plan=${encoded}`;
+        if (navigator.share) {
+          navigator.share({
+            title: 'My Local Explorer Plan',
+            text: 'Check out my travel plan on Local Explorer',
+            url: url
+          }).catch(err => console.log(err));
+        } else {
+          window.prompt('Copy and share this link to load your plan:', url);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Unable to share plan.');
+      }
+    });
 
-    // Close Plan modal via close button
-    $("closePlan").addEventListener('click', () => {
-      closePlan();
-    });
-    // Close Plan modal by tapping outside its content
-    $("planModal").addEventListener('click', (e) => {
-      if (e.target.id === 'planModal') {
-        closePlan();
-      }
-    });
+    // My List modal
+    $("myListBtn").addEventListener('click', () => {
+      loadMyList();
+      $("myListModal").classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+    });
+    $("closeMyList").addEventListener('click', () => {
+      $("myListModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    });
 
-    // Donate button handler opens the Venmo page in a new tab
+    // Close Plan modal via close button
+    $("closePlan").addEventListener('click', () => {
+      closePlan();
+    });
+    // Close Plan modal by tapping outside its content
+    $("planModal").addEventListener('click', (e) => {
+      if (e.target.id === 'planModal') {
+        closePlan();
+      }
+    });
 
-    // Close donate modal
-    $("closeDonate").addEventListener('click', () => {
-      $("donateModal").classList.remove('active');
-      document.body.classList.remove('modal-open');
-      showGhost();
-    });
-    // Also close donate modal when tapping outside content
-    $("donateModal").addEventListener('click', (e) => {
-      if (e.target.id === 'donateModal') {
-        $("donateModal").classList.remove('active');
-        document.body.classList.remove('modal-open');
-        showGhost();
-      }
-    });
-    // Open Venmo page in new tab
-    $("openVenmoBtn").addEventListener('click', () => {
-      const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
-      window.open(venmoUrl);
-    });
-    // Copy Venmo handle to clipboard
-    $("copyVenmoBtn").addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText('@Stephen-Mohamed-1');
-s       alert('Venmo handle copied to clipboard!');
-      } catch (err) {
-        alert('Unable to copy. Please copy manually.');
-      }
-    });
-    function loadMyList() {
-      const list = getSavedList();
-      const content = $("myListContent");
-      const empty = $("myListEmpty");
-      content.innerHTML = '';
-      if (list.length === 0) {
-        empty.style.display = 'block';
-      } else {
-        empty.style.display = 'none';
-        list.forEach(item => {
-          const btn = document.createElement('button');
-          btn.addEventListener('click', () => showDetails(item.place_id));
-          const wrapper = document.createElement('div');
-          wrapper.className = 'results-item';
-          const img = document.createElement('img');
-          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-          wrapper.appendChild(img);
-          const info = document.createElement('div');
-          info.className = 'results-info';
-          const title = document.createElement('h4');
-          title.textContent = item.name;
-          info.appendChild(title);
-          const rating = document.createElement('span');
-          rating.className = 'rating';
-          rating.textContent = item.rating ? `★${item.rating.toFixed(1)}` : '';
-          info.appendChild(rating);
-          wrapper.appendChild(info);
-          btn.appendChild(wrapper);
-          // Delete icon
-          const delSpan = document.createElement('span');
-          delSpan.textContent = '🗑️';
-          btn.appendChild(delSpan);
-          btn.style.justifyContent = 'space-between';
-          btn.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            removePlace(item.place_id);
-section           loadMyList();
-          });
-          content.appendChild(btn);
-        });
-      }
-    }
+    // Donate button handler opens the Venmo page in a new tab
 
-    // Update details sheet close click to use closeDetails()
-    $("detailsSheet").addEventListener('click', (e) => {
-      if (e.target === $("detailsSheet")) {
-        closeDetails();
-      }
-    });
+    // Close donate modal
+    $("closeDonate").addEventListener('click', () => {
+      $("donateModal").classList.remove('active');
+      document.body.classList.remove('modal-open');
+      showGhost();
+    });
+    // Also close donate modal when tapping outside content
+    $("donateModal").addEventListener('click', (e) => {
+      if (e.target.id === 'donateModal') {
+        $("donateModal").classList.remove('active');
+        document.body.classList.remove('modal-open');
+        showGhost();
+      }
+    });
+    // Open Venmo page in new tab
+    $("openVenmoBtn").addEventListener('click', () => {
+      const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
+      window.open(venmoUrl);
+    });
+    // Copy Venmo handle to clipboard
+    $("copyVenmoBtn").addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('@Stephen-Mohamed-1');
+        alert('Venmo handle copied to clipboard!');
+      } catch (err) {
+        alert('Unable to copy. Please copy manually.');
+      }
+    });
+    function loadMyList() {
+      const list = getSavedList();
+      const content = $("myListContent");
+      const empty = $("myListEmpty");
+      content.innerHTML = '';
+      if (list.length === 0) {
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+        list.forEach(item => {
+          const btn = document.createElement('button');
+          btn.addEventListener('click', () => showDetails(item.place_id));
+          const wrapper = document.createElement('div');
+          wrapper.className = 'results-item';
+          const img = document.createElement('img');
+          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
+          wrapper.appendChild(img);
+          const info = document.createElement('div');
+          info.className = 'results-info';
+          const title = document.createElement('h4');
+          title.textContent = item.name;
+          info.appendChild(title);
+          const rating = document.createElement('span');
+          rating.className = 'rating';
+          rating.textContent = item.rating ? `★${item.rating.toFixed(1)}` : '';
+          info.appendChild(rating);
+          wrapper.appendChild(info);
+          btn.appendChild(wrapper);
+          // Delete icon
+          const delSpan = document.createElement('span');
+          delSpan.textContent = '🗑️';
+          btn.appendChild(delSpan);
+          btn.style.justifyContent = 'space-between';
+          btn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            removePlace(item.place_id);
+            loadMyList();
+          });
+          content.appendChild(btn);
+        });
+      }
+    }
 
-    /*
-      Compass & Navigation Logic
+    // Update details sheet close click to use closeDetails()
+    $("detailsSheet").addEventListener('click', (e) => {
+      if (e.target === $("detailsSheet")) {
+        closeDetails();
+      }
+    });
 
-      When a user taps the compass button in the details sheet, a modern navigation
-      overlay slides up from the bottom of the screen. It calculates a route from
-      the user's current location to the selected place using the Google Directions
-      Service, displays the step‑by‑step directions, and provides voice guidance
-      via the Web Speech API. Users can choose from available device voices and
-      start/stop the spoken navigation. A close button hides the overlay and
-      cleans up listeners.
-    */
-    let navigationStopped = false;
-    function openCompass(destLatLng) {
-      const overlay = $("compassOverlay");
-      overlay.classList.add('active');
-      document.body.classList.add('modal-open');
-      hideGhost();
-      // Populate voice selector
-      const voiceSelect = $("voiceSelect");
-      function populateVoices() {
-        const voices = window.speechSynthesis.getVoices();
-        if (!voices || voices.length === 0) return;
-        voiceSelect.innerHTML = '';
-        voices.forEach((voice, idx) => {
-          const opt = document.createElement('option');
-          opt.value = idx;
-          opt.textContent = `${voice.name}${voice.lang ? ' (' + voice.lang + ')' : ''}`;
-          voiceSelect.appendChild(opt);
-        });
-      }
-      populateVoices();
-      // Some browsers load voices asynchronously
-      window.speechSynthesis.onvoiceschanged = populateVoices;
-      // Reset buttons
-      $("startNavigationBtn").disabled = false;
-      $("stopNavigationBtn").disabled = true;
-      // Clear directions list
-      const directionsList = $("directionsList");
-      directionsList.innerHTML = 'Calculating route…';
-      // Initialize compass arrow updates
-      let orientationListener;
-      const updateCompassArrow = (event) => {
-        // Compute heading using Google geometry library
-        if (!currentPosition) return;
-        const heading = google.maps.geometry.spherical.computeHeading(currentPosition, destLatLng);
-        const deviceHeading = event.alpha;
-        if (typeof heading === 'number' && typeof deviceHeading === 'number') {
-          const rotation = heading - deviceHeading;
-          $("compassArrow").style.transform = `rotate(${rotation}deg)`;
-        }
-      };
-      // Request permission for device orientation (iOS) if needed
-      if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
-        window.DeviceOrientationEvent.requestPermission().then(response => {
-          if (response === 'granted') {
-            orientationListener = updateCompassArrow;
-            window.addEventListener('deviceorientation', orientationListener, true);
-          }
-        }).catch(console.error);
-      } else if (window.DeviceOrientationEvent) {
-        orientationListener = updateCompassArrow;
-        window.addEventListener('deviceorientation', orientationListener, true);
-      }
-      // Start watching geolocation for orientation updates
-      if (navigator.geolocation) {
-        if (compassWatchId) navigator.geolocation.clearWatch(compassWatchId);
-s       compassWatchId = navigator.geolocation.watchPosition((pos) => {
-          currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        });
-      }
-      // Use DirectionsService to compute route
-      const directionsService = new google.maps.DirectionsService();
-      directionsService.route({
-        origin: currentPosition,
-        destination: destLatLng,
-        travelMode: google.maps.TravelMode.DRIVING
-      }, (result, status) => {
-        directionsList.innerHTML = '';
-        if (status === google.maps.DirectionsStatus.OK) {
-          const steps = result.routes[0].legs[0].steps;
-          // Populate list
-          steps.forEach((step, index) => {
-            const div = document.createElement('div');
-            div.dataset.index = index;
-            div.innerHTML = step.instructions;
-            directionsList.appendChild(div);
-          });
-          // Start navigation function
-          function startNavigation() {
-            navigationStopped = false;
-            $("startNavigationBtn").disabled = true;
-            $("stopNavigationBtn").disabled = false;
-            let idx = 0;
-            function speakNext() {
-              if (navigationStopped || idx >= steps.length) {
-                $("startNavigationBtn").disabled = false;
-                $("stopNavigationBtn").disabled = true;
-                return;
-              }
-              // Highlight current step
-s             Array.from(directionsList.children).forEach(el => el.classList.remove('active'));
-              const currentEl = directionsList.children[idx];
-              if (currentEl) currentEl.classList.add('active');
-              // Remove HTML tags from instructions and preface with step number
-              const clean = steps[idx].instructions.replace(/<[^>]+>/g, '');
-              const text = `Step ${idx + 1}: ${clean}.`;
-              const utter = new SpeechSynthesisUtterance(text);
-              const voices = window.speechSynthesis.getVoices();
-              const selectedVoice = voices[voiceSelect.value] || voices[0];
-s             utter.voice = selectedVoice;
-              // Slightly lower pitch and slower rate for a rugged, confident tone
-              utter.pitch = 0.85;
-              utter.rate = 0.95;
-              utter.volume = 1;
-              window.speechSynthesis.speak(utter);
-              idx++;
-              utter.onend = () => {
-                if (!navigationStopped) {
-                  // Small delay before next instruction
-                  setTimeout(speakNext, 3000);
-                }
-              };
-            }
-            speakNext();
-s         }
-          function stopNavigation() {
-            navigationStopped = true;
-            window.speechSynthesis.cancel();
-            $("startNavigationBtn").disabled = false;
-            $("stopNavigationBtn").disabled = true;
-          }
-          $("startNavigationBtn").onclick = startNavigation;
-s         $("stopNavigationBtn").onclick = stopNavigation;
-        } else {
-          directionsList.textContent = 'Unable to compute route.';
-        }
-      });
-      // Initialize or update the mini map inside radar
-      if (typeof google !== 'undefined' && google.maps) {
-        if (miniMap) {
-          miniMap.setCenter(destLatLng);
-          miniMap.setZoom(15);
-        } else {
-          miniMap = new google.maps.Map($("miniMap"), {
-            center: destLatLng,
-            zoom: 15,
-            disableDefaultUI: true,
-            gestureHandling: 'none'
-          });
-        }
-      }
-      // Bind radar control sliders
-      const zoomSlider = $("radarZoom");
-  s   const brightnessSlider = $("radarBrightness");
-      if (zoomSlider) {
-        zoomSlider.oninput = () => {
-          const z = parseInt(zoomSlider.value);
-          if (miniMap) miniMap.setZoom(z);
-        };
-      }
-      if (brightnessSlider) {
-        brightnessSlider.oninput = () => {
-          const b = parseInt(brightnessSlider.value);
-          // Adjust overall radar brightness using CSS filter
-          $("radar").style.filter = `brightness(${b/50})`;
-        };
-      }
-      // Close overlay button handler
-      $("closeCompassBtn").onclick = () => {
-        overlay.classList.remove('active');
-        document.body.classList.remove('modal-open');
-        if (navigator.geolocation && compassWatchId) {
-          navigator.geolocation.clearWatch(compassWatchId);
-        }
-        if (orientationListener) {
-          window.removeEventListener('deviceorientation', orientationListener, true);
-s       }
-        window.speechSynthesis.cancel();
-        navigationStopped = true;
-        showGhost();
-      };
-    }
+    /*
+      Compass & Navigation Logic
 
-    // Local facts from Wikipedia
-    async function fetchLocalFacts(pos) {
-      // Cancel any existing fact rotation
-      clearInterval(factInterval);
-      // Show a loading placeholder in the facts deck
-      const deckWrapper = $("factCardsWrapper");
-      if (deckWrapper) {
-        deckWrapper.innerHTML = '<div class="fact-card">Fetching local facts…</div>';
-        factsListGlobal = [];
-        currentFactIndex = 0;
-        updateFactCardPosition();
-      }
-      try {
-        // Query Wikipedia for up to 20 nearby pages within a 20 km radius to gather a wider variety of facts
-        const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=20000&gslimit=20&format=json&origin=*`;
-        const geoData = await fetch(url).then(res => res.json());
+      When a user taps the compass button in the details sheet, a modern navigation
+      overlay slides up from the bottom of the screen. It calculates a route from
+      the user's current location to the selected place using the Google Directions
+      Service, displays the step‑by‑step directions, and provides voice guidance
+      via the Web Speech API. Users can choose from available device voices and
+      start/stop the spoken navigation. A close button hides the overlay and
+      cleans up listeners.
+    */
+    let navigationStopped = false;
+    function openCompass(destLatLng) {
+      const overlay = $("compassOverlay");
+      overlay.classList.add('active');
+      document.body.classList.add('modal-open');
+      hideGhost();
+      // Populate voice selector
+      const voiceSelect = $("voiceSelect");
+      function populateVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return;
+        voiceSelect.innerHTML = '';
+        voices.forEach((voice, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = `${voice.name}${voice.lang ? ' (' + voice.lang + ')' : ''}`;
+          voiceSelect.appendChild(opt);
+        });
+      }
+      populateVoices();
+      // Some browsers load voices asynchronously
+      window.speechSynthesis.onvoiceschanged = populateVoices;
+      // Reset buttons
+      $("startNavigationBtn").disabled = false;
+      $("stopNavigationBtn").disabled = true;
+      // Clear directions list
+      const directionsList = $("directionsList");
+      directionsList.innerHTML = 'Calculating route…';
+      // Initialize compass arrow updates
+      let orientationListener;
+      const updateCompassArrow = (event) => {
+        // Compute heading using Google geometry library
+        if (!currentPosition) return;
+        const heading = google.maps.geometry.spherical.computeHeading(currentPosition, destLatLng);
+        const deviceHeading = event.alpha;
+        if (typeof heading === 'number' && typeof deviceHeading === 'number') {
+          const rotation = heading - deviceHeading;
+          $("compassArrow").style.transform = `rotate(${rotation}deg)`;
+        }
+      };
+      // Request permission for device orientation (iOS) if needed
+      if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+        window.DeviceOrientationEvent.requestPermission().then(response => {
+          if (response === 'granted') {
+            orientationListener = updateCompassArrow;
+            window.addEventListener('deviceorientation', orientationListener, true);
+          }
+        }).catch(console.error);
+      } else if (window.DeviceOrientationEvent) {
+        orientationListener = updateCompassArrow;
+        window.addEventListener('deviceorientation', orientationListener, true);
+      }
+      // Start watching geolocation for orientation updates
+      if (navigator.geolocation) {
+        if (compassWatchId) navigator.geolocation.clearWatch(compassWatchId);
+        compassWatchId = navigator.geolocation.watchPosition((pos) => {
+          currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        });
+      }
+      // Use DirectionsService to compute route
+      const directionsService = new google.maps.DirectionsService();
+      directionsService.route({
+        origin: currentPosition,
+        destination: destLatLng,
+        travelMode: google.maps.TravelMode.DRIVING
+      }, (result, status) => {
+        directionsList.innerHTML = '';
+        if (status === google.maps.DirectionsStatus.OK) {
+          const steps = result.routes[0].legs[0].steps;
+          // Populate list
+          steps.forEach((step, index) => {
+            const div = document.createElement('div');
+            div.dataset.index = index;
+            div.innerHTML = step.instructions;
+            directionsList.appendChild(div);
+          });
+          // Start navigation function
+          function startNavigation() {
+            navigationStopped = false;
+            $("startNavigationBtn").disabled = true;
+            $("stopNavigationBtn").disabled = false;
+            let idx = 0;
+            function speakNext() {
+              if (navigationStopped || idx >= steps.length) {
+                $("startNavigationBtn").disabled = false;
+                $("stopNavigationBtn").disabled = true;
+                return;
+              }
+              // Highlight current step
+              Array.from(directionsList.children).forEach(el => el.classList.remove('active'));
+              const currentEl = directionsList.children[idx];
+              if (currentEl) currentEl.classList.add('active');
+              // Remove HTML tags from instructions and preface with step number
+              const clean = steps[idx].instructions.replace(/<[^>]+>/g, '');
+              const text = `Step ${idx + 1}: ${clean}.`;
+              const utter = new SpeechSynthesisUtterance(text);
+              const voices = window.speechSynthesis.getVoices();
+              const selectedVoice = voices[voiceSelect.value] || voices[0];
+              utter.voice = selectedVoice;
+              // Slightly lower pitch and slower rate for a rugged, confident tone
+              utter.pitch = 0.85;
+              utter.rate = 0.95;
+              utter.volume = 1;
+              window.speechSynthesis.speak(utter);
+              idx++;
+              utter.onend = () => {
+                if (!navigationStopped) {
+                  // Small delay before next instruction
+                  setTimeout(speakNext, 3000);
+                }
+              };
+            }
+            speakNext();
+          }
+          function stopNavigation() {
+            navigationStopped = true;
+            window.speechSynthesis.cancel();
+            $("startNavigationBtn").disabled = false;
+            $("stopNavigationBtn").disabled = true;
+          }
+          $("startNavigationBtn").onclick = startNavigation;
+          $("stopNavigationBtn").onclick = stopNavigation;
+        } else {
+          directionsList.textContent = 'Unable to compute route.';
+        }
+      });
+      // Initialize or update the mini map inside radar
+      if (typeof google !== 'undefined' && google.maps) {
+        if (miniMap) {
+          miniMap.setCenter(destLatLng);
+          miniMap.setZoom(15);
+        } else {
+          miniMap = new google.maps.Map($("miniMap"), {
+            center: destLatLng,
+            zoom: 15,
+            disableDefaultUI: true,
+            gestureHandling: 'none'
+          });
+        }
+      }
+      // Bind radar control sliders
+      const zoomSlider = $("radarZoom");
+      const brightnessSlider = $("radarBrightness");
+      if (zoomSlider) {
+        zoomSlider.oninput = () => {
+          const z = parseInt(zoomSlider.value);
+          if (miniMap) miniMap.setZoom(z);
+        };
+      }
+      if (brightnessSlider) {
+        brightnessSlider.oninput = () => {
+          const b = parseInt(brightnessSlider.value);
+          // Adjust overall radar brightness using CSS filter
+          $("radar").style.filter = `brightness(${b/50})`;
+        };
+      }
+      // Close overlay button handler
+      $("closeCompassBtn").onclick = () => {
+        overlay.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        if (navigator.geolocation && compassWatchId) {
+          navigator.geolocation.clearWatch(compassWatchId);
+        }
+        if (orientationListener) {
+          window.removeEventListener('deviceorientation', orientationListener, true);
+        }
+        window.speechSynthesis.cancel();
+        navigationStopped = true;
+        showGhost();
+      };
+    }
 
-        // Safely get search results, defaulting to an empty array if nothing is found
-        const searchResults = (geoData.query && geoData.query.geosearch) || [];
-        
-        // Default to an empty 'pages' object to prevent errors later
-        let extracts = { query: { pages: {} } };
+    // Local facts from Wikipedia
+    async function fetchLocalFacts(pos) {
+      // Cancel any existing fact rotation
+      clearInterval(factInterval);
+      // Show a loading placeholder in the facts deck
+      const deckWrapper = $("factCardsWrapper");
+      if (deckWrapper) {
+        deckWrapper.innerHTML = '<div class="fact-card">Fetching local facts…</div>';
+        factsListGlobal = [];
+        currentFactIndex = 0;
+        updateFactCardPosition();
+      }
+      // Reset fallback indicator before fetching. It will be set again if no facts are found.
+      const factWidgetEl = $("factWidget");
+      if (factWidgetEl) {
+        factWidgetEl.classList.remove('no-facts');
+      }
+      try {
+        // Query Wikipedia for up to 20 nearby pages within a 20 km radius to gather a wider variety of facts
+        const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=20000&gslimit=20&format=json&origin=*`;
+        const geoData = await fetch(url).then(res => res.json());
+        const pageIds = geoData.query.geosearch.map(item => item.pageid).join('|');
+        // Request the introductory extract for each page. Using exintro and exlimit=max returns a brief intro for every page ID.
+        const extractsUrl = `https://en.wikipedia.org/w/api.php?action=query&pageids=${pageIds}&prop=extracts&explaintext=1&exintro=1&exlimit=max&format=json&origin=*`;
+        const extracts = await fetch(extractsUrl).then(res => res.json());
+        const facts = [];
+        Object.values(extracts.query.pages).forEach(page => {
+          if (page.extract) {
+            // Flatten newlines and remove section headings (e.g., '== References ==')
+            let text = page.extract.replace(/\n+/g, ' ').trim();
+            text = text.replace(/==.*?==/g, '');
+            // Normalize multiple spaces
+            text = text.replace(/\s{2,}/g, ' ').trim();
+            if (text.length >= 50 && text.length <= 280) {
+              facts.push(text);
+            }
+          }
+        });
+        // Remove duplicate facts and use the resulting list for rotation
+        const uniqueFacts = [];
+        facts.forEach(f => {
+          if (!uniqueFacts.includes(f)) uniqueFacts.push(f);
+        });
+        const factsList = uniqueFacts;
+        if (factsList.length > 0) {
+          // Build the interactive fact deck with area-specific facts
+          if (factWidgetEl) factWidgetEl.classList.remove('no-facts');
+          buildFactDeck(factsList);
+        } else {
+          // If there are no local facts, highlight fallback mode and show quirky travel facts instead
+          if (factWidgetEl) factWidgetEl.classList.add('no-facts');
+          buildFactDeck(quirkyFacts);
+        }
+        return;
+      } catch (err) {
+        console.error(err);
+        // On failure, apply fallback mode and show quirky travel facts
+        const factWidgetElCatch = $("factWidget");
+        if (factWidgetElCatch) factWidgetElCatch.classList.add('no-facts');
+        buildFactDeck(quirkyFacts);
+      }
+    }
 
-        if (searchResults.length > 0) { // Only run if we found pages
-          const pageIds = searchResults.map(item => item.pageid).join('|');
-          // Request the introductory extract for each page. Using exintro and exlimit=max returns a brief intro for every page ID.
-          const extractsUrl = `https://en.wikipedia.org/w/api.php?action=query&pageids=${pageIds}&prop=extracts&explaintext=1&exintro=1&exlimit=max&format=json&origin=*`;
-          const extractsResponse = await fetch(extractsUrl).then(res => res.json());
+    /*
+      Fact Deck Controls
 
-          // Also validate this response before assigning it
-          if (extractsResponse.query && extractsResponse.query.pages) {
-            extracts = extractsResponse;
-          }
-        }
+      The facts widget now presents information as a horizontally scrollable
+      deck of cards with left/right navigation and a collapse toggle. The
+      following helper functions build the deck, update its position,
+      handle navigation, and manage auto‑rotation.
+    */
+    function buildFactDeck(array) {
+      factsListGlobal = array || [];
+      const wrapper = $("factCardsWrapper");
+      if (!wrapper) return;
+      wrapper.innerHTML = '';
+      factsListGlobal.forEach(txt => {
+        const card = document.createElement('div');
+        card.className = 'fact-card';
+        card.textContent = txt;
+        wrapper.appendChild(card);
+      });
+      currentFactIndex = 0;
+      updateFactCardPosition();
+      clearInterval(factInterval);
+      factInterval = setInterval(() => {
+        nextFact();
+      }, 8000);
 
-        const facts = [];
-        // This line is now safe, as 'extracts.query.pages' will always exist (even if it's empty)
-        Object.values(extracts.query.pages).forEach(page => {
-          if (page.extract) {
-            // Flatten newlines and remove section headings (e.g., '== References ==')
-            let text = page.extract.replace(/\n+/g, ' ').trim();
-            text = text.replace(/==.*?==/g, '');
-            // Normalize multiple spaces
-            text = text.replace(/\s{2,}/g, ' ').trim();
-            if (text.length >= 50 && text.length <= 280) {
-              facts.push(text);
-            }
-          }
-        });
-        // Remove duplicate facts and use the resulting list for rotation
-        const uniqueFacts = [];
-        facts.forEach(f => {
-          if (!uniqueFacts.includes(f)) uniqueFacts.push(f);
-        });
-        const factsList = uniqueFacts;
-        if (factsList.length > 0) {
-          // Build the interactive fact deck with area-specific facts
-          buildFactDeck(factsList);
-        } else {
-          // If there are no local facts, display a simple message
-          const wrapper = $("factCardsWrapper");
-          if (wrapper) {
-            wrapper.innerHTML = '<div class="fact-card">No local facts found for this area.</div>';
-            // Hide navigation buttons when only one message is shown
-            const prevBtnEl = $("prevFact");
-            const nextBtnEl = $("nextFact");
-section           if (prevBtnEl && nextBtnEl) {
-              prevBtnEl.style.display = 'none';
-              nextBtnEl.style.display = 'none';
-            }
-          }
-        }
-        return;
-      } catch (err) {
-        console.error(err);
-        // On failure, display an informative message instead of generic fallback facts
-        const wrapper = $("factCardsWrapper");
-        if (wrapper) {
-          wrapper.innerHTML = '<div class="fact-card">Unable to fetch facts right now.</div>';
-          const prevBtnEl = $("prevFact");
-          const nextBtnEl = $("nextFact");
-          if (prevBtnEl && nextBtnEl) {
-            prevBtnEl.style.display = 'none';
-s             nextBtnEl.style.display = 'none';
-          }
-        }
-      }
-    }
+      // Show navigation buttons only when there are multiple facts
+      const prevBtnEl = $("prevFact");
+      const nextBtnEl = $("nextFact");
+      if (prevBtnEl && nextBtnEl) {
+        if (factsListGlobal.length > 1) {
+          prevBtnEl.style.display = 'flex';
+          nextBtnEl.style.display = 'flex';
+        } else {
+          prevBtnEl.style.display = 'none';
+          nextBtnEl.style.display = 'none';
+        }
+      }
+    }
 
-    /*
-      Fact Deck Controls
+    function updateFactCardPosition() {
+      const wrapper = $("factCardsWrapper");
+      if (!wrapper) return;
+      wrapper.style.transform = `translateX(-${currentFactIndex * 100}%)`;
+    }
 
-      The facts widget now presents information as a horizontally scrollable
-      deck of cards with left/right navigation and a collapse toggle. The
-      following helper functions build the deck, update its position,
-      handle navigation, and manage auto‑rotation.
-    */
-    function buildFactDeck(array) {
-      factsListGlobal = array || [];
-      const wrapper = $("factCardsWrapper");
-    g   if (!wrapper) return;
-      wrapper.innerHTML = '';
-      factsListGlobal.forEach(txt => {
-        const card = document.createElement('div');
-        card.className = 'fact-card';
-        card.textContent = txt;
-        wrapper.appendChild(card);
-      });
-      currentFactIndex = 0;
-      updateFactCardPosition();
-      clearInterval(factInterval);
-      factInterval = setInterval(() => {
-        nextFact();
-      }, 8000);
+    function nextFact() {
+      if (!factsListGlobal || factsListGlobal.length === 0) return;
+      currentFactIndex = (currentFactIndex + 1) % factsListGlobal.length;
+      updateFactCardPosition();
+    }
 
-      // Show navigation buttons only when there are multiple facts
-      const prevBtnEl = $("prevFact");
-      const nextBtnEl = $("nextFact");
-      if (prevBtnEl && nextBtnEl) {
-        if (factsListGlobal.length > 1) {
-          prevBtnEl.style.display = 'flex';
-          nextBtnEl.style.display = 'flex';
-        } else {
-          prevBtnEl.style.display = 'none';
-          nextBtnEl.style.display = 'none';
-        }
-      }
-    }
+    function prevFact() {
+      if (!factsListGlobal || factsListGlobal.length === 0) return;
+      currentFactIndex = (currentFactIndex - 1 + factsListGlobal.length) % factsListGlobal.length;
+      updateFactCardPosition();
+    }
 
-  s function updateFactCardPosition() {
-      const wrapper = $("factCardsWrapper");
-      if (!wrapper) return;
-      wrapper.style.transform = `translateX(-${currentFactIndex * 100}%)`;
-section   }
+    // Attach navigation and collapse controls once the DOM elements exist
+    (() => {
+      const prevBtn = $("prevFact");
+      const nextBtn = $("nextFact");
+      const toggleBtn = $("toggleFacts");
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          clearInterval(factInterval);
+          prevFact();
+          factInterval = setInterval(nextFact, 8000);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          clearInterval(factInterval);
+          nextFact();
+          factInterval = setInterval(nextFact, 8000);
+        });
+      }
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const widget = $("factWidget");
+          if (widget) {
+            widget.classList.toggle('collapsed');
+            // Toggle rotated class for anchor icon to indicate collapsed state
+            toggleBtn.classList.toggle('rotated');
+          }
+        });
+      }
+    })();
 
-    function nextFact() {
-      if (!factsListGlobal || factsListGlobal.length === 0) return;
-      currentFactIndex = (currentFactIndex + 1) % factsListGlobal.length;
-      updateFactCardPosition();
-    }
+    // Initialize accordions
+    setupAccordions();
 
-    function prevFact() {
-      if (!factsListGlobal || factsListGlobal.length === 0) return;
-      currentFactIndex = (currentFactIndex - 1 + factsListGlobal.length) % factsListGlobal.length;
-      updateFactCardPosition();
-    }
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
 
-    // Attach navigation and collapse controls once the DOM elements exist
-    (() => {
-      const prevBtn = $("prevFact");
-      const nextBtn = $("nextFact");
-      const toggleBtn = $("toggleFacts");
-      if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-s         clearInterval(factInterval);
-          prevFact();
-          factInterval = setInterval(nextFact, 8000);
-        });
-      }
-      if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-          clearInterval(factInterval);
-          nextFact();
-          factInterval = setInterval(nextFact, 8000);
-s       });
-      }
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-          const widget = $("factWidget");
-          if (widget) {
-            widget.classList.toggle('collapsed');
-            // Toggle rotated class for anchor icon to indicate collapsed state
-            toggleBtn.classList.toggle('rotated');
-          }
-        });
-      }
-    })();
-
-    // Initialize accordions
-    setupAccordions();
-
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-  Two   window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
-
-    // Start app after Google Maps script loaded
-    window.initMap = initApp;
-  </script>
+    // Start app after Google Maps script loaded
+    window.initMap = initApp;
+  </script>
 </body>
 </html>
