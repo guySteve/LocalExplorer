@@ -2,7 +2,7 @@
   "name": "Local Explorer",
   "short_name": "LocalExplorer",
   "description": "Discover interesting, essential, or hidden places near you — or anywhere.",
-  "start_url": "local-explorer.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
