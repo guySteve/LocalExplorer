@@ -1,95 +1,379 @@
+<!--
+  Local Explorer Progressive Web App
+  (version anchored to your pasted code; only additions:
+   - declare factsListGlobal/currentFactIndex
+   - hook Add to Plan button)
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Local Explorer</title>
-<link rel="manifest" href="manifest.json" />
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
-<meta name="theme-color" content="#111827" />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet" />
-<script src="keys.js"></script>
-<style>
-/* Add your full CSS here (e.g. body styles, buttons, card styles, voice button, ghost mode, etc.) */
-body {
-margin: 0;
-font-family: 'Raleway', sans-serif;
-background-color: #111827;
-color: #fff;
-display: flex;
-flex-direction: column;
-align-items: center;
-padding: 1rem;
-}
-button {
-background: #2563eb;
-color: white;
-border: none;
-padding: 0.75rem 1.25rem;
-border-radius: 8px;
-cursor: pointer;
-margin: 0.5rem;
-}
-#results-list-screen {
-display: none;
-}
-.card {
-background: #1f2937;
-padding: 1rem;
-margin: 1rem;
-border-radius: 10px;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Local Explorer</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <meta name="theme-color" content="#f8f7f2">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="keys.js"></script>
+
+  <style>
+    :root{
+      --background:#f5f5f2;--card:#061f3e;--primary:#e95420;--secondary:#0a324a;
+      --text-dark:#061f3e;--text-light:#ffffff;--accent:#b38a5e;--radius:12px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Raleway',sans-serif;background:var(--background);color:var(--text-dark);overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:contain}
+    h1,h2,h3{font-family:'Poppins',sans-serif;margin:0}
+    h1{font-size:1.8rem;color:var(--card);text-align:center;padding:1rem 0;letter-spacing:.05rem;text-transform:uppercase;font-weight:700;border-bottom:3px solid var(--accent)}
+    #locationDisplay{text-align:center;margin-bottom:.5rem;font-size:.95rem;color:var(--card);font-weight:500;letter-spacing:.02rem}
+    #manualInputContainer{display:none;margin:.5rem auto;max-width:90%}
+    #manualInputContainer input{width:100%;padding:.6rem;border-radius:var(--radius);border:1px solid var(--accent);font-size:1rem;background:var(--background);color:var(--card);outline:none}
+    #factWidget{background:var(--secondary);color:var(--text-light);margin:.5rem auto;padding:.75rem 1rem;border-radius:var(--radius);max-width:90%;min-height:80px;border:2px dashed var(--accent);position:relative;overflow:hidden;font-size:.95rem;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+    #factHeader{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:.3rem}
+    #factHeader #factTitle{font-size:.95rem;font-family:'Poppins',sans-serif;color:var(--text-light);letter-spacing:.03rem}
+    #toggleFacts{background:none;border:none;color:var(--text-light);font-size:1.1rem;cursor:pointer;transition:transform .3s ease}
+    #toggleFacts.rotated{transform:rotate(180deg)}
+    #factDeck{position:relative;width:100%;overflow:hidden;padding:0 1.5rem}
+    #factCardsWrapper{display:flex;transition:transform .4s ease;width:100%}
+    .fact-card{flex-shrink:0;width:100%;padding:.7rem 1rem;background:var(--card);color:var(--text-light);border:2px solid var(--accent);border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,.4);line-height:1.4;font-size:.9rem;text-align:center}
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:var(--secondary);color:var(--text-light);border:1px solid var(--accent);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.85;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+    #prevFact{left:.25rem} #nextFact{right:.25rem}
+    #factWidget.collapsed #factDeck{display:none}
+    .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;max-width:90%;margin:1rem auto}
+    .filter-btn{background:var(--card);color:var(--text-light);border:1px solid var(--accent);border-radius:var(--radius);padding:.75rem;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem;cursor:pointer;transition:transform .1s ease,background-color .2s ease}
+    .filter-btn:active{transform:scale(.96);background:var(--secondary)}
+    .support-btn{background:linear-gradient(145deg,#48586b,#7b8b9e);color:var(--text-light);border:1px solid #a4b0bc;box-shadow:inset 1px 1px 2px rgba(255,255,255,.3),inset -2px -2px 3px rgba(0,0,0,.4)}
+    #primaryActions{max-width:90%;margin:1rem auto;display:flex;flex-direction:column;gap:.5rem}
+    #myListBtn,#surpriseBtn{border:none;border-radius:var(--radius);font-size:1rem;padding:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem}
+    #myListBtn{background:var(--secondary);color:var(--text-light);border:1px solid var(--accent)}
+    #surpriseBtn{background:var(--primary);color:var(--text-light);font-weight:600;border:1px solid var(--primary)}
+    #myPlanBtn{background:var(--secondary);color:var(--text-light);border:1px solid var(--accent)}
+    #donateBtn{background:linear-gradient(145deg,#48586b,#7b8b9e);color:var(--text-light);border:1px solid #a4b0bc;box-shadow:inset 1px 1px 2px rgba(255,255,255,.3),inset -2px -2px 3px rgba(0,0,0,.4)}
+    #ghostBtn{position:fixed;bottom:1rem;left:1rem;background:transparent;border:none;font-size:2.2rem;opacity:.4;cursor:pointer;transition:opacity .2s,transform .3s;z-index:30}
+    #ghostBtn:hover{opacity:1;transform:rotate(5deg)}
+    .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20}
+    .modal.active{display:flex;backdrop-filter:blur(2px)}
+    body.modal-open{overflow:hidden}
+    .modal-content{background:var(--background);border-radius:var(--radius);max-height:80vh;overflow-y:auto;width:92%;box-shadow:0 4px 14px rgba(0,0,0,.25);padding:1rem;position:relative;border:2px solid var(--accent);transform:scale(.95) translateY(20px);transition:transform .3s ease}
+    .modal.active .modal-content{transform:scale(1) translateY(0)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+    .close-btn{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--card);padding:.2rem}
+    .subMenuList button,.results-list button{width:100%;background:var(--card);color:var(--text-light);border:none;border-radius:var(--radius);padding:.75rem;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;cursor:pointer;transition:background-color .2s}
+    .special-btn{background:var(--primary);color:var(--text-light);font-weight:600}
+    .subMenuList button:hover,.results-list button:hover{background:#1e293b}
+    .results-item{display:flex;gap:.75rem}
+    .results-item img{width:60px;height:60px;object-fit:cover;border-radius:var(--radius);flex-shrink:0}
+    .results-info{flex-grow:1;display:flex;flex-direction:column}
+    .results-info h4{margin:0;font-family:'Poppins',sans-serif;font-size:1rem;color:var(--text-light);letter-spacing:.03rem}
+    .results-info .rating{font-size:.8rem;color:#fbbf24}
+    #detailsSheet{position:fixed;left:0;bottom:0;width:100%;height:70vh;background:var(--card);color:var(--text-light);border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .35s ease;z-index:25;display:flex;flex-direction:column;overflow:hidden}
+    .sheet-close{position:absolute;top:.3rem;right:.5rem;background:none;border:none;font-size:1.5rem;color:var(--text-light);cursor:pointer}
+    #detailsSheet.active{transform:translateY(0)}
+    #detailsMap{position:absolute;top:0;left:0;width:100%;height:40%;background:#000}
+    #detailsContent{position:absolute;bottom:0;left:0;width:100%;height:60%;overflow-y:auto;padding:1rem;background:rgba(17,24,39,.95);backdrop-filter:blur(4px)}
+    #detailsContent h3{margin-top:0;font-size:1.4rem}
+    #detailsContent .stars,#detailsContent .price{color:#fbbf24;font-size:1.1rem}
+    #detailsActions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem}
+    #detailsActions button{flex:1;min-width:100px;border:none;border-radius:var(--radius);padding:.5rem;font-size:.9rem;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:.3rem}
+    #saveBtn{background:#4b5563;color:var(--text-light)}
+    #openMapsBtn,#websiteBtn{background:#334155;color:var(--text-light)}
+    #shareBtn{background:var(--primary);color:var(--text-light)}
+    #compassBtn{background:#0f172a;color:var(--text-light)}
+    .accordion{background:#1e293b;color:var(--text-light);border:none;border-radius:var(--radius);padding:.75rem;width:100%;text-align:left;outline:none;cursor:pointer;margin-top:.5rem;display:flex;justify-content:space-between;align-items:center}
+    .accordion-content{background:#1e293b;max-height:0;overflow:hidden;transition:max-height .3s ease;border-radius:0 0 var(--radius) var(--radius);padding:0 .5rem}
+    .accordion.active + .accordion-content{max-height:300px;padding:.5rem}
+    #myListModal .results-list button{background:var(--card)}
+    #myListModal .empty-state{text-align:center;color:var(--card);font-size:.9rem;margin:1rem 0}
+    #myListModal .results-list button,#planModal .results-list button{background:var(--secondary);border:1px solid var(--accent);margin-bottom:.4rem;padding:.7rem}
+    #myListModal .results-list button:hover,#planModal .results-list button:hover{background:#1e293b}
+    #compassOverlay{position:fixed;bottom:.5rem;right:.5rem;transform:translateY(100%);width:300px;max-width:90%;background:var(--card);color:var(--text-light);border-radius:var(--radius);box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:40;transition:transform .4s ease;overflow:hidden}
+    #compassOverlay.active{transform:translateY(0)}
+    #compassTop{padding:1rem;display:flex;justify-content:center;align-items:center;position:relative}
+    #compassArrow{width:0;height:0;border-top:45px solid var(--primary);border-left:12px solid transparent;border-right:12px solid transparent;transform-origin:center bottom;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(0deg)}
+    #radar{position:relative;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle at center,rgba(233,84,32,.4) 0%,transparent 70%);border:2px solid var(--primary);overflow:hidden}
+    #miniMap{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;overflow:hidden;z-index:0}
+    #radar::before{content:'';position:absolute;top:0;left:50%;width:100%;height:100%;transform-origin:left center;background:linear-gradient(to right,transparent,var(--primary) 5%,transparent 15%);animation:radarSweep 6s linear infinite}
+    @keyframes radarSweep{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    #compassControls{padding:.5rem 1rem 1rem;border-top:1px solid var(--secondary);background:var(--secondary)}
+    #voiceSelect{width:100%;padding:.4rem;border-radius:var(--radius);border:1px solid var(--accent);margin-bottom:.5rem;background:var(--card);color:var(--text-light)}
+    #navigationButtons{display:flex;gap:.5rem;margin-bottom:.5rem}
+    #navigationButtons button{flex:1;padding:.4rem;border-radius:var(--radius);border:1px solid var(--accent);background:var(--card);color:var(--text-light);cursor:pointer}
+    #navigationButtons button:disabled{opacity:.5;cursor:not-allowed}
+    #directionsList{max-height:150px;overflow-y:auto;font-size:.85rem;line-height:1.3}
+    #hiddenMap{position:absolute;top:0;left:0;width:1px;height:1px;overflow:hidden}
+    @media (min-width:768px){
+      h1{font-size:2rem}
+      #detailsSheet{height:60vh}
+      #detailsMap{height:45%}
+      #detailsContent{height:55%}
+    }
+  </style>
 </head>
 <body>
-<h1>Local Explorer</h1>
+  <h1>Local Explorer</h1>
+  <div id="locationDisplay">Determining your location…</div>
+  <div id="manualInputContainer"><input type="text" id="manualInput" placeholder="Enter a location"></div>
 
+  <div id="factWidget">
+    <div id="factHeader">
+      <span id="factTitle">Local Info</span>
+      <button id="toggleFacts" class="toggle-icon">⚓</button>
+    </div>
+    <div id="factDeck">
+      <button id="prevFact" class="nav-btn">‹</button>
+      <div id="factCardsWrapper"></div>
+      <button id="nextFact" class="nav-btn">›</button>
+    </div>
+  </div>
 
-<div id="location-status">Fetching location...</div>
-<input id="manual-location-entry" placeholder="Or type a city..." />
-<button id="search-button">Search</button>
+  <div class="filters" id="filterGrid"></div>
 
+  <div id="primaryActions">
+    <button id="myListBtn">📋 My List</button>
+    <button id="myPlanBtn">🗺️ My Plan</button>
+    <button id="surpriseBtn">🤷 Surprise Me!</button>
+  </div>
 
-<div id="filter-container">
-<button id="random-button">🎲 Random</button>
-<button id="dark-side-button">🕶️ Dark Side</button>
-</div>
+  <button id="ghostBtn">👻</button>
+  <div id="hiddenMap"></div>
 
+  <!-- Sub-menu Modal -->
+  <div id="subMenuModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="subMenuTitle">Categories</h3>
+        <button class="close-btn" id="closeSubMenu">×</button>
+      </div>
+      <div class="subMenuList" id="subMenuList"></div>
+    </div>
+  </div>
 
-<div id="results-list-screen">
-<button id="close-results-button">Close</button>
-<ul id="results-list"></ul>
-</div>
+  <!-- Results Modal -->
+  <div id="resultsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="resultsTitle">Results</h3>
+        <button class="close-btn" id="closeResults">×</button>
+      </div>
+      <div class="results-list" id="resultsList"></div>
+    </div>
+  </div>
 
+  <!-- My List Modal -->
+  <div id="myListModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>My List</h3>
+        <button class="close-btn" id="closeMyList">×</button>
+      </div>
+      <div class="results-list" id="myListContent"></div>
+      <div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div>
+    </div>
+  </div>
 
-<div id="result-screen">
-<div id="result-card" class="card"></div>
-</div>
+  <!-- Plan Modal -->
+  <div id="planModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>My Plan</h3>
+        <button class="close-btn" id="closePlan">×</button>
+      </div>
+      <div id="planSummary" style="margin-bottom:.5rem;font-size:.85rem;color:var(--card);"></div>
+      <div class="results-list" id="planContent"></div>
+      <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty. Add places to your plan from the details view.</div>
+      <div style="margin-top:.5rem;display:flex;gap:.5rem;">
+        <button id="sharePlanBtn" style="flex:1;border:none;border-radius:var(--radius);background:var(--primary);color:var(--text-light);padding:.5rem;font-size:.9rem;">Share Plan</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Donate Modal -->
+  <div id="donateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Support Local Explorer</h3>
+        <button class="close-btn" id="closeDonate">×</button>
+      </div>
+      <p style="color:var(--card);font-size:.9rem;margin-bottom:1rem;">
+        If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!
+      </p>
+      <p style="color:var(--card);font-size:.9rem;margin-bottom:1rem;text-align:center;">Venmo: <strong>@Stephen-Mohamed-1</strong></p>
+      <div style="display:flex;gap:.5rem;">
+        <button id="openVenmoBtn" style="flex:1;border:none;border-radius:var(--radius);background:var(--primary);color:var(--text-light);padding:.5rem;font-size:.9rem;">Open Venmo</button>
+        <button id="copyVenmoBtn" style="flex:1;border:none;border-radius:var(--radius);background:var(--secondary);color:var(--text-light);padding:.5rem;font-size:.9rem;">Copy Handle</button>
+      </div>
+    </div>
+  </div>
 
-<script>
-const UI = {
-elements: {},
-init: function () {
-this.cacheElements();
-this.initEventListeners();
-},
+  <!-- Details Sheet -->
+  <div id="detailsSheet">
+    <div id="detailsMap"></div>
+    <div id="detailsContent">
+      <button id="closeDetailsBtn" class="sheet-close">×</button>
+      <h3 id="detailsName"></h3>
+      <div id="detailsRating"></div>
+      <div id="detailsPhone"></div>
+      <div id="detailsAddress"></div>
+      <div id="detailsPrice"></div>
+      <div id="detailsActions">
+        <button id="saveBtn">☆ Save</button>
+        <button id="openMapsBtn">📍 Open in Maps</button>
+        <button id="websiteBtn">🔗 Website</button>
+        <button id="shareBtn">🔗 Share</button>
+        <button id="compassBtn">🧭 Compass</button>
+        <button id="addToPlanBtn">🗺️ Add to Plan</button>
+        <button id="toggleStreetBtn">🖼️ Street View</button>
+      </div>
+      <button class="accordion" id="reviewsAccordion">Reviews</button>
+      <div class="accordion-content" id="reviewsContent"></div>
+      <button class="accordion" id="hoursAccordion">Weekly Hours</button>
+      <div class="accordion-content" id="hoursContent"></div>
+    </div>
+  </div>
 
+  <!-- Compass Overlay -->
+  <div id="compassOverlay">
+    <div id="compassTop">
+      <div id="radar"><div id="miniMap"></div><div id="compassArrow"></div></div>
+    </div>
+    <div id="compassControls">
+      <select id="voiceSelect"></select>
+      <div id="navigationButtons">
+        <button id="startNavigationBtn">Start</button>
+        <button id="stopNavigationBtn" disabled>Stop</button>
+        <button id="closeCompassBtn">Close</button>
+      </div>
+      <div id="directionsList"></div>
+      <div id="radarControls">
+        <label style="display:block;margin-top:.5rem;font-size:.8rem;">Zoom
+          <input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;">
+        </label>
+        <label style="display:block;margin-top:.5rem;font-size:.8rem;">Brightness
+          <input type="range" id="radarBrightness" min="30" max="100" value="50" style="width:100%;">
+        </label>
+      </div>
+    </div>
+  </div>
 
-cacheElements: function () {
-this.elements = {
-locationStatus: document.getElementById('location-status'),
-manualEntry: document.getElementById('manual-location-entry'),
-searchButton: document.getElementById('search-button'),
-filterContainer: document.getElementById('filter-container'),
-randomButton: document.getElementById('random-button'),
-darkSideButton: document.getElementById('dark-side-button'),
-resultsListScreen: document.getElementById('results-list-screen'),
-resultsList: document.getElementById('results-list'),
-closeResultsButton: document.getElementById('close-results-button'),
-resultScreen: document.getElementById('result-screen'),
-resultCard: document.getElementById('result-card')
-};
-},
+  <script>
+    (function(){
+      const fallbackKey='AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
+      const mapsKey=window.MAPS_API_KEY||fallbackKey;
+      const s=document.createElement('script');
+      s.src=`https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
+      s.async=true;s.defer=true;document.head.appendChild(s);
+    })();
 
+    const $ = (id) => document.getElementById(id);
+
+    function hideGhost(){const g=$("ghostBtn"); if(g) g.style.display='none'}
+    function showGhost(){const g=$("ghostBtn"); if(g) g.style.display='block'}
+
+    // App state
+    let currentPosition=null,currentAddress='';
+    let map,placesService,geocoder,streetViewPanorama;
+    let currentResults=[],factInterval,currentPlaceDetails;
+    let compassWatchId,miniMap,streetViewVisible=false;
+    // FIX: declare globals used by fact deck
+    let factsListGlobal = [];
+    let currentFactIndex = 0;
+
+    const categories={
+      "Foodie Finds":[
+        {name:"Italian",keyword:"italian restaurant",type:"restaurant"},
+        {name:"Pizza",keyword:"pizza",type:"restaurant"},
+        {name:"Cafes",keyword:"cafe",type:"cafe"},
+        {name:"Bakeries",keyword:"bakery",type:"bakery"},
+        {name:"Sushi",keyword:"sushi",type:"restaurant"}
+      ],
+      "Iconic Sights":[
+        {name:"Tourist Attractions",type:"tourist_attraction"},
+        {name:"Museums",type:"museum"},
+        {name:"Art Galleries",type:"art_gallery"},
+        {name:"Parks",type:"park"},
+        {name:"Landmarks",keyword:"landmark",type:"point_of_interest"}
+      ],
+      "Night Out":[
+        {name:"Bars",type:"bar"},
+        {name:"Night Clubs",type:"night_club"},
+        {name:"Movie Theaters",type:"movie_theater"},
+        {name:"Bowling Alleys",type:"bowling_alley"},
+        {name:"Concert Venues",keyword:"concert",type:"point_of_interest"}
+      ],
+      "Hidden Gems":[
+        {name:"Libraries",type:"library"},
+        {name:"Book Stores",type:"book_store"},
+        {name:"Gardens",keyword:"garden",type:"park"},
+        {name:"Historical Sites",keyword:"historical site",type:"point_of_interest"},
+        {name:"Local Favorites",keyword:"local favorite",type:"point_of_interest"}
+      ],
+      "Pet Friendly":[
+        {name:"Dog Parks",keyword:"dog park",type:"park"},
+        {name:"Pet Stores",type:"pet_store"},
+        {name:"Veterinary Care",type:"veterinary_care"},
+        {name:"Pet Friendly Cafes",keyword:"pet friendly cafe",type:"cafe"},
+        {name:"Pet Friendly Hotels",keyword:"pet friendly hotel",type:"lodging"}
+      ],
+      "Utilities & Help":[
+        {name:"Hospitals",type:"hospital",ignoreRating:true},
+        {name:"Pharmacies",type:"pharmacy",ignoreRating:true},
+        {name:"Police",type:"police",ignoreRating:true},
+        {name:"Gas Stations",type:"gas_station",ignoreRating:true},
+        {name:"ATMs",type:"atm",ignoreRating:true}
+      ],
+      "Dark Side":[
+        {name:"Cemeteries",type:"cemetery",ignoreRating:true},
+        {name:"Funeral Homes",type:"funeral_home",ignoreRating:true},
+        {name:"Psychic",keyword:"psychic",type:"point_of_interest",ignoreRating:true},
+        {name:"Bars",type:"bar",ignoreRating:true},
+        {name:"Haunted Places",keyword:"haunted",type:"point_of_interest",ignoreRating:true}
+      ],
+      "Outdoor":[
+        {name:"Parks",type:"park"},
+        {name:"Trails",keyword:"hiking trail",type:"park"},
+        {name:"Nature Reserves",keyword:"nature reserve",type:"park"},
+        {name:"Beaches",keyword:"beach",type:"park"},
+        {name:"Campgrounds",keyword:"campground",type:"campground"}
+      ],
+      "Local Events":[
+        {name:"All Events",value:"all"},
+        {name:"Music",value:"music"},
+        {name:"Sports",value:"sports"},
+        {name:"Comedy",value:"comedy"},
+        {name:"Festivals",value:"festival"}
+      ]
+    };
+
+    function initApp(){
+      map=new google.maps.Map($("hiddenMap"),{center:{lat:0,lng:0},zoom:15});
+      placesService=new google.maps.places.PlacesService(map);
+      geocoder=new google.maps.Geocoder();
+
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(onLocationSuccess,onLocationError);
+      }else{
+        showManualInput();
+      }
+      populateFilterButtons();
+
+      try{
+        const params=new URLSearchParams(window.location.search);
+        if(params.has('plan')){
+          const encoded=params.get('plan');
+          const decoded=decodeURIComponent(atob(encoded));
+          const data=JSON.parse(decoded);
+          if(data && Array.isArray(data.items)){
+            localStorage.setItem('myPlan',JSON.stringify(data.items));
+            localStorage.removeItem('visitedPlan');
+            setTimeout(()=>{loadPlan();$("planModal").classList.add('active');document.body.classList.add('modal-open');hideGhost();},500);
+          }
+        }
+      }catch(e){console.warn('Failed to decode shared plan',e)}
+    }
+
+    function onLocationSuccess(position){
+      currentPosition={lat:position.coords.latitude,lng:position.coords.longitude};
+      reverseGeocode(currentPosition);
+      fetchLocalFacts(currentPosition);
