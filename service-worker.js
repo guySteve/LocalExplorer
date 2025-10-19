@@ -1,7 +1,7 @@
 const CACHE_NAME = 'local-explorer-v3';
 const ASSETS = [
   './',
-  './local-explorer.html',
+  './LocalExplorer.html',
   './manifest.json',
   './keys.js',
   './icon-192.png',
