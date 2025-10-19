@@ -1,44 +1,35 @@
-const CACHE_NAME = 'local-explorer-v3';
+// service-worker.js
+const CACHE_NAME = "local-explorer-v1";
 const ASSETS = [
-  './',
-  './LocalExplorer.html',
-  './manifest.json',
-  './keys.js',
-  './icon-192.png',
-  './icon-512.png'
+  "./",
+  "./index.html",
+  "./keys.js",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
-// Cache core assets on install
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+// Install event — cache core files
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
+  self.skipWaiting();
 });
 
-// Clean up old caches
-self.addEventListener('activate', e => {
-  e.waitUntil(
+// Activate event — clean up old caches
+self.addEventListener("activate", event => {
+  event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
+  self.clients.claim();
 });
 
-// Serve cached files or fetch new ones
-self.addEventListener('fetch', e => {
-  const req = e.request;
-
-  // HTML pages – network-first
-  if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE_NAME).then(c => c.put('./local-explorer.html', copy));
-        return r;
-      }).catch(() => caches.match('./local-explorer.html'))
-    );
-    return;
-  }
-
-  // Static assets – cache-first
-  e.respondWith(caches.match(req).then(r => r || fetch(req)));
+// Fetch event — serve cached content when offline
+self.addEventListener("fetch", event => {
+  event.respondWith(
+    caches.match(event.request).then(cached => cached || fetch(event.request))
+  );
 });
-
