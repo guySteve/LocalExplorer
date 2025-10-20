@@ -12,7 +12,12 @@
 
     <script src="./key.js"></script>
     <script>
+      // Load API key securely and provide fallback
       const GKEY = window.MAPS_API_KEY || 'MISSING_API_KEY';
+      if (GKEY === 'MISSING_API_KEY') {
+        console.error("CRITICAL: Google Maps API Key is missing in key.js!");
+        // Optionally display an error to the user here
+      }
       document.write(`<script src="https://maps.googleapis.com/maps/api/js?key=${GKEY}&libraries=places,geocoding,directions&callback=initApp" async defer><\/script>`);
     </script>
 
@@ -22,15 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
 
     <style>
-        :root {
-          --bg: #f8f7f2; --text: #111827; --text-subtle: #4b5563;
-          --card-bg: #111827; --card-text: #f8f7f2; --card-bg-subtle: #374151;
-          --accent: #f59e0b; --accent-alt: #10b981; --accent-dark: #6366f1;
-          --modal-bg: rgba(17, 24, 39, 0.92); --modal-blur: blur(12px);
-          --list-bg: rgba(0, 0, 0, 0.75); --list-card-bg: rgba(17, 24, 39, 0.97);
-          --shadow-color: rgba(0, 0, 0, 0.1);
-        }
-        [data-theme="day-ops"] {
+        :root { /* Day Ops theme variables */
           --bg: #f8f7f2; --text: #111827; --text-subtle: #4b5563;
           --card-bg: #ffffff; --card-text: #111827; --card-bg-subtle: #e5e7eb;
           --accent: #f59e0b; --accent-alt: #10b981; --accent-dark: #4f46e5;
@@ -38,10 +35,18 @@
           --list-bg: rgba(255, 255, 255, 0.85); --list-card-bg: rgba(248, 247, 242, 0.98);
           --shadow-color: rgba(0, 0, 0, 0.1);
         }
-        [data-theme="rugged-explorer"] {
+        [data-theme="day-ops"] { /* Explicit Day Ops */
+          --bg: #f8f7f2; --text: #111827; --text-subtle: #4b5563;
+          --card-bg: #ffffff; --card-text: #111827; --card-bg-subtle: #e5e7eb;
+          --accent: #f59e0b; --accent-alt: #10b981; --accent-dark: #4f46e5;
+          --modal-bg: rgba(255, 255, 255, 0.9); --modal-blur: blur(10px);
+          --list-bg: rgba(255, 255, 255, 0.85); --list-card-bg: rgba(248, 247, 242, 0.98);
+          --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="rugged-explorer"] { /* Default Theme */
           --bg: #0A192F; --text: #CCD6F6; --text-subtle: #8892B0;
           --card-bg: #112240; --card-text: #CCD6F6; --card-bg-subtle: #0A192F;
-          --accent: #64FFDA; --accent-alt: #f59e0b; --accent-dark: #4DA89A; /* Darker Aqua/Teal */
+          --accent: #64FFDA; --accent-alt: #f59e0b; --accent-dark: #4DA89A;
           --modal-bg: rgba(10, 25, 47, 0.9); --modal-blur: blur(10px);
           --list-bg: rgba(0, 0, 0, 0.85); --list-card-bg: rgba(17, 34, 64, 0.98);
           --shadow-color: rgba(0, 0, 0, 0.4);
@@ -65,10 +70,10 @@
         .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
         .action-card:disabled{opacity:.4;cursor:not-allowed}
 
-        .card-accent{ background: var(--accent); color: var(--card-bg); }
+        .card-accent{ background: var(--accent); color: var(--card-bg) !important; /* Ensure text color overrides theme */}
         .card-accent:hover:not(:disabled){ background: var(--accent); opacity: 0.9; }
-        .card-accent-alt{ background: var(--accent-alt); color: var(--card-bg); }
-        .card-accent-dark{ background: var(--accent-dark); color: var(--card-text); }
+        .card-accent-alt{ background: var(--accent-alt); color: var(--card-bg) !important; }
+        .card-accent-dark{ background: var(--accent-dark); color: var(--card-text) !important; }
 
         #result-card{ background: var(--modal-bg); color: var(--card-text); backdrop-filter: var(--modal-blur); -webkit-backdrop-filter: var(--modal-blur); transition:transform .4s ease,opacity .3s ease;max-height:90vh;overflow-y:auto;border-top:1px solid rgba(248,247,242,.2) }
         .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
@@ -91,18 +96,18 @@
         #settings-modal .modal-dialog { padding: 20px; }
         .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .theme-button.active { border-color: var(--accent); box-shadow: 0 0 10px -2px var(--accent); }
-        #voice-selector { background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; width: 100%; cursor: pointer; }
+        #voice-selector { background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; width: 100%; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>'); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1em; padding-right: 2.5rem; }
 
         .review-item { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: .9rem; padding: .75rem 1rem; }
         .review-sort-button { background: var(--card-bg-subtle); color: var(--card-text); padding: 8px 12px; border-radius: 8px; font-weight: 600; opacity: 0.7; cursor: pointer; }
-        .review-sort-button.active { background: var(--accent); color: var(--card-bg); opacity: 1; }
+        .review-sort-button.active { background: var(--accent); color: var(--card-bg) !important; opacity: 1; } /* Ensure text color override */
         #reviews-list-card .flex-container { display: flex; gap: 1rem; }
         #review-star-filter-container { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; }
         .review-star-button { background: none; border: none; font-size: 0.9rem; padding: 2px 0; opacity: 0.6; cursor: pointer; color: var(--accent); text-align: left; line-height: 1.2; }
         .review-star-button .count { font-size: 0.7rem; color: var(--text-subtle); margin-left: 4px; }
         .review-star-button.active { opacity: 1; font-weight: bold; }
         #clear-star-filter { font-size: 0.75rem; font-weight: bold; opacity: 0.8; color: var(--text-subtle); margin-top: 4px; }
-        #reviews-list { flex: 1; max-height: calc(60vh - 40px); overflow-y: auto; /* Ensure overflow scrolling */ }
+        #reviews-list { flex: 1; max-height: calc(60vh - 40px); overflow-y: auto; }
 
         #fun-fact-container { background: var(--card-bg); color: var(--text); border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 12px var(--shadow-color); text-align: left; margin-bottom: 1.5rem; }
         #fun-fact-container h2 { color: var(--accent); font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -140,7 +145,8 @@
          <h2 id="reviews-title" class="text-xl font-header font-bold">Reviews</h2>
          <button id="close-reviews-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
        </div>
-       <p id="review-date-filter-info" class="text-xs opacity-70 text-center mb-2 -mt-2"></p> <div id="review-filters-container" class="mb-3">
+       <p id="review-date-filter-info" class="text-xs opacity-70 text-center mb-2 -mt-2"></p>
+       <div id="review-filters-container" class="mb-3">
          <div id="review-sort-container" class="flex gap-2 mb-3">
            <button id="sort-reviews-best" class="review-sort-button flex-1">Best</button>
            <button id="sort-reviews-worst" class="review-sort-button flex-1">Worst</button>
@@ -159,7 +165,7 @@
 
    <div id="compass-modal" class="modal-base"> <div id="compass-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-2"> <h2 id="modal-title" class="font-header text-lg">Live Compass</h2> <div class="flex gap-2"> <button id="guide-button" class="action-card card-accent-dark font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button> <button id="close-compass" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </div> </header> <div id="nav-bubble"> <div id="nav-main">Head toward destination</div> <div id="nav-sub">Follow the arrow</div> </div> <div id="compass-overlay"> <div id="compass-arrow"></div> <div id="compass-dist">--</div> </div> </div> </div>
 
-   <div id="settings-modal" class="modal-base"> <div id="settings-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-4"> <h2 class="font-header text-xl">Settings</h2> <button id="close-settings-button" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </header> <div class="space-y-4"> <div> <h3 class="font-semibold mb-2">Theme</h3> <div class="grid grid-cols-3 gap-2"> <button class="theme-button flex-1" data-theme="day-ops">☀️ Day Ops</button> <button class="theme-button flex-1" data-theme="rugged-explorer">⚓ Rugged</button> <button class="theme-button flex-1" data-theme="night-ops">🌙 Night Ops</button> </div> </div> <div> <h3 class="font-semibold mb-2">Guide Voice</h3> <select id="voice-selector"> <option value="">Loading voices...</option> </select> </div> <a id="donate-button" href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" class="action-card card-accent-alt font-bold py-3 px-4 rounded-lg w-full block text-center"> Buy me a coffee (Venmo) </a> <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 13.0</p> </div> </div> </div>
+   <div id="settings-modal" class="modal-base"> <div id="settings-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-4"> <h2 class="font-header text-xl">Settings</h2> <button id="close-settings-button" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </header> <div class="space-y-4"> <div> <h3 class="font-semibold mb-2">Theme</h3> <div class="grid grid-cols-3 gap-2"> <button class="theme-button flex-1" data-theme="day-ops">☀️ Day Ops</button> <button class="theme-button flex-1" data-theme="rugged-explorer">⚓ Rugged</button> <button class="theme-button flex-1" data-theme="night-ops">🌙 Night Ops</button> </div> </div> <div> <h3 class="font-semibold mb-2">Guide Voice</h3> <select id="voice-selector"> <option value="">Loading voices...</option> </select> </div> <a id="donate-button" href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" class="action-card card-accent-alt font-bold py-3 px-4 rounded-lg w-full block text-center"> Buy me a coffee (Venmo) </a> <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 14.0</p> </div> </div> </div>
 
   <div id="searching-modal"> <div id="searching-dialog"> <div id="searching-dialog-icon">🧭</div> <div id="searching-dialog-text">Acquiring Target...</div> </div> </div>
 
@@ -200,7 +206,7 @@
     function showResultsList(parentFilter, subLabel){ console.log('DEBUG: showResultsList called'); mainScreen.style.display = 'none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; resultsListScreen.style.display='flex'; resultsTitle.textContent=subLabel || 'Results'; resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results'; resultsList.innerHTML=''; if (currentResults.length === 0) { console.log('DEBUG: No results to display.'); resultsList.innerHTML = '<p class="opacity-70 text-center p-4">No results found matching your criteria.</p>'; return; } currentResults.forEach(p=>{ const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||''; const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id; card.innerHTML=`<div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name || 'Unknown Name'}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic || 'Unknown Location'}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`; try { resultsList.appendChild(card); } catch (e) { console.error('DEBUG: Error appending result item:', p.name, e); } }); console.log('DEBUG: resultsList innerHTML populated.'); }
     function showSavedList() { console.log('DEBUG: showSavedList called.'); mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; savedListScreen.style.display='flex'; savedList.innerHTML=''; console.log('DEBUG: savedPlaces object state:', savedPlaces); console.log('DEBUG: Type of savedPlaces:', typeof savedPlaces); console.log('DEBUG: Raw localStorage item:', localStorage.getItem('savedPlaces')); const places = Object.values(savedPlaces || {}); console.log('DEBUG: Number of places to display:', places.length); if (places.length === 0) { savedList.innerHTML = '<p class="opacity-70 text-center">You haven\'t saved any places yet.</p>'; console.log('DEBUG: Displaying "No saved places" message.'); return; } places.forEach((p, index)=>{ console.log(`DEBUG: Rendering saved item ${index}:`, p); if (!p || typeof p !== 'object' || !p.place_id) { console.warn(`DEBUG: Skipping invalid saved place item at index ${index}:`, p); return; } const card=document.createElement('div'); card.className='result-item'; card.innerHTML=`<button class="flex-1 text-left saved-item-details" data-id="${p.place_id}"><h3 class="font-semibold text-base">${p.name || 'Saved Place'}</h3><div class="text-xs opacity-80 mt-1">${p.vicinity||''}</div></button><button class="remove-saved-button action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);" data-id="${p.place_id}">X</button>`; try { savedList.appendChild(card); } catch (e) { console.error(`DEBUG: Error appending saved item ${index} (${p.name}):`, e); } }); console.log('DEBUG: Finished rendering saved places list.'); }
     function showEventsList(events) { mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; eventsListScreen.style.display='flex'; eventsList.innerHTML=''; if (!events || events.length === 0) { eventsList.innerHTML = '<p class="opacity-70 text-center">No local events found on Ticketmaster.</p>'; return; } events.forEach(event => { const photo = event.images?.[0]?.url || 'https://placehold.co/200x200/111827/fff?text=Event'; const venue = event._embedded?.venues?.[0]?.name || ''; const eventDate = event.dates?.start?.localDate ? new Date(event.dates.start.localDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}) : 'Date TBD'; const card = document.createElement('a'); card.className = 'result-item'; card.href = event.url; card.target = '_blank'; card.rel = 'noopener'; card.innerHTML = `<img class="result-thumb" loading="lazy" src="${photo}" alt="${event.name}" /><div class="flex-1 text-left"><h3 class="font-semibold text-base">${event.name}</h3><div class="text-sm mt-1" style="color:var(--accent);">${eventDate}</div><div class="text-xs opacity-80 mt-1">${venue}</div></div>`; eventsList.appendChild(card); }); }
-    function showReviews() {
+    function showReviews() { // ** REVIEWS DISPLAY LOGIC UPDATED **
         console.log("DEBUG: showReviews called. Sort:", currentReviewSort, "Star Filter:", currentStarFilter);
         mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
 
@@ -214,44 +220,40 @@
         reviewSortContainer.style.display = showFilters ? 'flex' : 'none';
 
         const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-        reviewsToDisplay.forEach(r => { if (r && r.rating !== undefined && starCounts[r.rating] !== undefined) starCounts[r.rating]++; }); // Added check for r & r.rating
+        reviewsToDisplay.forEach(r => { if (r && r.rating !== undefined && starCounts[r.rating] !== undefined) starCounts[r.rating]++; });
 
         reviewStarFilterContainer.innerHTML = '';
         [5, 4, 3, 2, 1].forEach(rating => {
             const count = starCounts[rating];
-            if (count > 0 || !showFilters) { // Show if count > 0 OR if filters are generally hidden
+            if (count > 0 || !showFilters) {
                 const btn = document.createElement('button'); btn.className = 'review-star-button'; btn.dataset.rating = rating; let stars = '★'.repeat(rating) + '☆'.repeat(5 - rating); btn.innerHTML = `${stars} <span class="count">(${count})</span>`; if (parseInt(btn.dataset.rating) === currentStarFilter) { btn.classList.add('active'); } reviewStarFilterContainer.appendChild(btn);
             }
         });
         if (showFilters) { const clearBtn = document.createElement('button'); clearBtn.id = 'clear-star-filter'; clearBtn.className = 'review-star-button text-xs font-bold'; clearBtn.style = 'opacity: 0.8; color: var(--text-subtle); margin-top: 4px;'; clearBtn.textContent = 'Clear'; reviewStarFilterContainer.appendChild(clearBtn); }
 
-        const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter); // Added check for r
+        const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter);
         console.log("DEBUG: Reviews after star filter:", finalFilteredReviews.length);
 
-        // Apply sort with safety checks
         if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b?.time || 0) - (a?.time || 0)); }
         else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b?.rating || 0) - (a?.rating || 0)); }
         else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a?.rating || 0) - (b?.rating || 0)); }
 
         document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
 
-        reviewsList.innerHTML = '';
+        reviewsList.innerHTML = ''; // Clear previous reviews before rendering
         if (finalFilteredReviews.length === 0) {
             reviewsList.innerHTML = `<p class="opacity-70 text-center p-4">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
         }
 
+        console.log(`DEBUG: Rendering ${finalFilteredReviews.length} reviews...`); // Log count before loop
         finalFilteredReviews.forEach((review, index) => {
-            // Add safety checks for review object and its properties before rendering
-            if (!review || typeof review !== 'object') {
-                console.warn(`DEBUG: Skipping invalid review item at index ${index}:`, review);
-                return;
-            }
-            console.log(`DEBUG: Rendering review ${index}:`, review.author_name);
+            if (!review || typeof review !== 'object') { console.warn(`DEBUG: Skipping invalid review item at index ${index}:`, review); return; }
+            // console.log(`DEBUG: Rendering review ${index}:`, review.author_name); // Reduce log noise
             const card = document.createElement('div'); card.className = 'review-item';
-            const reviewText = review.text ? stripHtml(review.text) : '<i>(No text provided)</i>'; // Use stripHtml and fallback
+            const reviewText = review.text ? stripHtml(review.text) : '<i>(No text provided)</i>';
             const authorName = review.author_name || 'Anonymous';
             const timeDescription = review.relative_time_description || '';
-            const photoUrl = review.profile_photo_url || 'https://placehold.co/40x40/111827/fff?text=N/A'; // Fallback image
+            const photoUrl = review.profile_photo_url || 'https://placehold.co/40x40/111827/fff?text=N/A';
 
             card.innerHTML = `<div class="flex items-center gap-3 mb-2"><img loading="lazy" src="${photoUrl}" alt="${authorName}" class="w-10 h-10 rounded-full" /><div class="flex-1"><h4 class="font-semibold text-sm">${authorName}</h4><p class="text-xs opacity-70">${timeDescription}</p></div><div class="star-row text-right">${renderStarsHTML(review.rating)}</div></div><p class="text-sm opacity-90">${reviewText}</p>`;
             try { reviewsList.appendChild(card); } catch(e) { console.error(`DEBUG: Error rendering review ${index}:`, e, review); }
@@ -293,47 +295,41 @@
 
     document.addEventListener('click', (e)=>{
       const target = e.target;
-      let btn = target.closest('button'); // Find closest button
+      let btn = target.closest('button');
 
-      // Allow map links specifically
-      if (target.closest('.map-link-icon')) {
-          console.log('DEBUG: Map link clicked, allowing default action.');
-          return;
-      }
+      // Allow map links
+      if (target.closest('.map-link-icon')) { console.log('DEBUG: Map link clicked.'); return; }
 
-      // ** SAVE BUTTON FIX: Handle click specifically if target *is* the button **
-      if (target.id === 'save-place-button') {
-          btn = target; // Ensure 'btn' is correctly set if the target itself was the button
-          console.log('DEBUG: Save Place Button was the direct target.');
+      // ** SAVE BUTTON FIX: Handle click specifically if target *is* the button OR its direct parent (the button itself) **
+      if (target.id === 'save-place-button' || (target.parentElement && target.parentElement.id === 'save-place-button')) {
+          console.log('DEBUG: Save Place Button click detected.');
+          btn = document.getElementById('save-place-button'); // Ensure we have the button element
+          if (btn && !btn.disabled) { // Check if not disabled
+             if(currentPlace) {
+               const placeId = currentPlace.place_id;
+               if (!placeId) { console.error("DEBUG: Cannot save place - place_id is missing!", currentPlace); return; }
+               if(savedPlaces[placeId]) { console.log('DEBUG: Unsaving place:', placeId); delete savedPlaces[placeId];
+               } else {
+                 const vicinityText = currentPlace.vicinity || currentPlace.formatted_address || 'Location details saved';
+                 if (currentPlace.geometry && currentPlace.geometry.location) {
+                    console.log('DEBUG: Saving place:', placeId, 'Name:', currentPlace.name, 'Vicinity:', vicinityText);
+                    savedPlaces[placeId]={ name: currentPlace.name || 'Unnamed Place', place_id: placeId, vicinity: vicinityText, geometry: currentPlace.geometry.location.toJSON() };
+                 } else { console.error("DEBUG: Cannot save place - geometry is missing!", currentPlace); alert("Could not save place - missing location data."); return; }
+               }
+               try { localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); console.log('DEBUG: savedPlaces saved to localStorage after toggle. Current count:', Object.keys(savedPlaces).length); } catch(err) { console.error('DEBUG: Error saving savedPlaces after toggle:', err); alert("Error saving place. Storage might be full."); }
+               updateSaveButtonState();
+             } else { console.warn("DEBUG: Save button clicked but currentPlace is null."); }
+          } else { console.log('DEBUG: Save button click ignored (button not found or disabled).'); }
+         return; // Explicitly return after handling
       }
 
       // If no button was found up the hierarchy, or if it's disabled, ignore
       if(!btn || btn.disabled) {
-          console.log('DEBUG: Click ignored (no button or disabled). Target:', target, 'Closest button:', btn);
+          // console.log('DEBUG: Click ignored (no button or disabled). Target:', target, 'Closest button:', btn); // Reduce noise
           return;
       }
 
       console.log('DEBUG: Click detected on button with ID:', btn.id || '(no id)', 'Classes:', btn.className);
-
-      // ** SAVE BUTTON FIX: Explicit check OUTSIDE the switch **
-      if(btn.id === 'save-place-button') {
-         console.log('DEBUG: Handling save-place-button click.');
-         if(currentPlace) {
-           const placeId = currentPlace.place_id;
-           if (!placeId) { console.error("DEBUG: Cannot save place - place_id is missing!", currentPlace); return; }
-           if(savedPlaces[placeId]) { console.log('DEBUG: Unsaving place:', placeId); delete savedPlaces[placeId];
-           } else {
-             const vicinityText = currentPlace.vicinity || currentPlace.formatted_address || 'Location details saved';
-             if (currentPlace.geometry && currentPlace.geometry.location) {
-                console.log('DEBUG: Saving place:', placeId, 'Name:', currentPlace.name, 'Vicinity:', vicinityText);
-                savedPlaces[placeId]={ name: currentPlace.name || 'Unnamed Place', place_id: placeId, vicinity: vicinityText, geometry: currentPlace.geometry.location.toJSON() };
-             } else { console.error("DEBUG: Cannot save place - geometry is missing!", currentPlace); alert("Could not save place - missing location data."); return; }
-           }
-           try { localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); console.log('DEBUG: savedPlaces saved to localStorage after toggle. Current count:', Object.keys(savedPlaces).length); } catch(err) { console.error('DEBUG: Error saving savedPlaces after toggle:', err); alert("Error saving place. Storage might be full."); }
-           updateSaveButtonState();
-         } else { console.warn("DEBUG: Save button clicked but currentPlace is null."); }
-         return; // Explicitly return after handling
-      }
 
       // --- Continue with other checks ---
       if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
@@ -369,8 +365,7 @@
         case 'close-compass': closeCompass(); break;
         case 'guide-button': guideSpeaking = !guideSpeaking; guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎'; if(guideSpeaking){ if(routeSteps.length && stepIndex < routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); } } else { try{ speechSynthesis.cancel(); }catch{} } break;
         case 'share-button': if (navigator.share && currentPlace) { navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href, });} break;
-        // Default case for unhandled button IDs
-        default: console.log("DEBUG: Unhandled button click:", btn.id); break;
+        default: console.log("DEBUG: Unhandled button click in switch:", btn.id); break;
       }
     });
 
