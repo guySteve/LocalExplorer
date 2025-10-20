@@ -791,7 +791,7 @@
     function openSettings() { /* ... unchanged ... */ }
     function closeSettings() { /* ... unchanged ... */ }
 
-    /* ====== Init / Geocode (updated) ====== */
+/* ====== Init / Geocode (updated) ====== */
     function initApp(){
       loadSettings(); // Ensures settings & saved places load reliably
       placesService=new google.maps.places.PlacesService(document.createElement('div'));
@@ -800,11 +800,18 @@
       toggleFilterButtons(true);
       locationStatus.textContent = 'Acquiring location...'; // More active message
       if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos=>{
-          const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
-          reverseGeocodeSetLocation(coords);
-        }, handleLocationError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }); // Added options
-      } else handleLocationError();
+        // CORRECTED: Options object is the third argument
+        navigator.geolocation.getCurrentPosition(
+          pos => { // Success callback
+            const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            reverseGeocodeSetLocation(coords);
+          },
+          handleLocationError, // Error callback
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Options object
+        );
+      } else {
+        handleLocationError({ code: -1, message: "Geolocation not supported by this browser." }); // Pass a mock error if geolocation isn't supported
+      }
     }
     window.initApp=initApp;
     function handleLocationError(error){ // Added error param
