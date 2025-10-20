@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" id="theme-color-meta" content="#111827" /> <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" id="theme-color-meta" content="#111827" />
+    <link rel="manifest" href="./manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Local Explorer" />
@@ -40,14 +41,14 @@
         }
 
         [data-theme="navy-vet"] {
-          --bg: #0A192F; /* Navy BG */
-          --text: #CCD6F6; /* Light text */
-          --text-subtle: #8892B0; /* Slate text */
-          --card-bg: #112240; /* Lighter navy card */
+          --bg: #0A192F;
+          --text: #CCD6F6;
+          --text-subtle: #8892B0;
+          --card-bg: #112240;
           --card-text: #CCD6F6;
           --card-bg-subtle: #0A192F;
-          --accent: #64FFDA; /* Aqua/Teal */
-          --accent-alt: #f59e0b; /* Amber */
+          --accent: #64FFDA;
+          --accent-alt: #f59e0b;
           --accent-dark: #57D3C1;
           --modal-bg: rgba(10, 25, 47, 0.9);
           --modal-blur: blur(10px);
@@ -68,7 +69,7 @@
         }
         .action-card:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 8px 20px var(--shadow-color)}
         .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
-        .action-card:disabled{opacity:.6;cursor:not-allowed}
+        .action-card:disabled{opacity:.4;cursor:not-allowed}
 
         .card-accent{ background: var(--accent); color: var(--card-bg); }
         .card-accent:hover:not(:disabled){ background: var(--accent); opacity: 0.9; }
@@ -113,11 +114,24 @@
         #settings-modal .modal-dialog { padding: 20px; }
         .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; }
         .theme-button.active { border-color: var(--accent); box-shadow: 0 0 10px -2px var(--accent); }
-        /* NEW: Voice Selector Style */
         #voice-selector {
           background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle);
           padding: 8px 12px; border-radius: 8px; width: 100%;
         }
+        
+        /* NEW: Review Styles */
+        .review-item {
+          background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+          border-radius: .9rem; padding: .75rem 1rem;
+        }
+        .review-sort-button {
+          background: var(--card-bg-subtle); color: var(--card-text);
+          padding: 8px 12px; border-radius: 8px; font-weight: 600; opacity: 0.7;
+        }
+        .review-sort-button.active {
+          background: var(--accent); color: var(--card-bg); opacity: 1;
+        }
+
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
@@ -155,7 +169,6 @@
 
       <button id="show-saved-button" class="action-card card-accent-alt w-full mt-4 rounded-lg font-bold py-3 text-base">⭐ My Saved Places</button>
       <button id="local-events-button" class="action-card card-accent-dark w-full mt-4 rounded-lg font-bold py-3 text-base">🎟️ Local Events</button>
-      
       <button id="random-button" class="action-card card-accent w-full mt-4 rounded-lg font-bold py-3 text-base">🤷 Surprise Me!</button>
 
       <div id="sub-menu-container" class="hidden mt-4"></div>
@@ -197,6 +210,20 @@
     </div>
   </section>
 
+  <section id="reviews-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="reviews-list-card" class="list-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="reviews-title" class="text-xl font-header font-bold">Reviews</h2>
+        <button id="close-reviews-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
+      </div>
+      <div class="flex gap-2 mb-3">
+        <button id="sort-reviews-best" class="review-sort-button flex-1">Best</button>
+        <button id="sort-reviews-worst" class="review-sort-button flex-1">Worst</button>
+        <button id="sort-reviews-recent" class="review-sort-button flex-1 active">Recent</button>
+      </div>
+      <div id="reviews-list" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+    </div>
+  </section>
 
   <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
@@ -217,6 +244,10 @@
       </div>
 
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
+      
+      <button id="show-reviews-button" class="action-card card-accent-dark w-full mt-3 mb-4 rounded-lg font-bold py-3 text-base" disabled>
+        Show Reviews (0)
+      </button>
 
       <div class="flex flex-wrap justify-center gap-3 my-4">
         <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card card-accent font-bold py-3 px-4 rounded-lg">Map</a>
@@ -280,7 +311,7 @@
           Buy me a coffee (Venmo)
         </a>
         
-        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 6.0</p>
+        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 7.0</p>
       </div>
     </div>
   </div>
@@ -336,8 +367,11 @@
     const settingsModal = document.getElementById('settings-modal');
     const settingsDialog = document.getElementById('settings-dialog');
     const themeColorMeta = document.getElementById('theme-color-meta');
-    // NEW: Voice selector ref
     const voiceSelector = document.getElementById('voice-selector');
+    // NEW: Reviews Refs
+    const reviewsListScreen = document.getElementById('reviews-list-screen');
+    const reviewsList = document.getElementById('reviews-list');
+    const showReviewsButton = document.getElementById('show-reviews-button');
 
     /* ====== State ====== */
     let placesService, geocoder, directionsService;
@@ -347,13 +381,13 @@
     let currentPlace;
     let currentResults = [];
     let currentResultIndex = 0;
-    let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
+    let savedPlaces = {}; // Will be loaded from localStorage in init
     let localFacts = [], factInterval = null, currentFactIndex = 0;
     let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
     let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
-    // NEW: Voice state
     let voices = [];
-    let currentVoiceURI = localStorage.getItem('appVoice') || null;
+    let currentVoiceURI = null; // Will be loaded from localStorage in init
+    let currentReviews = []; // NEW: Store reviews
 
     /* ====== Categories ====== */
     const subFilterMap = {
@@ -408,12 +442,10 @@
       savePlaceButton.textContent = pressed ? '★' : '☆';
     }
 
-    // NEW: Updated speak() function
     function speak(text){
       try{
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        // Find the selected voice
         if (currentVoiceURI) {
           const selectedVoice = voices.find(v => v.voiceURI === currentVoiceURI);
           if (selectedVoice) u.voice = selectedVoice;
@@ -447,6 +479,7 @@
       mainScreen.style.display = 'none';
       savedListScreen.style.display='none';
       eventsListScreen.style.display='none';
+      reviewsListScreen.style.display = 'none';
       resultsListScreen.style.display='flex'; 
       resultsTitle.textContent=subLabel || 'Results';
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
@@ -464,6 +497,7 @@
       mainScreen.style.display = 'none';
       resultsListScreen.style.display='none';
       eventsListScreen.style.display='none';
+      reviewsListScreen.style.display = 'none';
       savedListScreen.style.display='flex';
       savedList.innerHTML='';
       const places = Object.values(savedPlaces);
@@ -489,6 +523,7 @@
       mainScreen.style.display = 'none';
       resultsListScreen.style.display='none';
       savedListScreen.style.display='none';
+      reviewsListScreen.style.display = 'none';
       eventsListScreen.style.display='flex';
       eventsList.innerHTML='';
       if (!events || events.length === 0) {
@@ -516,6 +551,53 @@
         eventsList.appendChild(card);
       });
     }
+
+    // NEW: Show Reviews Function
+    function showReviews(sortBy = 'time') {
+      mainScreen.style.display = 'none';
+      resultScreen.style.display = 'none';
+      reviewsListScreen.style.display = 'flex';
+
+      // Sort
+      if (sortBy === 'time') {
+        currentReviews.sort((a, b) => b.time - a.time);
+      } else if (sortBy === 'rating-desc') {
+        currentReviews.sort((a, b) => b.rating - a.rating);
+      } else if (sortBy === 'rating-asc') {
+        currentReviews.sort((a, b) => a.rating - b.rating);
+      }
+      
+      // Update active button
+      document.querySelectorAll('.review-sort-button').forEach(b => {
+        b.classList.remove('active');
+        if (b.id.includes(sortBy.split('-')[0])) b.classList.add('active');
+      });
+
+      // Render
+      reviewsList.innerHTML = '';
+      if (currentReviews.length === 0) {
+        reviewsList.innerHTML = '<p class="opacity-70 text-center">No reviews found for this place.</p>';
+        return;
+      }
+
+      currentReviews.forEach(review => {
+        const card = document.createElement('div');
+        card.className = 'review-item';
+        card.innerHTML = `
+          <div class="flex items-center gap-3 mb-2">
+            <img loading="lazy" src="${review.profile_photo_url}" alt="${review.author_name}" class="w-10 h-10 rounded-full" />
+            <div class="flex-1">
+              <h4 class="font-semibold text-sm">${review.author_name}</h4>
+              <p class="text-xs opacity-70">${review.relative_time_description}</p>
+            </div>
+            <div class="star-row text-right">${renderStarsHTML(review.rating)}</div>
+          </div>
+          <p class="text-sm opacity-90">${review.text}</p>
+        `;
+        reviewsList.appendChild(card);
+      });
+    }
+
 
     /* ====== Search ====== */
     async function findLocalEvents() {
@@ -611,9 +693,11 @@
         resultsListScreen.style.display = 'none';
         savedListScreen.style.display = 'none';
         eventsListScreen.style.display = 'none';
+        reviewsListScreen.style.display = 'none';
         resultScreen.style.display='flex';
         
         currentPlace = summary;
+        currentReviews = []; // NEW: Clear old reviews
         updateSaveButtonState();
         placeNameEl.textContent = 'Loading Details...';
         
@@ -625,12 +709,14 @@
         placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
         phoneLink.textContent=''; phoneLink.removeAttribute('href');
         placeAccessibility.textContent=''; placeAccessibility.style.display='none';
+        showReviewsButton.disabled = true;
+        showReviewsButton.textContent = 'Loading Reviews...';
         
         routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
 
         placesService.getDetails({
             placeId:summary.place_id,
-            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
+            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews'] // NEW: Added 'reviews'
         },(place,status)=>{
             if(status===google.maps.places.PlacesServiceStatus.OK&&place){
                 currentPlace=place;
@@ -659,6 +745,12 @@
                         const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s);
                     });
                 }
+
+                // NEW: Handle Reviews
+                currentReviews = place.reviews || [];
+                showReviewsButton.disabled = currentReviews.length === 0;
+                showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
+
                 const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
                 buildRouteTo(place.geometry.location);
                 updateSaveButtonState();
@@ -692,7 +784,6 @@
       themeColorMeta.content = newThemeColor;
     }
 
-    // NEW: Voice functions
     function applyVoice(voiceURI) {
       currentVoiceURI = voiceURI;
       localStorage.setItem('appVoice', voiceURI);
@@ -701,7 +792,9 @@
     function loadVoices() {
       voices = speechSynthesis.getVoices();
       voiceSelector.innerHTML = '<option value="">Device Default</option>';
-      voices.forEach(voice => {
+      voices
+        .filter(v => v.lang.startsWith(navigator.language) || v.lang.startsWith('en-')) // Filter for local/english
+        .forEach(voice => {
         const option = document.createElement('option');
         option.value = voice.voiceURI;
         option.textContent = `${voice.name} (${voice.lang})`;
@@ -711,16 +804,19 @@
     }
 
     function loadSettings() {
-      // Theme
+      // Load Theme
       const theme = localStorage.getItem('appTheme') || 'light';
       applyTheme(theme);
       
-      // Voice
+      // Load Voice
       currentVoiceURI = localStorage.getItem('appVoice') || null;
       loadVoices();
       if (speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = loadVoices;
       }
+      
+      // Load Saved Places
+      savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
     }
 
     function openSettings() {
@@ -733,7 +829,7 @@
 
     /* ====== Init / Geocode ====== */
     function initApp(){
-      loadSettings(); // Load settings on start
+      loadSettings(); // Load ALL settings on start
       placesService=new google.maps.places.PlacesService(document.createElement('div'));
       geocoder=new google.maps.Geocoder();
       directionsService=new google.maps.DirectionsService();
@@ -819,6 +915,7 @@
       resultsListScreen.style.display='none';
       savedListScreen.style.display='none';
       eventsListScreen.style.display='none';
+      reviewsListScreen.style.display='none';
       mainScreen.style.display='block';
       funFactContainer.style.display='block';
       hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
@@ -850,13 +947,20 @@
       }
       if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
 
+      // NEW: Review Sort Buttons
+      if(btn.id === 'sort-reviews-best') { showReviews('rating-desc'); return; }
+      if(btn.id === 'sort-reviews-worst') { showReviews('rating-asc'); return; }
+      if(btn.id === 'sort-reviews-recent') { showReviews('time'); return; }
+
       switch(btn.id){
         case 'back-to-main-filters': hideSubMenu(); break;
         case 'close-results-button': mainScreen.style.display = 'block'; resultsListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'close-saved-button': mainScreen.style.display = 'block'; savedListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'close-events-button': mainScreen.style.display = 'block'; eventsListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
+        case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break; // NEW
         case 'show-saved-button': showSavedList(); break;
         case 'local-events-button': findLocalEvents(); break;
+        case 'show-reviews-button': showReviews('time'); break; // NEW
 
         case 'settings-button': openSettings(); break;
         case 'close-settings-button': closeSettings(); break;
@@ -906,7 +1010,6 @@
     });
 
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
-    // NEW: Voice selector event listener
     document.getElementById('voice-selector').addEventListener('change', e => {
       applyVoice(e.target.value);
     });
