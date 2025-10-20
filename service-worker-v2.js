@@ -1,96 +1,110 @@
-// service-worker.js
-const CACHE_NAME = 'local-explorer-v16-network-first'; // CRITICAL: Updated version
+// service-worker-v2.js
+const CACHE_NAME = 'local-explorer-v18-final-final-fix'; // CRITICAL: Updated version
 const urlsToCache = [
-    './',
-    './LocalExplorer.html', // We will cache this as a fallback
+    './', // Cache the root index
+    './LocalExplorer.html', // Cache the HTML as a fallback
     './manifest.json',
     './icons/icon-192x192.png',
-    './key.js' // Cache the key file too
+    './key.js'
 ];
 
-// Install
 self.addEventListener('install', event => {
+  console.log('SW V18: Install event');
   event.waitUntil(
     (async () => {
       try {
         const cache = await caches.open(CACHE_NAME);
-        await cache.addAll(urlsToCache);
+        console.log('SW V18: Caching core assets');
+        // Force reload from network during install for core files
+        const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
+        await cache.addAll(requests);
+        console.log('SW V18: Core assets cached');
       } catch (e) {
-        console.log('SW: addAll failed (continuing):', e);
+        console.error('SW V18: Cache addAll failed during install:', e);
       }
     })()
   );
-  self.skipWaiting();
+  self.skipWaiting(); // Activate immediately
 });
 
-// Activate: clean old caches
 self.addEventListener('activate', event => {
+  console.log('SW V18: Activate event');
   event.waitUntil(
     (async () => {
+      // Clean up old caches
       const keys = await caches.keys();
       await Promise.all(
-        keys.map(k => (k === CACHE_NAME ? null : caches.delete(k)))
+        keys.map(k => {
+          if (k !== CACHE_NAME) {
+            console.log('SW V18: Deleting old cache:', k);
+            return caches.delete(k);
+          }
+        })
       );
+      // Take control of clients immediately
+      console.log('SW V18: Claiming clients');
+      return self.clients.claim();
     })()
   );
-  self.clients.claim();
 });
 
-// Fetch: Network-First for HTML, Cache-First for others
 self.addEventListener('fetch', event => {
   const { request } = event;
 
-  // Not a GET request, so just fetch
+  // Ignore non-GET requests
   if (request.method !== 'GET') {
-    event.respondWith(fetch(request));
     return;
   }
 
   const url = new URL(request.url);
 
-  // **** NEW NETWORK-FIRST STRATEGY ****
-  // If it's the main HTML file, always try network first
-  // This ensures the app code is ALWAYS up-to-date.
+  // Network-First for HTML navigation requests
   if (request.mode === 'navigate' || url.pathname.endsWith('.html')) {
     event.respondWith(
       (async () => {
         try {
-          const networkResponse = await fetch(request);
-          // If we get a good response, cache it and return it
+          // Always try network first, bypassing HTTP cache
+          const networkResponse = await fetch(new Request(request, { cache: 'reload' }));
+          console.log(`SW V18: Fetched ${request.url} from network.`);
+          // If successful, cache and return
           if (networkResponse && networkResponse.ok) {
             const cache = await caches.open(CACHE_NAME);
             cache.put(request, networkResponse.clone());
             return networkResponse;
           }
-          // If network fails, try to serve from cache
+          // Network failed but response wasn't 'ok' (e.g., 404) - try cache
+          console.warn(`SW V18: Network fetch for ${request.url} failed or wasn't ok, trying cache.`);
           return await caches.match(request);
         } catch (e) {
-          // Network failed, try cache
-          console.log('SW: Network-first fetch failed, trying cache.', e);
+          // Network completely failed (offline) - try cache
+          console.error(`SW V18: Network error for ${request.url}, trying cache.`, e);
           const cached = await caches.match(request);
-          return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
+          return cached || new Response('Offline - HTML not cached', { status: 503, statusText: 'Offline' });
         }
       })()
     );
     return;
   }
 
-  // **** CACHE-FIRST STRATEGY (for all other assets) ****
-  // For JS, CSS, images, etc., serve from cache first for speed.
+  // Cache-First for all other assets (JS, CSS, images, etc.)
   event.respondWith(
     (async () => {
-      const cached = await caches.match(request);
-      if (cached) return cached;
+      const cachedResponse = await caches.match(request);
+      if (cachedResponse) {
+        // console.log(`SW V18: Serving ${request.url} from cache.`);
+        return cachedResponse;
+      }
+      // console.log(`SW V18: ${request.url} not in cache, fetching from network.`);
       try {
-        const resp = await fetch(request);
-        if (resp && resp.status === 200) {
-          const copy = resp.clone();
+        const networkResponse = await fetch(request); // Standard fetch
+        if (networkResponse && networkResponse.ok) {
           const cache = await caches.open(CACHE_NAME);
-          cache.put(request, copy).catch(()=>{});
+          cache.put(request, networkResponse.clone());
         }
-        return resp;
+        return networkResponse;
       } catch (e) {
-        return new Response('Offline', { status: 503, statusText: 'Offline' });
+        console.error(`SW V18: Network error fetching asset ${request.url}.`, e);
+        return new Response(`Offline - Asset ${request.url} not cached`, { status: 503, statusText: 'Offline' });
       }
     })()
   );
