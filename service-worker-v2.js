@@ -1,5 +1,5 @@
 // service-worker-v2.js
-const CACHE_NAME = 'local-explorer-v18-final-final-fix'; // CRITICAL: Updated version
+const CACHE_NAME = 'local-explorer-v14.0-deploy';
 const urlsToCache = [
     './', // Cache the root index
     './LocalExplorer.html', // Cache the HTML as a fallback
