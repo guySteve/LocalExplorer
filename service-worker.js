@@ -1,4 +1,5 @@
-const CACHE_NAME = 'local-explorer-v14-persistence-fix'; // Updated version
+// service-worker.js
+const CACHE_NAME = 'local-explorer-v15-reviews-fix'; // Updated version
 const urlsToCache = [
     './',
     './LocalExplorer.html',
