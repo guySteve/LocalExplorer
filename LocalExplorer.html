@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" id="theme-color-meta" content="#111827" />
-    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" id="theme-color-meta" content="#0A192F" /> <link rel="manifest" href="./manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Local Explorer" />
@@ -40,20 +39,39 @@
           --shadow-color: rgba(0, 0, 0, 0.1);
         }
 
-        [data-theme="navy-vet"] {
+        /* NEW: Default Theme */
+        [data-theme="rugged-explorer"] {
           --bg: #0A192F;
           --text: #CCD6F6;
           --text-subtle: #8892B0;
           --card-bg: #112240;
           --card-text: #CCD6F6;
           --card-bg-subtle: #0A192F;
-          --accent: #64FFDA;
-          --accent-alt: #f59e0b;
+          --accent: #64FFDA; /* Aqua */
+          --accent-alt: #f59e0b; /* Amber */
           --accent-dark: #57D3C1;
           --modal-bg: rgba(10, 25, 47, 0.9);
           --modal-blur: blur(10px);
           --list-bg: rgba(0, 0, 0, 0.85);
           --list-card-bg: rgba(17, 34, 64, 0.98);
+          --shadow-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        /* NEW: Night Ops Theme */
+        [data-theme="night-ops"] {
+          --bg: #111111;
+          --text: #E0E0E0;
+          --text-subtle: #9E9E9E;
+          --card-bg: #1F1F1F;
+          --card-text: #E0E0E0;
+          --card-bg-subtle: #000000;
+          --accent: #FF4136; /* Red */
+          --accent-alt: #F012BE; /* Magenta */
+          --accent-dark: #B10000;
+          --modal-bg: rgba(20, 20, 20, 0.9);
+          --modal-blur: blur(10px);
+          --list-bg: rgba(0, 0, 0, 0.85);
+          --list-card-bg: rgba(31, 31, 31, 0.98);
           --shadow-color: rgba(0, 0, 0, 0.4);
         }
 
@@ -66,6 +84,7 @@
           background: var(--card-bg); color: var(--card-text);
           transition: transform 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
           box-shadow: 0 4px 12px var(--shadow-color);
+          cursor: pointer; /* NEW: Touch optimization */
         }
         .action-card:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 8px 20px var(--shadow-color)}
         .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
@@ -97,6 +116,7 @@
         .modal-dialog{width: min(92vw, 440px); background: var(--list-card-bg); color: var(--card-text);
           border:1px solid rgba(255,255,255,.12); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.5); padding:16px; outline:none;}
 
+        /* ... (Compass styles unchanged) ... */
         #nav-bubble{position:relative;margin: 8px 0 12px 0;padding:.6rem .75rem;font-size:13px;line-height:1.25;
           box-shadow:0 10px 24px rgba(0,0,0,.35);background:radial-gradient(120% 140% at 10% 0%, rgba(16,185,129,.16) 0%, rgba(245,158,11,.18) 35%, rgba(17,24,39,.96) 68%);
           border:1px solid rgba(255,255,255,.12)}
@@ -112,14 +132,13 @@
         #compass-dist{font-size:14px;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 
         #settings-modal .modal-dialog { padding: 20px; }
-        .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; }
+        .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .theme-button.active { border-color: var(--accent); box-shadow: 0 0 10px -2px var(--accent); }
         #voice-selector {
           background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle);
-          padding: 8px 12px; border-radius: 8px; width: 100%;
+          padding: 8px 12px; border-radius: 8px; width: 100%; cursor: pointer;
         }
         
-        /* NEW: Review Styles */
         .review-item {
           background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
           border-radius: .9rem; padding: .75rem 1rem;
@@ -127,11 +146,74 @@
         .review-sort-button {
           background: var(--card-bg-subtle); color: var(--card-text);
           padding: 8px 12px; border-radius: 8px; font-weight: 600; opacity: 0.7;
+          cursor: pointer;
         }
         .review-sort-button.active {
           background: var(--accent); color: var(--card-bg); opacity: 1;
         }
 
+        /* NEW: Local Facts Shadow Box */
+        #fun-fact-container {
+          background: var(--card-bg);
+          color: var(--text);
+          border-radius: 1rem;
+          padding: 1rem;
+          box-shadow: 0 4px 12px var(--shadow-color);
+          text-align: left;
+          margin-bottom: 1.5rem;
+        }
+        #fun-fact-container h2 {
+          color: var(--accent);
+          font-family: 'Poppins', sans-serif;
+          font-weight: 700;
+          margin-bottom: 0.25rem;
+          font-size: 0.875rem;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+        }
+        #fun-fact-text {
+          color: var(--text-subtle);
+          border-top: 2px solid var(--card-bg-subtle);
+          padding-top: 0.5rem;
+          font-size: 0.875rem;
+        }
+
+        /* NEW: Searching Popup */
+        #searching-modal {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0,0,0,.85);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+        #searching-dialog {
+          background: var(--list-card-bg);
+          color: var(--card-text);
+          border-radius: 1.5rem;
+          padding: 2.5rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+          box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+        #searching-dialog-icon {
+          font-size: 3.5rem;
+          animation: spin 2s linear infinite;
+        }
+        #searching-dialog-text {
+          font-size: 1.25rem;
+          font-family: 'Poppins', sans-serif;
+          font-weight: 700;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
@@ -142,9 +224,9 @@
     <section id="main-screen" aria-labelledby="app-title">
       <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold mb-4" style="color: var(--text);">Local Explorer</h1>
 
-      <section id="fun-fact-container" class="text-left mb-4 px-2">
-        <h2 class="font-header font-bold mb-1 text-sm tracking-wider uppercase" style="color: var(--accent);">Local Fact</h2>
-        <p id="fun-fact-text" class="text-sm border-t-2 pt-2" style="color: var(--text-subtle); border-color: var(--text-subtle);">Loading...</p>
+      <section id="fun-fact-container">
+        <h2>Local Fact</h2>
+        <p id="fun-fact-text">Loading...</p>
       </section>
 
       <p id="location-status" class="text-lg font-semibold my-4" style="color: var(--text-subtle);">Please allow location access...</p>
@@ -186,7 +268,6 @@
       <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
   </section>
-
   <section id="saved-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
     <div id="saved-list-card" class="list-card">
       <div class="flex items-center justify-between mb-3">
@@ -196,7 +277,6 @@
       <div id="saved-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
   </section>
-
   <section id="events-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
     <div id="events-list-card" class="list-card">
       <div class="flex items-center justify-between mb-3">
@@ -209,7 +289,6 @@
       <div id="events-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
   </section>
-
   <section id="reviews-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
     <div id="reviews-list-card" class="list-card">
       <div class="flex items-center justify-between mb-3">
@@ -235,27 +314,22 @@
           <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false">☆</button>
         </div>
       </div>
-
       <div class="flex justify-center items-center gap-3 text-base my-2">
         <div class="star-row" id="place-stars"></div>
         <p class="font-semibold" style="color: var(--accent);" id="place-rating">...</p>
         <p class="font-semibold" style="color: var(--accent-alt);" id="place-price">...</p>
         <a id="phone-link" href="#" class="hover:underline text-sm" style="color: var(--text-subtle);"></a>
       </div>
-
       <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
-      
       <button id="show-reviews-button" class="action-card card-accent-dark w-full mt-3 mb-4 rounded-lg font-bold py-3 text-base" disabled>
         Show Reviews (0)
       </button>
-
       <div class="flex flex-wrap justify-center gap-3 my-4">
         <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card card-accent font-bold py-3 px-4 rounded-lg">Map</a>
         <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden" style="background: var(--card-bg-subtle);">Website</a>
         <button id="share-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Share</button>
         <button id="compass-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Compass</button>
       </div>
-
       <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
         <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl" style="background: var(--card-bg-subtle);">Back</button>
         <button id="next-suggestion-button" class="flex-1 action-card card-accent-dark font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
@@ -293,9 +367,10 @@
       <div class="space-y-4">
         <div>
           <h3 class="font-semibold mb-2">Theme</h3>
-          <div class="flex gap-3">
-            <button id="theme-light-button" class="theme-button flex-1" data-theme="light">☀️ Light</button>
-            <button id="theme-navy-button" class="theme-button flex-1" data-theme="navy-vet">⚓ Navy Veteran</button>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="theme-button flex-1" data-theme="day-ops">☀️ Day Ops</button>
+            <button class="theme-button flex-1" data-theme="rugged-explorer">⚓ Rugged</button>
+            <button class="theme-button flex-1" data-theme="night-ops">🌙 Night Ops</button>
           </div>
         </div>
 
@@ -311,8 +386,15 @@
           Buy me a coffee (Venmo)
         </a>
         
-        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 7.0</p>
+        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 8.0</p>
       </div>
+    </div>
+  </div>
+  
+  <div id="searching-modal">
+    <div id="searching-dialog">
+      <div id="searching-dialog-icon">🧭</div>
+      <div id="searching-dialog-text">Acquiring Target...</div>
     </div>
   </div>
 
@@ -368,10 +450,11 @@
     const settingsDialog = document.getElementById('settings-dialog');
     const themeColorMeta = document.getElementById('theme-color-meta');
     const voiceSelector = document.getElementById('voice-selector');
-    // NEW: Reviews Refs
     const reviewsListScreen = document.getElementById('reviews-list-screen');
     const reviewsList = document.getElementById('reviews-list');
     const showReviewsButton = document.getElementById('show-reviews-button');
+    // NEW: Searching Modal Ref
+    const searchingModal = document.getElementById('searching-modal');
 
     /* ====== State ====== */
     let placesService, geocoder, directionsService;
@@ -381,15 +464,15 @@
     let currentPlace;
     let currentResults = [];
     let currentResultIndex = 0;
-    let savedPlaces = {}; // Will be loaded from localStorage in init
+    let savedPlaces = {};
     let localFacts = [], factInterval = null, currentFactIndex = 0;
     let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
     let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
     let voices = [];
-    let currentVoiceURI = null; // Will be loaded from localStorage in init
-    let currentReviews = []; // NEW: Store reviews
+    let currentVoiceURI = null;
+    let currentReviews = [];
 
-    /* ====== Categories ====== */
+    /* ====== Categories (unchanged) ====== */
     const subFilterMap = {
       eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
       see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
@@ -417,7 +500,7 @@
     };
     const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
-    /* ====== Utils ====== */
+    /* ====== Utils (unchanged) ====== */
     const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
     const toggleFilterButtons = d => document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
     const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
@@ -425,7 +508,6 @@
     const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
     const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
     const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
-    
     function isCandidate(p, kw, reqType, allowedSet) {
       const t=new Set(p.types||[]);
       if (![...t].some(x => allowedSet.has(x))) return false;
@@ -435,13 +517,11 @@
       }
       return true;
     }
-
     function updateSaveButtonState(){
       const pressed = currentPlace && !!savedPlaces[currentPlace.place_id];
       savePlaceButton.setAttribute('aria-pressed', String(pressed));
       savePlaceButton.textContent = pressed ? '★' : '☆';
     }
-
     function speak(text){
       try{
         speechSynthesis.cancel();
@@ -454,7 +534,7 @@
       }catch{}
     }
 
-    /* ====== Local Facts ====== */
+    /* ====== Local Facts (unchanged) ====== */
     async function getFunFact(coords){
       try{
         funFactText.textContent = "Finding local facts...";
@@ -474,7 +554,7 @@
       if(localFacts.length>1){ factInterval=setInterval(()=>{ currentFactIndex=(currentFactIndex+1)%localFacts.length; funFactText.textContent = localFacts[currentFactIndex]; },7000); }
     }
 
-    /* ====== Results/Saved/Events Lists ====== */
+    /* ====== Results/Saved/Events/Reviews Lists (updated) ====== */
     function showResultsList(parentFilter, subLabel){
       mainScreen.style.display = 'none';
       savedListScreen.style.display='none';
@@ -552,13 +632,11 @@
       });
     }
 
-    // NEW: Show Reviews Function
     function showReviews(sortBy = 'time') {
       mainScreen.style.display = 'none';
       resultScreen.style.display = 'none';
       reviewsListScreen.style.display = 'flex';
 
-      // Sort
       if (sortBy === 'time') {
         currentReviews.sort((a, b) => b.time - a.time);
       } else if (sortBy === 'rating-desc') {
@@ -567,13 +645,11 @@
         currentReviews.sort((a, b) => a.rating - b.rating);
       }
       
-      // Update active button
       document.querySelectorAll('.review-sort-button').forEach(b => {
         b.classList.remove('active');
         if (b.id.includes(sortBy.split('-')[0])) b.classList.add('active');
       });
 
-      // Render
       reviewsList.innerHTML = '';
       if (currentReviews.length === 0) {
         reviewsList.innerHTML = '<p class="opacity-70 text-center">No reviews found for this place.</p>';
@@ -598,8 +674,7 @@
       });
     }
 
-
-    /* ====== Search ====== */
+    /* ====== Search (updated) ====== */
     async function findLocalEvents() {
       if (!window.TICKETMASTER_API_KEY || window.TICKETMASTER_API_KEY === 'YOUR_KEY_HERE') { 
         alert('Ticketmaster API key is missing from key.js.'); 
@@ -607,7 +682,7 @@
       }
       if (!currentUserLocation) { alert('Please set your location first.'); return; }
 
-      locationStatus.textContent = 'Finding local events...';
+      searchingModal.style.display = 'flex'; // NEW: Show searching popup
       toggleFilterButtons(true);
       
       try {
@@ -618,26 +693,25 @@
         showEventsList(data._embedded?.events);
       } catch (e) {
         console.error(e);
-        locationStatus.textContent = 'Could not load events.';
         alert('Could not load local events. See console for details.');
       }
       
-      locationStatus.textContent = `Exploring: ${currentGeocodeLabel}`;
+      searchingModal.style.display = 'none'; // NEW: Hide searching popup
       toggleFilterButtons(false);
     }
 
     function findAdventure(searchParams,parentFilter,subLabel){
       if(!placesService||!currentUserLocation)return;
       mainScreen.style.display = 'none';
+      searchingModal.style.display = 'flex'; // NEW: Show searching popup
       toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
-      locationStatus.textContent="Searching nearby..."; currentResults=[];
+      currentResults=[];
       const reqType=searchParams.type||null;
       const kw=(parentFilter==='eat')?(searchParams.keyword||(reqType?reqType.replace('_restaurant',''):'')):searchParams.keyword||'';
       const radii=[2000,5000,10000,20000,35000,50000]; let i=0;
 
       const nearby=()=>{ if(i>=radii.length)return text();
         const radius=radii[i++]; const req={location:currentUserLocation,radius,...(searchParams.type&&{type:searchParams.type}),...(kw&&{keyword:kw})};
-        locationStatus.textContent=`Searching (${metersToImperial(radius)})...`;
         placesService.nearbySearch(req,(res,status)=>{
           if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
             const allowed = allowedByCategory[parentFilter] || new Set();
@@ -648,7 +722,6 @@
         });
       };
       const text=()=>{
-        locationStatus.textContent=`Searching "${kw}" in ${currentLocality}...`;
         const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||''} in ${city}`;
         placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
           if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
@@ -661,13 +734,13 @@
       const finalize=()=>{
         currentResults=sortResults(currentResults);
         showResultsList(parentFilter,subLabel);
+        searchingModal.style.display = 'none'; // NEW: Hide searching popup
         toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-        locationStatus.textContent = `Exploring: ${currentGeocodeLabel}`;
       };
       nearby();
     }
 
-    /* ====== Details, Directions, Compass ====== */
+    /* ====== Details, Directions, Compass (updated) ====== */
     function openDetailsById(placeId){
       const resultIndex = currentResults.findIndex(r=>r.place_id===placeId);
       if(resultIndex !== -1) {
@@ -697,7 +770,7 @@
         resultScreen.style.display='flex';
         
         currentPlace = summary;
-        currentReviews = []; // NEW: Clear old reviews
+        currentReviews = [];
         updateSaveButtonState();
         placeNameEl.textContent = 'Loading Details...';
         
@@ -716,7 +789,7 @@
 
         placesService.getDetails({
             placeId:summary.place_id,
-            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews'] // NEW: Added 'reviews'
+            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews']
         },(place,status)=>{
             if(status===google.maps.places.PlacesServiceStatus.OK&&place){
                 currentPlace=place;
@@ -746,7 +819,6 @@
                     });
                 }
 
-                // NEW: Handle Reviews
                 currentReviews = place.reviews || [];
                 showReviewsButton.disabled = currentReviews.length === 0;
                 showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
@@ -771,29 +843,29 @@
     function startCompass(){ if(compassActive) return; compassActive = true; if ('ondeviceorientationabsolute' in window) { window.addEventListener('deviceorientationabsolute', onOrientation); } else if ('ondeviceorientation' in window) { window.addEventListener('deviceorientation', onOrientation); } if(navigator.geolocation) { watchId = navigator.geolocation.watchPosition(pos => { currentUserLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude}; updateCompassUI(); }, null, {enableHighAccuracy: true}); } compassDialog.addEventListener('keydown', trapCompassTab); }
     function stopCompass(){ compassActive = false; window.removeEventListener('deviceorientationabsolute', onOrientation); window.removeEventListener('deviceorientation', onOrientation); if(watchId) navigator.geolocation.clearWatch(watchId); watchId = null; guideSpeaking = false; guideButton.textContent = 'Guide Me ▶︎'; try { speechSynthesis.cancel(); } catch {} compassDialog.removeEventListener('keydown', trapCompassTab); }
     
-    /* ====== Settings ====== */
+    /* ====== Settings (updated) ====== */
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
-      localStorage.setItem('appTheme', theme);
+      localStorage.setItem('appTheme', theme); // This will now save
       
       document.querySelectorAll('.theme-button').forEach(b => {
         b.classList.toggle('active', b.dataset.theme === theme);
       });
 
-      const newThemeColor = theme === 'navy-vet' ? '#0A192F' : '#111827';
+      const newThemeColor = theme === 'rugged-explorer' ? '#0A192F' : (theme === 'night-ops' ? '#111111' : '#f8f7f2');
       themeColorMeta.content = newThemeColor;
     }
 
     function applyVoice(voiceURI) {
       currentVoiceURI = voiceURI;
-      localStorage.setItem('appVoice', voiceURI);
+      localStorage.setItem('appVoice', voiceURI); // This will now save
     }
 
     function loadVoices() {
       voices = speechSynthesis.getVoices();
       voiceSelector.innerHTML = '<option value="">Device Default</option>';
       voices
-        .filter(v => v.lang.startsWith(navigator.language) || v.lang.startsWith('en-')) // Filter for local/english
+        .filter(v => v.lang.startsWith(navigator.language) || v.lang.startsWith('en-'))
         .forEach(voice => {
         const option = document.createElement('option');
         option.value = voice.voiceURI;
@@ -805,7 +877,7 @@
 
     function loadSettings() {
       // Load Theme
-      const theme = localStorage.getItem('appTheme') || 'light';
+      const theme = localStorage.getItem('appTheme') || 'rugged-explorer'; // NEW: Default theme
       applyTheme(theme);
       
       // Load Voice
@@ -827,7 +899,7 @@
       settingsModal.style.display = 'none';
     }
 
-    /* ====== Init / Geocode ====== */
+    /* ====== Init / Geocode (updated) ====== */
     function initApp(){
       loadSettings(); // Load ALL settings on start
       placesService=new google.maps.places.PlacesService(document.createElement('div'));
@@ -865,8 +937,9 @@
     }
     function geocodeLocation(){
       const address=locationInput.value.trim(); if(!address) return;
-      locationStatus.textContent=`Searching for "${address}"...`;
+      searchingModal.style.display = 'flex'; // NEW: Show searching popup
       geocoder.geocode({address},(results,status)=>{
+        searchingModal.style.display = 'none'; // NEW: Hide searching popup
         if(status==='OK'&&results?.[0]){
           const loc=results[0].geometry.location;
           currentGeocodeLabel = results[0].formatted_address.split(',').slice(0,2).join(',');
@@ -883,7 +956,7 @@
       funFactContainer.style.display='block';
     }
 
-    /* ====== UI & Events ====== */
+    /* ====== UI & Events (updated) ====== */
     function showSubMenu(filter){
       filterContainer.classList.add('hidden'); 
       randomButton.classList.add('hidden');
@@ -947,7 +1020,6 @@
       }
       if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
 
-      // NEW: Review Sort Buttons
       if(btn.id === 'sort-reviews-best') { showReviews('rating-desc'); return; }
       if(btn.id === 'sort-reviews-worst') { showReviews('rating-asc'); return; }
       if(btn.id === 'sort-reviews-recent') { showReviews('time'); return; }
@@ -957,10 +1029,10 @@
         case 'close-results-button': mainScreen.style.display = 'block'; resultsListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'close-saved-button': mainScreen.style.display = 'block'; savedListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'close-events-button': mainScreen.style.display = 'block'; eventsListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
-        case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break; // NEW
+        case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break;
         case 'show-saved-button': showSavedList(); break;
         case 'local-events-button': findLocalEvents(); break;
-        case 'show-reviews-button': showReviews('time'); break; // NEW
+        case 'show-reviews-button': showReviews('time'); break;
 
         case 'settings-button': openSettings(); break;
         case 'close-settings-button': closeSettings(); break;
@@ -981,11 +1053,11 @@
             if(savedPlaces[currentPlace.place_id]) {
               delete savedPlaces[currentPlace.place_id]; 
             } else {
-              if (currentPlace.geometry && currentPlace.vicinity) {
+              if (currentPlace.geometry && (currentPlace.vicinity || currentPlace.name)) {
                 savedPlaces[currentPlace.place_id]={
                   name: currentPlace.name, 
                   place_id: currentPlace.place_id,
-                  vicinity: currentPlace.vicinity,
+                  vicinity: currentPlace.vicinity || 'Location saved',
                   geometry: currentPlace.geometry.location.toJSON()
                 };
               }
