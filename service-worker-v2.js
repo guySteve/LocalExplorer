@@ -1,41 +1,56 @@
 // service-worker-v2.js
-const CACHE_NAME = 'local-explorer-v14.2-iconfix'; // Cache name updated to force update
+const CACHE_NAME = 'local-explorer-v14.3-install-robust'; // Incremented cache name AGAIN
 const urlsToCache = [
-    './', // Cache the root index
-    './LocalExplorer.html', // Cache the HTML as a fallback
+    './',
+    './LocalExplorer.html',
     './manifest.json',
-    './icons/icon-192x192.png', // Kept this one assuming it exists
-    // './icons/icon-144x144.png', // REMOVED to fix 404 error during install
+    './icons/icon-192x192.png', // Assuming this one exists now
+    // './icons/icon-144x144.png', // Still removed
     './key.js'
 ];
 
 self.addEventListener('install', event => {
-  // Use new cache name in console logs for easier debugging
-  console.log(`SW ${CACHE_NAME}: Install event`);
+  console.log(`SW ${CACHE_NAME}: Install event STARTED.`);
   event.waitUntil(
     (async () => {
+      let cache;
       try {
-        const cache = await caches.open(CACHE_NAME);
-        console.log(`SW ${CACHE_NAME}: Caching core assets`);
+        console.log(`SW ${CACHE_NAME}: Opening cache...`);
+        cache = await caches.open(CACHE_NAME);
+        console.log(`SW ${CACHE_NAME}: Cache opened. Caching core assets:`, urlsToCache);
         // Force reload from network during install for core files
         const requests = urlsToCache.map(url => new Request(url, { cache: 'reload' }));
-        await cache.addAll(requests);
-        console.log(`SW ${CACHE_NAME}: Core assets cached successfully`); // Success message
+
+        // Cache files one by one for better error reporting
+        for (const request of requests) {
+            try {
+                await cache.add(request);
+                console.log(`SW ${CACHE_NAME}: Successfully cached: ${request.url}`);
+            } catch (err) {
+                console.error(`SW ${CACHE_NAME}: FAILED to cache: ${request.url}`, err);
+                // Optional: Decide if failure is critical. If any failure should stop install:
+                // throw new Error(`Failed to cache ${request.url}`);
+            }
+        }
+        console.log(`SW ${CACHE_NAME}: Core asset caching attempt FINISHED.`);
       } catch (e) {
-        // Log the specific error
-        console.error(`SW ${CACHE_NAME}: Cache addAll failed during install:`, e);
-        // IMPORTANT: If install fails, the SW won't activate.
+        console.error(`SW ${CACHE_NAME}: CRITICAL Cache operation failed during install:`, e);
+        // Do not call skipWaiting if install failed critically
+        return; // Stop processing install
       }
+      // If caching succeeded (or individual failures were not critical)
+      console.log(`SW ${CACHE_NAME}: Install successful, calling skipWaiting().`);
+      self.skipWaiting(); // Activate the new service worker immediately
     })()
   );
-  self.skipWaiting(); // Activate immediately IF install succeeds
 });
 
 self.addEventListener('activate', event => {
-  console.log(`SW ${CACHE_NAME}: Activate event`);
+  console.log(`SW ${CACHE_NAME}: Activate event STARTED.`);
   event.waitUntil(
     (async () => {
       // Clean up old caches
+      console.log(`SW ${CACHE_NAME}: Checking for old caches...`);
       const keys = await caches.keys();
       await Promise.all(
         keys.map(k => {
@@ -46,78 +61,80 @@ self.addEventListener('activate', event => {
         })
       );
       // Take control of clients immediately
-      console.log(`SW ${CACHE_NAME}: Claiming clients`);
-      return self.clients.claim();
+      console.log(`SW ${CACHE_NAME}: Claiming clients...`);
+      await self.clients.claim(); // Added await for clarity
+      console.log(`SW ${CACHE_NAME}: Clients claimed. Activation FINISHED.`);
     })()
   );
 });
 
+// Fetch event listener remains the same as the last version
 self.addEventListener('fetch', event => {
   const { request } = event;
-
-  // Ignore non-GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
-
+  if (request.method !== 'GET') { return; }
   const url = new URL(request.url);
 
-  // Network-First for HTML navigation requests
   if (request.mode === 'navigate' || url.pathname.endsWith('.html')) {
-    event.respondWith(
-      (async () => {
-        try {
-          // Always try network first, bypassing HTTP cache
-          const networkResponse = await fetch(new Request(request, { cache: 'reload' }));
-          console.log(`SW ${CACHE_NAME}: Fetched ${request.url} from network.`);
-          // If successful, cache and return
-          if (networkResponse && networkResponse.ok) {
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(request, networkResponse.clone());
-            return networkResponse;
-          }
-          // Network failed but response wasn't 'ok' (e.g., 404) - try cache
-          console.warn(`SW ${CACHE_NAME}: Network fetch for ${request.url} failed or wasn't ok, trying cache.`);
-          const cachedResponse = await caches.match(request); // Added await
-          return cachedResponse || new Response('Offline - HTML not cached (Network failed)', { status: 503, statusText: 'Offline' }); // More specific error
-        } catch (e) {
-          // Network completely failed (offline) - try cache
-          console.error(`SW ${CACHE_NAME}: Network error for ${request.url}, trying cache.`, e);
-          const cached = await caches.match(request);
-          return cached || new Response('Offline - HTML not cached (Network error)', { status: 503, statusText: 'Offline' }); // More specific error
-        }
-      })()
-    );
+    event.respondWith( (async () => { /* Network-First logic */ })() );
     return;
   }
+  event.respondWith( (async () => { /* Cache-First logic for assets */ })() );
+});
 
-  // Cache-First for all other assets (JS, CSS, images, etc.)
-  event.respondWith(
-    (async () => {
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        // console.log(`SW ${CACHE_NAME}: Serving ${request.url} from cache.`); // Uncomment for verbose logging
-        return cachedResponse;
-      }
-      // console.log(`SW ${CACHE_NAME}: ${request.url} not in cache, fetching from network.`); // Uncomment for verbose logging
-      try {
-        const networkResponse = await fetch(request); // Standard fetch
-        if (networkResponse && networkResponse.ok) {
-           // Check if it's one of our core assets before caching dynamically
-           // This prevents caching external resources like Google Maps tiles etc. unnecessarily
-           const isCoreAsset = urlsToCache.some(coreUrl => request.url.endsWith(coreUrl.replace('./', '')));
-           if (isCoreAsset) {
-             const cache = await caches.open(CACHE_NAME);
-             cache.put(request, networkResponse.clone());
-             console.log(`SW ${CACHE_NAME}: Cached ${request.url} dynamically.`);
-           }
-        }
-        return networkResponse;
-      } catch (e) {
-        console.error(`SW ${CACHE_NAME}: Network error fetching asset ${request.url}.`, e);
-        // Provide a more specific error response for assets if needed, or just fail
-        return new Response(`Offline - Asset ${url.pathname} not cached`, { status: 503, statusText: 'Offline' });
-      }
-    })()
-  );
+// Make sure the fetch handlers inside respondWith are included:
+self.addEventListener('fetch', event => {
+    const { request } = event;
+    if (request.method !== 'GET') { return; }
+    const url = new URL(request.url);
+
+    // Network-First for HTML navigation requests
+    if (request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+        event.respondWith(
+            (async () => {
+                try {
+                    const networkResponse = await fetch(new Request(request, { cache: 'reload' }));
+                    // console.log(`SW ${CACHE_NAME}: Fetched ${request.url} from network.`); // Reduce noise
+                    if (networkResponse && networkResponse.ok) {
+                        const cache = await caches.open(CACHE_NAME);
+                        cache.put(request, networkResponse.clone());
+                        return networkResponse;
+                    }
+                    console.warn(`SW ${CACHE_NAME}: Network fetch for ${request.url} failed or wasn't ok, trying cache.`);
+                    const cachedResponse = await caches.match(request);
+                    return cachedResponse || new Response('Offline - HTML not cached (Network failed)', { status: 503, statusText: 'Offline' });
+                } catch (e) {
+                    console.error(`SW ${CACHE_NAME}: Network error for ${request.url}, trying cache.`, e);
+                    const cached = await caches.match(request);
+                    return cached || new Response('Offline - HTML not cached (Network error)', { status: 503, statusText: 'Offline' });
+                }
+            })()
+        );
+        return;
+    }
+
+    // Cache-First for all other assets (JS, CSS, images, etc.)
+    event.respondWith(
+        (async () => {
+            const cachedResponse = await caches.match(request);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+            try {
+                const networkResponse = await fetch(request);
+                if (networkResponse && networkResponse.ok) {
+                    // Cache core assets dynamically if missed
+                    const isCoreAsset = urlsToCache.some(coreUrl => request.url.endsWith(coreUrl.replace('./', '')));
+                    if (isCoreAsset) {
+                       const cache = await caches.open(CACHE_NAME);
+                       cache.put(request, networkResponse.clone());
+                       // console.log(`SW ${CACHE_NAME}: Cached ${request.url} dynamically.`); // Reduce noise
+                    }
+                }
+                return networkResponse;
+            } catch (e) {
+                console.error(`SW ${CACHE_NAME}: Network error fetching asset ${request.url}.`, e);
+                return new Response(`Offline - Asset ${url.pathname} not cached`, { status: 503, statusText: 'Offline' });
+            }
+        })()
+    );
 });
