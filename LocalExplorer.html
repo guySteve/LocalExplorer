@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" id="theme-color-meta" content="#0A192F" />
-    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" id="theme-color-meta" content="#0A192F" /> <link rel="manifest" href="./manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Local Explorer" />
@@ -205,13 +204,142 @@
     </section>
   </main>
 
-  <section id="results-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="results-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="results-title" class="text-xl font-header font-bold">Results</h2> <button id="close-results-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div id="results-meta" class="text-sm opacity-80 mb-3"></div> <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div> </div> </section> <section id="saved-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="saved-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="saved-title" class="text-xl font-header font-bold">My Saved Places</h2> <button id="close-saved-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div id="saved-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div> </div> </section> <section id="events-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="events-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="events-title" class="text-xl font-header font-bold">Local Events</h2> <button id="close-events-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div class="text-xs opacity-60 text-center mb-2 -mt-2"> Events provided by <a href="https://ticketmaster.com" target="_blank" rel="noopener" class="underline">Ticketmaster</a> </div> <div id="events-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div> </div> </section> <section id="reviews-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="reviews-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="reviews-title" class="text-xl font-header font-bold">Reviews</h2> <button id="close-reviews-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div id="review-sort-container" class="flex gap-2 mb-3"> <button id="sort-reviews-best" class="review-sort-button flex-1">Best</button> <button id="sort-reviews-worst" class="review-sort-button flex-1">Worst</button> <button id="sort-reviews-recent" class="review-sort-button flex-1 active">Recent</button> </div> <div id="review-star-filter-container" class="flex justify-center gap-1 mb-3"> <button class="review-star-button" data-rating="5">★★★★★</button> <button class="review-star-button" data-rating="4">★★★★☆</button> <button class="review-star-button" data-rating="3">★★★☆☆</button> <button class="review-star-button" data-rating="2">★★☆☆☆</button> <button class="review-star-button" data-rating="1">★☆☆☆☆</button> <button id="clear-star-filter" class="review-star-button text-xs font-bold" style="opacity: 0.8; color: var(--text-subtle);">Clear</button> </div> <div id="reviews-list" class="space-y-2 max-h-[55vh] overflow-y-auto"></div> </div> </section>
+  <section id="results-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="results-list-card" class="list-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
+        <button id="close-results-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
+      </div>
+      <div id="results-meta" class="text-sm opacity-80 mb-3"></div>
+      <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
+    </div>
+  </section>
 
-  <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;"> <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center"> <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-32 object-cover rounded-lg mb-4" style="background-color: var(--card-bg);" /> <div class="flex justify-between items-start"> <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2> <div class="flex items-center gap-2"> <span id="place-accessibility" class="text-2xl"></span> <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false">☆</button> </div> </div> <div class="flex justify-center items-center gap-3 text-base my-2"> <div class="star-row" id="place-stars"></div> <p class="font-semibold" style="color: var(--accent);" id="place-rating">...</p> <p class="font-semibold" style="color: var(--accent-alt);" id="place-price">...</p> <a id="phone-link" href="#" class="hover:underline text-sm" style="color: var(--text-subtle);"></a> </div> <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div> <button id="show-reviews-button" class="action-card card-accent-dark w-full mt-3 mb-4 rounded-lg font-bold py-3 text-base" disabled> Show Reviews (0) </button> <div class="flex flex-wrap justify-center gap-3 my-4"> <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card card-accent font-bold py-3 px-4 rounded-lg">Map</a> <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden" style="background: var(--card-bg-subtle);">Website</a> <button id="share-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Share</button> <button id="compass-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Compass</button> </div> <div id="result-buttons-container" class="w-full max-w-md flex gap-4"> <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl" style="background: var(--card-bg-subtle);">Back</button> <button id="next-suggestion-button" class="flex-1 action-card card-accent-dark font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button> </div> </div> </section>
+  <section id="saved-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="saved-list-card" class="list-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="saved-title" class="text-xl font-header font-bold">My Saved Places</h2>
+        <button id="close-saved-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
+      </div>
+      <div id="saved-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
+    </div>
+  </section>
 
-  <div id="compass-modal" class="modal-base"> <div id="compass-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-2"> <h2 id="modal-title" class="font-header text-lg">Live Compass</h2> <div class="flex gap-2"> <button id="guide-button" class="action-card card-accent-dark font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button> <button id="close-compass" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </div> </header> <div id="nav-bubble"> <div id="nav-main">Head toward destination</div> <div id="nav-sub">Follow the arrow</div> </div> <div id="compass-overlay"> <div id="compass-arrow"></div> <div id="compass-dist">--</div> </div> </div> </div>
+  <section id="events-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="events-list-card" class="list-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="events-title" class="text-xl font-header font-bold">Local Events</h2>
+        <button id="close-events-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
+      </div>
+      <div class="text-xs opacity-60 text-center mb-2 -mt-2">
+        Events provided by <a href="https://ticketmaster.com" target="_blank" rel="noopener" class="underline">Ticketmaster</a>
+      </div>
+      <div id="events-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
+    </div>
+  </section>
 
-  <div id="settings-modal" class="modal-base"> <div id="settings-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-4"> <h2 class="font-header text-xl">Settings</h2> <button id="close-settings-button" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </header> <div class="space-y-4"> <div> <h3 class="font-semibold mb-2">Theme</h3> <div class="grid grid-cols-3 gap-2"> <button class="theme-button flex-1" data-theme="day-ops">☀️ Day Ops</button> <button class="theme-button flex-1" data-theme="rugged-explorer">⚓ Rugged</button> <button class="theme-button flex-1" data-theme="night-ops">🌙 Night Ops</button> </div> </div> <div> <h3 class="font-semibold mb-2">Guide Voice</h3> <select id="voice-selector"> <option value="">Loading voices...</option> </select> </div> <a id="donate-button" href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" class="action-card card-accent-alt font-bold py-3 px-4 rounded-lg w-full block text-center"> Buy me a coffee (Venmo) </a> <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 9.0</p> </div> </div> </div>
+  <section id="reviews-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="reviews-list-card" class="list-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="reviews-title" class="text-xl font-header font-bold">Reviews</h2>
+        <button id="close-reviews-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
+      </div>
+      <div id="review-sort-container" class="flex gap-2 mb-3">
+        <button id="sort-reviews-best" class="review-sort-button flex-1">Best</button>
+        <button id="sort-reviews-worst" class="review-sort-button flex-1">Worst</button>
+        <button id="sort-reviews-recent" class="review-sort-button flex-1 active">Recent</button>
+      </div>
+      <div id="review-star-filter-container" class="flex justify-center gap-1 mb-3">
+        <button class="review-star-button" data-rating="5">★★★★★</button>
+        <button class="review-star-button" data-rating="4">★★★★☆</button>
+        <button class="review-star-button" data-rating="3">★★★☆☆</button>
+        <button class="review-star-button" data-rating="2">★★☆☆☆</button>
+        <button class="review-star-button" data-rating="1">★☆☆☆☆</button>
+        <button id="clear-star-filter" class="review-star-button text-xs font-bold" style="opacity: 0.8; color: var(--text-subtle);">Clear</button>
+      </div>
+      <div id="reviews-list" class="space-y-2 max-h-[55vh] overflow-y-auto"></div>
+    </div>
+  </section>
+
+  <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
+    <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
+      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-32 object-cover rounded-lg mb-4" style="background-color: var(--card-bg);" />
+      <div class="flex justify-between items-start">
+        <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2>
+        <div class="flex items-center gap-2">
+          <span id="place-accessibility" class="text-2xl"></span>
+          <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false">☆</button>
+        </div>
+      </div>
+      <div class="flex justify-center items-center gap-3 text-base my-2">
+        <div class="star-row" id="place-stars"></div>
+        <p class="font-semibold" style="color: var(--accent);" id="place-rating">...</p>
+        <p class="font-semibold" style="color: var(--accent-alt);" id="place-price">...</p>
+        <a id="phone-link" href="#" class="hover:underline text-sm" style="color: var(--text-subtle);"></a>
+      </div>
+      <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div>
+      <button id="show-reviews-button" class="action-card card-accent-dark w-full mt-3 mb-4 rounded-lg font-bold py-3 text-base" disabled>
+        Show Reviews (0)
+      </button>
+      <div class="flex flex-wrap justify-center gap-3 my-4">
+        <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card card-accent font-bold py-3 px-4 rounded-lg">Map</a>
+        <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden" style="background: var(--card-bg-subtle);">Website</a>
+        <button id="share-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Share</button>
+        <button id="compass-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Compass</button>
+      </div>
+      <div id="result-buttons-container" class="w-full max-w-md flex gap-4">
+        <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl" style="background: var(--card-bg-subtle);">Back</button>
+        <button id="next-suggestion-button" class="flex-1 action-card card-accent-dark font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="compass-modal" class="modal-base">
+    <div id="compass-dialog" class="modal-dialog" tabindex="-1">
+      <header class="flex items-center justify-between mb-2">
+        <h2 id="modal-title" class="font-header text-lg">Live Compass</h2>
+        <div class="flex gap-2">
+          <button id="guide-button" class="action-card card-accent-dark font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button>
+          <button id="close-compass" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button>
+        </div>
+      </header>
+      <div id="nav-bubble">
+        <div id="nav-main">Head toward destination</div>
+        <div id="nav-sub">Follow the arrow</div>
+      </div>
+      <div id="compass-overlay">
+        <div id="compass-arrow"></div>
+        <div id="compass-dist">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-base">
+    <div id="settings-dialog" class="modal-dialog" tabindex="-1">
+      <header class="flex items-center justify-between mb-4">
+        <h2 class="font-header text-xl">Settings</h2>
+        <button id="close-settings-button" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button>
+      </header>
+      <div class="space-y-4">
+        <div>
+          <h3 class="font-semibold mb-2">Theme</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="theme-button flex-1" data-theme="day-ops">☀️ Day Ops</button>
+            <button class="theme-button flex-1" data-theme="rugged-explorer">⚓ Rugged</button>
+            <button class="theme-button flex-1" data-theme="night-ops">🌙 Night Ops</button>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Guide Voice</h3>
+          <select id="voice-selector"> <option value="">Loading voices...</option> </select>
+        </div>
+        <a id="donate-button" href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener"
+           class="action-card card-accent-alt font-bold py-3 px-4 rounded-lg w-full block text-center">
+          Buy me a coffee (Venmo)
+        </a>
+        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 10.0</p> </div>
+    </div>
+  </div>
 
   <div id="searching-modal">
     <div id="searching-dialog">
@@ -234,39 +362,263 @@
       });
     }
 
-    /* ====== Refs (unchanged) ====== */
+    /* ====== Refs ====== */
     const funFactContainer = document.getElementById('fun-fact-container'); const funFactText = document.getElementById('fun-fact-text'); const mainScreen = document.getElementById('main-screen'); const resultsListScreen = document.getElementById('results-list-screen'); const resultsTitle = document.getElementById('results-title'); const resultsMeta = document.getElementById('results-meta'); const resultsList = document.getElementById('results-list'); const resultScreen = document.getElementById('result-screen'); const filterContainer = document.getElementById('filter-container'); const locationStatus = document.getElementById('location-status'); const manualLocationEntry = document.getElementById('manual-location-entry'); const locationInput = document.getElementById('location-input'); const subMenuContainer = document.getElementById('sub-menu-container'); const backToMainFiltersButton = document.getElementById('back-to-main-filters'); const placeNameEl = document.getElementById('place-name'); const placeRatingEl = document.getElementById('place-rating'); const placeStarsEl = document.getElementById('place-stars'); const placePriceEl = document.getElementById('place-price'); const placePhotoEl = document.getElementById('place-photo'); const directionsLink = document.getElementById('directions-link'); const websiteLink = document.getElementById('website-link'); const placeTypesContainer = document.getElementById('place-types-container'); const phoneLink = document.getElementById('phone-link'); const placeAccessibility = document.getElementById('place-accessibility'); const savePlaceButton = document.getElementById('save-place-button'); const compassModal = document.getElementById('compass-modal'); const compassDialog = document.getElementById('compass-dialog'); const closeCompassBtn = document.getElementById('close-compass'); const guideButton = document.getElementById('guide-button'); const navMain = document.getElementById('nav-main'); const navSub = document.getElementById('nav-sub'); const compassArrow = document.getElementById('compass-arrow'); const compassDist = document.getElementById('compass-dist'); const shareButton = document.getElementById('share-button'); const randomButton = document.getElementById('random-button'); const savedListScreen = document.getElementById('saved-list-screen'); const savedList = document.getElementById('saved-list'); const eventsListScreen = document.getElementById('events-list-screen'); const eventsList = document.getElementById('events-list'); const settingsModal = document.getElementById('settings-modal'); const settingsDialog = document.getElementById('settings-dialog'); const themeColorMeta = document.getElementById('theme-color-meta'); const voiceSelector = document.getElementById('voice-selector'); const reviewsListScreen = document.getElementById('reviews-list-screen'); const reviewsList = document.getElementById('reviews-list'); const showReviewsButton = document.getElementById('show-reviews-button'); const searchingModal = document.getElementById('searching-modal'); const reviewSortContainer = document.getElementById('review-sort-container'); const reviewStarFilterContainer = document.getElementById('review-star-filter-container');
 
-    /* ====== State (unchanged) ====== */
+    /* ====== State ====== */
     let placesService, geocoder, directionsService; let currentUserLocation; let currentLocality = ''; let currentGeocodeLabel = 'Your Location'; let currentPlace; let currentResults = []; let currentResultIndex = 0; let savedPlaces = {}; let localFacts = [], factInterval = null, currentFactIndex = 0; let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0; let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null; let voices = []; let currentVoiceURI = null; let currentReviews = []; let currentReviewSort = 'time'; let currentStarFilter = null;
 
-    /* ====== Categories (unchanged from v10) ====== */
+    /* ====== Categories ====== */
     const subFilterMap = { eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}}, see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}}, night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}}, outdoors:{"Parks":{type:"park"}, "Hiking":{keyword:"hiking area"}, "Campground":{type:"campground"}, "Scenic Lookout":{type:"tourist_attraction", keyword:"scenic lookout"}}, gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}}, pets:{"Dog Park":{type:"park",keyword:"dog park"}, "Pet Store":{type:"pet_store", keyword:"pet supplies store"}, "Veterinarian":{type:"veterinary_care"}}, utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}} }; const allowedByCategory = { eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']), night:new Set(['bar','night_club']), see:new Set(['museum','art_gallery','tourist_attraction']), outdoors: new Set(['park', 'tourist_attraction', 'campground']), gems:new Set(['art_gallery','park','cafe']), pets:new Set(['park','pet_store','veterinary_care']), utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']), random: new Set([ ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'], ...['bar','night_club'], ...['museum','art_gallery','tourist_attraction'], ...['park', 'campground'], ...['art_gallery','park','cafe'] ]) }; const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
-    /* ====== Utils (unchanged) ====== */
-    const metersToImperial = m => { /* ... */ }; const toggleFilterButtons = d => { /* ... */ }; const renderStarsHTML = r => { /* ... */ }; const renderStars = (el,r) => { /* ... */ }; const stripHtml = h => { /* ... */ }; const dedupe = items => { /* ... */ }; const sortResults = a => { /* ... */ }; function isCandidate(p, kw, reqType, allowedSet) { /* ... (unchanged from v10) ... */ } function updateSaveButtonState(){ /* ... */ } function speak(text){ /* ... */ }
+    /* ====== Utils ====== */
+    const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
+    const toggleFilterButtons = d => document.querySelectorAll('#main-screen button, #settings-button').forEach(b=>b.disabled=d); // Include settings button
+    const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
+    const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
+    const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
+    const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
+    const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
+    function isCandidate(p, kw, reqType, allowedSet) {
+      const types = new Set(p.types || []);
+      const typeMatch = [...types].some(type => allowedSet.has(type));
+      for (const type of types) { if (bannedRetailish.has(type)) return false; }
+      if (reqType && !types.has(reqType)) {
+          if (!( (types.has('restaurant') || types.has('store') || types.has('point_of_interest')) && kw && new RegExp(kw, 'i').test(p.name || '') )) {
+              // console.log(`Filtering out "${p.name}" - Required type "${reqType}" missing, types are: ${[...types].join(', ')}, keyword: "${kw}"`);
+              return false;
+          }
+      }
+      if (!typeMatch) {
+          if (!(kw && new RegExp(kw, 'i').test(p.name || ''))) {
+               // console.log(`Filtering out "${p.name}" - No type in allowed set: ${[...allowedSet].join(', ')}, types are: ${[...types].join(', ')}, keyword: "${kw}"`);
+               return false;
+          }
+      }
+      return true;
+    }
+    function updateSaveButtonState(){
+      const pressed = currentPlace && !!savedPlaces[currentPlace.place_id];
+      savePlaceButton.setAttribute('aria-pressed', String(pressed));
+      savePlaceButton.textContent = pressed ? '★' : '☆';
+    }
+    function speak(text){
+      try{
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        if (currentVoiceURI) {
+          const selectedVoice = voices.find(v => v.voiceURI === currentVoiceURI);
+          if (selectedVoice) u.voice = selectedVoice;
+        }
+        speechSynthesis.speak(u);
+      }catch{}
+    }
 
-    /* ====== Local Facts (unchanged) ====== */
-    async function getFunFact(coords){ /* ... */ } function startFactCycling(){ /* ... */ }
+    /* ====== Local Facts ====== */
+    async function getFunFact(coords){
+      try{
+        funFactText.textContent = "Finding local facts...";
+        const geoURL = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`;
+        const geoRes = await fetch(geoURL); const geo = await geoRes.json();
+        const ids = (geo?.query?.geosearch||[]).map(p=>p.pageid).slice(0,10);
+        if(!ids.length){ funFactText.textContent="No local facts found nearby."; return; }
+        const exURL = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&pageids=${ids.join('|')}&format=json&origin=*`;
+        const exRes = await fetch(exURL); const ex = await exRes.json();
+        localFacts = Object.values(ex?.query?.pages||{}).map(p=>p.extract).filter(e => e && e.length > 60 && e.length < 280);
+        if(localFacts.length) startFactCycling(); else funFactText.textContent="No detailed local facts found.";
+      }catch{ funFactText.textContent="Local facts are currently unavailable."; }
+    }
+    function startFactCycling(){
+      if(factInterval) clearInterval(factInterval);
+      currentFactIndex=0; funFactText.textContent = localFacts[currentFactIndex] || "No local facts found nearby.";
+      if(localFacts.length>1){ factInterval=setInterval(()=>{ currentFactIndex=(currentFactIndex+1)%localFacts.length; funFactText.textContent = localFacts[currentFactIndex]; },7000); }
+    }
 
-    /* ====== Results/Saved/Events/Reviews Lists (unchanged logic from v10) ====== */
-    function showResultsList(parentFilter, subLabel){ /* ... */ } function showSavedList() { /* ... */ } function showEventsList(events) { /* ... */ } function showReviews() { /* ... (unchanged from v10) ... */ }
+    /* ====== Results/Saved/Events/Reviews Lists ====== */
+    function showResultsList(parentFilter, subLabel){
+      console.log('DEBUG: showResultsList called');
+      mainScreen.style.display = 'none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; resultsListScreen.style.display='flex';
+      resultsTitle.textContent=subLabel || 'Results'; resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results'; resultsList.innerHTML='';
+      if (currentResults.length === 0) { console.log('DEBUG: No results to display.'); resultsList.innerHTML = '<p class="opacity-70 text-center p-4">No results found matching your criteria.</p>'; return; }
+      currentResults.forEach(p=>{
+        console.log('DEBUG: Rendering result item:', p.name);
+        const photo='https://placehold.co/200x200/111827/fff?text=N/A'; const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
+        const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
+        card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name || 'Unknown Name'}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic || 'Unknown Location'}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
+        try { resultsList.appendChild(card); } catch (e) { console.error('DEBUG: Error appending result item:', p.name, e); }
+      });
+      console.log('DEBUG: resultsList innerHTML populated.');
+    }
+    function showSavedList() {
+      mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; savedListScreen.style.display='flex'; savedList.innerHTML='';
+      const places = Object.values(savedPlaces);
+      if (places.length === 0) { savedList.innerHTML = '<p class="opacity-70 text-center">You haven\'t saved any places yet.</p>'; return; }
+      places.forEach(p=>{
+        const card=document.createElement('div'); card.className='result-item';
+        card.innerHTML=`<button class="flex-1 text-left saved-item-details" data-id="${p.place_id}"><h3 class="font-semibold text-base">${p.name}</h3><div class="text-xs opacity-80 mt-1">${p.vicinity||''}</div></button><button class="remove-saved-button action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);" data-id="${p.place_id}">X</button>`;
+        savedList.appendChild(card);
+      });
+    }
+    function showEventsList(events) {
+      mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; eventsListScreen.style.display='flex'; eventsList.innerHTML='';
+      if (!events || events.length === 0) { eventsList.innerHTML = '<p class="opacity-70 text-center">No local events found on Ticketmaster.</p>'; return; }
+      events.forEach(event => { const photo = event.images?.[0]?.url || 'https://placehold.co/200x200/111827/fff?text=Event'; const venue = event._embedded?.venues?.[0]?.name || ''; const eventDate = event.dates?.start?.localDate ? new Date(event.dates.start.localDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}) : 'Date TBD'; const card = document.createElement('a'); card.className = 'result-item'; card.href = event.url; card.target = '_blank'; card.rel = 'noopener'; card.innerHTML = `<img class="result-thumb" loading="lazy" src="${photo}" alt="${event.name}" /><div class="flex-1 text-left"><h3 class="font-semibold text-base">${event.name}</h3><div class="text-sm mt-1" style="color:var(--accent);">${eventDate}</div><div class="text-xs opacity-80 mt-1">${venue}</div></div>`; eventsList.appendChild(card); });
+    }
+    function showReviews() {
+      mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
+      reviewSortContainer.style.display = currentReviews.length >= 10 ? 'flex' : 'none';
+      const filteredReviews = currentStarFilter === null ? [...currentReviews] : currentReviews.filter(r => r.rating === currentStarFilter);
+      if (currentReviewSort === 'time') { filteredReviews.sort((a, b) => b.time - a.time); } else if (currentReviewSort === 'rating-desc') { filteredReviews.sort((a, b) => b.rating - a.rating); } else if (currentReviewSort === 'rating-asc') { filteredReviews.sort((a, b) => a.rating - b.rating); }
+      document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
+      document.querySelectorAll('.review-star-button').forEach(b => { b.classList.toggle('active', parseInt(b.dataset.rating) === currentStarFilter); });
+      reviewsList.innerHTML = '';
+      if (filteredReviews.length === 0) { reviewsList.innerHTML = `<p class="opacity-70 text-center">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return; }
+      filteredReviews.forEach(review => { const card = document.createElement('div'); card.className = 'review-item'; card.innerHTML = `<div class="flex items-center gap-3 mb-2"><img loading="lazy" src="${review.profile_photo_url}" alt="${review.author_name}" class="w-10 h-10 rounded-full" /><div class="flex-1"><h4 class="font-semibold text-sm">${review.author_name}</h4><p class="text-xs opacity-70">${review.relative_time_description}</p></div><div class="star-row text-right">${renderStarsHTML(review.rating)}</div></div><p class="text-sm opacity-90">${review.text || '<i>(No text provided)</i>'}</p>`; reviewsList.appendChild(card); });
+    }
 
-    /* ====== Search (unchanged logic from v10) ====== */
-    async function findLocalEvents() { /* ... */ } function findAdventure(searchParams,parentFilter,subLabel){ /* ... (unchanged logic from v10) ... */ }
+    /* ====== Search ====== */
+    async function findLocalEvents() {
+      if (!window.TICKETMASTER_API_KEY || window.TICKETMASTER_API_KEY === 'YOUR_KEY_HERE') { alert('Ticketmaster API key is missing from key.js.'); return; }
+      if (!currentUserLocation) { alert('Please set your location first.'); return; }
+      searchingModal.style.display = 'flex'; toggleFilterButtons(true);
+      try {
+        const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${window.TICKETMASTER_API_KEY}&latlong=${currentUserLocation.lat},${currentUserLocation.lng}&radius=25&unit=miles&sort=date,asc`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Ticketmaster API error: ${res.status}`);
+        const data = await res.json();
+        showEventsList(data._embedded?.events);
+      } catch (e) { console.error(e); alert('Could not load local events. See console for details.'); }
+      searchingModal.style.display = 'none'; toggleFilterButtons(false);
+    }
+    function findAdventure(searchParams,parentFilter,subLabel){
+      console.log('DEBUG: findAdventure started:', { searchParams, parentFilter, subLabel, currentUserLocation });
+      if(!placesService || !currentUserLocation){ console.error('DEBUG: placesService or currentUserLocation missing!'); alert("Error: Location not set or Maps service failed to load."); searchingModal.style.display = 'none'; toggleFilterButtons(false); return; }
+      mainScreen.style.display = 'none'; searchingModal.style.display = 'flex'; toggleFilterButtons(true); backToMainFiltersButton.disabled=true; currentResults=[];
+      const reqType=searchParams.type||null; let kw = searchParams.keyword || ''; if (parentFilter === 'pets' && subLabel === 'Pet Store') { kw = 'pet supplies store'; } else if (parentFilter === 'eat') { kw = searchParams.keyword || (reqType ? reqType.replace('_restaurant', '') : ''); }
+      console.log('DEBUG: Search criteria:', { reqType, kw });
+      const radii=[2000,5000,10000,20000,35000,50000]; let i=0;
+      const nearby=()=>{
+          if(i>=radii.length) { console.log('DEBUG: Nearby search exhausted radii, trying text search.'); return text(); }
+          const radius=radii[i++]; const req = { location: currentUserLocation, radius }; if (reqType) req.type = reqType; if (kw) req.keyword = kw;
+          console.log(`DEBUG: Performing nearby search (radius ${radius}m):`, req);
+          placesService.nearbySearch(req,(res,status)=>{
+            console.log(`DEBUG: Nearby results (radius ${radius}m):`, { status, res: res ? res.length : 0 }); // Log count only
+            if(status === google.maps.places.PlacesServiceStatus.OK && res?.length){
+              const allowed = allowedByCategory[parentFilter] || new Set(); const initialCount = currentResults.length; const newResults = res.filter(p => isCandidate(p, kw, reqType, allowed)); currentResults = dedupe([...currentResults,...newResults]);
+              console.log(`DEBUG: Filtered nearby (radius ${radius}m). Added ${currentResults.length - initialCount} results.`);
+              if(currentResults.length < 12 && i < radii.length){ console.log('DEBUG: Not enough results yet, searching wider...'); nearby(); } else { console.log('DEBUG: Found enough results or exhausted radii in nearby.'); finalize(); }
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS && i < radii.length) { console.log('DEBUG: Zero results nearby, searching wider...'); nearby(); }
+            else if (i >= radii.length) { console.log('DEBUG: Nearby search failed or zero results after max radius, trying text search.'); text(); }
+            else { console.log('DEBUG: Nearby search status not OK but not ZERO_RESULTS, searching wider anyway.'); nearby(); }
+          });
+      };
+      const text=()=>{
+        const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||reqType||''} in ${city}`;
+        console.log('DEBUG: Performing text search:', { query });
+        placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
+          console.log('DEBUG: Text search results:', { status, res: res ? res.length : 0 }); // Log count only
+          if(status===google.maps.places.PlacesServiceStatus.OK && res?.length){
+            const allowed = allowedByCategory[parentFilter] || new Set(); const initialCount = currentResults.length; const newResults = res.filter(p => isCandidate(p, kw, reqType, allowed)); currentResults=dedupe([...currentResults,...newResults]);
+            console.log(`DEBUG: Filtered text search. Added ${currentResults.length - initialCount} results.`);
+          } else { console.log('DEBUG: Text search failed or returned zero results.'); }
+          finalize();
+        });
+      };
+      const finalize=()=>{
+        console.log('DEBUG: Finalizing search. Total results before sort:', currentResults.length);
+        currentResults=sortResults(currentResults);
+        console.log('DEBUG: Results sorted. Calling showResultsList.');
+        showResultsList(parentFilter,subLabel); searchingModal.style.display = 'none'; toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
+      };
+      nearby(); // Start search
+    }
 
-    /* ====== Details, Directions, Compass (unchanged logic from v10) ====== */
-    function openDetailsById(placeId){ /* ... */ } function getPlaceDetails(summary){ /* ... (unchanged logic from v10) ... */ } function buildRouteTo(latLng){ /* ... */ } function setStep(i){ /* ... */ } const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360; function bearingFromTo(a,b){ /* ... */ } function haversineMeters(a,b){ /* ... */ } function turnHint(delta){ /* ... */ } function updateCompassUI(){ /* ... */ } function onOrientation(e){ /* ... */ } function openCompass(){ /* ... */ } function closeCompass(){ /* ... */ } function trapCompassTab(e){ /* ... */ } function startCompass(){ /* ... */ } function stopCompass(){ /* ... */ }
+    /* ====== Details, Directions, Compass ====== */
+    function openDetailsById(placeId){ const resultIndex = currentResults.findIndex(r=>r.place_id===placeId); if(resultIndex !== -1) { currentResultIndex = resultIndex; getPlaceDetails(currentResults[currentResultIndex]); return; } const saved = savedPlaces[placeId]; if(saved) { const summary = { place_id: saved.place_id, name: saved.name, vicinity: saved.vicinity, geometry: { location: new google.maps.LatLng(saved.geometry.lat, saved.geometry.lng) } }; currentResults = [summary]; currentResultIndex = 0; getPlaceDetails(summary); return; } }
+    function getPlaceDetails(summary){
+        mainScreen.style.display = 'none'; resultsListScreen.style.display = 'none'; savedListScreen.style.display = 'none'; eventsListScreen.style.display = 'none'; reviewsListScreen.style.display = 'none'; resultScreen.style.display='flex';
+        currentPlace = summary; currentReviews = []; currentStarFilter = null; currentReviewSort = 'time'; updateSaveButtonState(); placeNameEl.textContent = 'Loading Details...';
+        const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`; placePhotoEl.src = placeholdURL; placePhotoEl.onerror = null;
+        placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent=''; placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden'); phoneLink.textContent=''; phoneLink.removeAttribute('href'); placeAccessibility.textContent=''; placeAccessibility.style.display='none'; showReviewsButton.disabled = true; showReviewsButton.textContent = 'Loading Reviews...';
+        routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
+        placesService.getDetails({ placeId:summary.place_id, fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews'] },(place,status)=>{
+            if(status===google.maps.places.PlacesServiceStatus.OK&&place){
+                currentPlace=place; placeNameEl.textContent=place.name; renderStars(placeStarsEl, place.rating??0); placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A'; placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
+                if(place.website){ try { const domain = new URL(place.website).hostname; placePhotoEl.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; placePhotoEl.onerror = () => { placePhotoEl.src = placeholdURL; }; } catch (e) { placePhotoEl.src = placeholdURL; } websiteLink.href=place.website; websiteLink.classList.remove('hidden'); } else { placePhotoEl.src = placeholdURL; }
+                if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number} if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'} if(place.types?.length){ place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{ const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s); }); }
+                currentReviews = place.reviews || []; showReviewsButton.disabled = currentReviews.length === 0; showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`; reviewSortContainer.style.display = currentReviews.length >= 10 ? 'flex' : 'none';
+                const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`; buildRouteTo(place.geometry.location); updateSaveButtonState();
+            } else { showReviewsButton.textContent = 'Reviews Unavailable'; }
+        });
+     }
+    function buildRouteTo(latLng){ destLatLng = latLng; if(!currentUserLocation || !directionsService) return; directionsService.route({ origin: currentUserLocation, destination: latLng, travelMode: 'WALKING' }, (response, status) => { if (status === 'OK' && response.routes?.[0]?.legs?.[0]?.steps) { routeSteps = response.routes[0].legs[0].steps; stepIndex = 0; setStep(0); } else { routeSteps = []; stepTarget = null; destLatLng = latLng; } }); }
+    function setStep(i){ if(i >= routeSteps.length) { stepTarget = null; navMain.textContent = 'Arrived at destination'; navSub.textContent = 'Compass pointing to final location.'; return; } stepIndex = i; const step = routeSteps[i]; stepTarget = step.end_location; navMain.textContent = stripHtml(step.instructions || 'Continue'); navSub.textContent = `In ${step.distance?.text || '...'} (${step.duration?.text || '...'})`; if(guideSpeaking) speak(stripHtml(step.instructions)); }
+    const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360; function bearingFromTo(a,b){ const φ1=toRad(a.lat), λ1=toRad(a.lng), φ2=toRad(b.lat), λ2=toRad(b.lng); const y=Math.sin(λ2-λ1)*Math.cos(φ2); const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1); return norm(Math.atan2(y,x)*180/Math.PI); } function haversineMeters(a,b){ const R=6371e3; const φ1=toRad(a.lat), φ2=toRad(b.lat), Δφ=toRad(b.lat-a.lat), Δλ=toRad(b.lng-a.lng); const x=Math.sin(Δφ/2)*Math.sin(Δφ/2)+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)*Math.sin(Δλ/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); } function turnHint(delta){ if(delta<15||delta>345) return 'Straight ahead'; if(delta<45) return 'Slight right'; if(delta<135) return 'Turn right'; if(delta<225) return 'Turn around'; if(delta<315) return 'Turn left'; return 'Slight left'; } function updateCompassUI(){ if(!compassActive || !currentUserLocation || !destLatLng) return; const target = stepTarget || destLatLng; const distM = haversineMeters(currentUserLocation, target.toJSON ? target.toJSON() : target); compassDist.textContent = metersToImperial(distM); if (stepTarget && distM < 20) { setStep(stepIndex + 1); return; } const bearing = bearingFromTo(currentUserLocation, target.toJSON ? target.toJSON() : target); const delta = norm(bearing - headingDeg); compassArrow.style.transform = `rotate(${delta}deg)`; if(!stepTarget) { navMain.textContent = `Head ${turnHint(delta)}`; navSub.textContent = `Pointing to ${currentPlace?.name || 'destination'}`; } } function onOrientation(e){ let heading = e.webkitCompassHeading; if (typeof heading === 'undefined') { heading = e.alpha; if (typeof heading !== 'number' || isNaN(heading)) return; heading = norm(360 - heading); } headingDeg = heading; updateCompassUI(); } function openCompass(){ if(!destLatLng) { alert('No destination set.'); return; } compassModal.style.display = 'flex'; compassDialog.focus(); startCompass(); } function closeCompass(){ compassModal.style.display = 'none'; stopCompass(); } function trapCompassTab(e){ if (e.key !== 'Tab') return; const focusable = compassDialog.querySelectorAll('button'); const first = focusable[0], last = focusable[focusable.length - 1]; if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); } else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); } } function startCompass(){ if(compassActive) return; compassActive = true; if ('ondeviceorientationabsolute' in window) { window.addEventListener('deviceorientationabsolute', onOrientation); } else if ('ondeviceorientation' in window) { window.addEventListener('deviceorientation', onOrientation); } if(navigator.geolocation) { watchId = navigator.geolocation.watchPosition(pos => { currentUserLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude}; updateCompassUI(); }, null, {enableHighAccuracy: true}); } compassDialog.addEventListener('keydown', trapCompassTab); } function stopCompass(){ compassActive = false; window.removeEventListener('deviceorientationabsolute', onOrientation); window.removeEventListener('deviceorientation', onOrientation); if(watchId) navigator.geolocation.clearWatch(watchId); watchId = null; guideSpeaking = false; guideButton.textContent = 'Guide Me ▶︎'; try { speechSynthesis.cancel(); } catch {} compassDialog.removeEventListener('keydown', trapCompassTab); }
 
-    /* ====== Settings (unchanged logic from v10) ====== */
-    function applyTheme(theme) { /* ... */ } function applyVoice(voiceURI) { /* ... */ } function loadVoices() { /* ... */ } function loadSettings() { /* ... (unchanged logic from v10) ... */ } function openSettings() { /* ... */ } function closeSettings() { /* ... */ }
+    /* ====== Settings ====== */
+    function applyTheme(theme) { document.documentElement.dataset.theme = theme; localStorage.setItem('appTheme', theme); document.querySelectorAll('.theme-button').forEach(b => { b.classList.toggle('active', b.dataset.theme === theme); }); const newThemeColor = theme === 'rugged-explorer' ? '#0A192F' : (theme === 'night-ops' ? '#111111' : '#f8f7f2'); themeColorMeta.content = newThemeColor; }
+    function applyVoice(voiceURI) { currentVoiceURI = voiceURI; localStorage.setItem('appVoice', voiceURI); }
+    function loadVoices() { voices = speechSynthesis.getVoices(); voiceSelector.innerHTML = '<option value="">Device Default</option>'; voices.filter(v => v.lang.startsWith(navigator.language) || v.lang.startsWith('en-')).forEach(voice => { const option = document.createElement('option'); option.value = voice.voiceURI; option.textContent = `${voice.name} (${voice.lang})`; if (voice.voiceURI === currentVoiceURI) option.selected = true; voiceSelector.appendChild(option); }); }
+    function loadSettings() { const theme = localStorage.getItem('appTheme') || 'rugged-explorer'; applyTheme(theme); currentVoiceURI = localStorage.getItem('appVoice') || null; loadVoices(); if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoiceschanged = loadVoices; } try { savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}'); } catch (e) { console.error("Error loading saved places:", e); savedPlaces = {}; localStorage.setItem('savedPlaces', '{}'); } }
+    function openSettings() { settingsModal.style.display = 'flex'; settingsDialog.focus(); } function closeSettings() { settingsModal.style.display = 'none'; }
 
-    /* ====== Init / Geocode (unchanged logic from v10 fix) ====== */
-    function initApp(){ /* ... (unchanged logic from v10 fix) ... */ } window.initApp=initApp; function handleLocationError(error){ /* ... (unchanged logic from v10 fix) ... */ } function reverseGeocodeSetLocation(coords){ /* ... */ } function geocodeLocation(){ /* ... */ } function setLocationAndEnableApp(coords,label){ /* ... */ }
+    /* ====== Init / Geocode ====== */
+    function initApp(){
+      loadSettings(); placesService=new google.maps.places.PlacesService(document.createElement('div')); geocoder=new google.maps.Geocoder(); directionsService=new google.maps.DirectionsService(); toggleFilterButtons(true); locationStatus.textContent = 'Acquiring location...';
+      if(navigator.geolocation){ navigator.geolocation.getCurrentPosition( pos => { const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; reverseGeocodeSetLocation(coords); }, handleLocationError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } ); } else { handleLocationError({ code: -1, message: "Geolocation not supported by this browser." }); }
+    } window.initApp=initApp;
+    function handleLocationError(error) { console.warn("Geolocation error:", error); let message = "Couldn't get location."; switch(error.code) { case error.PERMISSION_DENIED: message = "Location permission denied. Check browser/site settings."; break; case error.POSITION_UNAVAILABLE: message = "Location info unavailable. Check device GPS."; break; case error.TIMEOUT: message = "Location request timed out."; break; case error.UNKNOWN_ERROR: message = "Unknown error getting location."; break; case -1: message = "Geolocation not supported."; break; } locationStatus.textContent = message; manualLocationEntry.classList.remove('hidden'); getFunFact({lat:40.7128,lng:-74.0060}); toggleFilterButtons(false); }
+    function reverseGeocodeSetLocation(coords){ geocoder.geocode({location:coords},(results,status)=>{ let label="Your Current Location"; currentLocality=''; if(status==='OK'&&results?.[0]){ const c=results[0].address_components||[]; const city=c.find(x=>x.types.includes('locality'))?.long_name||c.find(x=>x.types.includes('postal_town'))?.long_name||c.find(x=>x.types.includes('sublocality'))?.long_name; const state=c.find(x=>x.types.includes('administrative_area_level_1'))?.short_name; if(city&&state) currentLocality=`${city}, ${state}`; label=results[0].formatted_address.split(',').slice(0,2).join(','); } currentGeocodeLabel = label; setLocationAndEnableApp(coords,label); }); }
+    function geocodeLocation(){ const address=locationInput.value.trim(); if(!address) return; searchingModal.style.display = 'flex'; geocoder.geocode({address},(results,status)=>{ searchingModal.style.display = 'none'; if(status==='OK'&&results?.[0]){ const loc=results[0].geometry.location; currentGeocodeLabel = results[0].formatted_address.split(',').slice(0,2).join(','); reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()}); } else locationStatus.textContent=`Could not find "${address}".`; }); }
+    function setLocationAndEnableApp(coords,label){ currentUserLocation=coords; locationStatus.textContent=`Exploring: ${label}`; manualLocationEntry.classList.add('hidden'); toggleFilterButtons(false); getFunFact(coords); funFactContainer.style.display='block'; }
 
-    /* ====== UI & Events (unchanged logic from v10) ====== */
-    function showSubMenu(filter){ /* ... */ } function hideSubMenu(){ /* ... */ } function findRandomAdventure() { /* ... */ } function resetApp(hide=true){ /* ... */ } document.addEventListener('click', (e)=>{ /* ... (unchanged logic from v10) ... */ }); document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();}); document.getElementById('voice-selector').addEventListener('change', e => { applyVoice(e.target.value); });
+    /* ====== UI & Events ====== */
+    function showSubMenu(filter){ filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); document.getElementById('show-saved-button').classList.add('hidden'); document.getElementById('local-events-button').classList.add('hidden'); subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu'; for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);} subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden'); }
+    function hideSubMenu(){ subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); document.getElementById('show-saved-button').classList.remove('hidden'); document.getElementById('local-events-button').classList.remove('hidden'); }
+    function findRandomAdventure() { const randomizableFilters = { ...subFilterMap }; ['utilities', 'pets', 'outdoors'].forEach(f => delete randomizableFilters[f]); const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj)); hideSubMenu(); findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!"); }
+    function resetApp(hide=true){ closeCompass(); resultScreen.style.display='none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display='none'; mainScreen.style.display='block'; funFactContainer.style.display='block'; hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false; if(currentUserLocation) locationStatus.textContent=`Exploring: ${currentGeocodeLabel}`; else locationStatus.textContent="Set your location."; }
 
+    document.addEventListener('click', (e)=>{
+      const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
+      if (e.target.closest('.map-link-icon')) return;
+
+      if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
+      if(btn.closest('.sub-menu') && btn.dataset.name){ const name=btn.dataset.name, parent=btn.dataset.parent; let params=subFilterMap[parent][name]; if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];} findAdventure(params,parent,name); return; }
+      if(btn.closest('#results-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
+      if(btn.classList.contains('saved-item-details')){ openDetailsById(btn.dataset.id); return;}
+      if(btn.classList.contains('remove-saved-button')){ const placeId = btn.dataset.id; if(placeId && savedPlaces[placeId]){ delete savedPlaces[placeId]; localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); showSavedList(); } return; }
+      if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
+      if(btn.id === 'sort-reviews-best') { currentReviewSort = 'rating-desc'; showReviews(); return; }
+      if(btn.id === 'sort-reviews-worst') { currentReviewSort = 'rating-asc'; showReviews(); return; }
+      if(btn.id === 'sort-reviews-recent') { currentReviewSort = 'time'; showReviews(); return; }
+      if(btn.classList.contains('review-star-button') && btn.dataset.rating) { currentStarFilter = parseInt(btn.dataset.rating); showReviews(); return; }
+      if(btn.id === 'clear-star-filter') { currentStarFilter = null; showReviews(); return; }
+
+      switch(btn.id){
+        case 'back-to-main-filters': hideSubMenu(); break;
+        case 'close-results-button': resetApp(); break;
+        case 'close-saved-button': resetApp(); break;
+        case 'close-events-button': resetApp(); break;
+        case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break;
+        case 'show-saved-button': showSavedList(); break;
+        case 'local-events-button': findLocalEvents(); break;
+        case 'show-reviews-button': showReviews(); break;
+        case 'settings-button': openSettings(); break;
+        case 'close-settings-button': closeSettings(); break;
+        case 'try-again-button': resetApp(); break;
+        case 'search-button': geocodeLocation(); break;
+        case 'random-button': findRandomAdventure(); break;
+        case 'next-suggestion-button': if(currentResults.length > 0){ currentResultIndex = (currentResultIndex + 1) % currentResults.length; getPlaceDetails(currentResults[currentResultIndex]); } break;
+        case 'save-place-button': if(currentPlace) { if(savedPlaces[currentPlace.place_id]) { delete savedPlaces[currentPlace.place_id]; } else { if (currentPlace.geometry && (currentPlace.vicinity || currentPlace.name)) { savedPlaces[currentPlace.place_id]={ name: currentPlace.name, place_id: currentPlace.place_id, vicinity: currentPlace.vicinity || 'Location saved', geometry: currentPlace.geometry.location.toJSON() }; } } localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); updateSaveButtonState(); } break;
+        case 'compass-button': openCompass(); break;
+        case 'close-compass': closeCompass(); break;
+        case 'guide-button': guideSpeaking = !guideSpeaking; guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎'; if(guideSpeaking){ if(routeSteps.length && stepIndex < routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); } } else { try{ speechSynthesis.cancel(); }catch{} } break;
+        case 'share-button': if (navigator.share && currentPlace) { navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href, });} break;
+      }
+    });
+
+    document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
+    document.getElementById('voice-selector').addEventListener('change', e => { applyVoice(e.target.value); });
   </script>
 </body>
 </html>
