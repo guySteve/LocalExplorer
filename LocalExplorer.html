@@ -383,16 +383,21 @@
     function startFactCycling(){ if(factInterval) clearInterval(factInterval); currentFactIndex=0; funFactText.textContent = localFacts[currentFactIndex] || "No local facts found nearby."; if(localFacts.length>1){ factInterval=setInterval(()=>{ currentFactIndex=(currentFactIndex+1)%localFacts.length; funFactText.textContent = localFacts[currentFactIndex]; },7000); } }
 
     /* ====== Results/Saved/Events/Reviews Lists ====== */
-    function showResultsList(parentFilter, subLabel){ console.log('DEBUG: showResultsList called'); mainScreen.style.display = 'none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; resultsListScreen.style.display='flex'; resultsTitle.textContent=subLabel || 'Results'; resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results'; resultsList.innerHTML=''; if (currentResults.length === 0) { console.log('DEBUG: No results to display.'); resultsList.innerHTML = '<p class="opacity-70 text-center p-4">No results found matching your criteria.</p>'; return; } currentResults.forEach(p=>{ const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||''; const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id; card.innerHTML=`<div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name || 'Unknown Name'}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic || 'Unknown Location'}</div></div><a href="http://googleusercontent.com/maps/google.com/0{encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`; try { resultsList.appendChild(card); } catch (e) { console.error('DEBUG: Error appending result item:', p.name, e); } }); console.log('DEBUG: resultsList innerHTML populated.'); }
+    function showResultsList(parentFilter, subLabel){ console.log('DEBUG: showResultsList called'); mainScreen.style.display = 'none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; resultsListScreen.style.display='flex'; resultsTitle.textContent=subLabel || 'Results'; resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results'; resultsList.innerHTML=''; if (currentResults.length === 0) { console.log('DEBUG: No results to display.'); resultsList.innerHTML = '<p class="opacity-70 text-center p-4">No results found matching your criteria.</p>'; return; } currentResults.forEach(p=>{ const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||''; const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id; card.innerHTML=`<div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name || 'Unknown Name'}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic || 'Unknown Location'}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`; try { resultsList.appendChild(card); } catch (e) { console.error('DEBUG: Error appending result item:', p.name, e); } }); console.log('DEBUG: resultsList innerHTML populated.'); }
     function showSavedList() { console.log('DEBUG: showSavedList called.'); mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; savedListScreen.style.display='flex'; savedList.innerHTML=''; console.log('DEBUG: savedPlaces object state:', savedPlaces); console.log('DEBUG: Type of savedPlaces:', typeof savedPlaces); console.log('DEBUG: Raw localStorage item:', localStorage.getItem('savedPlaces')); const places = Object.values(savedPlaces || {}); console.log('DEBUG: Number of places to display:', places.length); if (places.length === 0) { savedList.innerHTML = '<p class="opacity-70 text-center">You haven\'t saved any places yet.</p>'; console.log('DEBUG: Displaying "No saved places" message.'); return; } places.forEach((p, index)=>{ console.log(`DEBUG: Rendering saved item ${index}:`, p); if (!p || typeof p !== 'object' || !p.place_id) { console.warn(`DEBUG: Skipping invalid saved place item at index ${index}:`, p); return; } const card=document.createElement('div'); card.className='result-item'; card.innerHTML=`<button class="flex-1 text-left saved-item-details" data-id="${p.place_id}"><h3 class="font-semibold text-base">${p.name || 'Saved Place'}</h3><div class="text-xs opacity-80 mt-1">${p.vicinity||''}</div></button><button class="remove-saved-button action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);" data-id="${p.place_id}">X</button>`; try { savedList.appendChild(card); } catch (e) { console.error(`DEBUG: Error appending saved item ${index} (${p.name}):`, e); } }); console.log('DEBUG: Finished rendering saved places list.'); }
     function showEventsList(events) { mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; eventsListScreen.style.display='flex'; eventsList.innerHTML=''; if (!events || events.length === 0) { eventsList.innerHTML = '<p class="opacity-70 text-center">No local events found on Ticketmaster.</p>'; return; } events.forEach(event => { const photo = event.images?.[0]?.url || 'https://placehold.co/200x200/111827/fff?text=Event'; const venue = event._embedded?.venues?.[0]?.name || ''; const eventDate = event.dates?.start?.localDate ? new Date(event.dates.start.localDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}) : 'Date TBD'; const card = document.createElement('a'); card.className = 'result-item'; card.href = event.url; card.target = '_blank'; card.rel = 'noopener'; card.innerHTML = `<img class="result-thumb" loading="lazy" src="${photo}" alt="${event.name}" /><div class="flex-1 text-left"><h3 class="font-semibold text-base">${event.name}</h3><div class="text-sm mt-1" style="color:var(--accent);">${eventDate}</div><div class="text-xs opacity-80 mt-1">${venue}</div></div>`; eventsList.appendChild(card); }); }
-    function showReviews() { // ** REVIEWS DISPLAY LOGIC UPDATED - NO DATE FILTER **
+    function showReviews() { // ** REVIEWS DISPLAY LOGIC UPDATED **
         console.log("DEBUG: showReviews called. Sort:", currentReviewSort, "Star Filter:", currentStarFilter);
         mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
 
-        // Use all available reviews (no date filter)
+        // *** FIX 4: Add null check for reviewDateFilterInfo ***
+        if (reviewDateFilterInfo) {
+            reviewDateFilterInfo.textContent = ""; // Clear date message
+        } else {
+            console.error("DEBUG: reviewDateFilterInfo element not found!");
+        }
+
         const reviewsToDisplay = [...currentReviews];
-        reviewDateFilterInfo.textContent = ""; // Clear date message
         console.log("DEBUG: Total reviews available (no date filter):", reviewsToDisplay.length);
 
         const showFilters = currentReviews.length >= 20;
@@ -414,14 +419,13 @@
         const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter);
         console.log("DEBUG: Reviews after star filter:", finalFilteredReviews.length);
 
-        // Apply sort with safety checks
         if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b?.time || 0) - (a?.time || 0)); }
         else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b?.rating || 0) - (a?.rating || 0)); }
         else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a?.rating || 0) - (b?.rating || 0)); }
 
         document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
 
-        reviewsList.innerHTML = ''; // ** Clear list before rendering **
+        reviewsList.innerHTML = '';
         if (finalFilteredReviews.length === 0) {
             reviewsList.innerHTML = `<p class="opacity-70 text-center p-4">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
         }
@@ -429,13 +433,11 @@
         console.log(`DEBUG: Rendering ${finalFilteredReviews.length} reviews...`);
         finalFilteredReviews.forEach((review, index) => {
             if (!review || typeof review !== 'object') { console.warn(`DEBUG: Skipping invalid review item at index ${index}:`, review); return; }
-            // console.log(`DEBUG: Rendering review ${index}:`, review.author_name); // Reduce noise
             const card = document.createElement('div'); card.className = 'review-item';
             const reviewText = review.text ? stripHtml(review.text) : '<i>(No text provided)</i>';
             const authorName = review.author_name || 'Anonymous';
             const timeDescription = review.relative_time_description || '';
             const photoUrl = review.profile_photo_url || 'https://placehold.co/40x40/111827/fff?text=N/A';
-
             card.innerHTML = `<div class="flex items-center gap-3 mb-2"><img loading="lazy" src="${photoUrl}" alt="${authorName}" class="w-10 h-10 rounded-full" /><div class="flex-1"><h4 class="font-semibold text-sm">${authorName}</h4><p class="text-xs opacity-70">${timeDescription}</p></div><div class="star-row text-right">${renderStarsHTML(review.rating)}</div></div><p class="text-sm opacity-90">${reviewText}</p>`;
             try { reviewsList.appendChild(card); } catch(e) { console.error(`DEBUG: Error rendering review ${index}:`, e, review); }
         });
@@ -448,7 +450,61 @@
 
     /* ====== Details, Directions, Compass ====== */
     function openDetailsById(placeId){ const resultIndex = currentResults.findIndex(r=>r.place_id===placeId); if(resultIndex !== -1) { currentResultIndex = resultIndex; getPlaceDetails(currentResults[currentResultIndex]); return; } const saved = savedPlaces[placeId]; if(saved) { const summary = { place_id: saved.place_id, name: saved.name, vicinity: saved.vicinity, geometry: { location: new google.maps.LatLng(saved.geometry.lat, saved.geometry.lng) } }; currentResults = [summary]; currentResultIndex = 0; getPlaceDetails(summary); return; } console.warn("DEBUG: openDetailsById - placeId not found in results or saved:", placeId); }
-    function getPlaceDetails(summary){ if (!summary || !summary.place_id) { console.error("DEBUG: getPlaceDetails called with invalid summary:", summary); return; } mainScreen.style.display = 'none'; resultsListScreen.style.display = 'none'; savedListScreen.style.display = 'none'; eventsListScreen.style.display = 'none'; reviewsListScreen.style.display = 'none'; resultScreen.style.display='flex'; currentPlace = summary; currentReviews = []; currentStarFilter = null; currentReviewSort = 'time'; updateSaveButtonState(); placeNameEl.textContent = 'Loading Details...'; const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`; placePhotoEl.src = placeholdURL; placePhotoEl.onerror = null; placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent=''; placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden'); phoneLink.textContent=''; phoneLink.removeAttribute('href'); placeAccessibility.textContent=''; placeAccessibility.style.display='none'; showReviewsButton.disabled = true; showReviewsButton.textContent = 'Loading Reviews...'; routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass(); console.log("DEBUG: Fetching details for placeId:", summary.place_id); placesService.getDetails({ placeId:summary.place_id, fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews', 'formatted_address'] },(place,status)=>{ console.log("DEBUG: Place Details status:", status, "Place:", place ? place.name : 'null'); if(status===google.maps.places.PlacesServiceStatus.OK&&place){ currentPlace=place; placeNameEl.textContent=place.name; renderStars(placeStarsEl, place.rating??0); placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A'; placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):''; if(place.website){ try { const domain = new URL(place.website).hostname; placePhotoEl.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; placePhotoEl.onerror = () => { placePhotoEl.src = placeholdURL; }; } catch (e) { placePhotoEl.src = placeholdURL; } websiteLink.href=place.website; websiteLink.classList.remove('hidden'); } else { placePhotoEl.src = placeholdURL; } if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number} if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'} if(place.types?.length){ place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{ const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s); }); } currentReviews = place.reviews || []; showReviewsButton.disabled = currentReviews.length === 0; showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`; reviewFiltersContainer.style.display = currentReviews.length >= 20 ? 'block' : 'none'; const dest=`${place.name}, ${place.vicinity||place.formatted_address||''}`; directionsLink.href=`http://googleusercontent.com/maps/google.com/0{encodeURIComponent(dest)}`; buildRouteTo(place.geometry.location); updateSaveButtonState(); } else { showReviewsButton.textContent = 'Reviews Unavailable'; console.error('Place Details fetch failed:', status); } }); }
+    function getPlaceDetails(summary){ // ** SAVE BUTTON FIX INCORPORATED **
+        if (!summary || !summary.place_id) { console.error("DEBUG: getPlaceDetails called with invalid summary:", summary); return; }
+        mainScreen.style.display = 'none'; resultsListScreen.style.display = 'none'; savedListScreen.style.display = 'none'; eventsListScreen.style.display = 'none'; reviewsListScreen.style.display = 'none'; resultScreen.style.display='flex';
+        currentPlace = summary; currentReviews = []; currentStarFilter = null; currentReviewSort = 'time';
+
+        // *** FIX 3a: Disable Save button initially ***
+        savePlaceButton.disabled = true;
+        updateSaveButtonState(); // Update visual state
+
+        placeNameEl.textContent = 'Loading Details...';
+        const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
+        placePhotoEl.src = placeholdURL; placePhotoEl.onerror = null;
+        placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent=''; placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden'); phoneLink.textContent=''; phoneLink.removeAttribute('href'); placeAccessibility.textContent=''; placeAccessibility.style.display='none'; showReviewsButton.disabled = true; showReviewsButton.textContent = 'Loading Reviews...';
+        routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
+
+        console.log("DEBUG: Fetching details for placeId:", summary.place_id);
+        placesService.getDetails({
+            placeId:summary.place_id,
+            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews', 'formatted_address', 'place_id'] // Ensure place_id is requested
+        },(place,status)=>{
+            console.log("DEBUG: Place Details status:", status, "Place:", place ? place.name : 'null');
+            if(status===google.maps.places.PlacesServiceStatus.OK && place){
+                currentPlace = place; // Update currentPlace with full details
+                placeNameEl.textContent=place.name;
+                renderStars(placeStarsEl, place.rating??0);
+                placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
+                placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
+                if(place.website){ try { const domain = new URL(place.website).hostname; placePhotoEl.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; placePhotoEl.onerror = () => { placePhotoEl.src = placeholdURL; }; } catch (e) { placePhotoEl.src = placeholdURL; } websiteLink.href=place.website; websiteLink.classList.remove('hidden'); } else { placePhotoEl.src = placeholdURL; }
+                if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
+                if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
+                if(place.types?.length){ place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{ const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s); }); }
+                currentReviews = place.reviews || [];
+                showReviewsButton.disabled = currentReviews.length === 0;
+                showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
+                reviewFiltersContainer.style.display = currentReviews.length >= 20 ? 'block' : 'none';
+                const dest=`${place.name}, ${place.vicinity||place.formatted_address||''}`;
+                directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
+                buildRouteTo(place.geometry.location);
+
+                // *** FIX 3b: Re-enable Save button only if place_id exists ***
+                if (place.place_id) {
+                    savePlaceButton.disabled = false;
+                    updateSaveButtonState(); // Ensure correct ☆/★ state
+                } else {
+                    console.error("DEBUG: Place details loaded BUT place_id is missing!", place);
+                    savePlaceButton.disabled = true; // Keep it disabled
+                }
+
+            } else {
+                showReviewsButton.textContent = 'Reviews Unavailable';
+                console.error('Place Details fetch failed:', status);
+                savePlaceButton.disabled = true; // Keep disabled on error
+            }
+        });
+    }
     function buildRouteTo(latLng){ destLatLng = latLng; if(!currentUserLocation || !directionsService) return; directionsService.route({ origin: currentUserLocation, destination: latLng, travelMode: 'WALKING' }, (response, status) => { if (status === 'OK' && response.routes?.[0]?.legs?.[0]?.steps) { routeSteps = response.routes[0].legs[0].steps; stepIndex = 0; setStep(0); } else { routeSteps = []; stepTarget = null; destLatLng = latLng; } }); }
     function setStep(i){ if(i >= routeSteps.length) { stepTarget = null; navMain.textContent = 'Arrived at destination'; navSub.textContent = 'Compass pointing to final location.'; return; } stepIndex = i; const step = routeSteps[i]; stepTarget = step.end_location; navMain.textContent = stripHtml(step.instructions || 'Continue'); navSub.textContent = `In ${step.distance?.text || '...'} (${step.duration?.text || '...'})`; if(guideSpeaking) speak(stripHtml(step.instructions)); }
     const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360; function bearingFromTo(a,b){ const φ1=toRad(a.lat), λ1=toRad(a.lng), φ2=toRad(b.lat), λ2=toRad(b.lng); const y=Math.sin(λ2-λ1)*Math.cos(φ2); const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1); return norm(Math.atan2(y,x)*180/Math.PI); } function haversineMeters(a,b){ const R=6371e3; const φ1=toRad(a.lat), φ2=toRad(b.lat), Δφ=toRad(b.lat-a.lat), Δλ=toRad(b.lng-a.lng); const x=Math.sin(Δφ/2)*Math.sin(Δφ/2)+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)*Math.sin(Δλ/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); } function turnHint(delta){ if(delta<15||delta>345) return 'Straight ahead'; if(delta<45) return 'Slight right'; if(delta<135) return 'Turn right'; if(delta<225) return 'Turn around'; if(delta<315) return 'Turn left'; return 'Slight left'; } function updateCompassUI(){ if(!compassActive || !currentUserLocation || !destLatLng) return; const target = stepTarget || destLatLng; const distM = haversineMeters(currentUserLocation, target.toJSON ? target.toJSON() : target); compassDist.textContent = metersToImperial(distM); if (stepTarget && distM < 20) { setStep(stepIndex + 1); return; } const bearing = bearingFromTo(currentUserLocation, target.toJSON ? target.toJSON() : target); const delta = norm(bearing - headingDeg); compassArrow.style.transform = `rotate(${delta}deg)`; if(!stepTarget) { navMain.textContent = `Head ${turnHint(delta)}`; navSub.textContent = `Pointing to ${currentPlace?.name || 'destination'}`; } } function onOrientation(e){ let heading = e.webkitCompassHeading; if (typeof heading === 'undefined') { heading = e.alpha; if (typeof heading !== 'number' || isNaN(heading)) return; heading = norm(360 - heading); } headingDeg = heading; updateCompassUI(); } function openCompass(){ if(!destLatLng) { alert('No destination set.'); return; } compassModal.style.display = 'flex'; compassDialog.focus(); startCompass(); } function closeCompass(){ compassModal.style.display = 'none'; stopCompass(); } function trapCompassTab(e){ if (e.key !== 'Tab') return; const focusable = compassDialog.querySelectorAll('button'); const first = focusable[0], last = focusable[focusable.length - 1]; if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); } else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); } } function startCompass(){ if(compassActive) return; compassActive = true; if ('ondeviceorientationabsolute' in window) { window.addEventListener('deviceorientationabsolute', onOrientation); } else if ('ondeviceorientation' in window) { window.addEventListener('deviceorientation', onOrientation); } if(navigator.geolocation) { watchId = navigator.geolocation.watchPosition(pos => { currentUserLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude}; updateCompassUI(); }, null, {enableHighAccuracy: true}); } compassDialog.addEventListener('keydown', trapCompassTab); } function stopCompass(){ compassActive = false; window.removeEventListener('deviceorientationabsolute', onOrientation); window.removeEventListener('deviceorientation', onOrientation); if(watchId) navigator.geolocation.clearWatch(watchId); watchId = null; guideSpeaking = false; guideButton.textContent = 'Guide Me ▶︎'; try { speechSynthesis.cancel(); } catch {} compassDialog.removeEventListener('keydown', trapCompassTab); }
@@ -485,8 +541,14 @@
           btn = document.getElementById('save-place-button'); // Get the actual button
           if (btn && !btn.disabled) {
              if(currentPlace) {
+                // *** FIX 3a (cont.): Added stronger check here too ***
+               if (!currentPlace.place_id) {
+                 console.error("DEBUG: CRITICAL - currentPlace object is missing place_id AT CLICK TIME!", currentPlace);
+                 alert("Cannot save this place - critical data missing."); // User feedback
+                 return; // Stop execution
+               }
                const placeId = currentPlace.place_id;
-               if (!placeId) { console.error("DEBUG: Cannot save place - place_id is missing!", currentPlace); return; }
+
                if(savedPlaces[placeId]) { console.log('DEBUG: Unsaving place:', placeId); delete savedPlaces[placeId];
                } else {
                  const vicinityText = currentPlace.vicinity || currentPlace.formatted_address || 'Location details saved';
@@ -550,6 +612,7 @@
 
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
     document.getElementById('voice-selector').addEventListener('change', e => { applyVoice(e.target.value); });
-</script>
+
+  </script>
 </body>
 </html>
