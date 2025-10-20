@@ -176,7 +176,7 @@
     /* ====== SW (non-blocking) ====== */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./serviceworker.js').catch(()=>{});
+        navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
       });
     }
 
@@ -239,7 +239,7 @@
       gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
       pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
       utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}}
-      // dark:{"Cemeteries":{type:"cemetery"},...} // Removed
+      // dark:{} // Removed
     };
     const allowedByCategory = {
       eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
@@ -247,8 +247,17 @@
       see:new Set(['museum','art_gallery','tourist_attraction']),
       gems:new Set(['art_gallery','park','cafe']),
       pets:new Set(['park','pet_store','veterinary_care']),
-      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm'])
-      // dark:new Set(['cemetery','museum','tourist_attraction']) // Removed
+      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
+      // dark:new Set(['cemetery','museum','tourist_attraction']), // Removed
+      
+      // *** FIX for "Surprise Me" ***
+      // Add a 'random' category that includes all allowed 'fun' types
+      random: new Set([
+        ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'],
+        ...['bar','night_club'],
+        ...['museum','art_gallery','tourist_attraction'],
+        ...['art_gallery','park','cafe']
+      ])
     };
     const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
@@ -312,7 +321,8 @@
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
       resultsList.innerHTML='';
       currentResults.forEach(p=>{
-        const photo=(p.photos&&p.photos[0])?p.photos[0].getUrl({maxWidth:200,maxHeight:200}):'https://placehold.co/200x200/111827/fff?text=N/A';
+        // Use placeholder for all list items to save cost
+        const photo='https://placehold.co/200x200/111827/fff?text=N/A';
         const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
         const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
         card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div></div><div class="text-xs text-gray-300 mt-1">${vic}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full bg-orange-500 text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
@@ -379,7 +389,7 @@
 
         placesService.getDetails({
             placeId:summary.place_id,
-            // 'photos' field removed to save cost
+            // *** COST-SAVING FIX ***: 'photos' field removed
             fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
         },(place,status)=>{
             if(status===google.maps.places.PlacesServiceStatus.OK&&place){
@@ -388,7 +398,7 @@
                 renderStars(placeStarsEl, place.rating??0);
                 placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
                 placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-                // Photo line commented out to save cost
+                // *** COST-SAVING FIX ***: Photo line commented out
                 // if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
                 if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
                 if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
@@ -404,19 +414,134 @@
             }
       });
      }
-    function buildRouteTo(latLng){ /* ... Functionality remains the same as previous build ... */ }
-    function setStep(i){ /* ... Functionality remains the same as previous build ... */ }
+    
+    // *** COMPASS FIX ***: All functions below are now fully implemented.
+    function buildRouteTo(latLng){
+      destLatLng = latLng;
+      if(!currentUserLocation || !directionsService) return;
+      directionsService.route({
+        origin: currentUserLocation,
+        destination: latLng,
+        travelMode: 'WALKING'
+      }, (response, status) => {
+        if (status === 'OK' && response.routes?.[0]?.legs?.[0]?.steps) {
+          routeSteps = response.routes[0].legs[0].steps;
+          stepIndex = 0;
+          setStep(0);
+        } else {
+          routeSteps = []; // No steps, just point-to-point
+          stepTarget = null;
+          destLatLng = latLng; // Keep final destination
+        }
+      });
+    }
+    function setStep(i){
+      if(i >= routeSteps.length) {
+        stepTarget = null; // Reached end of steps, fall back to final dest
+        navMain.textContent = 'Arrived at destination';
+        navSub.textContent = 'Compass pointing to final location.';
+        return;
+      }
+      stepIndex = i;
+      const step = routeSteps[i];
+      stepTarget = step.end_location;
+      navMain.textContent = stripHtml(step.instructions || 'Continue');
+      navSub.textContent = `In ${step.distance?.text || '...'} (${step.duration?.text || '...'})`;
+      if(guideSpeaking) speak(stripHtml(step.instructions));
+    }
     const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360;
-    function bearingFromTo(a,b){ /* ... Functionality remains the same as previous build ... */ }
-    function haversineMeters(a,b){ /* ... Functionality remains the same as previous build ... */ }
-    function turnHint(delta){ /* ... Functionality remains the same as previous build ... */ }
-    function updateCompassUI(){ /* ... Functionality remains the same as previous build ... */ }
-    function onOrientation(e){ /* ... Functionality remains the same as previous build ... */ }
-    function openCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    function closeCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    function trapCompassTab(e){ /* ... Functionality remains the same as previous build ... */ }
-    function startCompass(){ /* ... Functionality remains the same as previous build ... */ }
-    function stopCompass(){ /* ... Functionality remains the same as previous build ... */ }
+    function bearingFromTo(a,b){
+      const φ1=toRad(a.lat), λ1=toRad(a.lng), φ2=toRad(b.lat), λ2=toRad(b.lng);
+      const y=Math.sin(λ2-λ1)*Math.cos(φ2);
+      const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
+      return norm(Math.atan2(y,x)*180/Math.PI);
+    }
+    function haversineMeters(a,b){
+      const R=6371e3; const φ1=toRad(a.lat), φ2=toRad(b.lat), Δφ=toRad(b.lat-a.lat), Δλ=toRad(b.lng-a.lng);
+      const x=Math.sin(Δφ/2)*Math.sin(Δφ/2)+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)*Math.sin(Δλ/2);
+      return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    }
+    function turnHint(delta){
+      if(delta<15||delta>345) return 'Straight ahead'; if(delta<45) return 'Slight right'; if(delta<135) return 'Turn right';
+      if(delta<225) return 'Turn around'; if(delta<315) return 'Turn left'; return 'Slight left';
+    }
+    function updateCompassUI(){
+      if(!compassActive || !currentUserLocation || !destLatLng) return;
+      const target = stepTarget || destLatLng;
+      const distM = haversineMeters(currentUserLocation, target.toJSON ? target.toJSON() : target);
+      compassDist.textContent = metersToImperial(distM);
+
+      if (stepTarget && distM < 20) { // Check if near step end
+        setStep(stepIndex + 1);
+        return;
+      }
+
+      const bearing = bearingFromTo(currentUserLocation, target.toJSON ? target.toJSON() : target);
+      const delta = norm(bearing - headingDeg);
+      compassArrow.style.transform = `rotate(${delta}deg)`;
+      
+      if(!stepTarget) { // Only update nav text if in point-to-point mode
+        navMain.textContent = `Head ${turnHint(delta)}`;
+        navSub.textContent = `Pointing to ${currentPlace?.name || 'destination'}`;
+      }
+    }
+    function onOrientation(e){
+      let heading = e.webkitCompassHeading; // iOS
+      if (typeof heading === 'undefined') {
+        heading = e.alpha; // Android
+        if (typeof heading !== 'number' || isNaN(heading)) return;
+        heading = norm(360 - heading); // 'alpha' is 0 at North, but rotates clockwise.
+      }
+      headingDeg = heading;
+      updateCompassUI();
+    }
+    function openCompass(){
+      if(!destLatLng) { alert('No destination set.'); return; }
+      compassModal.style.display = 'flex';
+      compassDialog.focus();
+      startCompass();
+    }
+    function closeCompass(){
+      compassModal.style.display = 'none';
+      stopCompass();
+    }
+    function trapCompassTab(e){
+      if (e.key !== 'Tab') return;
+      const focusable = compassDialog.querySelectorAll('button');
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        last.focus(); e.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        first.focus(); e.preventDefault();
+      }
+    }
+    function startCompass(){
+      if(compassActive) return;
+      compassActive = true;
+      if ('ondeviceorientationabsolute' in window) {
+        window.addEventListener('deviceorientationabsolute', onOrientation);
+      } else if ('ondeviceorientation' in window) {
+        window.addEventListener('deviceorientation', onOrientation);
+      }
+      if(navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(pos => {
+          currentUserLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+          updateCompassUI();
+        }, null, {enableHighAccuracy: true});
+      }
+      compassDialog.addEventListener('keydown', trapCompassTab);
+    }
+    function stopCompass(){
+      compassActive = false;
+      window.removeEventListener('deviceorientationabsolute', onOrientation);
+      window.removeEventListener('deviceorientation', onOrientation);
+      if(watchId) navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+      guideSpeaking = false;
+      guideButton.textContent = 'Guide Me ▶︎';
+      try { speechSynthesis.cancel(); } catch {}
+      compassDialog.removeEventListener('keydown', trapCompassTab);
+    }
     
     /* ====== Init / Geocode ====== */
     function initApp(){
@@ -481,13 +606,16 @@
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
     function hideSubMenu(){
-      subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); 
-      filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); 
-      // darkSideButton.style.display='block'; // Removed
+        subMenuContainer.classList.add('hidden'); 
+        backToMainFiltersButton.classList.add('hidden'); 
+        filterContainer.classList.remove('hidden'); 
+        randomButton.classList.remove('hidden'); 
+        // darkSideButton.style.display='block'; // Removed
     }
     function findRandomAdventure() {
         const randomizableFilters = { ...subFilterMap };
-        ['utilities', 'pets'].forEach(f => delete randomizableFilters[f]); // 'dark' removed
+        // 'dark' removed from this list
+        ['utilities', 'pets'].forEach(f => delete randomizableFilters[f]);
         const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj));
         hideSubMenu();
         findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!");
