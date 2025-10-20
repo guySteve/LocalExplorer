@@ -24,9 +24,7 @@
         .pt-safe{padding-top: calc(1rem + env(safe-area-inset-top));}
         .pb-safe{padding-bottom: calc(1rem + env(safe-area-inset-bottom));}
 
-        #panorama{position:absolute;inset:0;z-index:1}
-        #panorama-container{pointer-events:none;opacity:0;visibility:hidden}
-        #panorama-container.shown{pointer-events:none;opacity:1;visibility:visible;transition:opacity 1s}
+        /* --- FIX 3: Removed Panorama CSS --- */
 
         .action-card{background:#111827;color:#f8f7f2;transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.1)}
         .action-card:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
@@ -38,14 +36,16 @@
         .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
         .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
-        #results-list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
+        /* Shared style for Results and Saved list screens */
+        .list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
           background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-        #results-list-card{background:rgba(17,24,39,.97);color:#f8f7f2;border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
+        .list-card{background:rgba(17,24,39,.97);color:#f8f7f2;border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
+        
         .result-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem; cursor: pointer;}
         .result-item:hover{background: rgba(255,255,255,0.1);}
         .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:#111827; pointer-events: none;}
 
-        /* Removed #dark-side-button styles */
+        /* --- FIX: Removed #dark-side-button styles --- */
 
         #compass-modal{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
           background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
@@ -67,10 +67,6 @@
     </style>
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
-
-  <div id="panorama-container" class="fixed inset-0">
-    <div id="panorama" aria-hidden="true"></div>
-  </div>
 
   <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
     <section id="main-screen" aria-labelledby="app-title">
@@ -100,6 +96,8 @@
         <button data-filter="utilities" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🛠️ Utilities & Help</button>
       </nav>
 
+      <button id="show-saved-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base bg-teal-600 text-white">⭐ My Saved Places</button>
+
       <button id="random-button" class="action-card w-full mt-4 rounded-lg font-bold py-3 text-base bg-orange-500 text-white">🤷 Surprise Me!</button>
 
       <div id="sub-menu-container" class="hidden mt-4"></div>
@@ -107,8 +105,8 @@
     </section>
   </main>
 
-  <section id="results-list-screen" role="dialog" aria-modal="true" style="display:none;">
-    <div id="results-list-card" class="w-full max-w-2xl">
+  <section id="results-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="results-list-card" class="list-card">
       <div class="flex items-center justify-between mb-3">
         <h2 id="results-title" class="text-xl font-header font-bold">Results</h2>
         <button id="close-results-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Back</button>
@@ -118,9 +116,21 @@
     </div>
   </section>
 
+  <section id="saved-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
+    <div id="saved-list-card" class="list-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="saved-title" class="text-xl font-header font-bold">My Saved Places</h2>
+        <button id="close-saved-button" class="action-card bg-gray-700 text-white font-bold py-2 px-3 rounded-lg">Back</button>
+      </div>
+      <div id="saved-list" class="space-y-2 max-h-[68vh] overflow-y-auto">
+        </div>
+    </div>
+  </section>
+
+
   <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
-      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
+      <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-32 object-cover rounded-lg mb-4" />
       <div class="flex justify-between items-start">
         <h2 class="text-2xl md:text-3xl font-header font-bold text-left text-white" id="place-name">...</h2>
         <div class="flex items-center gap-2">
@@ -191,8 +201,6 @@
     const resultScreen = document.getElementById('result-screen');
     const filterContainer = document.getElementById('filter-container');
     const locationStatus = document.getElementById('location-status');
-    const panoramaContainer = document.getElementById('panorama-container');
-    const panoramaDiv = document.getElementById('panorama');
     const manualLocationEntry = document.getElementById('manual-location-entry');
     const locationInput = document.getElementById('location-input');
     const subMenuContainer = document.getElementById('sub-menu-container');
@@ -218,14 +226,20 @@
     const compassDist = document.getElementById('compass-dist');
     const shareButton = document.getElementById('share-button');
     const randomButton = document.getElementById('random-button');
-    // const darkSideButton = document.getElementById('dark-side-button'); // Removed
+    
+    /* --- FIX 3: Removed panorama refs --- */
+    /* --- FIX 4: Added saved-list refs --- */
+    const savedListScreen = document.getElementById('saved-list-screen');
+    const savedList = document.getElementById('saved-list');
+    /* --- FIX: Removed darkSideButton ref --- */
 
     /* ====== State ====== */
-    let placesService, panorama, geocoder, directionsService;
+    let placesService, geocoder, directionsService; // --- FIX 3: Removed panorama ---
     let currentUserLocation;
     let currentLocality = '';
     let currentPlace;
     let currentResults = [];
+    let currentResultIndex = 0; // --- FIX 1: Added for "Next" button ---
     let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
     let localFacts = [], factInterval = null, currentFactIndex = 0;
     let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
@@ -239,7 +253,7 @@
       gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
       pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
       utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}}
-      // dark:{} // Removed
+      /* --- FIX: Removed 'dark' category --- */
     };
     const allowedByCategory = {
       eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
@@ -248,10 +262,8 @@
       gems:new Set(['art_gallery','park','cafe']),
       pets:new Set(['park','pet_store','veterinary_care']),
       utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
-      // dark:new Set(['cemetery','museum','tourist_attraction']), // Removed
-      
-      // *** FIX for "Surprise Me" ***
-      // Add a 'random' category that includes all allowed 'fun' types
+      /* --- FIX: Removed 'dark' category --- */
+      // FIX for "Surprise Me"
       random: new Set([
         ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'],
         ...['bar','night_club'],
@@ -317,16 +329,33 @@
     /* ====== Results List ====== */
     function showResultsList(parentFilter, subLabel){
       resultsListScreen.style.display='flex'; funFactContainer.style.display='none';
+      savedListScreen.style.display='none';
       resultsTitle.textContent=subLabel || 'Results';
       resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
       resultsList.innerHTML='';
       currentResults.forEach(p=>{
-        // Use placeholder for all list items to save cost
-        const photo='https://placehold.co/200x200/111827/fff?text=N/A';
+        const photo='https://placehold.co/200x200/111827/fff?text=N/A'; // Use placeholder
         const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
         const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
         card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm text-orange-300">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs text-gray-400">(${p.user_ratings_total??0})</div></div><div class="text-xs text-gray-300 mt-1">${vic}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full bg-orange-500 text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
         resultsList.appendChild(card);
+      });
+    }
+
+    /* --- FIX 4: Added showSavedList function --- */
+    function showSavedList() {
+      resultsListScreen.style.display='none'; funFactContainer.style.display='none';
+      savedListScreen.style.display='flex';
+      savedList.innerHTML='';
+      const places = Object.values(savedPlaces);
+      if (places.length === 0) {
+        savedList.innerHTML = '<p class="text-gray-400 text-center">You haven\'t saved any places yet.</p>';
+        return;
+      }
+      places.forEach(p=>{
+        const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
+        card.innerHTML=`<div class="flex-1 text-left"><h3 class="font-semibold text-base text-white">${p.name}</h3><div class="text-xs text-gray-300 mt-1">${p.vicinity||''}</div></div>`;
+        savedList.appendChild(card);
       });
     }
 
@@ -369,14 +398,45 @@
     }
 
     /* ====== Details, Directions, Compass ====== */
-    function openDetailsById(placeId){ const s=currentResults.find(r=>r.place_id===placeId); if(s)getPlaceDetails(s); }
+    
+    /* --- FIX 4: Modified openDetailsById to check saved places --- */
+    function openDetailsById(placeId){
+      // Check if it's in the current results list first
+      const resultIndex = currentResults.findIndex(r=>r.place_id===placeId);
+      if(resultIndex !== -1) {
+        currentResultIndex = resultIndex; // --- FIX 1: Set index
+        getPlaceDetails(currentResults[currentResultIndex]);
+        return;
+      }
+      
+      // If not, check if it's a saved place
+      const saved = savedPlaces[placeId];
+      if(saved) {
+        // Create a summary-like object from saved data
+        const summary = {
+          place_id: saved.place_id,
+          name: saved.name,
+          vicinity: saved.vicinity,
+          geometry: {
+            location: new google.maps.LatLng(saved.geometry.lat, saved.geometry.lng)
+          }
+        };
+        currentResults = [summary]; // Make it the only item in "results"
+        currentResultIndex = 0; // --- FIX 1: Set index
+        getPlaceDetails(summary);
+        return;
+      }
+    }
+
     function getPlaceDetails(summary){ 
         resultsListScreen.style.display = 'none';
+        savedListScreen.style.display = 'none';
         resultScreen.style.display='flex';
         funFactContainer.style.display='none';
-        panorama.setPosition(summary.geometry.location);
-        panoramaContainer.classList.add('shown');
-        currentPlace = summary; 
+        
+        /* --- FIX 3: Removed panorama logic --- */
+        
+        currentPlace = summary; // Set summary first for save button
         updateSaveButtonState();
         placeNameEl.textContent = 'Loading Details...';
         placePhotoEl.src=`https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
@@ -389,16 +449,16 @@
 
         placesService.getDetails({
             placeId:summary.place_id,
-            // *** COST-SAVING FIX ***: 'photos' field removed
+            /* --- COST-SAVING FIX: Removed 'photos' --- */
             fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
         },(place,status)=>{
             if(status===google.maps.places.PlacesServiceStatus.OK&&place){
-                currentPlace=place;
+                currentPlace=place; // Now set the full detailed place object
                 placeNameEl.textContent=place.name;
                 renderStars(placeStarsEl, place.rating??0);
                 placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
                 placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-                // *** COST-SAVING FIX ***: Photo line commented out
+                /* --- COST-SAVING FIX: Commented out photo line --- */
                 // if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
                 if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
                 if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
@@ -414,8 +474,6 @@
             }
       });
      }
-    
-    // *** COMPASS FIX ***: All functions below are now fully implemented.
     function buildRouteTo(latLng){
       destLatLng = latLng;
       if(!currentUserLocation || !directionsService) return;
@@ -454,7 +512,7 @@
       const φ1=toRad(a.lat), λ1=toRad(a.lng), φ2=toRad(b.lat), λ2=toRad(b.lng);
       const y=Math.sin(λ2-λ1)*Math.cos(φ2);
       const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
-      return norm(Math.atan2(y,x)*180/Math.PI);
+      return norm(Math.atan2(y,x)*180/PI);
     }
     function haversineMeters(a,b){
       const R=6371e3; const φ1=toRad(a.lat), φ2=toRad(b.lat), Δφ=toRad(b.lat-a.lat), Δλ=toRad(b.lng-a.lng);
@@ -545,7 +603,7 @@
     
     /* ====== Init / Geocode ====== */
     function initApp(){
-      panorama=new google.maps.StreetViewPanorama(panoramaDiv,{addressControl:false,showRoadLabels:false,linksControl:false,panControl:false,enableCloseButton:false,fullscreenControl:false,zoomControl:false});
+      /* --- FIX 3: Removed panorama init --- */
       placesService=new google.maps.places.PlacesService(document.createElement('div'));
       geocoder=new google.maps.Geocoder();
       directionsService=new google.maps.DirectionsService();
@@ -599,35 +657,38 @@
 
     /* ====== UI & Events ====== */
     function showSubMenu(filter){
-      filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); 
-      // darkSideButton.style.display='none'; // Removed
+      filterContainer.classList.add('hidden'); randomButton.classList.add('hidden');
+      /* --- FIX: Removed darkSideButton logic --- */
+      document.getElementById('show-saved-button').classList.add('hidden');
       subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu';
       for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);}
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
     function hideSubMenu(){
-        subMenuContainer.classList.add('hidden'); 
-        backToMainFiltersButton.classList.add('hidden'); 
-        filterContainer.classList.remove('hidden'); 
-        randomButton.classList.remove('hidden'); 
-        // darkSideButton.style.display='block'; // Removed
+      subMenuContainer.classList.add('hidden'); 
+      backToMainFiltersButton.classList.add('hidden'); 
+      filterContainer.classList.remove('hidden'); 
+      randomButton.classList.remove('hidden'); 
+      document.getElementById('show-saved-button').classList.remove('hidden');
+      /* --- FIX: Removed darkSideButton logic --- */
     }
     function findRandomAdventure() {
         const randomizableFilters = { ...subFilterMap };
-        // 'dark' removed from this list
-        ['utilities', 'pets'].forEach(f => delete randomizableFilters[f]);
+        ['utilities', 'pets'].forEach(f => delete randomizableFilters[f]); // --- FIX: Removed 'dark' ---
         const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj));
         hideSubMenu();
         findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!");
     }
     function resetApp(hide=true){
       closeCompass();
-      resultScreen.style.display='none'; resultsListScreen.style.display='none';
+      resultScreen.style.display='none'; 
+      resultsListScreen.style.display='none';
+      savedListScreen.style.display='none';
       mainScreen.classList.remove('hidden');
       funFactContainer.style.display='block';
       hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
       if(currentUserLocation) locationStatus.textContent='Location set! Where to next?';
-      if(hide) panoramaContainer.classList.remove('shown');
+      /* --- FIX 3: Removed panorama logic --- */
     }
 
     document.addEventListener('click', (e)=>{
@@ -641,19 +702,52 @@
         if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];}
         findAdventure(params,parent,name); return;
       }
-      if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
+      
+      // --- FIX 4: Modified list listener to check both lists ---
+      if(btn.closest('#results-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
+      if(btn.closest('#saved-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
 
       switch(btn.id){
-        // case 'dark-side-button': showSubMenu('dark'); break; // Removed
+        /* --- FIX: Removed 'dark-side-button' --- */
         case 'back-to-main-filters': hideSubMenu(); break;
         case 'close-results-button': resultsListScreen.style.display='none'; funFactContainer.style.display='block'; break;
+        /* --- FIX 4: Added saved list buttons --- */
+        case 'show-saved-button': showSavedList(); break;
+        case 'close-saved-button': savedListScreen.style.display='none'; funFactContainer.style.display='block'; break;
+
         case 'try-again-button': resetApp(); break;
         case 'search-button': geocodeLocation(); break;
         case 'random-button': findRandomAdventure(); break;
+        
+        /* --- FIX 1: New "Next" button logic --- */
         case 'next-suggestion-button':
-          if(currentResults.length){const idx=currentResults.findIndex(r=>r.place_id===(currentPlace?.place_id||'')); const next=currentResults[(idx+1)%currentResults.length]; if(next) getPlaceDetails(next);}
+          if(currentResults.length > 0){
+            currentResultIndex = (currentResultIndex + 1) % currentResults.length;
+            getPlaceDetails(currentResults[currentResultIndex]);
+          }
           break;
-        case 'save-place-button': if(currentPlace) { if(savedPlaces[currentPlace.place_id]) delete savedPlaces[currentPlace.place_id]; else savedPlaces[currentPlace.place_id]={name:currentPlace.name,vicinity:directionsLink.href}; localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); updateSaveButtonState(); } break;
+        
+        /* --- FIX 4: Updated save logic --- */
+        case 'save-place-button': 
+          if(currentPlace) { 
+            if(savedPlaces[currentPlace.place_id]) {
+              delete savedPlaces[currentPlace.place_id]; 
+            } else {
+              // Ensure we have the full 'place' object, not the summary
+              if (currentPlace.geometry && currentPlace.vicinity) {
+                savedPlaces[currentPlace.place_id]={
+                  name: currentPlace.name, 
+                  place_id: currentPlace.place_id,
+                  vicinity: currentPlace.vicinity,
+                  geometry: currentPlace.geometry.location.toJSON() // Save serializable geometry
+                };
+              }
+            }
+            localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); 
+            updateSaveButtonState(); 
+          } 
+          break;
+
         case 'compass-button': openCompass(); break;
         case 'close-compass': closeCompass(); break;
         case 'guide-button':
