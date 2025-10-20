@@ -45,8 +45,7 @@
         .result-item:hover{background: rgba(255,255,255,0.1);}
         .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background:#111827; pointer-events: none;}
 
-        #dark-side-button{position:fixed;bottom:1rem;left:1rem;font-size:1.5rem;opacity:.35;transition:opacity .2s;cursor:pointer;z-index:20}
-        #dark-side-button:hover{opacity:1}
+        /* Removed #dark-side-button styles */
 
         #compass-modal{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
           background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
@@ -69,7 +68,6 @@
 </head>
 <body class="text-gray-900 flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
 
-  <!-- Street View backdrop (non-interactive) -->
   <div id="panorama-container" class="fixed inset-0">
     <div id="panorama" aria-hidden="true"></div>
   </div>
@@ -78,7 +76,6 @@
     <section id="main-screen" aria-labelledby="app-title">
       <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold text-gray-900 mb-4">Local Explorer</h1>
 
-      <!-- Local facts -->
       <section id="fun-fact-container" class="text-left mb-4 px-2">
         <h2 class="font-header font-bold mb-1 text-orange-500 text-sm tracking-wider uppercase">Local Fact</h2>
         <p id="fun-fact-text" class="text-sm text-gray-600 border-t-2 border-gray-200 pt-2">Loading...</p>
@@ -94,7 +91,6 @@
         </div>
       </div>
 
-      <!-- Categories -->
       <nav id="filter-container" class="grid grid-cols-2 gap-4">
         <button data-filter="eat" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🍽️ Foodie Finds</button>
         <button data-filter="see" class="action-card rounded-lg font-bold py-3 text-base flex flex-col items-center justify-center">🏛️ Iconic Sights</button>
@@ -111,9 +107,6 @@
     </section>
   </main>
 
-  <button id="dark-side-button" data-filter="dark" aria-label="Dark category">👻</button>
-
-  <!-- Results LIST -->
   <section id="results-list-screen" role="dialog" aria-modal="true" style="display:none;">
     <div id="results-list-card" class="w-full max-w-2xl">
       <div class="flex items-center justify-between mb-3">
@@ -125,7 +118,6 @@
     </div>
   </section>
 
-  <!-- Place Detail -->
   <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;">
     <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center">
       <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-48 object-cover rounded-lg mb-4" />
@@ -160,7 +152,6 @@
     </div>
   </section>
 
-  <!-- Compass Modal -->
   <div id="compass-modal">
     <div id="compass-dialog" tabindex="-1">
       <header class="flex items-center justify-between mb-2">
@@ -227,7 +218,7 @@
     const compassDist = document.getElementById('compass-dist');
     const shareButton = document.getElementById('share-button');
     const randomButton = document.getElementById('random-button');
-    const darkSideButton = document.getElementById('dark-side-button');
+    // const darkSideButton = document.getElementById('dark-side-button'); // Removed
 
     /* ====== State ====== */
     let placesService, panorama, geocoder, directionsService;
@@ -247,8 +238,8 @@
       night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},
       gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
       pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
-      utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}},
-      dark:{"Cemeteries":{type:"cemetery"},"Haunted Tours":{type:"tourist_attraction",keyword:"ghost tour haunted tour"},"Haunted Sites":{type:"tourist_attraction",keyword:"haunted site haunted house"},"Crime Museums":{type:"museum",keyword:"crime history museum"}}
+      utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}}
+      // dark:{"Cemeteries":{type:"cemetery"},...} // Removed
     };
     const allowedByCategory = {
       eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
@@ -256,8 +247,8 @@
       see:new Set(['museum','art_gallery','tourist_attraction']),
       gems:new Set(['art_gallery','park','cafe']),
       pets:new Set(['park','pet_store','veterinary_care']),
-      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
-      dark:new Set(['cemetery','museum','tourist_attraction'])
+      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm'])
+      // dark:new Set(['cemetery','museum','tourist_attraction']) // Removed
     };
     const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
@@ -388,7 +379,8 @@
 
         placesService.getDetails({
             placeId:summary.place_id,
-            fields:['name','rating','user_ratings_total','price_level','photos','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
+            // 'photos' field removed to save cost
+            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance']
         },(place,status)=>{
             if(status===google.maps.places.PlacesServiceStatus.OK&&place){
                 currentPlace=place;
@@ -396,7 +388,8 @@
                 renderStars(placeStarsEl, place.rating??0);
                 placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
                 placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-                if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
+                // Photo line commented out to save cost
+                // if(place.photos?.length) placePhotoEl.src=place.photos[0].getUrl({maxWidth:600,maxHeight:400});
                 if(place.website){websiteLink.href=place.website;websiteLink.classList.remove('hidden')}
                 if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
                 if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
@@ -481,15 +474,20 @@
 
     /* ====== UI & Events ====== */
     function showSubMenu(filter){
-      filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); darkSideButton.style.display='none';
+      filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); 
+      // darkSideButton.style.display='none'; // Removed
       subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu';
       for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);}
       subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden');
     }
-    function hideSubMenu(){subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); darkSideButton.style.display='block'}
+    function hideSubMenu(){
+      subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); 
+      filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); 
+      // darkSideButton.style.display='block'; // Removed
+    }
     function findRandomAdventure() {
         const randomizableFilters = { ...subFilterMap };
-        ['utilities', 'pets', 'dark'].forEach(f => delete randomizableFilters[f]);
+        ['utilities', 'pets'].forEach(f => delete randomizableFilters[f]); // 'dark' removed
         const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj));
         hideSubMenu();
         findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!");
@@ -518,7 +516,7 @@
       if(btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
 
       switch(btn.id){
-        case 'dark-side-button': showSubMenu('dark'); break;
+        // case 'dark-side-button': showSubMenu('dark'); break; // Removed
         case 'back-to-main-filters': hideSubMenu(); break;
         case 'close-results-button': resultsListScreen.style.display='none'; funFactContainer.style.display='block'; break;
         case 'try-again-button': resetApp(); break;
