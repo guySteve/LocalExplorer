@@ -12,11 +12,9 @@
 
     <script src="./key.js"></script>
     <script>
-      // Load API key securely and provide fallback
       const GKEY = window.MAPS_API_KEY || 'MISSING_API_KEY';
       if (GKEY === 'MISSING_API_KEY') {
         console.error("CRITICAL: Google Maps API Key is missing in key.js!");
-        // Optionally display an error to the user here
       }
       document.write(`<script src="https://maps.googleapis.com/maps/api/js?key=${GKEY}&libraries=places,geocoding,directions&callback=initApp" async defer><\/script>`);
     </script>
@@ -96,11 +94,11 @@
         #settings-modal .modal-dialog { padding: 20px; }
         .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .theme-button.active { border-color: var(--accent); box-shadow: 0 0 10px -2px var(--accent); }
-        #voice-selector { background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; width: 100%; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>'); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1em; padding-right: 2.5rem; }
+        #voice-selector { background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; width: 100%; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16" fill="%23${(getComputedStyle(document.documentElement).getPropertyValue('--card-text') || '#CCD6F6').substring(1)}"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>'); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1em; padding-right: 2.5rem; }
 
         .review-item { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: .9rem; padding: .75rem 1rem; }
         .review-sort-button { background: var(--card-bg-subtle); color: var(--card-text); padding: 8px 12px; border-radius: 8px; font-weight: 600; opacity: 0.7; cursor: pointer; }
-        .review-sort-button.active { background: var(--accent); color: var(--card-bg) !important; opacity: 1; } /* Ensure text color override */
+        .review-sort-button.active { background: var(--accent); color: var(--card-bg) !important; opacity: 1; }
         #reviews-list-card .flex-container { display: flex; gap: 1rem; }
         #review-star-filter-container { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; }
         .review-star-button { background: none; border: none; font-size: 0.9rem; padding: 2px 0; opacity: 0.6; cursor: pointer; color: var(--accent); text-align: left; line-height: 1.2; }
@@ -118,7 +116,7 @@
         #searching-dialog-icon { font-size: 3.5rem; animation: spin 2s linear infinite; }
         #searching-dialog-text { font-size: 1.25rem; font-family: 'Poppins', sans-serif; font-weight: 700; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    </style>
+        </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
 
@@ -170,7 +168,7 @@
   <div id="searching-modal"> <div id="searching-dialog"> <div id="searching-dialog-icon">🧭</div> <div id="searching-dialog-text">Acquiring Target...</div> </div> </div>
 
   <script>
-    /* ====== IMMEDIATE SETTINGS LOAD ====== */
+      /* ====== IMMEDIATE SETTINGS LOAD ====== */
     function loadSettingsImmediate() { console.log('DEBUG: loadSettingsImmediate called.'); let theme, voiceURI, places; try { theme = localStorage.getItem('appTheme') || 'rugged-explorer'; console.log('DEBUG: Immediate theme read from localStorage:', theme); document.documentElement.dataset.theme = theme; console.log('DEBUG: Immediate theme applied to document:', theme); } catch (e) { console.error('DEBUG: Error reading appTheme immediately:', e); theme = 'rugged-explorer'; document.documentElement.dataset.theme = theme; } try { voiceURI = localStorage.getItem('appVoice') || null; currentVoiceURI = voiceURI; console.log('DEBUG: Immediate voice URI loaded:', currentVoiceURI); } catch (e) { console.error('DEBUG: Error reading appVoice immediately:', e); currentVoiceURI = null; } try { const placesJson = localStorage.getItem('savedPlaces') || '{}'; console.log('DEBUG: Immediate saved places JSON read:', placesJson.substring(0, 100) + '...'); places = JSON.parse(placesJson); savedPlaces = places; console.log('DEBUG: Immediate saved places loaded:', Object.keys(savedPlaces).length, 'items'); } catch (e) { console.error("DEBUG: Error loading/parsing saved places immediately:", e); savedPlaces = {}; try { localStorage.setItem('savedPlaces', '{}'); console.log('DEBUG: Cleared potentially corrupted savedPlaces in localStorage.'); } catch (e2) { console.error('DEBUG: Failed to clear corrupted savedPlaces:', e2); } } }
     let savedPlaces = {}; let currentVoiceURI = null; loadSettingsImmediate();
 
@@ -206,7 +204,7 @@
     function showResultsList(parentFilter, subLabel){ console.log('DEBUG: showResultsList called'); mainScreen.style.display = 'none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; resultsListScreen.style.display='flex'; resultsTitle.textContent=subLabel || 'Results'; resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results'; resultsList.innerHTML=''; if (currentResults.length === 0) { console.log('DEBUG: No results to display.'); resultsList.innerHTML = '<p class="opacity-70 text-center p-4">No results found matching your criteria.</p>'; return; } currentResults.forEach(p=>{ const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||''; const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id; card.innerHTML=`<div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name || 'Unknown Name'}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic || 'Unknown Location'}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`; try { resultsList.appendChild(card); } catch (e) { console.error('DEBUG: Error appending result item:', p.name, e); } }); console.log('DEBUG: resultsList innerHTML populated.'); }
     function showSavedList() { console.log('DEBUG: showSavedList called.'); mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; savedListScreen.style.display='flex'; savedList.innerHTML=''; console.log('DEBUG: savedPlaces object state:', savedPlaces); console.log('DEBUG: Type of savedPlaces:', typeof savedPlaces); console.log('DEBUG: Raw localStorage item:', localStorage.getItem('savedPlaces')); const places = Object.values(savedPlaces || {}); console.log('DEBUG: Number of places to display:', places.length); if (places.length === 0) { savedList.innerHTML = '<p class="opacity-70 text-center">You haven\'t saved any places yet.</p>'; console.log('DEBUG: Displaying "No saved places" message.'); return; } places.forEach((p, index)=>{ console.log(`DEBUG: Rendering saved item ${index}:`, p); if (!p || typeof p !== 'object' || !p.place_id) { console.warn(`DEBUG: Skipping invalid saved place item at index ${index}:`, p); return; } const card=document.createElement('div'); card.className='result-item'; card.innerHTML=`<button class="flex-1 text-left saved-item-details" data-id="${p.place_id}"><h3 class="font-semibold text-base">${p.name || 'Saved Place'}</h3><div class="text-xs opacity-80 mt-1">${p.vicinity||''}</div></button><button class="remove-saved-button action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);" data-id="${p.place_id}">X</button>`; try { savedList.appendChild(card); } catch (e) { console.error(`DEBUG: Error appending saved item ${index} (${p.name}):`, e); } }); console.log('DEBUG: Finished rendering saved places list.'); }
     function showEventsList(events) { mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; eventsListScreen.style.display='flex'; eventsList.innerHTML=''; if (!events || events.length === 0) { eventsList.innerHTML = '<p class="opacity-70 text-center">No local events found on Ticketmaster.</p>'; return; } events.forEach(event => { const photo = event.images?.[0]?.url || 'https://placehold.co/200x200/111827/fff?text=Event'; const venue = event._embedded?.venues?.[0]?.name || ''; const eventDate = event.dates?.start?.localDate ? new Date(event.dates.start.localDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}) : 'Date TBD'; const card = document.createElement('a'); card.className = 'result-item'; card.href = event.url; card.target = '_blank'; card.rel = 'noopener'; card.innerHTML = `<img class="result-thumb" loading="lazy" src="${photo}" alt="${event.name}" /><div class="flex-1 text-left"><h3 class="font-semibold text-base">${event.name}</h3><div class="text-sm mt-1" style="color:var(--accent);">${eventDate}</div><div class="text-xs opacity-80 mt-1">${venue}</div></div>`; eventsList.appendChild(card); }); }
-    function showReviews() { // ** REVIEWS DISPLAY LOGIC UPDATED **
+    function showReviews() { // ** REVIEWS DISPLAY LOGIC UPDATED - NO DATE FILTER **
         console.log("DEBUG: showReviews called. Sort:", currentReviewSort, "Star Filter:", currentStarFilter);
         mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
 
@@ -234,21 +232,22 @@
         const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter);
         console.log("DEBUG: Reviews after star filter:", finalFilteredReviews.length);
 
+        // Apply sort with safety checks
         if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b?.time || 0) - (a?.time || 0)); }
         else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b?.rating || 0) - (a?.rating || 0)); }
         else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a?.rating || 0) - (b?.rating || 0)); }
 
         document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
 
-        reviewsList.innerHTML = ''; // Clear previous reviews before rendering
+        reviewsList.innerHTML = ''; // ** Clear list before rendering **
         if (finalFilteredReviews.length === 0) {
             reviewsList.innerHTML = `<p class="opacity-70 text-center p-4">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
         }
 
-        console.log(`DEBUG: Rendering ${finalFilteredReviews.length} reviews...`); // Log count before loop
+        console.log(`DEBUG: Rendering ${finalFilteredReviews.length} reviews...`);
         finalFilteredReviews.forEach((review, index) => {
             if (!review || typeof review !== 'object') { console.warn(`DEBUG: Skipping invalid review item at index ${index}:`, review); return; }
-            // console.log(`DEBUG: Rendering review ${index}:`, review.author_name); // Reduce log noise
+            // console.log(`DEBUG: Rendering review ${index}:`, review.author_name); // Reduce noise
             const card = document.createElement('div'); card.className = 'review-item';
             const reviewText = review.text ? stripHtml(review.text) : '<i>(No text provided)</i>';
             const authorName = review.author_name || 'Anonymous';
@@ -260,7 +259,6 @@
         });
         console.log("DEBUG: Finished rendering reviews.");
     }
-
 
     /* ====== Search ====== */
     async function findLocalEvents() { if (!window.TICKETMASTER_API_KEY || window.TICKETMASTER_API_KEY === 'YOUR_KEY_HERE') { alert('Ticketmaster API key is missing from key.js.'); return; } if (!currentUserLocation) { alert('Please set your location first.'); return; } searchingModal.style.display = 'flex'; toggleFilterButtons(true); try { const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${window.TICKETMASTER_API_KEY}&latlong=${currentUserLocation.lat},${currentUserLocation.lng}&radius=25&unit=miles&sort=date,asc`; const res = await fetch(url); if (!res.ok) throw new Error(`Ticketmaster API error: ${res.status}`); const data = await res.json(); showEventsList(data._embedded?.events); } catch (e) { console.error(e); alert('Could not load local events. See console for details.'); } searchingModal.style.display = 'none'; toggleFilterButtons(false); }
@@ -297,14 +295,13 @@
       const target = e.target;
       let btn = target.closest('button');
 
-      // Allow map links
       if (target.closest('.map-link-icon')) { console.log('DEBUG: Map link clicked.'); return; }
 
-      // ** SAVE BUTTON FIX: Handle click specifically if target *is* the button OR its direct parent (the button itself) **
+      // ** SAVE BUTTON FIX: Explicitly check target's ID OR parent's ID **
       if (target.id === 'save-place-button' || (target.parentElement && target.parentElement.id === 'save-place-button')) {
           console.log('DEBUG: Save Place Button click detected.');
-          btn = document.getElementById('save-place-button'); // Ensure we have the button element
-          if (btn && !btn.disabled) { // Check if not disabled
+          btn = document.getElementById('save-place-button'); // Get the actual button
+          if (btn && !btn.disabled) {
              if(currentPlace) {
                const placeId = currentPlace.place_id;
                if (!placeId) { console.error("DEBUG: Cannot save place - place_id is missing!", currentPlace); return; }
@@ -320,7 +317,7 @@
                updateSaveButtonState();
              } else { console.warn("DEBUG: Save button clicked but currentPlace is null."); }
           } else { console.log('DEBUG: Save button click ignored (button not found or disabled).'); }
-         return; // Explicitly return after handling
+         return; // Handled
       }
 
       // If no button was found up the hierarchy, or if it's disabled, ignore
@@ -329,7 +326,7 @@
           return;
       }
 
-      console.log('DEBUG: Click detected on button with ID:', btn.id || '(no id)', 'Classes:', btn.className);
+      console.log('DEBUG: Click detected on other button with ID:', btn.id || '(no id)', 'Classes:', btn.className);
 
       // --- Continue with other checks ---
       if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
@@ -373,5 +370,5 @@
     document.getElementById('voice-selector').addEventListener('change', e => { applyVoice(e.target.value); });
 
   </script>
-</body>
+  </body>
 </html>
