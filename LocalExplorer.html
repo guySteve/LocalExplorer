@@ -102,7 +102,7 @@
         .review-star-button .count { font-size: 0.7rem; color: var(--text-subtle); margin-left: 4px; }
         .review-star-button.active { opacity: 1; font-weight: bold; }
         #clear-star-filter { font-size: 0.75rem; font-weight: bold; opacity: 0.8; color: var(--text-subtle); margin-top: 4px; }
-        #reviews-list { flex: 1; max-height: calc(60vh - 40px); }
+        #reviews-list { flex: 1; max-height: calc(60vh - 40px); overflow-y: auto; /* Ensure overflow scrolling */ }
 
         #fun-fact-container { background: var(--card-bg); color: var(--text); border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 12px var(--shadow-color); text-align: left; margin-bottom: 1.5rem; }
         #fun-fact-container h2 { color: var(--accent); font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -140,8 +140,7 @@
          <h2 id="reviews-title" class="text-xl font-header font-bold">Reviews</h2>
          <button id="close-reviews-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
        </div>
-       <p id="review-date-filter-info" class="text-xs opacity-70 text-center mb-2 -mt-2"></p>
-       <div id="review-filters-container" class="mb-3">
+       <p id="review-date-filter-info" class="text-xs opacity-70 text-center mb-2 -mt-2"></p> <div id="review-filters-container" class="mb-3">
          <div id="review-sort-container" class="flex gap-2 mb-3">
            <button id="sort-reviews-best" class="review-sort-button flex-1">Best</button>
            <button id="sort-reviews-worst" class="review-sort-button flex-1">Worst</button>
@@ -164,7 +163,7 @@
 
   <div id="searching-modal"> <div id="searching-dialog"> <div id="searching-dialog-icon">🧭</div> <div id="searching-dialog-text">Acquiring Target...</div> </div> </div>
 
-<script>
+  <script>
     /* ====== IMMEDIATE SETTINGS LOAD ====== */
     function loadSettingsImmediate() { console.log('DEBUG: loadSettingsImmediate called.'); let theme, voiceURI, places; try { theme = localStorage.getItem('appTheme') || 'rugged-explorer'; console.log('DEBUG: Immediate theme read from localStorage:', theme); document.documentElement.dataset.theme = theme; console.log('DEBUG: Immediate theme applied to document:', theme); } catch (e) { console.error('DEBUG: Error reading appTheme immediately:', e); theme = 'rugged-explorer'; document.documentElement.dataset.theme = theme; } try { voiceURI = localStorage.getItem('appVoice') || null; currentVoiceURI = voiceURI; console.log('DEBUG: Immediate voice URI loaded:', currentVoiceURI); } catch (e) { console.error('DEBUG: Error reading appVoice immediately:', e); currentVoiceURI = null; } try { const placesJson = localStorage.getItem('savedPlaces') || '{}'; console.log('DEBUG: Immediate saved places JSON read:', placesJson.substring(0, 100) + '...'); places = JSON.parse(placesJson); savedPlaces = places; console.log('DEBUG: Immediate saved places loaded:', Object.keys(savedPlaces).length, 'items'); } catch (e) { console.error("DEBUG: Error loading/parsing saved places immediately:", e); savedPlaces = {}; try { localStorage.setItem('savedPlaces', '{}'); console.log('DEBUG: Cleared potentially corrupted savedPlaces in localStorage.'); } catch (e2) { console.error('DEBUG: Failed to clear corrupted savedPlaces:', e2); } } }
     let savedPlaces = {}; let currentVoiceURI = null; loadSettingsImmediate();
@@ -205,56 +204,61 @@
         console.log("DEBUG: showReviews called. Sort:", currentReviewSort, "Star Filter:", currentStarFilter);
         mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
 
-        // ** DATE FILTER REMOVED **
+        // Use all available reviews (no date filter)
         const reviewsToDisplay = [...currentReviews];
         reviewDateFilterInfo.textContent = ""; // Clear date message
         console.log("DEBUG: Total reviews available (no date filter):", reviewsToDisplay.length);
 
-        const showFilters = currentReviews.length >= 20; // Base filter visibility on TOTAL reviews
+        const showFilters = currentReviews.length >= 20;
         reviewFiltersContainer.style.display = showFilters ? 'block' : 'none';
         reviewSortContainer.style.display = showFilters ? 'flex' : 'none';
 
         const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-        reviewsToDisplay.forEach(r => { if (starCounts[r.rating] !== undefined) starCounts[r.rating]++; });
+        reviewsToDisplay.forEach(r => { if (r && r.rating !== undefined && starCounts[r.rating] !== undefined) starCounts[r.rating]++; }); // Added check for r & r.rating
 
         reviewStarFilterContainer.innerHTML = '';
         [5, 4, 3, 2, 1].forEach(rating => {
             const count = starCounts[rating];
-            // Only show star filter button if count > 0, even if filters are generally hidden (simplifies logic)
-            if (count > 0) {
+            if (count > 0 || !showFilters) { // Show if count > 0 OR if filters are generally hidden
                 const btn = document.createElement('button'); btn.className = 'review-star-button'; btn.dataset.rating = rating; let stars = '★'.repeat(rating) + '☆'.repeat(5 - rating); btn.innerHTML = `${stars} <span class="count">(${count})</span>`; if (parseInt(btn.dataset.rating) === currentStarFilter) { btn.classList.add('active'); } reviewStarFilterContainer.appendChild(btn);
             }
         });
-        // Only show Clear button if filters are visible
         if (showFilters) { const clearBtn = document.createElement('button'); clearBtn.id = 'clear-star-filter'; clearBtn.className = 'review-star-button text-xs font-bold'; clearBtn.style = 'opacity: 0.8; color: var(--text-subtle); margin-top: 4px;'; clearBtn.textContent = 'Clear'; reviewStarFilterContainer.appendChild(clearBtn); }
 
-        const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r.rating === currentStarFilter);
+        const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter); // Added check for r
         console.log("DEBUG: Reviews after star filter:", finalFilteredReviews.length);
 
-        if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b.time || 0) - (a.time || 0)); }
-        else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b.rating || 0) - (a.rating || 0)); }
-        else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a.rating || 0) - (b.rating || 0)); }
+        // Apply sort with safety checks
+        if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b?.time || 0) - (a?.time || 0)); }
+        else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b?.rating || 0) - (a?.rating || 0)); }
+        else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a?.rating || 0) - (b?.rating || 0)); }
 
         document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
 
         reviewsList.innerHTML = '';
         if (finalFilteredReviews.length === 0) {
-            reviewsList.innerHTML = `<p class="opacity-70 text-center">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
+            reviewsList.innerHTML = `<p class="opacity-70 text-center p-4">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
         }
+
         finalFilteredReviews.forEach((review, index) => {
+            // Add safety checks for review object and its properties before rendering
+            if (!review || typeof review !== 'object') {
+                console.warn(`DEBUG: Skipping invalid review item at index ${index}:`, review);
+                return;
+            }
             console.log(`DEBUG: Rendering review ${index}:`, review.author_name);
             const card = document.createElement('div'); card.className = 'review-item';
-            // Added check for review text
-            const reviewText = review.text ? review.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '<i>(No text provided)</i>';
-            card.innerHTML = `<div class="flex items-center gap-3 mb-2"><img loading="lazy" src="${review.profile_photo_url}" alt="${review.author_name}" class="w-10 h-10 rounded-full" /><div class="flex-1"><h4 class="font-semibold text-sm">${review.author_name || 'Anonymous'}</h4><p class="text-xs opacity-70">${review.relative_time_description || ''}</p></div><div class="star-row text-right">${renderStarsHTML(review.rating)}</div></div><p class="text-sm opacity-90">${reviewText}</p>`;
-            try {
-                reviewsList.appendChild(card);
-            } catch(e) {
-                console.error(`DEBUG: Error rendering review ${index}:`, e, review);
-            }
+            const reviewText = review.text ? stripHtml(review.text) : '<i>(No text provided)</i>'; // Use stripHtml and fallback
+            const authorName = review.author_name || 'Anonymous';
+            const timeDescription = review.relative_time_description || '';
+            const photoUrl = review.profile_photo_url || 'https://placehold.co/40x40/111827/fff?text=N/A'; // Fallback image
+
+            card.innerHTML = `<div class="flex items-center gap-3 mb-2"><img loading="lazy" src="${photoUrl}" alt="${authorName}" class="w-10 h-10 rounded-full" /><div class="flex-1"><h4 class="font-semibold text-sm">${authorName}</h4><p class="text-xs opacity-70">${timeDescription}</p></div><div class="star-row text-right">${renderStarsHTML(review.rating)}</div></div><p class="text-sm opacity-90">${reviewText}</p>`;
+            try { reviewsList.appendChild(card); } catch(e) { console.error(`DEBUG: Error rendering review ${index}:`, e, review); }
         });
         console.log("DEBUG: Finished rendering reviews.");
     }
+
 
     /* ====== Search ====== */
     async function findLocalEvents() { if (!window.TICKETMASTER_API_KEY || window.TICKETMASTER_API_KEY === 'YOUR_KEY_HERE') { alert('Ticketmaster API key is missing from key.js.'); return; } if (!currentUserLocation) { alert('Please set your location first.'); return; } searchingModal.style.display = 'flex'; toggleFilterButtons(true); try { const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${window.TICKETMASTER_API_KEY}&latlong=${currentUserLocation.lat},${currentUserLocation.lng}&radius=25&unit=miles&sort=date,asc`; const res = await fetch(url); if (!res.ok) throw new Error(`Ticketmaster API error: ${res.status}`); const data = await res.json(); showEventsList(data._embedded?.events); } catch (e) { console.error(e); alert('Could not load local events. See console for details.'); } searchingModal.style.display = 'none'; toggleFilterButtons(false); }
@@ -289,20 +293,31 @@
 
     document.addEventListener('click', (e)=>{
       const target = e.target;
-      const btn = target.closest('button');
+      let btn = target.closest('button'); // Find closest button
 
-      if (target.closest('.map-link-icon')) return;
-      if(!btn || btn.disabled) {
-        // Fix: If the target itself IS the save button (not a child), allow it
-        if (target.id === 'save-place-button' && !target.disabled) {
-            // Fall through to save button logic below
-        } else {
-            return; // Otherwise, ignore disabled buttons or non-button clicks
-        }
+      // Allow map links specifically
+      if (target.closest('.map-link-icon')) {
+          console.log('DEBUG: Map link clicked, allowing default action.');
+          return;
       }
 
-      // ** SAVE BUTTON FIX: Explicitly check for save button ID **
+      // ** SAVE BUTTON FIX: Handle click specifically if target *is* the button **
+      if (target.id === 'save-place-button') {
+          btn = target; // Ensure 'btn' is correctly set if the target itself was the button
+          console.log('DEBUG: Save Place Button was the direct target.');
+      }
+
+      // If no button was found up the hierarchy, or if it's disabled, ignore
+      if(!btn || btn.disabled) {
+          console.log('DEBUG: Click ignored (no button or disabled). Target:', target, 'Closest button:', btn);
+          return;
+      }
+
+      console.log('DEBUG: Click detected on button with ID:', btn.id || '(no id)', 'Classes:', btn.className);
+
+      // ** SAVE BUTTON FIX: Explicit check OUTSIDE the switch **
       if(btn.id === 'save-place-button') {
+         console.log('DEBUG: Handling save-place-button click.');
          if(currentPlace) {
            const placeId = currentPlace.place_id;
            if (!placeId) { console.error("DEBUG: Cannot save place - place_id is missing!", currentPlace); return; }
@@ -317,10 +332,10 @@
            try { localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); console.log('DEBUG: savedPlaces saved to localStorage after toggle. Current count:', Object.keys(savedPlaces).length); } catch(err) { console.error('DEBUG: Error saving savedPlaces after toggle:', err); alert("Error saving place. Storage might be full."); }
            updateSaveButtonState();
          } else { console.warn("DEBUG: Save button clicked but currentPlace is null."); }
-         return; // Handled save button
+         return; // Explicitly return after handling
       }
 
-      // Other button handlers
+      // --- Continue with other checks ---
       if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
       if(btn.closest('.sub-menu') && btn.dataset.name){ const name=btn.dataset.name, parent=btn.dataset.parent; let params=subFilterMap[parent][name]; if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];} findAdventure(params,parent,name); return; }
       if(btn.closest('#results-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
@@ -354,6 +369,8 @@
         case 'close-compass': closeCompass(); break;
         case 'guide-button': guideSpeaking = !guideSpeaking; guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎'; if(guideSpeaking){ if(routeSteps.length && stepIndex < routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); } } else { try{ speechSynthesis.cancel(); }catch{} } break;
         case 'share-button': if (navigator.share && currentPlace) { navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href, });} break;
+        // Default case for unhandled button IDs
+        default: console.log("DEBUG: Unhandled button click:", btn.id); break;
       }
     });
 
@@ -363,4 +380,3 @@
   </script>
 </body>
 </html>
-
