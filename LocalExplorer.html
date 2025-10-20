@@ -12,7 +12,6 @@
 
     <script src="./key.js"></script>
     <script>
-      // Load API key from key.js, or use a fallback (which will fail, but prevents script error)
       const GKEY = window.MAPS_API_KEY || 'MISSING_API_KEY';
       document.write(`<script src="https://maps.googleapis.com/maps/api/js?key=${GKEY}&libraries=places,geocoding,directions&callback=initApp" async defer><\/script>`);
     </script>
@@ -23,7 +22,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
 
     <style>
-        /* --- NEW: Theme Engine --- */
         :root {
           --bg: #f8f7f2;
           --text: #111827;
@@ -57,7 +55,6 @@
           --list-card-bg: rgba(17, 34, 64, 0.98);
           --shadow-color: rgba(0, 0, 0, 0.4);
         }
-        /* --- End Theme Engine --- */
 
         body{font-family:'Raleway',sans-serif; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s;}
         h1,h2,h3,.font-header{font-family:'Poppins',sans-serif;}
@@ -73,7 +70,6 @@
         .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
         .action-card:disabled{opacity:.6;cursor:not-allowed}
 
-        /* Specific card colors */
         .card-accent{ background: var(--accent); color: var(--card-bg); }
         .card-accent:hover:not(:disabled){ background: var(--accent); opacity: 0.9; }
         .card-accent-alt{ background: var(--accent-alt); color: var(--card-bg); }
@@ -87,7 +83,6 @@
         .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
         .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
-        /* Shared style for List screens */
         .list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem;
           background: var(--list-bg); backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
         .list-card{background: var(--list-card-bg); color: var(--card-text); border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
@@ -96,13 +91,11 @@
         .result-item:hover{background: rgba(255,255,255,0.1);}
         .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background: var(--card-bg); pointer-events: none;}
 
-        /* Base Modal Style */
         .modal-base{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
           background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
         .modal-dialog{width: min(92vw, 440px); background: var(--list-card-bg); color: var(--card-text);
           border:1px solid rgba(255,255,255,.12); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.5); padding:16px; outline:none;}
 
-        /* Compass Modal */
         #nav-bubble{position:relative;margin: 8px 0 12px 0;padding:.6rem .75rem;font-size:13px;line-height:1.25;
           box-shadow:0 10px 24px rgba(0,0,0,.35);background:radial-gradient(120% 140% at 10% 0%, rgba(16,185,129,.16) 0%, rgba(245,158,11,.18) 35%, rgba(17,24,39,.96) 68%);
           border:1px solid rgba(255,255,255,.12)}
@@ -117,10 +110,14 @@
           transform-origin:50% 90%;filter:drop-shadow(0 6px 8px var(--accent));margin-bottom:8px}
         #compass-dist{font-size:14px;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 
-        /* Settings Modal */
         #settings-modal .modal-dialog { padding: 20px; }
         .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; }
         .theme-button.active { border-color: var(--accent); box-shadow: 0 0 10px -2px var(--accent); }
+        /* NEW: Voice Selector Style */
+        #voice-selector {
+          background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle);
+          padding: 8px 12px; border-radius: 8px; width: 100%;
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
@@ -162,7 +159,7 @@
       <button id="random-button" class="action-card card-accent w-full mt-4 rounded-lg font-bold py-3 text-base">🤷 Surprise Me!</button>
 
       <div id="sub-menu-container" class="hidden mt-4"></div>
-      <button id="back-to-main-filters" class="hidden mt-4 underline" style="color: var(--text-subtle);">Back to main filters</button>
+      <button id="back-to-main-filters" class="hidden action-card w-full mt-4 rounded-lg font-bold py-3 text-base" style="background: var(--card-bg-subtle);">← Back to Main Menu</button>
     </section>
   </main>
 
@@ -192,6 +189,9 @@
       <div class="flex items-center justify-between mb-3">
         <h2 id="events-title" class="text-xl font-header font-bold">Local Events</h2>
         <button id="close-events-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
+      </div>
+      <div class="text-xs opacity-60 text-center mb-2 -mt-2">
+        Events provided by <a href="https://ticketmaster.com" target="_blank" rel="noopener" class="underline">Ticketmaster</a>
       </div>
       <div id="events-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div>
     </div>
@@ -268,12 +268,19 @@
           </div>
         </div>
 
+        <div>
+          <h3 class="font-semibold mb-2">Guide Voice</h3>
+          <select id="voice-selector">
+            <option value="">Loading voices...</option>
+          </select>
+        </div>
+
         <a id="donate-button" href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" 
            class="action-card card-accent-alt font-bold py-3 px-4 rounded-lg w-full block text-center">
           Buy me a coffee (Venmo)
         </a>
         
-        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 5.0</p>
+        <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 6.0</p>
       </div>
     </div>
   </div>
@@ -322,22 +329,21 @@
     const compassDist = document.getElementById('compass-dist');
     const shareButton = document.getElementById('share-button');
     const randomButton = document.getElementById('random-button');
-    
     const savedListScreen = document.getElementById('saved-list-screen');
     const savedList = document.getElementById('saved-list');
-    
-    // NEW Refs
     const eventsListScreen = document.getElementById('events-list-screen');
     const eventsList = document.getElementById('events-list');
     const settingsModal = document.getElementById('settings-modal');
     const settingsDialog = document.getElementById('settings-dialog');
     const themeColorMeta = document.getElementById('theme-color-meta');
+    // NEW: Voice selector ref
+    const voiceSelector = document.getElementById('voice-selector');
 
     /* ====== State ====== */
     let placesService, geocoder, directionsService;
     let currentUserLocation;
     let currentLocality = '';
-    let currentGeocodeLabel = 'Your Location'; // For resetting status
+    let currentGeocodeLabel = 'Your Location';
     let currentPlace;
     let currentResults = [];
     let currentResultIndex = 0;
@@ -345,13 +351,15 @@
     let localFacts = [], factInterval = null, currentFactIndex = 0;
     let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
     let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
+    // NEW: Voice state
+    let voices = [];
+    let currentVoiceURI = localStorage.getItem('appVoice') || null;
 
     /* ====== Categories ====== */
     const subFilterMap = {
       eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
       see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
       night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},
-      // NEW Category
       outdoors:{"Parks":{type:"park"}, "Hiking":{keyword:"hiking area"}, "Campground":{type:"campground"}, "Scenic Lookout":{type:"tourist_attraction", keyword:"scenic lookout"}},
       gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
       pets:{"Dog Park":{type:"park",keyword:"dog"},"Pet Store":{type:"pet_store"},"Veterinarian":{type:"veterinary_care"}},
@@ -361,7 +369,6 @@
       eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
       night:new Set(['bar','night_club']),
       see:new Set(['museum','art_gallery','tourist_attraction']),
-      // NEW Category
       outdoors: new Set(['park', 'tourist_attraction', 'campground']),
       gems:new Set(['art_gallery','park','cafe']),
       pets:new Set(['park','pet_store','veterinary_care']),
@@ -370,7 +377,7 @@
         ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'],
         ...['bar','night_club'],
         ...['museum','art_gallery','tourist_attraction'],
-        ...['park', 'campground'], // Added from outdoors
+        ...['park', 'campground'],
         ...['art_gallery','park','cafe']
       ])
     };
@@ -401,11 +408,16 @@
       savePlaceButton.textContent = pressed ? '★' : '☆';
     }
 
+    // NEW: Updated speak() function
     function speak(text){
       try{
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        // TODO: Add voice selection from settings
+        // Find the selected voice
+        if (currentVoiceURI) {
+          const selectedVoice = voices.find(v => v.voiceURI === currentVoiceURI);
+          if (selectedVoice) u.voice = selectedVoice;
+        }
         speechSynthesis.speak(u);
       }catch{}
     }
@@ -432,7 +444,7 @@
 
     /* ====== Results/Saved/Events Lists ====== */
     function showResultsList(parentFilter, subLabel){
-      mainScreen.style.display = 'none'; // FIX: Hide main screen
+      mainScreen.style.display = 'none';
       savedListScreen.style.display='none';
       eventsListScreen.style.display='none';
       resultsListScreen.style.display='flex'; 
@@ -449,7 +461,7 @@
     }
     
     function showSavedList() {
-      mainScreen.style.display = 'none'; // FIX: Hide main screen
+      mainScreen.style.display = 'none';
       resultsListScreen.style.display='none';
       eventsListScreen.style.display='none';
       savedListScreen.style.display='flex';
@@ -460,7 +472,7 @@
         return;
       }
       places.forEach(p=>{
-        const card=document.createElement('div'); // Not a button, to allow child button
+        const card=document.createElement('div');
         card.className='result-item';
         card.innerHTML=`
           <button class="flex-1 text-left saved-item-details" data-id="${p.place_id}">
@@ -473,9 +485,8 @@
       });
     }
 
-    // NEW: Show Events List
     function showEventsList(events) {
-      mainScreen.style.display = 'none'; // FIX: Hide main screen
+      mainScreen.style.display = 'none';
       resultsListScreen.style.display='none';
       savedListScreen.style.display='none';
       eventsListScreen.style.display='flex';
@@ -489,7 +500,7 @@
         const venue = event._embedded?.venues?.[0]?.name || '';
         const eventDate = event.dates?.start?.localDate ? new Date(event.dates.start.localDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}) : 'Date TBD';
         
-        const card = document.createElement('a'); // Make the whole item a link
+        const card = document.createElement('a');
         card.className = 'result-item';
         card.href = event.url;
         card.target = '_blank';
@@ -508,7 +519,10 @@
 
     /* ====== Search ====== */
     async function findLocalEvents() {
-      if (!window.TICKETMASTER_API_KEY) { alert('Ticketmaster API key is missing.'); return; }
+      if (!window.TICKETMASTER_API_KEY || window.TICKETMASTER_API_KEY === 'YOUR_KEY_HERE') { 
+        alert('Ticketmaster API key is missing from key.js.'); 
+        return; 
+      }
       if (!currentUserLocation) { alert('Please set your location first.'); return; }
 
       locationStatus.textContent = 'Finding local events...';
@@ -526,13 +540,13 @@
         alert('Could not load local events. See console for details.');
       }
       
-      locationStatus.textContent = `Exploring: ${currentGeocodeLabel}`; // FIX: Reset status
+      locationStatus.textContent = `Exploring: ${currentGeocodeLabel}`;
       toggleFilterButtons(false);
     }
 
     function findAdventure(searchParams,parentFilter,subLabel){
       if(!placesService||!currentUserLocation)return;
-      mainScreen.style.display = 'none'; // FIX: Hide main screen
+      mainScreen.style.display = 'none';
       toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
       locationStatus.textContent="Searching nearby..."; currentResults=[];
       const reqType=searchParams.type||null;
@@ -541,7 +555,7 @@
 
       const nearby=()=>{ if(i>=radii.length)return text();
         const radius=radii[i++]; const req={location:currentUserLocation,radius,...(searchParams.type&&{type:searchParams.type}),...(kw&&{keyword:kw})};
-        locationStatus.textContent=`Searching (${metersToImperial(radius)})...`; // Update status
+        locationStatus.textContent=`Searching (${metersToImperial(radius)})...`;
         placesService.nearbySearch(req,(res,status)=>{
           if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
             const allowed = allowedByCategory[parentFilter] || new Set();
@@ -552,7 +566,7 @@
         });
       };
       const text=()=>{
-        locationStatus.textContent=`Searching "${kw}" in ${currentLocality}...`; // Update status
+        locationStatus.textContent=`Searching "${kw}" in ${currentLocality}...`;
         const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||''} in ${city}`;
         placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
           if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
@@ -566,7 +580,7 @@
         currentResults=sortResults(currentResults);
         showResultsList(parentFilter,subLabel);
         toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-        locationStatus.textContent = `Exploring: ${currentGeocodeLabel}`; // FIX: Reset status
+        locationStatus.textContent = `Exploring: ${currentGeocodeLabel}`;
       };
       nearby();
     }
@@ -585,16 +599,15 @@
           place_id: saved.place_id, name: saved.name, vicinity: saved.vicinity,
           geometry: { location: new google.maps.LatLng(saved.geometry.lat, saved.geometry.lng) }
         };
-        currentResults = [summary]; // Make it the only item
+        currentResults = [summary];
         currentResultIndex = 0;
         getPlaceDetails(summary);
         return;
       }
     }
 
-    // NEW: Logo/Favicon logic included
     function getPlaceDetails(summary){ 
-        mainScreen.style.display = 'none'; // FIX: Hide main screen
+        mainScreen.style.display = 'none';
         resultsListScreen.style.display = 'none';
         savedListScreen.style.display = 'none';
         eventsListScreen.style.display = 'none';
@@ -604,10 +617,9 @@
         updateSaveButtonState();
         placeNameEl.textContent = 'Loading Details...';
         
-        // --- NEW IMAGE/LOGO LOGIC ---
         const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
-        placePhotoEl.src = placeholdURL; // Set placeholder as default
-        placePhotoEl.onerror = null; // Clear any previous error handler
+        placePhotoEl.src = placeholdURL;
+        placePhotoEl.onerror = null;
 
         placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
         placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
@@ -627,7 +639,6 @@
                 placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
                 placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
                 
-                // --- NEW IMAGE/LOGO LOGIC (Part 2) ---
                 if(place.website){
                   try {
                     const domain = new URL(place.website).hostname;
@@ -638,7 +649,7 @@
                   websiteLink.href=place.website;
                   websiteLink.classList.remove('hidden');
                 } else {
-                  placePhotoEl.src = placeholdURL; // Ensure placeholder if no website
+                  placePhotoEl.src = placeholdURL;
                 }
                 
                 if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
@@ -654,49 +665,70 @@
             }
       });
      }
-    function buildRouteTo(latLng){ /* ... (Compass logic unchanged) ... */ }
-    function setStep(i){ /* ... (Compass logic unchanged) ... */ }
+    function buildRouteTo(latLng){ destLatLng = latLng; if(!currentUserLocation || !directionsService) return; directionsService.route({ origin: currentUserLocation, destination: latLng, travelMode: 'WALKING' }, (response, status) => { if (status === 'OK' && response.routes?.[0]?.legs?.[0]?.steps) { routeSteps = response.routes[0].legs[0].steps; stepIndex = 0; setStep(0); } else { routeSteps = []; stepTarget = null; destLatLng = latLng; } }); }
+    function setStep(i){ if(i >= routeSteps.length) { stepTarget = null; navMain.textContent = 'Arrived at destination'; navSub.textContent = 'Compass pointing to final location.'; return; } stepIndex = i; const step = routeSteps[i]; stepTarget = step.end_location; navMain.textContent = stripHtml(step.instructions || 'Continue'); navSub.textContent = `In ${step.distance?.text || '...'} (${step.duration?.text || '...'})`; if(guideSpeaking) speak(stripHtml(step.instructions)); }
     const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360;
-    function bearingFromTo(a,b){ /* ... (Compass logic unchanged) ... */ }
-    function haversineMeters(a,b){ /* ... (Compass logic unchanged) ... */ }
-    function turnHint(delta){ /* ... (Compass logic unchanged) ... */ }
-    function updateCompassUI(){ /* ... (Compass logic unchanged) ... */ }
-    function onOrientation(e){ /* ... (Compass logic unchanged) ... */ }
-    function openCompass(){ /* ... (Compass logic unchanged) ... */ }
-    function closeCompass(){ /* ... (Compass logic unchanged) ... */ }
-    function trapCompassTab(e){ /* ... (Compass logic unchanged) ... */ }
-    function startCompass(){ /* ... (Compass logic unchanged) ... */ }
-    function stopCompass(){ /* ... (Compass logic unchanged) ... */ }
+    function bearingFromTo(a,b){ const φ1=toRad(a.lat), λ1=toRad(a.lng), φ2=toRad(b.lat), λ2=toRad(b.lng); const y=Math.sin(λ2-λ1)*Math.cos(φ2); const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1); return norm(Math.atan2(y,x)*180/Math.PI); }
+    function haversineMeters(a,b){ const R=6371e3; const φ1=toRad(a.lat), φ2=toRad(b.lat), Δφ=toRad(b.lat-a.lat), Δλ=toRad(b.lng-a.lng); const x=Math.sin(Δφ/2)*Math.sin(Δφ/2)+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)*Math.sin(Δλ/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
+    function turnHint(delta){ if(delta<15||delta>345) return 'Straight ahead'; if(delta<45) return 'Slight right'; if(delta<135) return 'Turn right'; if(delta<225) return 'Turn around'; if(delta<315) return 'Turn left'; return 'Slight left'; }
+    function updateCompassUI(){ if(!compassActive || !currentUserLocation || !destLatLng) return; const target = stepTarget || destLatLng; const distM = haversineMeters(currentUserLocation, target.toJSON ? target.toJSON() : target); compassDist.textContent = metersToImperial(distM); if (stepTarget && distM < 20) { setStep(stepIndex + 1); return; } const bearing = bearingFromTo(currentUserLocation, target.toJSON ? target.toJSON() : target); const delta = norm(bearing - headingDeg); compassArrow.style.transform = `rotate(${delta}deg)`; if(!stepTarget) { navMain.textContent = `Head ${turnHint(delta)}`; navSub.textContent = `Pointing to ${currentPlace?.name || 'destination'}`; } }
+    function onOrientation(e){ let heading = e.webkitCompassHeading; if (typeof heading === 'undefined') { heading = e.alpha; if (typeof heading !== 'number' || isNaN(heading)) return; heading = norm(360 - heading); } headingDeg = heading; updateCompassUI(); }
+    function openCompass(){ if(!destLatLng) { alert('No destination set.'); return; } compassModal.style.display = 'flex'; compassDialog.focus(); startCompass(); }
+    function closeCompass(){ compassModal.style.display = 'none'; stopCompass(); }
+    function trapCompassTab(e){ if (e.key !== 'Tab') return; const focusable = compassDialog.querySelectorAll('button'); const first = focusable[0], last = focusable[focusable.length - 1]; if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); } else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); } }
+    function startCompass(){ if(compassActive) return; compassActive = true; if ('ondeviceorientationabsolute' in window) { window.addEventListener('deviceorientationabsolute', onOrientation); } else if ('ondeviceorientation' in window) { window.addEventListener('deviceorientation', onOrientation); } if(navigator.geolocation) { watchId = navigator.geolocation.watchPosition(pos => { currentUserLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude}; updateCompassUI(); }, null, {enableHighAccuracy: true}); } compassDialog.addEventListener('keydown', trapCompassTab); }
+    function stopCompass(){ compassActive = false; window.removeEventListener('deviceorientationabsolute', onOrientation); window.removeEventListener('deviceorientation', onOrientation); if(watchId) navigator.geolocation.clearWatch(watchId); watchId = null; guideSpeaking = false; guideButton.textContent = 'Guide Me ▶︎'; try { speechSynthesis.cancel(); } catch {} compassDialog.removeEventListener('keydown', trapCompassTab); }
     
     /* ====== Settings ====== */
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
       localStorage.setItem('appTheme', theme);
       
-      // Update theme button active state
       document.querySelectorAll('.theme-button').forEach(b => {
         b.classList.toggle('active', b.dataset.theme === theme);
       });
 
-      // Update browser chrome color
       const newThemeColor = theme === 'navy-vet' ? '#0A192F' : '#111827';
       themeColorMeta.content = newThemeColor;
     }
 
+    // NEW: Voice functions
+    function applyVoice(voiceURI) {
+      currentVoiceURI = voiceURI;
+      localStorage.setItem('appVoice', voiceURI);
+    }
+
+    function loadVoices() {
+      voices = speechSynthesis.getVoices();
+      voiceSelector.innerHTML = '<option value="">Device Default</option>';
+      voices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.voiceURI;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        if (voice.voiceURI === currentVoiceURI) option.selected = true;
+        voiceSelector.appendChild(option);
+      });
+    }
+
     function loadSettings() {
+      // Theme
       const theme = localStorage.getItem('appTheme') || 'light';
       applyTheme(theme);
-      // Load other settings here
+      
+      // Voice
+      currentVoiceURI = localStorage.getItem('appVoice') || null;
+      loadVoices();
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+      }
     }
 
     function openSettings() {
       settingsModal.style.display = 'flex';
       settingsDialog.focus();
-      // Add trap tab listener
     }
     function closeSettings() {
       settingsModal.style.display = 'none';
-      // Remove trap tab listener
     }
 
     /* ====== Init / Geocode ====== */
@@ -731,7 +763,7 @@
           if(city&&state) currentLocality=`${city}, ${state}`;
           label=results[0].formatted_address.split(',').slice(0,2).join(',');
         }
-        currentGeocodeLabel = label; // FIX: Set global label
+        currentGeocodeLabel = label;
         setLocationAndEnableApp(coords,label);
       });
     }
@@ -741,7 +773,7 @@
       geocoder.geocode({address},(results,status)=>{
         if(status==='OK'&&results?.[0]){
           const loc=results[0].geometry.location;
-          currentGeocodeLabel = results[0].formatted_address.split(',').slice(0,2).join(','); // FIX: Set global label
+          currentGeocodeLabel = results[0].formatted_address.split(',').slice(0,2).join(',');
           reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()});
         } else locationStatus.textContent=`Could not find "${address}". Please try again.`;
       });
@@ -787,7 +819,7 @@
       resultsListScreen.style.display='none';
       savedListScreen.style.display='none';
       eventsListScreen.style.display='none';
-      mainScreen.style.display='block'; // FIX: Show main screen
+      mainScreen.style.display='block';
       funFactContainer.style.display='block';
       hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
       if(currentUserLocation) locationStatus.textContent=`Exploring: ${currentGeocodeLabel}`;
@@ -805,32 +837,27 @@
         findAdventure(params,parent,name); return;
       }
       
-      // List click listeners
       if(btn.closest('#results-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
-      // NEW: Updated saved list click
       if(btn.classList.contains('saved-item-details')){ openDetailsById(btn.dataset.id); return;}
       if(btn.classList.contains('remove-saved-button')){ 
         const placeId = btn.dataset.id; 
         if(placeId && savedPlaces[placeId]){ 
           delete savedPlaces[placeId]; 
           localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); 
-          showSavedList(); // Refresh the list
+          showSavedList();
         } 
         return; 
       }
-      // NEW: Theme button click
       if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
 
       switch(btn.id){
         case 'back-to-main-filters': hideSubMenu(); break;
-        // FIX: Back buttons now show main screen
         case 'close-results-button': mainScreen.style.display = 'block'; resultsListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'close-saved-button': mainScreen.style.display = 'block'; savedListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'close-events-button': mainScreen.style.display = 'block'; eventsListScreen.style.display = 'none'; funFactContainer.style.display = 'block'; break;
         case 'show-saved-button': showSavedList(); break;
         case 'local-events-button': findLocalEvents(); break;
 
-        // NEW: Settings buttons
         case 'settings-button': openSettings(); break;
         case 'close-settings-button': closeSettings(); break;
 
@@ -879,6 +906,10 @@
     });
 
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
+    // NEW: Voice selector event listener
+    document.getElementById('voice-selector').addEventListener('change', e => {
+      applyVoice(e.target.value);
+    });
   </script>
 </body>
 </html>
