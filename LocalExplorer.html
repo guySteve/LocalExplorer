@@ -350,635 +350,206 @@
   </div>
 
 <script>
-    /* ====== SW Registration (Updated Filename!) ====== */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker-v2.js') // NEW FILENAME
-          .then(reg => {
-            console.log('Service worker registered!', reg);
-            // Optional: Add logic here to check for updates on reload
-          })
-          .catch(err => {
-            console.error('Service worker registration failed:', err);
-          });
-      });
-    }
+    /* ====== IMMEDIATE SETTINGS LOAD ====== */
+    function loadSettingsImmediate() { console.log('DEBUG: loadSettingsImmediate called.'); let theme, voiceURI, places; try { theme = localStorage.getItem('appTheme') || 'rugged-explorer'; console.log('DEBUG: Immediate theme read from localStorage:', theme); document.documentElement.dataset.theme = theme; console.log('DEBUG: Immediate theme applied to document:', theme); } catch (e) { console.error('DEBUG: Error reading appTheme immediately:', e); theme = 'rugged-explorer'; document.documentElement.dataset.theme = theme; } try { voiceURI = localStorage.getItem('appVoice') || null; currentVoiceURI = voiceURI; console.log('DEBUG: Immediate voice URI loaded:', currentVoiceURI); } catch (e) { console.error('DEBUG: Error reading appVoice immediately:', e); currentVoiceURI = null; } try { const placesJson = localStorage.getItem('savedPlaces') || '{}'; console.log('DEBUG: Immediate saved places JSON read:', placesJson.substring(0, 100) + '...'); places = JSON.parse(placesJson); savedPlaces = places; console.log('DEBUG: Immediate saved places loaded:', Object.keys(savedPlaces).length, 'items'); } catch (e) { console.error("DEBUG: Error loading/parsing saved places immediately:", e); savedPlaces = {}; try { localStorage.setItem('savedPlaces', '{}'); console.log('DEBUG: Cleared potentially corrupted savedPlaces in localStorage.'); } catch (e2) { console.error('DEBUG: Failed to clear corrupted savedPlaces:', e2); } } }
+    let savedPlaces = {}; let currentVoiceURI = null; loadSettingsImmediate();
 
-    /* ====== Refs (updated) ====== */
-    const funFactContainer = document.getElementById('fun-fact-container');
-    const funFactText = document.getElementById('fun-fact-text');
-    const mainScreen = document.getElementById('main-screen');
-    const resultsListScreen = document.getElementById('results-list-screen');
-    const resultsTitle = document.getElementById('results-title');
-    const resultsMeta = document.getElementById('results-meta');
-    const resultsList = document.getElementById('results-list');
-    const resultScreen = document.getElementById('result-screen');
-    const filterContainer = document.getElementById('filter-container');
-    const locationStatus = document.getElementById('location-status');
-    const manualLocationEntry = document.getElementById('manual-location-entry');
-    const locationInput = document.getElementById('location-input');
-    const subMenuContainer = document.getElementById('sub-menu-container');
-    const backToMainFiltersButton = document.getElementById('back-to-main-filters');
-    const placeNameEl = document.getElementById('place-name');
-    const placeRatingEl = document.getElementById('place-rating');
-    const placeStarsEl = document.getElementById('place-stars');
-    const placePriceEl = document.getElementById('place-price');
-    const placePhotoEl = document.getElementById('place-photo');
-    const directionsLink = document.getElementById('directions-link');
-    const websiteLink = document.getElementById('website-link');
-    const placeTypesContainer = document.getElementById('place-types-container');
-    const phoneLink = document.getElementById('phone-link');
-    const placeAccessibility = document.getElementById('place-accessibility');
-    const savePlaceButton = document.getElementById('save-place-button');
-    const compassModal = document.getElementById('compass-modal');
-    const compassDialog = document.getElementById('compass-dialog');
-    const closeCompassBtn = document.getElementById('close-compass');
-    const guideButton = document.getElementById('guide-button');
-    const navMain = document.getElementById('nav-main');
-    const navSub = document.getElementById('nav-sub');
-    const compassArrow = document.getElementById('compass-arrow');
-    const compassDist = document.getElementById('compass-dist');
-    const shareButton = document.getElementById('share-button');
-    const randomButton = document.getElementById('random-button');
-    const savedListScreen = document.getElementById('saved-list-screen');
-    const savedList = document.getElementById('saved-list');
-    const eventsListScreen = document.getElementById('events-list-screen');
-    const eventsList = document.getElementById('events-list');
-    const settingsModal = document.getElementById('settings-modal');
-    const settingsDialog = document.getElementById('settings-dialog');
-    const themeColorMeta = document.getElementById('theme-color-meta');
-    const voiceSelector = document.getElementById('voice-selector');
-    const reviewsListScreen = document.getElementById('reviews-list-screen');
-    const reviewsList = document.getElementById('reviews-list');
-    const showReviewsButton = document.getElementById('show-reviews-button');
-    const searchingModal = document.getElementById('searching-modal');
-    // NEW: Review filter refs
-    const reviewSortContainer = document.getElementById('review-sort-container');
-    const reviewStarFilterContainer = document.getElementById('review-star-filter-container');
+    /* ====== SW Registration ====== */
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker-v2.js') .then(reg => { console.log('Service worker v2 registered!', reg); reg.update(); console.log('Service worker update check triggered.'); }).catch(err => { console.error('Service worker v2 registration failed:', err); }); }); }
 
+    /* ====== Refs ====== */
+    const funFactContainer = document.getElementById('fun-fact-container'); const funFactText = document.getElementById('fun-fact-text'); const mainScreen = document.getElementById('main-screen'); const resultsListScreen = document.getElementById('results-list-screen'); const resultsTitle = document.getElementById('results-title'); const resultsMeta = document.getElementById('results-meta'); const resultsList = document.getElementById('results-list'); const resultScreen = document.getElementById('result-screen'); const filterContainer = document.getElementById('filter-container'); const locationStatus = document.getElementById('location-status'); const manualLocationEntry = document.getElementById('manual-location-entry'); const locationInput = document.getElementById('location-input'); const subMenuContainer = document.getElementById('sub-menu-container'); const backToMainFiltersButton = document.getElementById('back-to-main-filters'); const placeNameEl = document.getElementById('place-name'); const placeRatingEl = document.getElementById('place-rating'); const placeStarsEl = document.getElementById('place-stars'); const placePriceEl = document.getElementById('place-price'); const placePhotoEl = document.getElementById('place-photo'); const directionsLink = document.getElementById('directions-link'); const websiteLink = document.getElementById('website-link'); const placeTypesContainer = document.getElementById('place-types-container'); const phoneLink = document.getElementById('phone-link'); const placeAccessibility = document.getElementById('place-accessibility'); const savePlaceButton = document.getElementById('save-place-button'); const compassModal = document.getElementById('compass-modal'); const compassDialog = document.getElementById('compass-dialog'); const closeCompassBtn = document.getElementById('close-compass'); const guideButton = document.getElementById('guide-button'); const navMain = document.getElementById('nav-main'); const navSub = document.getElementById('nav-sub'); const compassArrow = document.getElementById('compass-arrow'); const compassDist = document.getElementById('compass-dist'); const shareButton = document.getElementById('share-button'); const randomButton = document.getElementById('random-button'); const savedListScreen = document.getElementById('saved-list-screen'); const savedList = document.getElementById('saved-list'); const eventsListScreen = document.getElementById('events-list-screen'); const eventsList = document.getElementById('events-list'); const settingsModal = document.getElementById('settings-modal'); const settingsDialog = document.getElementById('settings-dialog'); const themeColorMeta = document.getElementById('theme-color-meta'); const voiceSelector = document.getElementById('voice-selector'); const reviewsListScreen = document.getElementById('reviews-list-screen'); const reviewsList = document.getElementById('reviews-list'); const showReviewsButton = document.getElementById('show-reviews-button'); const searchingModal = document.getElementById('searching-modal'); const reviewSortContainer = document.getElementById('review-sort-container'); const reviewStarFilterContainer = document.getElementById('review-star-filter-container'); const reviewFiltersContainer = document.getElementById('review-filters-container'); const reviewDateFilterInfo = document.getElementById('review-date-filter-info');
 
-    /* ====== State (updated) ====== */
-    let placesService, geocoder, directionsService;
-    let currentUserLocation;
-    let currentLocality = '';
-    let currentGeocodeLabel = 'Your Location';
-    let currentPlace;
-    let currentResults = [];
-    let currentResultIndex = 0;
-    let savedPlaces = {};
-    let localFacts = [], factInterval = null, currentFactIndex = 0;
-    let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0;
-    let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null;
-    let voices = [];
-    let currentVoiceURI = null;
-    let currentReviews = [];
-    // NEW: Review filter state
-    let currentReviewSort = 'time';
-    let currentStarFilter = null; // null means no filter
+    /* ====== State ====== */
+    let placesService, geocoder, directionsService; let currentUserLocation; let currentLocality = ''; let currentGeocodeLabel = 'Your Location'; let currentPlace; let currentResults = []; let currentResultIndex = 0; /* savedPlaces loaded */ let localFacts = [], factInterval = null, currentFactIndex = 0; let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0; let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null; let voices = []; /* currentVoiceURI loaded */ let currentReviews = []; let currentReviewSort = 'time'; let currentStarFilter = null;
 
-    /* ====== Categories (updated Pet Store) ====== */
-    const subFilterMap = {
-      eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}},
-      see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}},
-      night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}},
-      outdoors:{"Parks":{type:"park"}, "Hiking":{keyword:"hiking area"}, "Campground":{type:"campground"}, "Scenic Lookout":{type:"tourist_attraction", keyword:"scenic lookout"}},
-      gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}},
-      // NEW: Broadened Pet Store search
-      pets:{"Dog Park":{type:"park",keyword:"dog park"}, "Pet Store":{type:"pet_store", keyword:"pet supplies store"}, "Veterinarian":{type:"veterinary_care"}},
-      utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}}
-    };
-    const allowedByCategory = {
-      eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']),
-      night:new Set(['bar','night_club']),
-      see:new Set(['museum','art_gallery','tourist_attraction']),
-      outdoors: new Set(['park', 'tourist_attraction', 'campground']),
-      gems:new Set(['art_gallery','park','cafe']),
-      pets:new Set(['park','pet_store','veterinary_care']),
-      utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']),
-      random: new Set([
-        ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'],
-        ...['bar','night_club'],
-        ...['museum','art_gallery','tourist_attraction'],
-        ...['park', 'campground'],
-        ...['art_gallery','park','cafe']
-      ])
-    };
-    const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
+    /* ====== Categories ====== */
+    const subFilterMap = { eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}}, see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}}, night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}}, outdoors:{"Parks":{type:"park"}, "Hiking":{keyword:"hiking area"}, "Campground":{type:"campground"}, "Scenic Lookout":{type:"tourist_attraction", keyword:"scenic lookout"}}, gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}}, pets:{"Dog Park":{type:"park",keyword:"dog park"}, "Pet Store":{type:"pet_store", keyword:"pet supplies store"}, "Veterinarian":{type:"veterinary_care"}}, utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}} }; const allowedByCategory = { eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']), night:new Set(['bar','night_club']), see:new Set(['museum','art_gallery','tourist_attraction']), outdoors: new Set(['park', 'tourist_attraction', 'campground']), gems:new Set(['art_gallery','park','cafe']), pets:new Set(['park','pet_store','veterinary_care']), utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']), random: new Set([ ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'], ...['bar','night_club'], ...['museum','art_gallery','tourist_attraction'], ...['park', 'campground'], ...['art_gallery','park','cafe'] ]) }; const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
 
-    /* ====== Utils (unchanged) ====== */
-    const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
-    const toggleFilterButtons = d => document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
-    const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
-    const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
-    const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
-    const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
-    const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
-s.push(...res.filter(p => filtered(p))]);
-      const t=new Set(p.types||[]);
-      if (![...t].some(x => allowedSet.has(x))) return false;
-      for (const x of t) if(bannedRetailish.has(x)) return false;
-      if (reqType && !t.has(reqType)) {
-        // Allow keyword match even if type doesn't exactly match (e.g., "pet supplies store" found as type "store")
-        if(!(kw && new RegExp(kw,'i').test(p.name||''))) return false;
-      }
-      return true;
-    }
-    function updateSaveButtonState(){
-      const pressed = currentPlace && !!savedPlaces[currentPlace.place_id];
-      savePlaceButton.setAttribute('aria-pressed', String(pressed));
-      savePlaceButton.textContent = pressed ? '★' : '☆';
-    }
-    function speak(text){
-      try{
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        if (currentVoiceURI) {
-          const selectedVoice = voices.find(v => v.voiceURI === currentVoiceURI);
-          if (selectedVoice) u.voice = selectedVoice;
-        }
-        speechSynthesis.speak(u);
-      }catch{}
-    }
+    /* ====== Utils ====== */
+    const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
+    const toggleFilterButtons = d => document.querySelectorAll('#main-screen button, #settings-button').forEach(b=>b.disabled=d);
+    const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
+    const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
+    const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
+    const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(it && it.place_id && !s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
+    const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
+    function isCandidate(p, kw, reqType, allowedSet) { const types = new Set(p.types || []); const typeMatch = [...types].some(type => allowedSet.has(type)); for (const type of types) { if (bannedRetailish.has(type)) return false; } if (reqType && !types.has(reqType)) { if (!( (types.has('restaurant') || types.has('store') || types.has('point_of_interest')) && kw && new RegExp(kw, 'i').test(p.name || '') )) { return false; } } if (!typeMatch) { if (!(kw && new RegExp(kw, 'i').test(p.name || ''))) { return false; } } return true; }
+    function updateSaveButtonState(){ const pressed = currentPlace && !!savedPlaces[currentPlace.place_id]; savePlaceButton.setAttribute('aria-pressed', String(pressed)); savePlaceButton.textContent = pressed ? '★' : '☆'; console.log('DEBUG: updateSaveButtonState ran. Place ID:', currentPlace ? currentPlace.place_id : 'null', 'Pressed:', pressed); }
+    function speak(text){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if (currentVoiceURI) { const selectedVoice = voices.find(v => v.voiceURI === currentVoiceURI); if (selectedVoice) u.voice = selectedVoice; } speechSynthesis.speak(u); }catch(e){ console.error("Speak error:", e)} }
 
-    /* ====== Local Facts (unchanged) ====== */
-    async function getFunFact(coords){ /* ... */ }
-    function startFactCycling(){ /* ... */ }
+    /* ====== Local Facts ====== */
+    async function getFunFact(coords){ try{ funFactText.textContent = "Finding local facts..."; const geoURL = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord=${coords.lat}|${coords.lng}&format=json&origin=*`; const geoRes = await fetch(geoURL); const geo = await geoRes.json(); const ids = (geo?.query?.geosearch||[]).map(p=>p.pageid).slice(0,10); if(!ids.length){ funFactText.textContent="No local facts found nearby."; return; } const exURL = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&pageids=${ids.join('|')}&format=json&origin=*`; const exRes = await fetch(exURL); const ex = await exRes.json(); localFacts = Object.values(ex?.query?.pages||{}).map(p=>p.extract).filter(e => e && e.length > 60 && e.length < 280); if(localFacts.length) startFactCycling(); else funFactText.textContent="No detailed local facts found."; }catch(e){ funFactText.textContent="Local facts unavailable."; console.error("Fact fetch error:", e)} }
+    function startFactCycling(){ if(factInterval) clearInterval(factInterval); currentFactIndex=0; funFactText.textContent = localFacts[currentFactIndex] || "No local facts found nearby."; if(localFacts.length>1){ factInterval=setInterval(()=>{ currentFactIndex=(currentFactIndex+1)%localFacts.length; funFactText.textContent = localFacts[currentFactIndex]; },7000); } }
 
-    /* ====== Results/Saved/Events/Reviews Lists (updated) ====== */
-    function showResultsList(parentFilter, subLabel){
-      mainScreen.style.display = 'none';
-      savedListScreen.style.display='none';
-      eventsListScreen.style.display='none';
-      reviewsListScreen.style.display = 'none';
-      resultsListScreen.style.display='flex'; 
-      resultsTitle.textContent=subLabel || 'Results';
-      resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results';
-      resultsList.innerHTML='';
-      currentResults.forEach(p=>{
-        const photo='https://placehold.co/200x200/111827/fff?text=N/A';
-        const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||'';
-        const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id;
-        card.innerHTML=`<img class="result-thumb" loading="lazy" src="${photo}" alt="" /><div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic}</div></div><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`;
-        resultsList.appendChild(card);
-      });
-    }
-    function showSavedList() {
-      mainScreen.style.display = 'none';
-      resultsListScreen.style.display='none';
-      eventsListScreen.style.display='none';
-      reviewsListScreen.style.display = 'none';
-      savedListScreen.style.display='flex';
-      savedList.innerHTML='';
-      const places = Object.values(savedPlaces);
-      if (places.length === 0) {
-        savedList.innerHTML = '<p class="opacity-70 text-center">You haven\'t saved any places yet.</p>';
-        return;
-      }
-      places.forEach(p=>{
-        const card=document.createElement('div');
-        card.className='result-item';
-        card.innerHTML=`
-          <button class="flex-1 text-left saved-item-details" data-id="${p.place_id}">
-            <h3 class="font-semibold text-base">${p.name}</h3>
-            <div class="text-xs opacity-80 mt-1">${p.vicinity||''}</div>
-          </button>
-          <button class="remove-saved-button action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);" data-id="${p.place_id}">X</button>
-        `;
-        savedList.appendChild(card);
-      });
-    }
-    function showEventsList(events) {
-      mainScreen.style.display = 'none';
-      resultsListScreen.style.display='none';
-      savedListScreen.style.display='none';
-      reviewsListScreen.style.display = 'none';
-      eventsListScreen.style.display='flex';
-      eventsList.innerHTML='';
-      if (!events || events.length === 0) {
-        eventsList.innerHTML = '<p class="opacity-70 text-center">No local events found on Ticketmaster.</p>';
-        return;
-      }
-      events.forEach(event => { /* ... rendering unchanged ... */ });
-    }
+    /* ====== Results/Saved/Events/Reviews Lists ====== */
+    function showResultsList(parentFilter, subLabel){ console.log('DEBUG: showResultsList called'); mainScreen.style.display = 'none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; resultsListScreen.style.display='flex'; resultsTitle.textContent=subLabel || 'Results'; resultsMeta.textContent=currentResults.length?`${currentResults.length} results`:'No results'; resultsList.innerHTML=''; if (currentResults.length === 0) { console.log('DEBUG: No results to display.'); resultsList.innerHTML = '<p class="opacity-70 text-center p-4">No results found matching your criteria.</p>'; return; } currentResults.forEach(p=>{ const rating=p.rating??null; const price=p.price_level?'$'.repeat(p.price_level):''; const vic=p.vicinity||p.formatted_address||''; const card=document.createElement('button'); card.className='result-item'; card.dataset.id = p.place_id; card.innerHTML=`<div class="flex-1 text-left"><div class="flex items-center justify-between"><h3 class="font-semibold text-base">${p.name || 'Unknown Name'}</h3><div class="text-xs opacity-70">${price}</div></div><div class="flex items-center gap-2 mt-1"><div class="star-row">${renderStarsHTML(rating)}</div><div class="text-sm" style="color:var(--accent);">${rating?rating.toFixed(1):'N/A'}</div><div class="text-xs opacity-60">(${p.user_ratings_total??0})</div></div><div class="text-xs opacity-80 mt-1">${vic || 'Unknown Location'}</div></div><a href="http://googleusercontent.com/maps/google.com/0{encodeURIComponent(p.name+', '+(vic||''))}" target="_blank" rel="noopener" class="p-2 rounded-full card-accent text-white self-center map-link-icon"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></a>`; try { resultsList.appendChild(card); } catch (e) { console.error('DEBUG: Error appending result item:', p.name, e); } }); console.log('DEBUG: resultsList innerHTML populated.'); }
+    function showSavedList() { console.log('DEBUG: showSavedList called.'); mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; savedListScreen.style.display='flex'; savedList.innerHTML=''; console.log('DEBUG: savedPlaces object state:', savedPlaces); console.log('DEBUG: Type of savedPlaces:', typeof savedPlaces); console.log('DEBUG: Raw localStorage item:', localStorage.getItem('savedPlaces')); const places = Object.values(savedPlaces || {}); console.log('DEBUG: Number of places to display:', places.length); if (places.length === 0) { savedList.innerHTML = '<p class="opacity-70 text-center">You haven\'t saved any places yet.</p>'; console.log('DEBUG: Displaying "No saved places" message.'); return; } places.forEach((p, index)=>{ console.log(`DEBUG: Rendering saved item ${index}:`, p); if (!p || typeof p !== 'object' || !p.place_id) { console.warn(`DEBUG: Skipping invalid saved place item at index ${index}:`, p); return; } const card=document.createElement('div'); card.className='result-item'; card.innerHTML=`<button class="flex-1 text-left saved-item-details" data-id="${p.place_id}"><h3 class="font-semibold text-base">${p.name || 'Saved Place'}</h3><div class="text-xs opacity-80 mt-1">${p.vicinity||''}</div></button><button class="remove-saved-button action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);" data-id="${p.place_id}">X</button>`; try { savedList.appendChild(card); } catch (e) { console.error(`DEBUG: Error appending saved item ${index} (${p.name}):`, e); } }); console.log('DEBUG: Finished rendering saved places list.'); }
+    function showEventsList(events) { mainScreen.style.display = 'none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; reviewsListScreen.style.display = 'none'; eventsListScreen.style.display='flex'; eventsList.innerHTML=''; if (!events || events.length === 0) { eventsList.innerHTML = '<p class="opacity-70 text-center">No local events found on Ticketmaster.</p>'; return; } events.forEach(event => { const photo = event.images?.[0]?.url || 'https://placehold.co/200x200/111827/fff?text=Event'; const venue = event._embedded?.venues?.[0]?.name || ''; const eventDate = event.dates?.start?.localDate ? new Date(event.dates.start.localDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}) : 'Date TBD'; const card = document.createElement('a'); card.className = 'result-item'; card.href = event.url; card.target = '_blank'; card.rel = 'noopener'; card.innerHTML = `<img class="result-thumb" loading="lazy" src="${photo}" alt="${event.name}" /><div class="flex-1 text-left"><h3 class="font-semibold text-base">${event.name}</h3><div class="text-sm mt-1" style="color:var(--accent);">${eventDate}</div><div class="text-xs opacity-80 mt-1">${venue}</div></div>`; eventsList.appendChild(card); }); }
+    function showReviews() { // ** REVIEWS DISPLAY LOGIC UPDATED - NO DATE FILTER **
+        console.log("DEBUG: showReviews called. Sort:", currentReviewSort, "Star Filter:", currentStarFilter);
+        mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
 
-    // UPDATED: showReviews includes star filtering
-    function showReviews() {
-      mainScreen.style.display = 'none';
-  s.push(...res.filter(p => filtered(p))]);
-      resultScreen.style.display = 'none'; // Hide place detail when showing reviews
-      reviewsListScreen.style.display = 'flex';
+        // Use all available reviews (no date filter)
+        const reviewsToDisplay = [...currentReviews];
+        reviewDateFilterInfo.textContent = ""; // Clear date message
+        console.log("DEBUG: Total reviews available (no date filter):", reviewsToDisplay.length);
 
-      // Show/hide sort buttons based on count (this is now handled in getPlaceDetails)
-      // reviewSortContainer.style.display = currentReviews.length >= 10 ? 'flex' : 'none';
+        const showFilters = currentReviews.length >= 20;
+        reviewFiltersContainer.style.display = showFilters ? 'block' : 'none';
+        reviewSortContainer.style.display = showFilters ? 'flex' : 'none';
 
-      // Apply star filter first
-      const filteredReviews = currentStarFilter === null
-        ? [...currentReviews] // No filter, use all
-        : currentReviews.filter(r => r.rating === currentStarFilter);
+        const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        reviewsToDisplay.forEach(r => { if (r && r.rating !== undefined && starCounts[r.rating] !== undefined) starCounts[r.rating]++; });
 
-      // Apply sort
-      if (currentReviewSort === 'time') {
-        filteredReviews.sort((a, b) => b.time - a.time);
-      } else if (currentReviewSort === 'rating-desc') {
-        filteredReviews.sort((a, b) => b.rating - a.rating);
-      } else if (currentReviewSort === 'rating-asc') {
-        filteredReviews.sort((a, b) => a.rating - b.rating);
-      }
-      
-      // Update active sort button
-      document.querySelectorAll('.review-sort-button').forEach(b => {
-        b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0]));
-      });
-      
-      // Update active star button
-      document.querySelectorAll('.review-star-button').forEach(b => {
-s.push(...res.filter(p => filtered(p))]);
-        b.classList.toggle('active', parseInt(b.dataset.rating) === currentStarFilter);
-      });
+        reviewStarFilterContainer.innerHTML = '';
+        [5, 4, 3, 2, 1].forEach(rating => {
+            const count = starCounts[rating];
+            if (count > 0 || !showFilters) {
+                const btn = document.createElement('button'); btn.className = 'review-star-button'; btn.dataset.rating = rating; let stars = '★'.repeat(rating) + '☆'.repeat(5 - rating); btn.innerHTML = `${stars} <span class="count">(${count})</span>`; if (parseInt(btn.dataset.rating) === currentStarFilter) { btn.classList.add('active'); } reviewStarFilterContainer.appendChild(btn);
+            }
+        });
+        if (showFilters) { const clearBtn = document.createElement('button'); clearBtn.id = 'clear-star-filter'; clearBtn.className = 'review-star-button text-xs font-bold'; clearBtn.style = 'opacity: 0.8; color: var(--text-subtle); margin-top: 4px;'; clearBtn.textContent = 'Clear'; reviewStarFilterContainer.appendChild(clearBtn); }
 
-      // Render
-      reviewsList.innerHTML = '';
-      if (filteredReviews.length === 0) {
-        reviewsList.innerHTML = `<p class="opacity-70 text-center">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`;
-        return;
-      }
+        const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter);
+        console.log("DEBUG: Reviews after star filter:", finalFilteredReviews.length);
 
-      filteredReviews.forEach(review => {
-        const card = document.createElement('div');
-        card.className = 'review-item';
-        card.innerHTML = `
-          <div class="flex items-center gap-3 mb-2">
-            <img loading="lazy" src="${review.profile_photo_url}" alt="${review.author_name}" class="w-10 h-10 rounded-full" />
-            <div class="flex-1">
-              <h4 class="font-semibold text-sm">${review.author_name}</h4>
-              <p class="text-xs opacity-70">${review.relative_time_description}</p>
-            </div>
-            <div class="star-row text-right">${renderStarsHTML(review.rating)}</div>
-          </div>
-          <p class="text-sm opacity-90">${review.text || '<i>(No text provided)</i>'}</p> 
-        `; // Added fallback for empty review text
-        reviewsList.appendChild(card);
-      });
-    }
+        // Apply sort with safety checks
+        if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b?.time || 0) - (a?.time || 0)); }
+        else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b?.rating || 0) - (a?.rating || 0)); }
+        else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a?.rating || 0) - (b?.rating || 0)); }
 
-    /* ====== Search (updated Pet Store query) ====== */
-    async function findLocalEvents() { /* ... unchanged ... */ }
+        document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
 
-  s.push(...res.filter(p => filtered(p))]);
-    function findAdventure(searchParams,parentFilter,subLabel){
-      if(!placesService||!currentUserLocation)return;
-      mainScreen.style.display = 'none';
-      searchingModal.style.display = 'flex';
-      toggleFilterButtons(true); backToMainFiltersButton.disabled=true;
-      currentResults=[];
-      const reqType=searchParams.type||null;
-      // Combine type and keyword for better results, especially for Pet Store
-      let kw = searchParams.keyword || '';
-      if (parentFilter === 'pets' && subLabel === 'Pet Store') {
-         kw = 'pet supplies store'; // Use broader keyword
-      } else if (parentFilter === 'eat') {
-         kw = searchParams.keyword || (reqType ? reqType.replace('_restaurant', '') : '');
-      }
-      
-      const radii=[2000,5000,10000,20000,35000,50000]; let i=0;
+        reviewsList.innerHTML = ''; // ** Clear list before rendering **
+        if (finalFilteredReviews.length === 0) {
+            reviewsList.innerHTML = `<p class="opacity-70 text-center p-4">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
+        }
 
-      const nearby=()=>{ if(i>=radii.length)return text(); // Stop if we've run out of radii
-        const radius=radii[i++]; 
-        // Request includes both type and keyword if available
-        const req = { location: currentUserLocation, radius };
-        if (searchParams.type) req.type = searchParams.type;
-        if (kw) req.keyword = kw; 
+        console.log(`DEBUG: Rendering ${finalFilteredReviews.length} reviews...`);
+        finalFilteredReviews.forEach((review, index) => {
+            if (!review || typeof review !== 'object') { console.warn(`DEBUG: Skipping invalid review item at index ${index}:`, review); return; }
+            // console.log(`DEBUG: Rendering review ${index}:`, review.author_name); // Reduce noise
+            const card = document.createElement('div'); card.className = 'review-item';
+            const reviewText = review.text ? stripHtml(review.text) : '<i>(No text provided)</i>';
+            const authorName = review.author_name || 'Anonymous';
+            const timeDescription = review.relative_time_description || '';
+            const photoUrl = review.profile_photo_url || 'https://placehold.co/40x40/111827/fff?text=N/A';
 
-        placesService.nearbySearch(req,(res,status)=>{
-          if(status === google.maps.places.PlacesServiceStatus.OK && res?.length){
-            const allowed = allowedByCategory[parentFilter] || new Set();
-            const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-s.push(...res.filter(p => filtered(p))]);
-            // If we still don't have enough results, search wider
-            if(currentResults.length < 12 && i < radii.length){
-              nearby();
-            } else {
-              // We have enough, or we've run out of radii
-              finalize();
-            }
-          } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS && i < radii.length) {
-            // No results in this radius, search wider
-            nearby();
-          } else {
-            // An error occurred (like OVER_QUERY_LIMIT) or we're out of radii
-            // Stop looping and try the text search as a fallback
-            console.warn("Nearby search failed or exhausted, moving to text search. Status:", status);
-            text();
-          }
-        });
-      };
-      const text=()=>{
-        const city=currentLocality||''; 
-        // Text query combines keyword and label/type for clarity
-        const query = kw ? `${kw} in ${city}` : `${subLabel||searchParams.type||''} in ${city}`;
-        placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
-          if(status===google.maps.places.PlacesServiceStatus.OK&&res?.length){
-            const allowed = allowedByCategory[parentFilter] || new Set();
-            const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-s.push(...res.filter(p => filtered(p))]);
-S:       } finalize();
-        });
-      };
-      const finalize=()=>{
-        currentResults=sortResults(currentResults);
-        showResultsList(parentFilter,subLabel);
-        searchingModal.style.display = 'none';
-        toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      };
-      nearby();
-    }
+            card.innerHTML = `<div class="flex items-center gap-3 mb-2"><img loading="lazy" src="${photoUrl}" alt="${authorName}" class="w-10 h-10 rounded-full" /><div class="flex-1"><h4 class="font-semibold text-sm">${authorName}</h4><p class="text-xs opacity-70">${timeDescription}</p></div><div class="star-row text-right">${renderStarsHTML(review.rating)}</div></div><p class="text-sm opacity-90">${reviewText}</p>`;
+            try { reviewsList.appendChild(card); } catch(e) { console.error(`DEBUG: Error rendering review ${index}:`, e, review); }
+        });
+        console.log("DEBUG: Finished rendering reviews.");
+    }
 
-    /* ====== Details, Directions, Compass (updated) ====== */
-    function openDetailsById(placeId){ /* ... unchanged ... */ }
+    /* ====== Search ====== */
+    async function findLocalEvents() { if (!window.TICKETMASTER_API_KEY || window.TICKETMASTER_API_KEY === 'YOUR_KEY_HERE') { alert('Ticketmaster API key is missing from key.js.'); return; } if (!currentUserLocation) { alert('Please set your location first.'); return; } searchingModal.style.display = 'flex'; toggleFilterButtons(true); try { const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${window.TICKETMASTER_API_KEY}&latlong=${currentUserLocation.lat},${currentUserLocation.lng}&radius=25&unit=miles&sort=date,asc`; const res = await fetch(url); if (!res.ok) throw new Error(`Ticketmaster API error: ${res.status}`); const data = await res.json(); showEventsList(data._embedded?.events); } catch (e) { console.error(e); alert('Could not load local events. See console for details.'); } searchingModal.style.display = 'none'; toggleFilterButtons(false); }
+    function findAdventure(searchParams,parentFilter,subLabel){ console.log('DEBUG: findAdventure started:', { searchParams, parentFilter, subLabel, currentUserLocation }); if(!placesService || !currentUserLocation){ console.error('DEBUG: placesService or currentUserLocation missing!'); alert("Error: Location not set or Maps service failed to load."); searchingModal.style.display = 'none'; toggleFilterButtons(false); return; } mainScreen.style.display = 'none'; searchingModal.style.display = 'flex'; toggleFilterButtons(true); backToMainFiltersButton.disabled=true; currentResults=[]; const reqType=searchParams.type||null; let kw = searchParams.keyword || ''; if (parentFilter === 'pets' && subLabel === 'Pet Store') { kw = 'pet supplies store'; } else if (parentFilter === 'eat') { kw = searchParams.keyword || (reqType ? reqType.replace('_restaurant', '') : ''); } console.log('DEBUG: Search criteria:', { reqType, kw }); const radii=[2000,5000,10000,20000,35000,50000]; let i=0; const nearby=()=>{ if(i>=radii.length) { console.log('DEBUG: Nearby search exhausted radii, trying text search.'); return text(); } const radius=radii[i++]; const req = { location: currentUserLocation, radius }; if (reqType) req.type = reqType; if (kw) req.keyword = kw; console.log(`DEBUG: Performing nearby search (radius ${radius}m):`, req); placesService.nearbySearch(req,(res,status)=>{ console.log(`DEBUG: Nearby results (radius ${radius}m):`, { status, res: res ? res.length : 0 }); if(status === google.maps.places.PlacesServiceStatus.OK && res?.length){ const allowed = allowedByCategory[parentFilter] || new Set(); const initialCount = currentResults.length; const newResults = res.filter(p => isCandidate(p, kw, reqType, allowed)); currentResults = dedupe([...currentResults,...newResults]); console.log(`DEBUG: Filtered nearby (radius ${radius}m). Added ${currentResults.length - initialCount} results.`); if(currentResults.length < 12 && i < radii.length){ console.log('DEBUG: Not enough results yet, searching wider...'); nearby(); } else { console.log('DEBUG: Found enough results or exhausted radii in nearby.'); finalize(); } } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS && i < radii.length) { console.log('DEBUG: Zero results nearby, searching wider...'); nearby(); } else if (i >= radii.length) { console.log('DEBUG: Nearby search failed or zero results after max radius, trying text search.'); text(); } else { console.log('DEBUG: Nearby search status not OK but not ZERO_RESULTS, searching wider anyway.'); nearby(); } }); }; const text=()=>{ const city=currentLocality||''; const query = kw ? `${kw} in ${city}` : `${subLabel||reqType||''} in ${city}`; console.log('DEBUG: Performing text search:', { query }); placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{ console.log('DEBUG: Text search results:', { status, res: res ? res.length : 0 }); if(status===google.maps.places.PlacesServiceStatus.OK && res?.length){ const allowed = allowedByCategory[parentFilter] || new Set(); const initialCount = currentResults.length; const newResults = res.filter(p => isCandidate(p, kw, reqType, allowed)); currentResults=dedupe([...currentResults,...newResults]); console.log(`DEBUG: Filtered text search. Added ${currentResults.length - initialCount} results.`); } else { console.log('DEBUG: Text search failed or returned zero results.'); } finalize(); }); }; const finalize=()=>{ console.log('DEBUG: Finalizing search. Total results before sort:', currentResults.length); currentResults=sortResults(currentResults); console.log('DEBUG: Results sorted. Calling showResultsList.'); showResultsList(parentFilter,subLabel); searchingModal.style.display = 'none'; toggleFilterButtons(false); backToMainFiltersButton.disabled=false; }; nearby(); }
 
-        function getPlaceDetails(summary){
-        mainScreen.style.display = 'none';
-        resultsListScreen.style.display = 'none';
-        savedListScreen.style.display = 'none';
-        eventsListScreen.style.display = 'none';
-        reviewsListScreen.style.display = 'none';
-        resultScreen.style.display='flex';
-        
-        currentPlace = summary;
-        currentReviews = [];
-        currentStarFilter = null; // Reset star filter
-        currentReviewSort = 'time'; // Reset sort
-        updateSaveButtonState();
-        placeNameEl.textContent = 'Loading Details...';
-        
-        const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
-        placePhotoEl.src = placeholdURL;
-        placePhotoEl.onerror = null;
+    /* ====== Details, Directions, Compass ====== */
+    function openDetailsById(placeId){ const resultIndex = currentResults.findIndex(r=>r.place_id===placeId); if(resultIndex !== -1) { currentResultIndex = resultIndex; getPlaceDetails(currentResults[currentResultIndex]); return; } const saved = savedPlaces[placeId]; if(saved) { const summary = { place_id: saved.place_id, name: saved.name, vicinity: saved.vicinity, geometry: { location: new google.maps.LatLng(saved.geometry.lat, saved.geometry.lng) } }; currentResults = [summary]; currentResultIndex = 0; getPlaceDetails(summary); return; } console.warn("DEBUG: openDetailsById - placeId not found in results or saved:", placeId); }
+    function getPlaceDetails(summary){ if (!summary || !summary.place_id) { console.error("DEBUG: getPlaceDetails called with invalid summary:", summary); return; } mainScreen.style.display = 'none'; resultsListScreen.style.display = 'none'; savedListScreen.style.display = 'none'; eventsListScreen.style.display = 'none'; reviewsListScreen.style.display = 'none'; resultScreen.style.display='flex'; currentPlace = summary; currentReviews = []; currentStarFilter = null; currentReviewSort = 'time'; updateSaveButtonState(); placeNameEl.textContent = 'Loading Details...'; const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`; placePhotoEl.src = placeholdURL; placePhotoEl.onerror = null; placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent=''; placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden'); phoneLink.textContent=''; phoneLink.removeAttribute('href'); placeAccessibility.textContent=''; placeAccessibility.style.display='none'; showReviewsButton.disabled = true; showReviewsButton.textContent = 'Loading Reviews...'; routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass(); console.log("DEBUG: Fetching details for placeId:", summary.place_id); placesService.getDetails({ placeId:summary.place_id, fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews', 'formatted_address'] },(place,status)=>{ console.log("DEBUG: Place Details status:", status, "Place:", place ? place.name : 'null'); if(status===google.maps.places.PlacesServiceStatus.OK&&place){ currentPlace=place; placeNameEl.textContent=place.name; renderStars(placeStarsEl, place.rating??0); placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A'; placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):''; if(place.website){ try { const domain = new URL(place.website).hostname; placePhotoEl.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; placePhotoEl.onerror = () => { placePhotoEl.src = placeholdURL; }; } catch (e) { placePhotoEl.src = placeholdURL; } websiteLink.href=place.website; websiteLink.classList.remove('hidden'); } else { placePhotoEl.src = placeholdURL; } if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number} if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'} if(place.types?.length){ place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{ const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s); }); } currentReviews = place.reviews || []; showReviewsButton.disabled = currentReviews.length === 0; showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`; reviewFiltersContainer.style.display = currentReviews.length >= 20 ? 'block' : 'none'; const dest=`${place.name}, ${place.vicinity||place.formatted_address||''}`; directionsLink.href=`http://googleusercontent.com/maps/google.com/0{encodeURIComponent(dest)}`; buildRouteTo(place.geometry.location); updateSaveButtonState(); } else { showReviewsButton.textContent = 'Reviews Unavailable'; console.error('Place Details fetch failed:', status); } }); }
+    function buildRouteTo(latLng){ destLatLng = latLng; if(!currentUserLocation || !directionsService) return; directionsService.route({ origin: currentUserLocation, destination: latLng, travelMode: 'WALKING' }, (response, status) => { if (status === 'OK' && response.routes?.[0]?.legs?.[0]?.steps) { routeSteps = response.routes[0].legs[0].steps; stepIndex = 0; setStep(0); } else { routeSteps = []; stepTarget = null; destLatLng = latLng; } }); }
+    function setStep(i){ if(i >= routeSteps.length) { stepTarget = null; navMain.textContent = 'Arrived at destination'; navSub.textContent = 'Compass pointing to final location.'; return; } stepIndex = i; const step = routeSteps[i]; stepTarget = step.end_location; navMain.textContent = stripHtml(step.instructions || 'Continue'); navSub.textContent = `In ${step.distance?.text || '...'} (${step.duration?.text || '...'})`; if(guideSpeaking) speak(stripHtml(step.instructions)); }
+    const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360; function bearingFromTo(a,b){ const φ1=toRad(a.lat), λ1=toRad(a.lng), φ2=toRad(b.lat), λ2=toRad(b.lng); const y=Math.sin(λ2-λ1)*Math.cos(φ2); const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1); return norm(Math.atan2(y,x)*180/Math.PI); } function haversineMeters(a,b){ const R=6371e3; const φ1=toRad(a.lat), φ2=toRad(b.lat), Δφ=toRad(b.lat-a.lat), Δλ=toRad(b.lng-a.lng); const x=Math.sin(Δφ/2)*Math.sin(Δφ/2)+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)*Math.sin(Δλ/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); } function turnHint(delta){ if(delta<15||delta>345) return 'Straight ahead'; if(delta<45) return 'Slight right'; if(delta<135) return 'Turn right'; if(delta<225) return 'Turn around'; if(delta<315) return 'Turn left'; return 'Slight left'; } function updateCompassUI(){ if(!compassActive || !currentUserLocation || !destLatLng) return; const target = stepTarget || destLatLng; const distM = haversineMeters(currentUserLocation, target.toJSON ? target.toJSON() : target); compassDist.textContent = metersToImperial(distM); if (stepTarget && distM < 20) { setStep(stepIndex + 1); return; } const bearing = bearingFromTo(currentUserLocation, target.toJSON ? target.toJSON() : target); const delta = norm(bearing - headingDeg); compassArrow.style.transform = `rotate(${delta}deg)`; if(!stepTarget) { navMain.textContent = `Head ${turnHint(delta)}`; navSub.textContent = `Pointing to ${currentPlace?.name || 'destination'}`; } } function onOrientation(e){ let heading = e.webkitCompassHeading; if (typeof heading === 'undefined') { heading = e.alpha; if (typeof heading !== 'number' || isNaN(heading)) return; heading = norm(360 - heading); } headingDeg = heading; updateCompassUI(); } function openCompass(){ if(!destLatLng) { alert('No destination set.'); return; } compassModal.style.display = 'flex'; compassDialog.focus(); startCompass(); } function closeCompass(){ compassModal.style.display = 'none'; stopCompass(); } function trapCompassTab(e){ if (e.key !== 'Tab') return; const focusable = compassDialog.querySelectorAll('button'); const first = focusable[0], last = focusable[focusable.length - 1]; if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); } else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); } } function startCompass(){ if(compassActive) return; compassActive = true; if ('ondeviceorientationabsolute' in window) { window.addEventListener('deviceorientationabsolute', onOrientation); } else if ('ondeviceorientation' in window) { window.addEventListener('deviceorientation', onOrientation); } if(navigator.geolocation) { watchId = navigator.geolocation.watchPosition(pos => { currentUserLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude}; updateCompassUI(); }, null, {enableHighAccuracy: true}); } compassDialog.addEventListener('keydown', trapCompassTab); } function stopCompass(){ compassActive = false; window.removeEventListener('deviceorientationabsolute', onOrientation); window.removeEventListener('deviceorientation', onOrientation); if(watchId) navigator.geolocation.clearWatch(watchId); watchId = null; guideSpeaking = false; guideButton.textContent = 'Guide Me ▶︎'; try { speechSynthesis.cancel(); } catch {} compassDialog.removeEventListener('keydown', trapCompassTab); }
 
-        placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent='';
-        placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden');
-        phoneLink.textContent=''; phoneLink.removeAttribute('href');
-        placeAccessibility.textContent=''; placeAccessibility.style.display='none';
-        showReviewsButton.disabled = true;
-        showReviewsButton.textContent = 'Loading Reviews...';
-        
-        routeSteps=[]; stepIndex=0; stepTarget=null; stopCompass();
+    /* ====== Settings ====== */
+    function applyTheme(theme) { console.log('DEBUG: Applying theme:', theme); document.documentElement.dataset.theme = theme; try { localStorage.setItem('appTheme', theme); console.log('DEBUG: Theme saved to localStorage.'); } catch (e) { console.error('DEBUG: Error saving theme to localStorage:', e); } document.querySelectorAll('.theme-button').forEach(b => { b.classList.toggle('active', b.dataset.theme === theme); }); const newThemeColor = theme === 'rugged-explorer' ? '#0A192F' : (theme === 'night-ops' ? '#111111' : '#f8f7f2'); themeColorMeta.content = newThemeColor; }
+    function applyVoice(voiceURI) { console.log('DEBUG: Applying voice:', voiceURI); currentVoiceURI = voiceURI; try { localStorage.setItem('appVoice', voiceURI); console.log('DEBUG: Voice saved to localStorage.'); } catch (e) { console.error('DEBUG: Error saving voice to localStorage:', e); } }
+    function loadVoices() { voices = speechSynthesis.getVoices(); voiceSelector.innerHTML = '<option value="">Device Default</option>'; voices.filter(v => v.lang.startsWith(navigator.language) || v.lang.startsWith('en-')).forEach(voice => { const option = document.createElement('option'); option.value = voice.voiceURI; option.textContent = `${voice.name} (${voice.lang})`; if (voice.voiceURI === currentVoiceURI) option.selected = true; voiceSelector.appendChild(option); }); }
+    function loadSettings() { console.log('DEBUG: loadSettings (full - in initApp scope) called.'); const theme = localStorage.getItem('appTheme') || 'rugged-explorer'; applyTheme(theme); currentVoiceURI = localStorage.getItem('appVoice') || null; console.log('DEBUG: Full load - Voice URI from localStorage:', currentVoiceURI); loadVoices(); if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoiceschanged = loadVoices; } try { const placesJson = localStorage.getItem('savedPlaces') || '{}'; savedPlaces = JSON.parse(placesJson); console.log('DEBUG: Full load - Saved places loaded:', Object.keys(savedPlaces).length, 'items'); } catch (e) { console.error("DEBUG: Error loading saved places in full load:", e); savedPlaces = {}; localStorage.setItem('savedPlaces', '{}'); } }
+    function openSettings() { settingsModal.style.display = 'flex'; settingsDialog.focus(); } function closeSettings() { settingsModal.style.display = 'none'; }
 
-        placesService.getDetails({
-            placeId:summary.place_id,
-            fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews']
-        },(place,status)=>{
-            if(status===google.maps.places.PlacesServiceStatus.OK&&place){
-                currentPlace=place;
-                placeNameEl.textContent=place.name;
-                renderStars(placeStarsEl, place.rating??0);
-                placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
-                placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-                
-                if(place.website){ /* ... logo logic unchanged ... */ } 
-                else { placePhotoEl.src = placeholdURL; }
-                
-                if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
-s.push(...res.filter(p => filtered(p))]);
-                if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
-                if(place.types?.length){ /* ... type rendering unchanged ... */ }
+    /* ====== Init / Geocode ====== */
+    function initApp(){ console.log("DEBUG: initApp called by Google Maps callback."); loadSettings(); placesService=new google.maps.places.PlacesService(document.createElement('div')); geocoder=new google.maps.Geocoder(); directionsService=new google.maps.DirectionsService(); toggleFilterButtons(true); locationStatus.textContent = 'Acquiring location...'; if(navigator.geolocation){ console.log("DEBUG: Geolocation supported."); navigator.geolocation.getCurrentPosition( pos => { console.log("DEBUG: Geolocation success."); const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; reverseGeocodeSetLocation(coords); }, handleLocationError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } ); } else { console.log("DEBUG: Geolocation not supported."); handleLocationError({ code: -1, message: "Geolocation not supported by this browser." }); } } window.initApp=initApp;
+    function handleLocationError(error) { console.warn("DEBUG: Geolocation error:", error.code, error.message); let message = "Couldn't get location."; switch(error.code) { case error.PERMISSION_DENIED: message = "Location permission denied. Check browser/site settings."; break; case error.POSITION_UNAVAILABLE: message = "Location info unavailable. Check device GPS."; break; case error.TIMEOUT: message = "Location request timed out."; break; case error.UNKNOWN_ERROR: message = "Unknown error getting location."; break; case -1: message = "Geolocation not supported."; break; } locationStatus.textContent = message; manualLocationEntry.classList.remove('hidden'); getFunFact({lat:40.7128,lng:-74.0060}); toggleFilterButtons(false); }
+    function reverseGeocodeSetLocation(coords){ console.log("DEBUG: reverseGeocodeSetLocation called with coords:", coords); geocoder.geocode({location:coords},(results,status)=>{ console.log("DEBUG: Geocode status:", status); let label="Your Current Location"; currentLocality=''; if(status==='OK'&&results?.[0]){ console.log("DEBUG: Geocode success:", results[0].formatted_address); const c=results[0].address_components||[]; const city=c.find(x=>x.types.includes('locality'))?.long_name||c.find(x=>x.types.includes('postal_town'))?.long_name||c.find(x=>x.types.includes('sublocality'))?.long_name; const state=c.find(x=>x.types.includes('administrative_area_level_1'))?.short_name; if(city&&state) currentLocality=`${city}, ${state}`; label=results[0].formatted_address.split(',').slice(0,2).join(','); } else { console.warn("DEBUG: Geocode failed or no results."); } currentGeocodeLabel = label; setLocationAndEnableApp(coords,label); }); }
+    function geocodeLocation(){ const address=locationInput.value.trim(); if(!address) return; console.log("DEBUG: geocodeLocation called for address:", address); searchingModal.style.display = 'flex'; geocoder.geocode({address},(results,status)=>{ searchingModal.style.display = 'none'; console.log("DEBUG: Address geocode status:", status); if(status==='OK'&&results?.[0]){ const loc=results[0].geometry.location; currentGeocodeLabel = results[0].formatted_address.split(',').slice(0,2).join(','); reverseGeocodeSetLocation({lat:loc.lat(),lng:loc.lng()}); } else locationStatus.textContent=`Could not find "${address}".`; }); }
+    function setLocationAndEnableApp(coords,label){ console.log("DEBUG: setLocationAndEnableApp called:", {coords, label}); currentUserLocation=coords; locationStatus.textContent=`Exploring: ${label}`; manualLocationEntry.classList.add('hidden'); toggleFilterButtons(false); getFunFact(coords); funFactContainer.style.display='block'; }
 
-                currentReviews = place.reviews || [];
-    s.push(...res.filter(p => filtered(p))]);
-              showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
-                
-                // Hide/Show sort AND filter containers based on review count
-                const showFilters = currentReviews.length >= 10;
-                reviewSortContainer.style.display = showFilters ? 'flex' : 'none';
-s.push(...res.filter(p => filtered(p))]);
-                reviewStarFilterContainer.style.display = showFilters ? 'flex' : 'none';
+    /* ====== UI & Events ====== */
+    function showSubMenu(filter){ filterContainer.classList.add('hidden'); randomButton.classList.add('hidden'); document.getElementById('show-saved-button').classList.add('hidden'); document.getElementById('local-events-button').classList.add('hidden'); subMenuContainer.innerHTML=''; const sub=subFilterMap[filter]; const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-4 sub-menu'; for(const name in sub){const b=document.createElement('button'); b.textContent=name; b.dataset.name=name; b.dataset.parent=filter; b.className='action-card rounded-lg font-bold py-3 text-base'; grid.appendChild(b);} subMenuContainer.appendChild(grid); subMenuContainer.classList.remove('hidden'); backToMainFiltersButton.classList.remove('hidden'); }
+    function hideSubMenu(){ subMenuContainer.classList.add('hidden'); backToMainFiltersButton.classList.add('hidden'); filterContainer.classList.remove('hidden'); randomButton.classList.remove('hidden'); document.getElementById('show-saved-button').classList.remove('hidden'); document.getElementById('local-events-button').classList.remove('hidden'); }
+    function findRandomAdventure() { const randomizableFilters = { ...subFilterMap }; ['utilities', 'pets', 'outdoors'].forEach(f => delete randomizableFilters[f]); const allFilters = Object.values(randomizableFilters).flatMap(obj => Object.values(obj)); hideSubMenu(); findAdventure(allFilters[Math.floor(Math.random() * allFilters.length)], "random", "Surprise Me!"); }
+    function resetApp(hide=true){ closeCompass(); resultScreen.style.display='none'; resultsListScreen.style.display='none'; savedListScreen.style.display='none'; eventsListScreen.style.display='none'; reviewsListScreen.style.display='none'; mainScreen.style.display='block'; funFactContainer.style.display='block'; hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false; if(currentUserLocation) locationStatus.textContent=`Exploring: ${currentGeocodeLabel}`; else locationStatus.textContent="Set your location."; }
 
-                const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`http://googleusercontent.com/maps/google.com/0{encodeURIComponent(dest)}`;
-                buildRouteTo(place.geometry.location);
-                updateSaveButtonState();
-            } else {
-                 showReviewsButton.textContent = 'Reviews Unavailable'; // Handle API error
-            }
-      });
-     }
-    function buildRouteTo(latLng){ /* ... unchanged ... */ }
-    function setStep(i){ /* ... unchanged ... */ }
-    const toRad=d=>d*Math.PI/180, norm=a=>((a%360)+360)%360;
-    function bearingFromTo(a,b){ /* ... unchanged ... */ }
-    function haversineMeters(a,b){ /* ... unchanged ... */ }
-    function turnHint(delta){ /* ... unchanged ... */ }
-    function updateCompassUI(){ /* ... unchanged ... */ }
-    function onOrientation(e){ /* ... unchanged ... */ }
-    function openCompass(){ /* ... unchanged ... */ }
-    function closeCompass(){ /* ... unchanged ... */ }
-    function trapCompassTab(e){ /* ... unchanged ... */ }
-    function startCompass(){ /* ... unchanged ... */ }
-    function stopCompass(){ /* ... unchanged ... */ }
-    
-    /* ====== Settings (updated) ====== */
-  s.push(...res.filter(p => filtered(p))]);
-      document.documentElement.dataset.theme = theme;
-      localStorage.setItem('appTheme', theme); // FIXED: Saving now works
-      
-      document.querySelectorAll('.theme-button').forEach(b => {
-        b.classList.toggle('active', b.dataset.theme === theme);
-      });
+    document.addEventListener('click', (e)=>{
+      const target = e.target;
+      let btn = target.closest('button');
 
-      const newThemeColor = theme === 'rugged-explorer' ? '#0A192F' : (theme === 'night-ops' ? '#111111' : '#f8f7f2'); // Updated day-ops color
-      themeColorMeta.content = newThemeColor;
-    }
-    function applyVoice(voiceURI) {
-      currentVoiceURI = voiceURI;
-      localStorage.setItem('appVoice', voiceURI); // FIXED: Saving now works
-    }
-    function loadVoices() { /* ... unchanged ... */ }
-    function loadSettings() {
-      // Load Theme
-      const theme = localStorage.getItem('appTheme') || 'rugged-explorer';
-      applyTheme(theme);
-      // Load Voice
-      currentVoiceURI = localStorage.getItem('appVoice') || null;
-      loadVoices();
-      if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-      }
-      // Load Saved Places (CRITICAL FIX)
-      try {
-        savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
-s.push(...res.filter(p => filtered(p))]);
-      } catch (e) {
-        console.error("Error loading saved places:", e);
-        savedPlaces = {}; // Reset if data is corrupt
-        localStorage.setItem('savedPlaces', '{}');
-      }
-    }
-    function openSettings() { /* ... unchanged ... */ }
-    function closeSettings() { /* ... unchanged ... */ }
+      if (target.closest('.map-link-icon')) { console.log('DEBUG: Map link clicked.'); return; }
 
-    /* ====== Init / Geocode (updated) ====== */
-    function initApp(){
-      loadSettings(); // Ensures settings & saved places load reliably
-      placesService=new google.maps.places.PlacesService(document.createElement('div'));
-      geocoder=new google.maps.Geocoder();
-      directionsService=new google.maps.DirectionsService();
-      toggleFilterButtons(true);
-      locationStatus.textContent = 'Acquiring location...'; // More active message
-      if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos=>{
-          const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
-          reverseGeocodeSetLocation(coords);
-        }, handleLocationError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }); // Added options
-      } else handleLocationError();
-    }
-    window.initApp=initApp;
-    function handleLocationError(error){ // Added error param
-      console.warn("Geolocation error:", error);
-s.push(...res.filter(p => filtered(p))]);
-      locationStatus.textContent="Couldn't get location. Enter manually?";
-      manualLocationEntry.classList.remove('hidden');
-      // Use a default location for facts if needed (e.g., NYC)
-      getFunFact({lat:40.7128,lng:-74.0060}); 
-      toggleFilterButtons(false);
-    }
-    function reverseGeocodeSetLocation(coords){ /* ... unchanged ... */ }
-s.push(...res.filter(p => filtered(p))]);
-    function geocodeLocation(){ /* ... unchanged ... */ }
-    function setLocationAndEnableApp(coords,label){ /* ... unchanged ... */ }
+      // ** SAVE BUTTON FIX: Explicitly check target's ID OR parent's ID **
+      if (target.id === 'save-place-button' || (target.parentElement && target.parentElement.id === 'save-place-button')) {
+          console.log('DEBUG: Save Place Button click detected.');
+          btn = document.getElementById('save-place-button'); // Get the actual button
+          if (btn && !btn.disabled) {
+             if(currentPlace) {
+               const placeId = currentPlace.place_id;
+               if (!placeId) { console.error("DEBUG: Cannot save place - place_id is missing!", currentPlace); return; }
+               if(savedPlaces[placeId]) { console.log('DEBUG: Unsaving place:', placeId); delete savedPlaces[placeId];
+               } else {
+                 const vicinityText = currentPlace.vicinity || currentPlace.formatted_address || 'Location details saved';
+                 if (currentPlace.geometry && currentPlace.geometry.location) {
+                    console.log('DEBUG: Saving place:', placeId, 'Name:', currentPlace.name, 'Vicinity:', vicinityText);
+                    savedPlaces[placeId]={ name: currentPlace.name || 'Unnamed Place', place_id: placeId, vicinity: vicinityText, geometry: currentPlace.geometry.location.toJSON() };
+                 } else { console.error("DEBUG: Cannot save place - geometry is missing!", currentPlace); alert("Could not save place - missing location data."); return; }
+               }
+               try { localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); console.log('DEBUG: savedPlaces saved to localStorage after toggle. Current count:', Object.keys(savedPlaces).length); } catch(err) { console.error('DEBUG: Error saving savedPlaces after toggle:', err); alert("Error saving place. Storage might be full."); }
+               updateSaveButtonState();
+             } else { console.warn("DEBUG: Save button clicked but currentPlace is null."); }
+          } else { console.log('DEBUG: Save button click ignored (button not found or disabled).'); }
+         return; // Handled
+      }
 
-    /* ====== UI & Events (updated) ====== */
-    function showSubMenu(filter){ /* ... unchanged ... */ }
-    function hideSubMenu(){ /* ... unchanged ... */ }
-    function findRandomAdventure() { /* ... unchanged ... */ }
-    function resetApp(hide=true){
-      closeCompass();
-      resultScreen.style.display='none'; 
-      resultsListScreen.style.display='none';
-      savedListScreen.style.display='none';
-      eventsListScreen.style.display='none';
-      reviewsListScreen.style.display='none';
-      mainScreen.style.display='block';
-      funFactContainer.style.display='block';
-      hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-Read     if(currentUserLocation) locationStatus.textContent=`Exploring: ${currentGeocodeLabel}`;
-      else locationStatus.textContent="Set your location."; // Clearer if no location yet
-    }
+      // If no button was found up the hierarchy, or if it's disabled, ignore
+      if(!btn || btn.disabled) {
+          // console.log('DEBUG: Click ignored (no button or disabled). Target:', target, 'Closest button:', btn); // Reduce noise
+          return;
+      }
 
-s.push(...res.filter(p => filtered(p))]);
-    document.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
-      if (e.target.closest('.map-link-icon')) return; // Allow map icon links
+      console.log('DEBUG: Click detected on other button with ID:', btn.id || '(no id)', 'Classes:', btn.className);
 
-      // Main filter buttons
-      if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
-      // Sub-menu buttons
-      if(btn.closest('.sub-menu') && btn.dataset.name){ /* ... unchanged ... */ }
-      
-      // List item clicks
-      if(btn.closest('#results-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
-Indented       if(btn.classList.contains('saved-item-details')){ openDetailsById(btn.dataset.id); return;}
-      // Remove Saved Place button
-      if(btn.classList.contains('remove-saved-button')){ 
-        const placeId = btn.dataset.id; 
-        if(placeId && savedPlaces[placeId]){ 
-          delete savedPlaces[placeId]; 
-          localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); // Save change
-          showSavedList(); // Refresh list
-        } 
-        return; 
-      }
-      // Theme selection buttons
-Indented       if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
+      // --- Continue with other checks ---
+      if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
+      if(btn.closest('.sub-menu') && btn.dataset.name){ const name=btn.dataset.name, parent=btn.dataset.parent; let params=subFilterMap[parent][name]; if(parent==='eat' && name==='🍕 Surprise Me'){const food=Object.values(subFilterMap.eat).filter(f=>f.type&&f.type.endsWith('_restaurant')); params=food[Math.floor(Math.random()*food.length)];} findAdventure(params,parent,name); return; }
+      if(btn.closest('#results-list') && btn.classList.contains('result-item')){ openDetailsById(btn.dataset.id); return;}
+      if(btn.classList.contains('saved-item-details')){ openDetailsById(btn.dataset.id); return;}
+      if(btn.classList.contains('remove-saved-button')){ const placeId = btn.dataset.id; if(placeId && savedPlaces[placeId]){ console.log('DEBUG: Removing saved place:', placeId); delete savedPlaces[placeId]; try { localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces)); console.log('DEBUG: Updated savedPlaces saved to localStorage.'); } catch(err) { console.error('DEBUG: Error saving updated savedPlaces:', err); } showSavedList(); } return; }
+      if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
+      if(btn.id === 'sort-reviews-best') { currentReviewSort = 'rating-desc'; showReviews(); return; }
+      if(btn.id === 'sort-reviews-worst') { currentReviewSort = 'rating-asc'; showReviews(); return; }
+      if(btn.id === 'sort-reviews-recent') { currentReviewSort = 'time'; showReviews(); return; }
+      if(btn.classList.contains('review-star-button') && btn.dataset.rating) { currentStarFilter = parseInt(btn.dataset.rating); showReviews(); return; }
+      if(btn.id === 'clear-star-filter') { currentStarFilter = null; showReviews(); return; }
 
-s.push(...res.filter(p => filtered(p))]);
-      // Review Sort/Filter buttons
-      if(btn.id === 'sort-reviews-best') { currentReviewSort = 'rating-desc'; showReviews(); return; }
-      if(btn.id === 'sort-reviews-worst') { currentReviewSort = 'rating-asc'; showReviews(); return; }
-      if(btn.id === 'sort-reviews-recent') { currentReviewSort = 'time'; showReviews(); return; }
-Indented s.push(...res.filter(p => filtered(p))]);
-          currentStarFilter = parseInt(btn.dataset.rating);
-          showReviews();
-          return;
-      }
-      if(btn.id === 'clear-star-filter') {
-          currentStarFilter = null;
-          showReviews();
-          return;
-      }
+      // Switch for remaining specific IDs
+      switch(btn.id){
+        case 'back-to-main-filters': hideSubMenu(); break;
+        case 'close-results-button': resetApp(); break;
+        case 'close-saved-button': resetApp(); break;
+        case 'close-events-button': resetApp(); break;
+        case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break;
+        case 'show-saved-button': showSavedList(); break;
+        case 'local-events-button': findLocalEvents(); break;
+        case 'show-reviews-button': showReviews(); break;
+        case 'settings-button': openSettings(); break;
+        case 'close-settings-button': closeSettings(); break;
+        case 'try-again-button': resetApp(); break;
+        case 'search-button': geocodeLocation(); break;
+        case 'random-button': findRandomAdventure(); break;
+        case 'next-suggestion-button': if(currentResults.length > 0){ currentResultIndex = (currentResultIndex + 1) % currentResults.length; getPlaceDetails(currentResults[currentResultIndex]); } break;
+        // save-place-button handled above
+        case 'compass-button': openCompass(); break;
+        case 'close-compass': closeCompass(); break;
+        case 'guide-button': guideSpeaking = !guideSpeaking; guideButton.textContent = guideSpeaking ? 'Pause ⏸' : 'Guide Me ▶︎'; if(guideSpeaking){ if(routeSteps.length && stepIndex < routeSteps.length){ const st=routeSteps[stepIndex]; const text=stripHtml(st.instructions||'Continue'); const dist=st.distance?.text||''; speak(`${text}${dist?'. '+dist:''}`); } else if(currentPlace){ speak(`Head toward ${currentPlace.name}`); } } else { try{ speechSynthesis.cancel(); }catch{} } break;
+        case 'share-button': if (navigator.share && currentPlace) { navigator.share({ title: currentPlace.name, text: `Check out this place I found: ${currentPlace.name}`, url: directionsLink.href, });} break;
+        default: console.log("DEBUG: Unhandled button click in switch:", btn.id); break;
+      }
+    });
 
-      // Switch based on button ID for other actions
-      switch(btn.id){
-        case 'back-to-main-filters': hideSubMenu(); break;
-s.push(...res.filter(p => filtered(p))]);
-        // Back buttons now use resetApp to ensure correct state
-        case 'close-results-button': resetApp(); break;
-        case 'close-saved-button': resetApp(); break;
-        case 'close-events-button': resetApp(); break;
-        case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break;
-        
-        case 'show-saved-button': showSavedList(); break;
-        case 'local-events-button': findLocalEvents(); break;
-  D:     case 'show-reviews-button': showReviews(); break; 
-
-        case 'settings-button': openSettings(); break;
-        case 'close-settings-button': closeSettings(); break;
-
-        case 'try-again-button': resetApp(); break; // This button now resets the app view
-        case 'search-button': geocodeLocation(); break;
-        case 'random-button': findRandomAdventure(); break;
-        
-        case 'next-suggestion-button': /* ... unchanged ... */ break;
-        
-s.push(...res.filter(p => filtered(p))]);
-        case 'save-place-button':
-          if(currentPlace) {
-            const placeId = currentPlace.place_id;
-            if (!placeId) { console.error("Cannot save place - place_id is missing!"); return; }
-s.push(...res.filter(p => filtered(p))]);
-            if(savedPlaces[placeId]) {
-              // It's already saved, so unsave it
-s.push(...res.filter(p => filtered(p))]);
-              delete savedPlaces[placeId];
-  A:       } else {
-              // It's not saved, so save it
-              const vicinityText = currentPlace.vicinity || currentPlace.formatted_address || 'Location details saved';
-              if (currentPlace.geometry && currentPlace.geometry.location) {
-                 savedPlaces[placeId] = {
-                  name: currentPlace.name || 'Unnamed Place',
-Examples             place_id: placeId,
-                  vicinity: vicinityText,
-                  geometry: currentPlace.geometry.location.toJSON() // Save lat/lng
-                 };
-              } else {
-                 console.error("Cannot save place - geometry is missing!");
-source_code                alert("Could not save place - missing location data.");
-                 return; // Don't proceed
-              }
-            }
-            // Save the updated object to localStorage
-            try {
-s.push(...res.filter(p => filtered(p))]);
-              localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
-g>         } catch(err) {
-              console.error('Error saving to localStorage:', err);
-              alert("Error saving place. Storage might be full.");
-            }
-        D:   // Update the button's appearance
-            updateSaveButtonState();
-          }
-          break;
-
-        case 'compass-button': openCompass(); break;
-        case 'close-compass': closeCompass(); break;
-        case 'guide-button': /* ... unchanged ... */ break;
-        case 'share-button': /* ... unchanged ... */ break;
-  CSS: }
-    });
-
-    // Input listeners
-    document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
-Example   document.getElementById('voice-selector').addEventListener('change', e => {
-      applyVoice(e.target.value);
-    });
-  </script>
+    document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
+    document.getElementById('voice-selector').addEventListener('change', e => { applyVoice(e.target.value); });
+</script>
 </body>
 </html>
