@@ -469,12 +469,11 @@
     const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
     const toggleFilterButtons = d => document.querySelectorAll('#main-screen button').forEach(b=>b.disabled=d);
     const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
-// Note: This block has been truncated for brevity. 
     const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
     const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
     const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(!s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
     const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
-    function isCandidate(p, kw, reqType, allowedSet) {
+s.push(...res.filter(p => filtered(p))]);
       const t=new Set(p.types||[]);
       if (![...t].some(x => allowedSet.has(x))) return false;
       for (const x of t) if(bannedRetailish.has(x)) return false;
@@ -565,6 +564,7 @@
     // UPDATED: showReviews includes star filtering
     function showReviews() {
       mainScreen.style.display = 'none';
+  s.push(...res.filter(p => filtered(p))]);
       resultScreen.style.display = 'none'; // Hide place detail when showing reviews
       reviewsListScreen.style.display = 'flex';
 
@@ -592,6 +592,7 @@
       
       // Update active star button
       document.querySelectorAll('.review-star-button').forEach(b => {
+s.push(...res.filter(p => filtered(p))]);
         b.classList.toggle('active', parseInt(b.dataset.rating) === currentStarFilter);
       });
 
@@ -623,7 +624,8 @@
     /* ====== Search (updated Pet Store query) ====== */
     async function findLocalEvents() { /* ... unchanged ... */ }
 
-        function findAdventure(searchParams,parentFilter,subLabel){
+  s.push(...res.filter(p => filtered(p))]);
+    function findAdventure(searchParams,parentFilter,subLabel){
       if(!placesService||!currentUserLocation)return;
       mainScreen.style.display = 'none';
       searchingModal.style.display = 'flex';
@@ -651,7 +653,7 @@
           if(status === google.maps.places.PlacesServiceStatus.OK && res?.length){
             const allowed = allowedByCategory[parentFilter] || new Set();
             const filtered = (p) => isCandidate(p, kw, reqType, allowed);
-            currentResults=dedupe([...currentResults,...res.filter(p => filtered(p))]);
+s.push(...res.filter(p => filtered(p))]);
             // If we still don't have enough results, search wider
             if(currentResults.length < 12 && i < radii.length){
               nearby();
@@ -671,7 +673,7 @@
         });
       };
       const text=()=>{
-        const city=currentLocality||'';Next, 
+        const city=currentLocality||''; 
         // Text query combines keyword and label/type for clarity
         const query = kw ? `${kw} in ${city}` : `${subLabel||searchParams.type||''} in ${city}`;
         placesService.textSearch({query,location:currentUserLocation,radius:50000},(res,status)=>{
@@ -679,12 +681,11 @@
             const allowed = allowedByCategory[parentFilter] || new Set();
             const filtered = (p) => isCandidate(p, kw, reqType, allowed);
 s.push(...res.filter(p => filtered(p))]);
-          } finalize();
+S:       } finalize();
         });
       };
       const finalize=()=>{
         currentResults=sortResults(currentResults);
-s.push(...res.filter(p => filtered(p))]);
         showResultsList(parentFilter,subLabel);
         searchingModal.style.display = 'none';
         toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
@@ -694,7 +695,7 @@ s.push(...res.filter(p => filtered(p))]);
 
     /* ====== Details, Directions, Compass (updated) ====== */
     function openDetailsById(placeId){ /* ... unchanged ... */ }
- s.push(...res.filter(p => filtered(p))]);
+
         function getPlaceDetails(summary){
         mainScreen.style.display = 'none';
         resultsListScreen.style.display = 'none';
@@ -702,7 +703,7 @@ s.push(...res.filter(p => filtered(p))]);
         eventsListScreen.style.display = 'none';
         reviewsListScreen.style.display = 'none';
         resultScreen.style.display='flex';
-  g>
+        
         currentPlace = summary;
         currentReviews = [];
         currentStarFilter = null; // Reset star filter
@@ -730,32 +731,32 @@ s.push(...res.filter(p => filtered(p))]);
             if(status===google.maps.places.PlacesServiceStatus.OK&&place){
                 currentPlace=place;
                 placeNameEl.textContent=place.name;
-is.push(...res.filter(p => filtered(p))]);
                 renderStars(placeStarsEl, place.rating??0);
                 placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
                 placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
                 
                 if(place.website){ /* ... logo logic unchanged ... */ } 
-  Gist:         else { placePhotoEl.src = placeholdURL; }
+                else { placePhotoEl.src = placeholdURL; }
                 
                 if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
-Examples            if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
+s.push(...res.filter(p => filtered(p))]);
+                if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
                 if(place.types?.length){ /* ... type rendering unchanged ... */ }
 
                 currentReviews = place.reviews || [];
-                showReviewsButton.disabled = currentReviews.length === 0;
-section             showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
+    s.push(...res.filter(p => filtered(p))]);
+              showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
                 
-  CSS:           // Hide/Show sort AND filter containers based on review count
+                // Hide/Show sort AND filter containers based on review count
                 const showFilters = currentReviews.length >= 10;
                 reviewSortContainer.style.display = showFilters ? 'flex' : 'none';
-Note:               reviewStarFilterContainer.style.display = showFilters ? 'flex' : 'none';
-
-                const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
-                buildRouteTo(place.geometry.location);
 s.push(...res.filter(p => filtered(p))]);
+                reviewStarFilterContainer.style.display = showFilters ? 'flex' : 'none';
+
+                const dest=`${place.name}, ${place.vicinity||''}`; directionsLink.href=`http://googleusercontent.com/maps/google.com/0{encodeURIComponent(dest)}`;
+                buildRouteTo(place.geometry.location);
                 updateSaveButtonState();
-  indented         } else {
+            } else {
                  showReviewsButton.textContent = 'Reviews Unavailable'; // Handle API error
             }
       });
@@ -775,8 +776,8 @@ s.push(...res.filter(p => filtered(p))]);
     function stopCompass(){ /* ... unchanged ... */ }
     
     /* ====== Settings (updated) ====== */
-    function applyTheme(theme) {
-source_code       document.documentElement.dataset.theme = theme;
+  s.push(...res.filter(p => filtered(p))]);
+      document.documentElement.dataset.theme = theme;
       localStorage.setItem('appTheme', theme); // FIXED: Saving now works
       
       document.querySelectorAll('.theme-button').forEach(b => {
@@ -784,7 +785,7 @@ source_code       document.documentElement.dataset.theme = theme;
       });
 
       const newThemeColor = theme === 'rugged-explorer' ? '#0A192F' : (theme === 'night-ops' ? '#111111' : '#f8f7f2'); // Updated day-ops color
-Gist:       themeColorMeta.content = newThemeColor;
+      themeColorMeta.content = newThemeColor;
     }
     function applyVoice(voiceURI) {
       currentVoiceURI = voiceURI;
@@ -794,16 +795,17 @@ Gist:       themeColorMeta.content = newThemeColor;
     function loadSettings() {
       // Load Theme
       const theme = localStorage.getItem('appTheme') || 'rugged-explorer';
-This       applyTheme(theme);
+      applyTheme(theme);
       // Load Voice
       currentVoiceURI = localStorage.getItem('appVoice') || null;
       loadVoices();
       if (speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = loadVoices;
-CSS:     }
+      }
       // Load Saved Places (CRITICAL FIX)
       try {
         savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '{}');
+s.push(...res.filter(p => filtered(p))]);
       } catch (e) {
         console.error("Error loading saved places:", e);
         savedPlaces = {}; // Reset if data is corrupt
@@ -821,7 +823,7 @@ CSS:     }
       directionsService=new google.maps.DirectionsService();
       toggleFilterButtons(true);
       locationStatus.textContent = 'Acquiring location...'; // More active message
-Examples       if(navigator.geolocation){
+      if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(pos=>{
           const coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
           reverseGeocodeSetLocation(coords);
@@ -831,7 +833,8 @@ Examples       if(navigator.geolocation){
     window.initApp=initApp;
     function handleLocationError(error){ // Added error param
       console.warn("Geolocation error:", error);
-Warning       locationStatus.textContent="Couldn't get location. Enter manually?";
+s.push(...res.filter(p => filtered(p))]);
+      locationStatus.textContent="Couldn't get location. Enter manually?";
       manualLocationEntry.classList.remove('hidden');
       // Use a default location for facts if needed (e.g., NYC)
       getFunFact({lat:40.7128,lng:-74.0060}); 
@@ -850,20 +853,20 @@ s.push(...res.filter(p => filtered(p))]);
       closeCompass();
       resultScreen.style.display='none'; 
       resultsListScreen.style.display='none';
-s.push(...res.filter(p => filtered(p))]);
       savedListScreen.style.display='none';
       eventsListScreen.style.display='none';
       reviewsListScreen.style.display='none';
       mainScreen.style.display='block';
       funFactContainer.style.display='block';
       hideSubMenu(); toggleFilterButtons(false); backToMainFiltersButton.disabled=false;
-      if(currentUserLocation) locationStatus.textContent=`Exploring: ${currentGeocodeLabel}`;
+Read     if(currentUserLocation) locationStatus.textContent=`Exploring: ${currentGeocodeLabel}`;
       else locationStatus.textContent="Set your location."; // Clearer if no location yet
     }
 
-        document.addEventListener('click', (e)=>{
+s.push(...res.filter(p => filtered(p))]);
+    document.addEventListener('click', (e)=>{
       const btn=e.target.closest('button'); if(!btn||btn.disabled) return;
-CSS:       if (e.target.closest('.map-link-icon')) return; // Allow map icon links
+      if (e.target.closest('.map-link-icon')) return; // Allow map icon links
 
       // Main filter buttons
       if(btn.matches('#filter-container > button[data-filter]')){showSubMenu(btn.dataset.filter);return;}
@@ -886,11 +889,12 @@ Indented       if(btn.classList.contains('saved-item-details')){ openDetailsB
       // Theme selection buttons
 Indented       if(btn.classList.contains('theme-button')){ applyTheme(btn.dataset.theme); return; }
 
+s.push(...res.filter(p => filtered(p))]);
       // Review Sort/Filter buttons
       if(btn.id === 'sort-reviews-best') { currentReviewSort = 'rating-desc'; showReviews(); return; }
       if(btn.id === 'sort-reviews-worst') { currentReviewSort = 'rating-asc'; showReviews(); return; }
       if(btn.id === 'sort-reviews-recent') { currentReviewSort = 'time'; showReviews(); return; }
-Indented       if(btn.classList.contains('review-star-button') && btn.dataset.rating) {
+Indented s.push(...res.filter(p => filtered(p))]);
           currentStarFilter = parseInt(btn.dataset.rating);
           showReviews();
           return;
@@ -899,21 +903,22 @@ Indented       if(btn.classList.contains('review-star-button') && btn.dataset
           currentStarFilter = null;
           showReviews();
           return;
-  Examples   }
+      }
 
       // Switch based on button ID for other actions
       switch(btn.id){
         case 'back-to-main-filters': hideSubMenu(); break;
+s.push(...res.filter(p => filtered(p))]);
         // Back buttons now use resetApp to ensure correct state
         case 'close-results-button': resetApp(); break;
         case 'close-saved-button': resetApp(); break;
-We       case 'close-events-button': resetApp(); break;
+        case 'close-events-button': resetApp(); break;
         case 'close-reviews-button': resultScreen.style.display = 'flex'; reviewsListScreen.style.display = 'none'; break;
         
         case 'show-saved-button': showSavedList(); break;
         case 'local-events-button': findLocalEvents(); break;
-        case 'show-reviews-button': showReviews(); break;img
-g>
+  D:     case 'show-reviews-button': showReviews(); break; 
+
         case 'settings-button': openSettings(); break;
         case 'close-settings-button': closeSettings(); break;
 
@@ -923,21 +928,23 @@ g>
         
         case 'next-suggestion-button': /* ... unchanged ... */ break;
         
+s.push(...res.filter(p => filtered(p))]);
         case 'save-place-button':
           if(currentPlace) {
             const placeId = currentPlace.place_id;
             if (!placeId) { console.error("Cannot save place - place_id is missing!"); return; }
-
+s.push(...res.filter(p => filtered(p))]);
             if(savedPlaces[placeId]) {
               // It's already saved, so unsave it
-  CSS:         delete savedPlaces[placeId];
-            } else {
+s.push(...res.filter(p => filtered(p))]);
+              delete savedPlaces[placeId];
+  A:       } else {
               // It's not saved, so save it
               const vicinityText = currentPlace.vicinity || currentPlace.formatted_address || 'Location details saved';
               if (currentPlace.geometry && currentPlace.geometry.location) {
                  savedPlaces[placeId] = {
-    section           name: currentPlace.name || 'Unnamed Place',
-                  place_id: placeId,
+                  name: currentPlace.name || 'Unnamed Place',
+Examples             place_id: placeId,
                   vicinity: vicinityText,
                   geometry: currentPlace.geometry.location.toJSON() // Save lat/lng
                  };
@@ -948,14 +955,15 @@ source_code                alert("Could not save place - missing location
               }
             }
             // Save the updated object to localStorage
-Note:         try {
+            try {
+s.push(...res.filter(p => filtered(p))]);
               localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
-            } catch(err) {
+g>         } catch(err) {
               console.error('Error saving to localStorage:', err);
               alert("Error saving place. Storage might be full.");
             }
-            // Update the button's appearance
-CSS:           updateSaveButtonState();
+        D:   // Update the button's appearance
+            updateSaveButtonState();
           }
           break;
 
@@ -963,12 +971,12 @@ CSS:           updateSaveButtonState();
         case 'close-compass': closeCompass(); break;
         case 'guide-button': /* ... unchanged ... */ break;
         case 'share-button': /* ... unchanged ... */ break;
-  CSS:   }
+  CSS: }
     });
 
     // Input listeners
     document.getElementById('location-input').addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
-    document.getElementById('voice-selector').addEventListener('change', e => {
+Example   document.getElementById('voice-selector').addEventListener('change', e => {
       applyVoice(e.target.value);
     });
   </script>
