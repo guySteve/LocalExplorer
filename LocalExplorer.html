@@ -1,4 +1,3 @@
-
 <!--
   Local Explorer Progressive Web App
 
@@ -6,12 +5,12 @@
   essential places near their current location. It leverages the Geolocation
   API to determine the user's location and Google Maps services for reverse
   geocoding and nearby searches. When the user grants permission, the app
-  reverse geocodes the current coordinates into a human‑readable address and
+  reverse geocodes the current coordinates into a human-readable address and
   immediately enables category filters. If permission is denied or the device
   cannot provide location data, a manual search field is displayed so the
   traveller can type in a desired location. According to MDN, calls to
   `navigator.geolocation` trigger a prompt asking for permission, and if
-  accepted the browser uses the best available capabilities (GPS, Wi‑Fi
+  accepted the browser uses the best available capabilities (GPS, Wi-Fi
   positioning, etc.) to acquire coordinates. Reverse
   geocoding translates latitude/longitude into a formatted address
   . Results are cached by the service worker so
@@ -502,6 +501,11 @@
     #compassBtn {
       background: #0f172a;
       color: var(--text-light);
+    }
+    #addToPlanBtn.in-plan {
+      background: var(--accent);
+      color: var(--card);
+      border: 1px solid var(--accent);
     }
     /* Accordion */
     .accordion {
@@ -1468,6 +1472,7 @@ let streetViewVisible = false;
           $("detailsAddress").textContent = place.formatted_address || '';
           // Save button state
           updateSaveButtonState(place.place_id);
+          updatePlanButtonState(place.place_id);
           // Reviews
           populateReviews(place.reviews || []);
           // Hours
@@ -1632,6 +1637,27 @@ let streetViewVisible = false;
           $("saveBtn").textContent = '★ Saved';
         }
         loadMyList();
+      };
+    }
+
+    function updatePlanButtonState(placeId) {
+      const btn = $("addToPlanBtn");
+      if (!btn) return;
+      const planItems = getPlan();
+      const inPlan = planItems.some(p => p.place_id === placeId);
+      btn.textContent = inPlan ? '🗺️ In Plan' : '🗺️ Add to Plan';
+      btn.classList.toggle('in-plan', inPlan);
+      btn.onclick = () => {
+        if (!currentPlaceDetails) {
+          return;
+        }
+        if (getPlan().some(p => p.place_id === placeId)) {
+          removeFromPlan(placeId);
+        } else {
+          addToPlan(currentPlaceDetails);
+        }
+        loadPlan();
+        updatePlanButtonState(placeId);
       };
     }
 
