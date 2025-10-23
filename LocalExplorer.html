@@ -312,7 +312,7 @@
     #detailsSheet {
       position: fixed;
       left: 0;
-  S  bottom: 0;
+      bottom: 0;
       width: 100%;
       height: 70vh;
       background-color: var(--card);
@@ -603,7 +603,7 @@
     <div id="factBubble">Fetching local facts…</div>
   </div>
   <div class="filters" id="filterGrid">
-    s </div>
+     </div>
   <div id="primaryActions">
     <button id="myListBtn">📋 My List</button>
     <button id="myPlanBtn">🗺️ My Plan</button>
@@ -649,7 +649,7 @@
       <div class="modal-header">
         <h3>My Plan</h3>
         <button class="close-btn" id="closePlan">×</button>
-S     </div>
+      </div>
       <div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div>
       <div class="results-list" id="planContent"></div>
       <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty. Add places to your plan from the details view.</div>
@@ -724,7 +724,7 @@ S     </div>
         </label>
         <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Brightness
           <input type="range" id="radarBrightness" min="30" max="100" value="50" style="width:100%;">
-S       </label>
+        </label>
   	  </div>
   	</div>
   </div>
@@ -746,7 +746,7 @@ S       </label>
     function $(id) { return document.getElementById(id); }
 
     // Show/hide the ghost Easter egg depending on whether the user is on the main page
-s   function hideGhost() {
+    function hideGhost() {
       const ghost = $("ghostBtn");
       if (ghost) ghost.style.display = 'none';
     }
@@ -763,7 +763,7 @@ s   function hideGhost() {
     let factInterval;
     let currentPlaceDetails;
     let compassWatching = false;
-S   let compassWatchId;
+    let compassWatchId;
     let miniMap;
 // Track the visibility of Street View for the details view. By default the
 // panorama is hidden and a static photo is shown instead.
@@ -803,7 +803,7 @@ let streetViewVisible = false;
   	  { name: "Dog Parks", keyword: "dog park", type: "park" },
   	  { name: "Pet Stores", type: "pet_store" },
   	  { name: "Veterinary Care", type: "veterinary_care" },
-S 	  { name: "Pet Friendly Cafes", keyword: "pet friendly cafe", type: "cafe" },
+  	  { name: "Pet Friendly Cafes", keyword: "pet friendly cafe", type: "cafe" },
   	  { name: "Pet Friendly Hotels", keyword: "pet friendly hotel", type: "lodging" }
   	],
   	"Utilities & Help": [
@@ -832,7 +832,7 @@ S 	  { name: "Pet Friendly Cafes", keyword: "pet friendly cafe", type: "cafe" },
   	  { name: "All Events", value: "all" },
   	  { name: "Music", value: "music" },
   	  { name: "Sports", value: "sports" },
-s 	  { name: "Comedy", value: "comedy" },
+  	  { name: "Comedy", value: "comedy" },
   	  { name: "Festivals", value: "festival" }
   	]
    };
@@ -1660,10 +1660,7 @@ S 	  list = list.filter(p => p.place_id !== placeId);
   	  hideGhost();
   	});
 
-  	// Share Plan button handler. Encodes the current plan as a base64
-  	// string and appends it as a query parameter to the current URL. If
-  	// Web Share API is available the link is passed to navigator.share,
-  	// otherwise a prompt is shown so the user can copy the link manually.
+ 
   	$("sharePlanBtn").addEventListener('click', () => {
   	  const plan = getPlan();
   	  if (!plan || plan.length === 0) {
@@ -1691,7 +1688,7 @@ S 	  list = list.filter(p => p.place_id !== placeId);
   	  }
   	});
 
-  	// My List modal
+  
   	$("myListBtn").addEventListener('click', () => {
   	  loadMyList();
   	  $("myListModal").classList.add('active');
@@ -1704,26 +1701,26 @@ S 	  list = list.filter(p => p.place_id !== placeId);
   	  showGhost();
   	});
 
-  	// Close Plan modal via close button
+  	
   	$("closePlan").addEventListener('click', () => {
   	  closePlan();
   	});
-  	// Close Plan modal by tapping outside its content
+  	
 s 	$("planModal").addEventListener('click', (e) => {
   	  if (e.target.id === 'planModal') {
   	  	closePlan();
   	  }
   	});
 
-  	// Donate button handler opens the Venmo page in a new tab
+  	
 
-  	// Close donate modal
+  	
   	$("closeDonate").addEventListener('click', () => {
   	  $("donateModal").classList.remove('active');
   	  document.body.classList.remove('modal-open');
   	  showGhost();
   	});
-  	// Also close donate modal when tapping outside content
+  	
   	$("donateModal").addEventListener('click', (e) => {
   	  if (e.target.id === 'donateModal') {
   	  	$("donateModal").classList.remove('active');
@@ -1731,12 +1728,12 @@ s 	$("planModal").addEventListener('click', (e) => {
   	  	showGhost();
   	  }
   	});
-s 	// Open Venmo page in new tab
+
   	$("openVenmoBtn").addEventListener('click', () => {
   	  const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
   	  window.open(venmoUrl);
   	});
-  	// Copy Venmo handle to clipboard
+  	
   	$("copyVenmoBtn").addEventListener('click', async () => {
   	  try {
   	  	await navigator.clipboard.writeText('@Stephen-Mohamed-1');
@@ -1767,7 +1764,7 @@ s 	// Open Venmo page in new tab
   	  	  const title = document.createElement('h4');
   	  	  title.textContent = item.name;
   	  	  info.appendChild(title);
-s 	  	  const rating = document.createElement('span');
+  	  	  const rating = document.createElement('span');
   	  	  rating.className = 'rating';
   	  	  rating.textContent = item.rating ? `★${item.rating.toFixed(1)}` : '';
   	  	  info.appendChild(rating);
@@ -1777,7 +1774,7 @@ s 	  	  const rating = document.createElement('span');
   	  	  const delSpan = document.createElement('span');
   	  	  delSpan.textContent = '🗑️';
   	  	  btn.appendChild(delSpan);
-s 	  	  btn.style.justifyContent = 'space-between';
+  	  	  btn.style.justifyContent = 'space-between';
   	  	  btn.addEventListener('contextmenu', (e) => {
   	  	  	e.preventDefault();
   	  	  	removePlace(item.place_id);
@@ -1794,18 +1791,6 @@ s 	  	  btn.style.justifyContent = 'space-between';
   	  	closeDetails();
   	  }
   	});
-
-  	/*
-  	  Compass & Navigation Logic
-
-  	  When a user taps the compass button in the details sheet, a modern navigation
-  	  overlay slides up from the bottom of the screen. It calculates a route from
-  	  the user's current location to the selected place using the Google Directions
-  	  Service, displays the step‑by‑step directions, and provides voice guidance
-  	  via the Web Speech API. Users can choose from available device voices and
-  	  start/stop the spoken navigation. A close button hides the overlay and
-  	  cleans up listeners.
-  	*/
   	let navigationStopped = false;
   	function openCompass(destLatLng) {
   	  const overlay = $("compassOverlay");
@@ -1822,22 +1807,22 @@ s 	  	  btn.style.justifyContent = 'space-between';
   	  	  const opt = document.createElement('option');
   	  	  opt.value = idx;
   	  	  opt.textContent = `${voice.name}${voice.lang ? ' (' + voice.lang + ')' : ''}`;
-s 	  	  voiceSelect.appendChild(opt);
+ 	  	   voiceSelect.appendChild(opt);
   	  	});
   	  }
   	  populateVoices();
-  	  // Some browsers load voices asynchronously
+  	 
   	  window.speechSynthesis.onvoiceschanged = populateVoices;
-  	  // Reset buttons
+  	  
   	  $("startNavigationBtn").disabled = false;
   	  $("stopNavigationBtn").disabled = true;
-  	  // Clear directions list
+  	 
   	  const directionsList = $("directionsList");
   	  directionsList.innerHTML = 'Calculating route…';
-  	  // Initialize compass arrow updates
+  	 
   	  let orientationListener;
   	  const updateCompassArrow = (event) => {
-  	  	// Compute heading using Google geometry library
+  	  	
   	  	if (!currentPosition) return;
   	  	const heading = google.maps.geometry.spherical.computeHeading(currentPosition, destLatLng);
   	  	const deviceHeading = event.alpha;
@@ -1846,7 +1831,7 @@ s 	  	  voiceSelect.appendChild(opt);
   	  	  $("compassArrow").style.transform = `rotate(${rotation}deg)`;
   	  	}
   	  };
-  	  // Request permission for device orientation (iOS) if needed
+  	  
   	  if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
   	  	window.DeviceOrientationEvent.requestPermission().then(response => {
   	  	  if (response === 'granted') {
@@ -1858,14 +1843,14 @@ s 	  	  voiceSelect.appendChild(opt);
   	  	orientationListener = updateCompassArrow;
   	  	window.addEventListener('deviceorientation', orientationListener, true);
   	  }
-  	  // Start watching geolocation for orientation updates
+  	  
   	  if (navigator.geolocation) {
   	  	if (compassWatchId) navigator.geolocation.clearWatch(compassWatchId);
   	  	compassWatchId = navigator.geolocation.watchPosition((pos) => {
   	  	  currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
   	  	});
   	  }
-  	  // Use DirectionsService to compute route
+  	  
   	  const directionsService = new google.maps.DirectionsService();
   	  directionsService.route({
   	  	origin: currentPosition,
@@ -1875,14 +1860,14 @@ s 	  	  voiceSelect.appendChild(opt);
   	  	directionsList.innerHTML = '';
   	  	if (status === google.maps.DirectionsStatus.OK) {
   	  	  const steps = result.routes[0].legs[0].steps;
-  	  	  // Populate list
+  	  	 
   	  	  steps.forEach((step, index) => {
   	  	  	const div = document.createElement('div');
   	  	  	div.dataset.index = index;
   	  	  	div.innerHTML = step.instructions;
   	  	  	directionsList.appendChild(div);
   	  	  });
-  	  	  // Start navigation function
+  	  	  
   	  	  function startNavigation() {
   	  	  	navigationStopped = false;
   	  	  	$("startNavigationBtn").disabled = true;
@@ -1894,18 +1879,18 @@ s 	  	  voiceSelect.appendChild(opt);
   	  	  	  	$("stopNavigationBtn").disabled = true;
   	  	  	  	return;
   	  	  	  }
-  	  	  	  // Highlight current step
+  	  	  	 
   	  	  	  Array.from(directionsList.children).forEach(el => el.classList.remove('active'));
   	  	  	  const currentEl = directionsList.children[idx];
   	  	  	  if (currentEl) currentEl.classList.add('active');
-  	  	  	  // Remove HTML tags from instructions and preface with step number
+  	  	  	  
   	  	  	  const clean = steps[idx].instructions.replace(/<[^>]+>/g, '');
   	  	  	  const text = `Step ${idx + 1}: ${clean}.`;
   	  	  	  const utter = new SpeechSynthesisUtterance(text);
   	  	  	  const voices = window.speechSynthesis.getVoices();
   	  	  	  const selectedVoice = voices[voiceSelect.value] || voices[0];
   	  	  	  utter.voice = selectedVoice;
-  	  	  	  // Slightly lower pitch and slower rate for a rugged, confident tone
+  	  	  	  
   	  	  	  utter.pitch = 0.85;
   	  	  	  utter.rate = 0.95;
   	  	  	  utter.volume = 1;
@@ -1930,9 +1915,9 @@ s 	  	  voiceSelect.appendChild(opt);
   	  	  $("stopNavigationBtn").onclick = stopNavigation;
   	  	} else {
   	  	  directionsList.textContent = 'Unable to compute route.';
-_ 	  	}
+	  	}
   	  });
-  	  // Initialize or update the mini map inside radar
+  	  
   	  if (typeof google !== 'undefined' && google.maps) {
   	  	if (miniMap) {
   	  	  miniMap.setCenter(destLatLng);
@@ -1941,19 +1926,18 @@ _ 	  	}
   	  	  miniMap = new google.maps.Map($("miniMap"), {
   	  	  	center: destLatLng,
   	  	  	zoom: 15,
-Two-way
-  	  	  	disableDefaultUI: true,
+  	  	  	disableDefaultUI: true,
   	  	  	gestureHandling: 'none'
   	  	  });
   	  	}
   	  }
-  	  // Bind radar control sliders
+  	 
   	  const zoomSlider = $("radarZoom");
   	  const brightnessSlider = $("radarBrightness");
   	  if (zoomSlider) {
   	  	zoomSlider.oninput = () => {
   	  	  const z = parseInt(zoomSlider.value);
-Two-way
+
   	  	  if (miniMap) miniMap.setZoom(z);
   	  	};
   	  }
@@ -1964,11 +1948,11 @@ Two-way
   	  	  $("radar").style.filter = `brightness(${b/50})`;
   	  	};
   	  }
-  	  // Close overlay button handler
+  	  
   	  $("closeCompassBtn").onclick = () => {
   	  	overlay.classList.remove('active');
   	  	document.body.classList.remove('modal-open');
-Why do you ask?
+
   	  	if (navigator.geolocation && compassWatchId) {
   	  	  navigator.geolocation.clearWatch(compassWatchId);
   	  	}
@@ -1981,15 +1965,15 @@ Why do you ask?
   	  };
   	}
 
-  	// Local facts from Wikipedia
+  	
   	async function fetchLocalFacts(pos) {
-  	  // Cancel any existing fact interval
+  	 
   	  clearInterval(factInterval);
   	  const bubble = $("factBubble");
   	  if (!bubble) return;
   	  bubble.textContent = 'Fetching local facts…';
   	  try {
-  	  	// Query Wikipedia for up to 20 nearby pages within a 20 km radius to gather a wider variety of facts
+  	  
   	  	const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=20000&gslimit=20&format=json&origin=*`;
   	  	const geoData = await fetch(url).then(res => res.json());
   	  	const pageIds = geoData.query.geosearch.map(item => item.pageid).join('|');
@@ -1998,20 +1982,20 @@ Why do you ask?
   	  	const facts = [];
   	  	Object.values(extracts.query.pages).forEach(page => {
   	  	  if (page.extract) {
-s 	  	  	// Flatten newlines and remove section headings (e.g., '== References ==')
+
   	  	  	let text = page.extract.replace(/\n+/g, ' ').trim();
   	  	  	text = text.replace(/==.*?==/g, '');
-  	  	  	// Normalize multiple spaces
+  	  	 
   	  	  	text = text.replace(/\s{2,}/g, ' ').trim();
-If you have any questions, please ask!
+
   	  	  	if (text.length >= 50 && text.length <= 280) {
   	  	  	  facts.push(text);
   	  	  	}
   	  	  }
   	  	});
-  	  	// Remove duplicate facts and use the resulting list for rotation
+
   	  	const uniqueFacts = [];
-s 	  	facts.forEach(f => {
+      	facts.forEach(f => {
   	  	  if (!uniqueFacts.includes(f)) uniqueFacts.push(f);
   	  	});
   	  	if (uniqueFacts.length === 0) {
@@ -2019,7 +2003,7 @@ s 	  	facts.forEach(f => {
   	  	  return;
   	  	}
   	  	const factsList = uniqueFacts;
-  	  	// Index to track which fact is currently displayed
+  	  	
   	  	let idx = 0;
   	  	function showNextFact() {
   	  	  // Drop current bubble out
@@ -2030,31 +2014,31 @@ s 	  	facts.forEach(f => {
   	  	  	idx = (idx + 1) % factsList.length;
   	  	  }, 400);
   	  	}
-  	  	// Show first fact immediately
+  	  
   	  	idx = 0;
   	  	bubble.textContent = factsList[idx];
-  	  	// Start rotation interval
+  	  
   	  	clearInterval(factInterval);
   	  	factInterval = setInterval(showNextFact, 8000);
   	  } catch (err) {
   	  	console.error(err);
   	  	bubble.textContent = 'Unable to fetch facts.';
   	  }
-Why do you ask?
+
   	}
 
-  	// Initialize accordions
+  
   	setupAccordions();
 
-  	// Register service worker
+  	
   	if ('serviceWorker' in navigator) {
   	  window.addEventListener('load', () => {
-  	  	// *** MODIFIED THIS LINE ***
+  	  	
   	  	navigator.serviceWorker.register('service-worker-v2.js');
   	  });
   	}
 
-  	// Start app after Google Maps script loaded
+  	
   	window.initMap = initApp;
   </script>
 </body>
