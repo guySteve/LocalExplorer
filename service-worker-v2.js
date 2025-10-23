@@ -1,5 +1,5 @@
 // service-worker-v2.js
-const CACHE_NAME = 'local-explorer-v14.3-install-robust'; // Incremented cache name AGAIN
+const CACHE_NAME = 'local-explorerC'; // Incremented cache name AGAIN
 const urlsToCache = [
     './',
     './LocalExplorer.html',
