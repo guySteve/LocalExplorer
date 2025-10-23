@@ -1224,6 +1224,7 @@ let streetViewVisible = false;
       console.warn('Geolocation failed', err);
       $("locationDisplay").textContent = "Enter a location to begin";
       showManualInput();
+      latestLocationLabel = '';
       setWeatherPlaceholder('Enter a location to see the latest weather.');
     }
 
@@ -1268,6 +1269,8 @@ let streetViewVisible = false;
           updateWeather(currentPosition, { force: true });
         } else {
           alert('Location not found. Please try again.');
+          latestLocationLabel = '';
+          setWeatherPlaceholder('Location not found. Try another search.');
         }
       });
     }
