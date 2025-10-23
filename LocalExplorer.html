@@ -523,7 +523,7 @@
       left: 50%;
       width: 100%;
       height: 100%;
-.     transform-origin: left center;
+      transform-origin: left center;
       background: linear-gradient(to right, transparent, var(--primary) 5%, transparent 15%);
       animation: radarSweep 6s linear infinite;
     }
@@ -1380,6 +1380,11 @@ let streetViewVisible = false;
   	  	  $("detailsSheet").classList.add('active');
   	  	  document.body.classList.add('modal-open');
   	  	  hideGhost();
+			$("addToPlanBtn").onclick = () => {
+  addToPlan(currentPlaceDetails);
+  alert('Added to your plan!');
+  loadPlan(); // Refresh if plan modal is open
+};
   	  	}
   	  });
   	}
@@ -1568,7 +1573,7 @@ let streetViewVisible = false;
   	}
   	function removeFromPlan(placeId) {
   	  let list = getPlan();
-S 	  list = list.filter(p => p.place_id !== placeId);
+  	  list = list.filter(p => p.place_id !== placeId);
   	  savePlan(list);
   	}
   	function toggleVisited(placeId) {
@@ -1706,7 +1711,7 @@ S 	  list = list.filter(p => p.place_id !== placeId);
   	  closePlan();
   	});
   	
-s 	$("planModal").addEventListener('click', (e) => {
+ 	$("planModal").addEventListener('click', (e) => {
   	  if (e.target.id === 'planModal') {
   	  	closePlan();
   	  }
