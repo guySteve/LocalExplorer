@@ -75,7 +75,7 @@
         .card-accent-alt{ background: var(--accent-alt); color: var(--card-bg) !important; }
         .card-accent-dark{ background: var(--accent-dark); color: var(--card-text) !important; }
 
-        #result-card{ background: var(--modal-bg); color: var(--card-text); backdrop-filter: var(--modal-blur); -webkit-backdrop-filter: var(--modal-blur); transition:transform .4s ease,opacity .3s ease;max-height:90vh;overflow-y:auto;border-top:1px solid rgba(248,247,242,.2) }
+        #result-card{ background: var(--modal-bg); color: var(--card-text); backdrop-filter: var(--modal-blur); -webkit-backdrop-filter: var(--modal-blur); transition:transform .4s ease,opacity .3s ease;max-height:90vh;overflow-y:auto;border-top:1px solid rgba(248,247,f2,.2) }
         .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
         .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
 
@@ -453,7 +453,7 @@
           console.log("DEBUG: Main script logic initialized.");
 
           // ** Initialize Map Services AFTER DOM is ready and refs are set **
-          initializeMapServices(); // Call this here now
+          // initializeMapServices(); // <-- *** FIX: REMOVED FROM HERE ***
 
       }); // *** End of DOMContentLoaded wrapper ***
 
@@ -461,7 +461,8 @@
       // initApp remains global for Google Maps callback
       function initApp(){
           console.log("DEBUG: initApp called by Google Maps callback.");
-          // No need to check DOM state here anymore, initializeMapServices is called from DOMContentLoaded
+          // *** FIX: MOVED HERE ***
+          initializeMapServices(); 
       }
       window.initApp=initApp; // Make it global
 
