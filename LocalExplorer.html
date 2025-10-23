@@ -1,559 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" id="theme-color-meta" content="#0A192F" />
-    <link rel="manifest" href="./manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Local Explorer" />
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
-    <title>Local Explorer</title>
-
-    <script src="./key.js"></script>
-    <script>
-      const GKEY = window.MAPS_API_KEY || 'MISSING_API_KEY';
-      if (GKEY === 'MISSING_API_KEY') {
-        console.error("CRITICAL: Google Maps API Key is missing in key.js!");
-      }
-      // Corrected library name if needed (yours was correct)
-      document.write(`<script src="https://maps.googleapis.com/maps/api/js?key=${GKEY}&libraries=places,geocoding,directions&callback=initApp" async defer><\/script>`);
-    </script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
-
-    <style>
-        :root { /* Day Ops theme variables */
-          --bg: #f8f7f2; --text: #111827; --text-subtle: #4b5563;
-          --card-bg: #ffffff; --card-text: #111827; --card-bg-subtle: #e5e7eb;
-          --accent: #f59e0b; --accent-alt: #10b981; --accent-dark: #4f46e5;
-          --modal-bg: rgba(255, 255, 255, 0.9); --modal-blur: blur(10px);
-          --list-bg: rgba(255, 255, 255, 0.85); --list-card-bg: rgba(248, 247, 242, 0.98);
-          --shadow-color: rgba(0, 0, 0, 0.1);
-        }
-        [data-theme="day-ops"] { /* Explicit Day Ops */
-          --bg: #f8f7f2; --text: #111827; --text-subtle: #4b5563;
-          --card-bg: #ffffff; --card-text: #111827; --card-bg-subtle: #e5e7eb;
-          --accent: #f59e0b; --accent-alt: #10b981; --accent-dark: #4f46e5;
-          --modal-bg: rgba(255, 255, 255, 0.9); --modal-blur: blur(10px);
-          --list-bg: rgba(255, 255, 255, 0.85); --list-card-bg: rgba(248, 247, 242, 0.98);
-          --shadow-color: rgba(0, 0, 0, 0.1);
-        }
-        [data-theme="rugged-explorer"] { /* Default Theme */
-          --bg: #0A192F; --text: #CCD6F6; --text-subtle: #8892B0;
-          --card-bg: #112240; --card-text: #CCD6F6; --card-bg-subtle: #0A192F;
-          --accent: #64FFDA; --accent-alt: #f59e0b; --accent-dark: #4DA89A;
-          --modal-bg: rgba(10, 25, 47, 0.9); --modal-blur: blur(10px);
-          --list-bg: rgba(0, 0, 0, 0.85); --list-card-bg: rgba(17, 34, 64, 0.98);
-          --shadow-color: rgba(0, 0, 0, 0.4);
-        }
-        [data-theme="night-ops"] {
-          --bg: #111111; --text: #E0E0E0; --text-subtle: #9E9E9E;
-          --card-bg: #1F1F1F; --card-text: #E0E0E0; --card-bg-subtle: #000000;
-          --accent: #FF4136; --accent-alt: #F012BE; --accent-dark: #B10000;
-          --modal-bg: rgba(20, 20, 20, 0.9); --modal-blur: blur(10px);
-          --list-bg: rgba(0, 0, 0, 0.85); --list-card-bg: rgba(31, 31, 31, 0.98);
-          --shadow-color: rgba(0, 0, 0, 0.4);
-        }
-
-        body{font-family:'Raleway',sans-serif; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s;}
-        h1,h2,h3,.font-header{font-family:'Poppins',sans-serif;}
-        .pt-safe{padding-top: calc(1rem + env(safe-area-inset-top));}
-        .pb-safe{padding-bottom: calc(1rem + env(safe-area-inset-bottom));}
-
-        .action-card{ background: var(--card-bg); color: var(--card-text); transition: transform 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s; box-shadow: 0 4px 12px var(--shadow-color); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .action-card:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 8px 20px var(--shadow-color)}
-        .action-card:active:not(:disabled){transform:translateY(0) scale(.98)}
-        .action-card:disabled{opacity:.4;cursor:not-allowed}
-
-        .card-accent{ background: var(--accent); color: var(--card-bg) !important; /* Ensure text color overrides theme */}
-        .card-accent:hover:not(:disabled){ background: var(--accent); opacity: 0.9; }
-        .card-accent-alt{ background: var(--accent-alt); color: var(--card-bg) !important; }
-        .card-accent-dark{ background: var(--accent-dark); color: var(--card-text) !important; }
-
-        #result-card{ background: var(--modal-bg); color: var(--card-text); backdrop-filter: var(--modal-blur); -webkit-backdrop-filter: var(--modal-blur); transition:transform .4s ease,opacity .3s ease;max-height:90vh;overflow-y:auto;border-top:1px solid rgba(248,247,f2,.2) }
-        .place-type-tag{background:rgba(248,247,242,.1);border:1px solid rgba(248,247,242,.2);padding:2px 10px;border-radius:9999px;font-size:.75rem;text-transform:capitalize;font-weight:600}
-        .star-row{font-size:12px;letter-spacing:1px}.star-row .star{opacity:.35}.star-row .star.filled{opacity:1}
-
-        .list-screen{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;padding:1rem; background: var(--list-bg); backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-        .list-card{background: var(--list-card-bg); color: var(--card-text); border-radius:1rem;padding:1rem;max-width:42rem;width:100%;margin:auto}
-        .result-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:.9rem;padding:.75rem;display:flex;gap:.75rem; cursor: pointer;}
-        .result-item:hover{background: rgba(255,255,255,0.1);}
-        .result-thumb{width:84px;height:84px;object-fit:cover;border-radius:.6rem;background: var(--card-bg); pointer-events: none;} /* Added pointer-events: none */
-
-        .modal-base{position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
-        .modal-dialog{width: min(92vw, 440px); background: var(--list-card-bg); color: var(--card-text); border:1px solid rgba(255,255,255,.12); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.5); padding:16px; outline:none;}
-
-        #nav-bubble{position:relative;margin: 8px 0 12px 0;padding:.6rem .75rem;font-size:13px;line-height:1.25; box-shadow:0 10px 24px rgba(0,0,0,.35);background:radial-gradient(120% 140% at 10% 0%, rgba(16,185,129,.16) 0%, rgba(245,158,11,.18) 35%, rgba(17,24,39,.96) 68%); border:1px solid rgba(255,255,255,.12)}
-        #nav-main{font-weight:700;letter-spacing:.2px} #nav-sub{font-size:11.5px;opacity:.85;margin-top:2px}
-        #compass-overlay{width:240px;height:240px;border-radius:22px;margin: 6px auto 10px auto; padding: 18px; position:relative; background: radial-gradient(40% 40% at 50% 50%, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 100%), conic-gradient(from 0deg, var(--accent), rgba(245,158,11,.1) 30%, var(--accent-alt), rgba(16,185,129,.12) 75%, var(--accent)); border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06); display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden}
-        #compass-arrow{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid var(--accent); transform-origin:50% 90%;filter:drop-shadow(0 6px 8px var(--accent));margin-bottom:8px}
-        #compass-dist{font-size:14px;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-
-        #settings-modal .modal-dialog { padding: 20px; }
-        .theme-button { border: 2px solid var(--card-bg-subtle); padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .theme-button.active { border-color: var(--accent); box-shadow: 0 0 10px -2px var(--accent); }
-        #voice-selector { background: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; width: 100%; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16" fill="%23${(getComputedStyle(document.documentElement).getPropertyValue('--card-text') || '#CCD6F6').substring(1)}"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>'); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1em; padding-right: 2.5rem; }
-
-        .review-item { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: .9rem; padding: .75rem 1rem; }
-        .review-sort-button { background: var(--card-bg-subtle); color: var(--card-text); padding: 8px 12px; border-radius: 8px; font-weight: 600; opacity: 0.7; cursor: pointer; }
-        .review-sort-button.active { background: var(--accent); color: var(--card-bg) !important; opacity: 1; }
-        #reviews-list-card .flex-container { display: flex; gap: 1rem; } /* Adjusted for review layout */
-        #review-star-filter-container { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; }
-        .review-star-button { background: none; border: none; font-size: 0.9rem; padding: 2px 0; opacity: 0.6; cursor: pointer; color: var(--accent); text-align: left; line-height: 1.2; }
-        .review-star-button .count { font-size: 0.7rem; color: var(--text-subtle); margin-left: 4px; }
-        .review-star-button.active { opacity: 1; font-weight: bold; }
-        #clear-star-filter { font-size: 0.75rem; font-weight: bold; opacity: 0.8; color: var(--text-subtle); margin-top: 4px; }
-        #reviews-list { flex: 1; max-height: calc(60vh - 40px); /* Adjusted height */ overflow-y: auto; }
-
-        #fun-fact-container { background: var(--card-bg); color: var(--text); border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 12px var(--shadow-color); text-align: left; margin-bottom: 1.5rem; }
-        #fun-fact-container h2 { color: var(--accent); font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; }
-        #fun-fact-text { color: var(--text-subtle); border-top: 2px solid var(--card-bg-subtle); padding-top: 0.5rem; font-size: 0.875rem; }
-
-        #searching-modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-        #searching-dialog { background: var(--list-card-bg); color: var(--card-text); border-radius: 1.5rem; padding: 2.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
-        #searching-dialog-icon { font-size: 3.5rem; animation: spin 2s linear infinite; }
-        #searching-dialog-text { font-size: 1.25rem; font-family: 'Poppins', sans-serif; font-weight: 700; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        </style>
-</head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 pt-safe pb-safe">
-
-  <button id="settings-button" class="action-card rounded-full fixed top-4 right-4 z-30 w-12 h-12 flex items-center justify-center text-2xl" aria-label="Settings">⚙️</button>
-
-  <main id="app-container" class="relative z-10 w-full max-w-lg mx-auto text-center" role="main" aria-live="polite">
-    <section id="main-screen" aria-labelledby="app-title">
-      <h1 id="app-title" class="text-4xl md:text-5xl font-header font-bold mb-4" style="color: var(--text);">Local Explorer</h1>
-      <section id="fun-fact-container"> <h2>Local Fact</h2> <p id="fun-fact-text">Loading...</p> </section>
-      <p id="location-status" class="text-lg font-semibold my-4" style="color: var(--text-subtle);">Please allow location access...</p>
-      <div id="manual-location-entry" class="hidden mb-6"> <div class="flex items-center bg-white rounded-lg shadow-md"> <input type="text" id="location-input" inputmode="search" placeholder="Enter a city or place" class="w-full bg-transparent text-gray-800 p-3 rounded-l-lg focus:outline-none" /> <button id="search-button" class="action-card card-accent text-white p-3 rounded-r-lg" aria-label="Search">🔍</button> </div> </div>
-      <nav id="filter-container" class="grid grid-cols-3 gap-3"> <button data-filter="eat" class="action-card rounded-lg font-bold py-4 text-sm flex flex-col items-center justify-center">🍽️<span class="mt-1">Foodie Finds</span></button> <button data-filter="see" class="action-card rounded-lg font-bold py-4 text-sm flex flex-col items-center justify-center">🏛️<span class="mt-1">Iconic Sights</span></button> <button data-filter="night" class="action-card rounded-lg font-bold py-4 text-sm flex flex-col items-center justify-center">🌙<span class="mt-1">Night Out</span></button> <button data-filter="outdoors" class="action-card rounded-lg font-bold py-4 text-sm flex flex-col items-center justify-center">🏞️<span class="mt-1">Outdoors</span></button> <button data-filter="gems" class="action-card rounded-lg font-bold py-4 text-sm flex flex-col items-center justify-center">💎<span class="mt-1">Hidden Gems</span></button> <button data-filter="pets" class="action-card rounded-lg font-bold py-4 text-sm flex flex-col items-center justify-center">🐾<span class="mt-1">Pet Friendly</span></button> <button data-filter="utilities" class="action-card rounded-lg font-bold py-4 text-sm col-span-3">🛠️ Utilities & Help</button> </nav>
-      <button id="show-saved-button" class="action-card card-accent-alt w-full mt-4 rounded-lg font-bold py-3 text-base">⭐ My Saved Places</button> <button id="local-events-button" class="action-card card-accent-dark w-full mt-4 rounded-lg font-bold py-3 text-base">🎟️ Local Events</button> <button id="random-button" class="action-card card-accent w-full mt-4 rounded-lg font-bold py-3 text-base">🤷 Surprise Me!</button>
-      <div id="sub-menu-container" class="hidden mt-4"></div> <button id="back-to-main-filters" class="hidden action-card w-full mt-4 rounded-lg font-bold py-3 text-base" style="background: var(--card-bg-subtle);">← Back to Main Menu</button>
-    </section>
-  </main>
-
-   <section id="results-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="results-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="results-title" class="text-xl font-header font-bold">Results</h2> <button id="close-results-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div id="results-meta" class="text-sm opacity-80 mb-3"></div> <div id="results-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div> </div> </section>
-   <section id="saved-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="saved-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="saved-title" class="text-xl font-header font-bold">My Saved Places</h2> <button id="close-saved-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div id="saved-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div> </div> </section>
-   <section id="events-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;"> <div id="events-list-card" class="list-card"> <div class="flex items-center justify-between mb-3"> <h2 id="events-title" class="text-xl font-header font-bold">Local Events</h2> <button id="close-events-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button> </div> <div class="text-xs opacity-60 text-center mb-2 -mt-2"> Events provided by <a href="https://ticketmaster.com" target="_blank" rel="noopener" class="underline">Ticketmaster</a> </div> <div id="events-list" class="space-y-2 max-h-[68vh] overflow-y-auto"></div> </div> </section>
-
-   <section id="reviews-list-screen" class="list-screen" role="dialog" aria-modal="true" style="display:none;">
-     <div id="reviews-list-card" class="list-card">
-       <div class="flex items-center justify-between mb-3">
-         <h2 id="reviews-title" class="text-xl font-header font-bold">Reviews</h2>
-         <button id="close-reviews-button" class="action-card" style="background: var(--card-bg-subtle); padding: 8px 12px; border-radius: 8px; font-weight: 600;">Back</button>
-       </div>
-       <p id="review-date-filter-info" class="text-xs opacity-70 text-center mb-2 -mt-2"></p>
-       <div id="review-filters-container" class="mb-3">
-         <div id="review-sort-container" class="flex gap-2 mb-3">
-           <button id="sort-reviews-best" class="review-sort-button flex-1">Best</button>
-           <button id="sort-reviews-worst" class="review-sort-button flex-1">Worst</button>
-           <button id="sort-reviews-recent" class="review-sort-button flex-1 active">Recent</button>
-         </div>
-         <div class="flex-container"> <div id="review-star-filter-container" class="flex flex-col gap-1 items-start pr-3">
-             </div>
-           <div id="reviews-list" class="space-y-2 flex-1 overflow-y-auto">
-             </div>
-         </div>
-       </div> </div>
-   </section>
-
-
-   <section id="result-screen" class="fixed inset-0 z-20 flex flex-col justify-end items-center p-4" style="display:none;"> <div id="result-card" class="p-4 rounded-t-2xl shadow-2xl w-full max-w-md text-center"> <img id="place-photo" loading="lazy" src="https://placehold.co/600x400/333/FFF?text=Loading..." alt="Place photo" class="w-full h-32 object-cover rounded-lg mb-4" style="background-color: var(--card-bg);" /> <div class="flex justify-between items-start"> <h2 class="text-2xl md:text-3xl font-header font-bold text-left" id="place-name">...</h2> <div class="flex items-center gap-2"> <span id="place-accessibility" class="text-2xl"></span> <button id="save-place-button" class="text-3xl opacity-70 hover:opacity-100 transition-transform" aria-pressed="false">☆</button> </div> </div> <div class="flex justify-center items-center gap-3 text-base my-2"> <div class="star-row" id="place-stars"></div> <p class="font-semibold" style="color: var(--accent);" id="place-rating">...</p> <p class="font-semibold" style="color: var(--accent-alt);" id="place-price">...</p> <a id="phone-link" href="#" class="hover:underline text-sm" style="color: var(--text-subtle);"></a> </div> <div id="place-types-container" class="flex flex-wrap justify-center gap-2 my-3"></div> <button id="show-reviews-button" class="action-card card-accent-dark w-full mt-3 mb-4 rounded-lg font-bold py-3 text-base" disabled> Show Reviews (0) </button> <div class="flex flex-wrap justify-center gap-3 my-4"> <a id="directions-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card card-accent font-bold py-3 px-4 rounded-lg">Map</a> <a id="website-link" href="#" target="_blank" rel="noopener" class="flex-1 action-card font-bold py-3 px-4 rounded-lg hidden" style="background: var(--card-bg-subtle);">Website</a> <button id="share-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Share</button> <button id="compass-button" class="flex-1 action-card card-accent-alt font-bold py-3 px-4 rounded-lg">Compass</button> </div> <div id="result-buttons-container" class="w-full max-w-md flex gap-4"> <button id="try-again-button" class="flex-1 action-card font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl" style="background: var(--card-bg-subtle);">Back</button> <button id="next-suggestion-button" class="flex-1 action-card card-accent-dark font-bold py-3 px-4 rounded-lg text-lg rounded-b-2xl">Next</button> </div> </div> </section>
-
-   <div id="compass-modal" class="modal-base"> <div id="compass-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-2"> <h2 id="modal-title" class="font-header text-lg">Live Compass</h2> <div class="flex gap-2"> <button id="guide-button" class="action-card card-accent-dark font-bold py-2 px-3 rounded-lg">Guide Me ▶︎</button> <button id="close-compass" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </div> </header> <div id="nav-bubble"> <div id="nav-main">Head toward destination</div> <div id="nav-sub">Follow the arrow</div> </div> <div id="compass-overlay"> <div id="compass-arrow"></div> <div id="compass-dist">--</div> </div> </div> </div>
-
-   <div id="settings-modal" class="modal-base"> <div id="settings-dialog" class="modal-dialog" tabindex="-1"> <header class="flex items-center justify-between mb-4"> <h2 class="font-header text-xl">Settings</h2> <button id="close-settings-button" class="action-card font-bold py-2 px-3 rounded-lg" style="background: var(--card-bg-subtle);">Close</button> </header> <div class="space-y-4"> <div> <h3 class="font-semibold mb-2">Theme</h3> <div class="grid grid-cols-3 gap-2"> <button class="theme-button flex-1" data-theme="day-ops">☀️ Day Ops</button> <button class="theme-button flex-1" data-theme="rugged-explorer">⚓ Rugged</button> <button class="theme-button flex-1" data-theme="night-ops">🌙 Night Ops</button> </div> </div> <div> <h3 class="font-semibold mb-2">Guide Voice</h3> <select id="voice-selector"> <option value="">Loading voices...</option> </select> </div> <a id="donate-button" href="https://venmo.com/u/Stephen-Mohamed-1" target="_blank" rel="noopener" class="action-card card-accent-alt font-bold py-3 px-4 rounded-lg w-full block text-center"> Buy me a coffee (Venmo) </a> <p id="app-version" class="text-center text-xs opacity-60 mt-4">App Version 14.1</p> </div> </div> </div>
-
-  <div id="searching-modal"> <div id="searching-dialog"> <div id="searching-dialog-icon">🧭</div> <div id="searching-dialog-text">Acquiring Target...</div> </div> </div>
-
-  <script>
-      /* ====== IMMEDIATE SETTINGS LOAD ====== */
-      function loadSettingsImmediate() { console.log('DEBUG: loadSettingsImmediate called.'); let theme, voiceURI, places; try { theme = localStorage.getItem('appTheme') || 'rugged-explorer'; console.log('DEBUG: Immediate theme read from localStorage:', theme); document.documentElement.dataset.theme = theme; console.log('DEBUG: Immediate theme applied to document:', theme); } catch (e) { console.error('DEBUG: Error reading appTheme immediately:', e); theme = 'rugged-explorer'; document.documentElement.dataset.theme = theme; } try { voiceURI = localStorage.getItem('appVoice') || null; currentVoiceURI = voiceURI; console.log('DEBUG: Immediate voice URI loaded:', currentVoiceURI); } catch (e) { console.error('DEBUG: Error reading appVoice immediately:', e); currentVoiceURI = null; } try { const placesJson = localStorage.getItem('savedPlaces') || '{}'; console.log('DEBUG: Immediate saved places JSON read:', placesJson.substring(0, 100) + '...'); places = JSON.parse(placesJson); savedPlaces = places; console.log('DEBUG: Immediate saved places loaded:', Object.keys(savedPlaces).length, 'items'); } catch (e) { console.error("DEBUG: Error loading/parsing saved places immediately:", e); savedPlaces = {}; try { localStorage.setItem('savedPlaces', '{}'); console.log('DEBUG: Cleared potentially corrupted savedPlaces in localStorage.'); } catch (e2) { console.error('DEBUG: Failed to clear corrupted savedPlaces:', e2); } } }
-      let savedPlaces = {}; let currentVoiceURI = null; loadSettingsImmediate();
-
-      /* ====== SW Registration ====== */
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker-v2.js?v=14.3') // Ensure version matches SW
-           .then(reg => {
-             console.log(`Service worker registered with version query string! Scope: ${reg.scope}`);
-             reg.update();
-             console.log('Service worker update check triggered.');
-            }).catch(err => {
-              console.error('Service worker registration failed:', err);
-            });
-        });
-      }
-
-      // *** FIX 1: Wrap main script logic in DOMContentLoaded ***
-      document.addEventListener('DOMContentLoaded', () => {
-          console.log("DEBUG: DOMContentLoaded event fired. Initializing main script logic.");
-
-          /* ====== Refs ====== */
-          const funFactContainer = document.getElementById('fun-fact-container');
-          const funFactText = document.getElementById('fun-fact-text');
-          const mainScreen = document.getElementById('main-screen');
-          const resultsListScreen = document.getElementById('results-list-screen');
-          const resultsTitle = document.getElementById('results-title');
-          const resultsMeta = document.getElementById('results-meta');
-          const resultsList = document.getElementById('results-list');
-          const resultScreen = document.getElementById('result-screen');
-          const filterContainer = document.getElementById('filter-container');
-          const locationStatus = document.getElementById('location-status');
-          const manualLocationEntry = document.getElementById('manual-location-entry');
-          const locationInput = document.getElementById('location-input');
-          const subMenuContainer = document.getElementById('sub-menu-container');
-          const backToMainFiltersButton = document.getElementById('back-to-main-filters');
-          const placeNameEl = document.getElementById('place-name');
-          const placeRatingEl = document.getElementById('place-rating');
-          const placeStarsEl = document.getElementById('place-stars');
-          const placePriceEl = document.getElementById('place-price');
-          const placePhotoEl = document.getElementById('place-photo');
-          const directionsLink = document.getElementById('directions-link');
-          const websiteLink = document.getElementById('website-link');
-          const placeTypesContainer = document.getElementById('place-types-container');
-          const phoneLink = document.getElementById('phone-link');
-          const placeAccessibility = document.getElementById('place-accessibility');
-          const savePlaceButton = document.getElementById('save-place-button');
-          const compassModal = document.getElementById('compass-modal');
-          const compassDialog = document.getElementById('compass-dialog');
-          const closeCompassBtn = document.getElementById('close-compass');
-          const guideButton = document.getElementById('guide-button');
-          const navMain = document.getElementById('nav-main');
-          const navSub = document.getElementById('nav-sub');
-          const compassArrow = document.getElementById('compass-arrow');
-          const compassDist = document.getElementById('compass-dist');
-          const shareButton = document.getElementById('share-button');
-          const randomButton = document.getElementById('random-button');
-          const savedListScreen = document.getElementById('saved-list-screen');
-          const savedList = document.getElementById('saved-list');
-          const eventsListScreen = document.getElementById('events-list-screen');
-          const eventsList = document.getElementById('events-list');
-          const settingsModal = document.getElementById('settings-modal');
-          const settingsDialog = document.getElementById('settings-dialog');
-          const themeColorMeta = document.getElementById('theme-color-meta');
-          const voiceSelector = document.getElementById('voice-selector');
-          const reviewsListScreen = document.getElementById('reviews-list-screen');
-          const reviewsList = document.getElementById('reviews-list');
-          const showReviewsButton = document.getElementById('show-reviews-button');
-          const searchingModal = document.getElementById('searching-modal');
-          const reviewSortContainer = document.getElementById('review-sort-container');
-          const reviewStarFilterContainer = document.getElementById('review-star-filter-container');
-          // ** FIX 2d: Get refs to the newly added elements **
-          const reviewFiltersContainer = document.getElementById('review-filters-container');
-          const reviewDateFilterInfo = document.getElementById('review-date-filter-info');
-          const compassButton = document.getElementById('compass-button'); // Added ref
-
-          /* ====== State ====== */
-          let placesService, geocoder, directionsService; let currentUserLocation; let currentLocality = ''; let currentGeocodeLabel = 'Your Location'; let currentPlace; let currentResults = []; let currentResultIndex = 0; /* savedPlaces loaded */ let localFacts = [], factInterval = null, currentFactIndex = 0; let compassActive = false, guideSpeaking = false, watchId = null, headingDeg = 0; let routeSteps = [], stepIndex = 0, stepTarget = null, destLatLng = null; let voices = []; /* currentVoiceURI loaded */ let currentReviews = []; let currentReviewSort = 'time'; let currentStarFilter = null;
-
-          /* ====== Categories ====== */
-          const subFilterMap = { eat: {"🍕 Surprise Me":{type:"restaurant"},"Italian":{type:"italian_restaurant",keyword:"italian"},"Mexican":{type:"mexican_restaurant",keyword:"mexican"},"Japanese":{type:"japanese_restaurant",keyword:"japanese"},"Chinese":{type:"chinese_restaurant",keyword:"chinese"},"Indian":{type:"indian_restaurant",keyword:"indian"},"Pizza":{type:"pizza_restaurant",keyword:"pizza"},"Cafes":{type:"cafe",keyword:"cafe"},"Desserts":{type:"bakery",keyword:"dessert bakery"}}, see:{"Museums":{type:"museum"},"Art Galleries":{type:"art_gallery"},"Tourist Attractions":{type:"tourist_attraction"}}, night:{"Bars":{type:"bar"},"Night Clubs":{type:"night_club"}}, outdoors:{"Parks":{type:"park"}, "Hiking":{keyword:"hiking area"}, "Campground":{type:"campground"}, "Scenic Lookout":{type:"tourist_attraction", keyword:"scenic lookout"}}, gems:{"Quirky Shops":{keyword:"vintage store"},"Indie Coffee":{type:"cafe"},"Local Art":{type:"art_gallery"},"Quiet Spots":{type:"park"}}, pets:{"Dog Park":{type:"park",keyword:"dog park"}, "Pet Store":{type:"pet_store", keyword:"pet supplies store"}, "Veterinarian":{type:"veterinary_care"}}, utilities:{"Hospital":{type:"hospital"},"Pharmacy":{type:"pharmacy"},"Police":{type:"police"},"Gas Station":{type:"gas_station"},"Car Rental":{type:"car_rental"},"ATM":{type:"atm"}} };
-          const allowedByCategory = { eat:new Set(['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant']), night:new Set(['bar','night_club']), see:new Set(['museum','art_gallery','tourist_attraction']), outdoors: new Set(['park', 'tourist_attraction', 'campground']), gems:new Set(['art_gallery','park','cafe']), pets:new Set(['park','pet_store','veterinary_care']), utilities:new Set(['hospital','pharmacy','police','gas_station','car_rental','atm']), random: new Set([ ...['restaurant','cafe','bakery','meal_takeaway','pizza_restaurant','italian_restaurant','mexican_restaurant','japanese_restaurant','chinese_restaurant','indian_restaurant'], ...['bar','night_club'], ...['museum','art_gallery','tourist_attraction'], ...['park', 'campground'], ...['art_gallery','park','cafe'] ]) };
-          const bannedRetailish = new Set(['grocery_or_supermarket','supermarket','department_store','shopping_mall','convenience_store','store','lodging','hotel']);
-
-          /* ====== Utils ====== */
-          const metersToImperial = m => { const ft=m*3.28084; return ft<1000?`${Math.round(ft)} ft`:`${(m*0.000621371).toFixed(1)} mi`; };
-          const toggleFilterButtons = d => {
-              console.log(`DEBUG: Toggling buttons disabled=${d}`);
-              document.querySelectorAll('#main-screen button, #settings-button').forEach(b => {
-                  // Ensure we don't try to disable something that might not exist yet if called too early
-                  if (b) b.disabled = d;
-              });
-          }
-          const renderStarsHTML = r => { r=Math.round(r||0); let h=''; for(let i=1;i<=5;i++)h+=`<span class="star${i<=r?' filled':''}">★</span>${i<5?' ':''}`; return h; };
-          const renderStars = (el,r) => el.innerHTML=renderStarsHTML(r);
-          const stripHtml = h => { const t=document.createElement('div'); t.innerHTML=h||''; return t.textContent||t.innerText||''; };
-          const dedupe = items => { const s=new Set(),o=[]; for(const it of items) if(it && it.place_id && !s.has(it.place_id)){s.add(it.place_id);o.push(it)} return o; };
-          const sortResults = a => a.sort((x,y)=>(y.rating??0)-(x.rating??0)||(y.user_ratings_total??0)-(x.user_ratings_total??0)||(x.distanceMeters??Infinity)-(y.distanceMeters??Infinity)||x.name.localeCompare(y.name));
-          function isCandidate(p, kw, reqType, allowedSet) { const types = new Set(p.types || []); const typeMatch = [...types].some(type => allowedSet.has(type)); for (const type of types) { if (bannedRetailish.has(type)) return false; } if (reqType && !types.has(reqType)) { if (!( (types.has('restaurant') || types.has('store') || types.has('point_of_interest')) && kw && new RegExp(kw, 'i').test(p.name || '') )) { return false; } } if (!typeMatch) { if (!(kw && new RegExp(kw, 'i').test(p.name || ''))) { return false; } } return true; }
-          function updateSaveButtonState(){ const pressed = currentPlace && !!savedPlaces[currentPlace.place_id]; if(savePlaceButton) { savePlaceButton.setAttribute('aria-pressed', String(pressed)); savePlaceButton.textContent = pressed ? '★' : '☆'; } console.log('DEBUG: updateSaveButtonState ran. Place ID:', currentPlace ? currentPlace.place_id : 'null', 'Pressed:', pressed); }
-          function speak(text){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if (currentVoiceURI) { const selectedVoice = voices.find(v => v.voiceURI === currentVoiceURI); if (selectedVoice) u.voice = selectedVoice; } speechSynthesis.speak(u); }catch(e){ console.error("Speak error:", e)} }
-
-          /* ====== Local Facts ====== */
-          async function getFunFact(coords){ /* ... unchanged ... */ }
-          function startFactCycling(){ /* ... unchanged ... */ }
-
-          /* ====== Results/Saved/Events/Reviews Lists ====== */
-          function showResultsList(parentFilter, subLabel){ /* ... unchanged ... */ }
-          function showSavedList() { /* ... unchanged ... */ }
-          function showEventsList(events) { /* ... unchanged ... */ }
-
-          function showReviews() {
-              console.log("DEBUG: showReviews called. Sort:", currentReviewSort, "Star Filter:", currentStarFilter);
-              mainScreen.style.display = 'none'; resultScreen.style.display = 'none'; reviewsListScreen.style.display = 'flex';
-
-              // ** FIX 2e: References are now guaranteed by DOMContentLoaded **
-              reviewDateFilterInfo.textContent = ""; // Clear date message
-
-              const reviewsToDisplay = [...currentReviews];
-              console.log("DEBUG: Total reviews available (no date filter):", reviewsToDisplay.length);
-
-              const showFilters = currentReviews.length >= 20;
-
-              reviewFiltersContainer.style.display = showFilters ? 'block' : 'none';
-              reviewSortContainer.style.display = showFilters ? 'flex' : 'none';
-
-              const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-              reviewsToDisplay.forEach(r => { if (r && r.rating !== undefined && starCounts[r.rating] !== undefined) starCounts[r.rating]++; });
-
-              reviewStarFilterContainer.innerHTML = '';
-              [5, 4, 3, 2, 1].forEach(rating => {
-                  const count = starCounts[rating];
-                  if (count > 0 || !showFilters) {
-                      const btn = document.createElement('button'); btn.className = 'review-star-button'; btn.dataset.rating = rating; let stars = '★'.repeat(rating) + '☆'.repeat(5 - rating); btn.innerHTML = `${stars} <span class="count">(${count})</span>`; if (parseInt(btn.dataset.rating) === currentStarFilter) { btn.classList.add('active'); } reviewStarFilterContainer.appendChild(btn);
-                  }
-              });
-              if (showFilters) { const clearBtn = document.createElement('button'); clearBtn.id = 'clear-star-filter'; clearBtn.className = 'review-star-button text-xs font-bold'; clearBtn.style = 'opacity: 0.8; color: var(--text-subtle); margin-top: 4px;'; clearBtn.textContent = 'Clear'; reviewStarFilterContainer.appendChild(clearBtn); }
-
-              const finalFilteredReviews = currentStarFilter === null ? [...reviewsToDisplay] : reviewsToDisplay.filter(r => r && r.rating === currentStarFilter);
-              console.log("DEBUG: Reviews after star filter:", finalFilteredReviews.length);
-
-              if (currentReviewSort === 'time') { finalFilteredReviews.sort((a, b) => (b?.time || 0) - (a?.time || 0)); }
-              else if (currentReviewSort === 'rating-desc') { finalFilteredReviews.sort((a, b) => (b?.rating || 0) - (a?.rating || 0)); }
-              else if (currentReviewSort === 'rating-asc') { finalFilteredReviews.sort((a, b) => (a?.rating || 0) - (b?.rating || 0)); }
-
-              document.querySelectorAll('.review-sort-button').forEach(b => { b.classList.toggle('active', b.id.includes(currentReviewSort.split('-')[0])); });
-
-              reviewsList.innerHTML = '';
-              if (finalFilteredReviews.length === 0) {
-                  reviewsList.innerHTML = `<p class="opacity-70 text-center p-4">No reviews match ${currentStarFilter !== null ? currentStarFilter +'-star filter' : 'your criteria'}.</p>`; return;
-              }
-
-              console.log(`DEBUG: Rendering ${finalFilteredReviews.length} reviews...`);
-              finalFilteredReviews.forEach((review, index) => { /* ... unchanged ... */ });
-              console.log("DEBUG: Finished rendering reviews.");
-          }
-
-
-          /* ====== Search ====== */
-          async function findLocalEvents() { /* ... unchanged ... */ }
-          function findAdventure(searchParams,parentFilter,subLabel){ /* ... unchanged ... */ }
-
-          /* ====== Details, Directions, Compass ====== */
-          function openDetailsById(placeId){ /* ... unchanged ... */ }
-
-          function getPlaceDetails(summary){ // ** Incorporates Save/Compass Button Disabling **
-              if (!summary || !summary.place_id) { console.error("DEBUG: getPlaceDetails called with invalid summary:", summary); return; }
-              mainScreen.style.display = 'none'; resultsListScreen.style.display = 'none'; savedListScreen.style.display = 'none'; eventsListScreen.style.display = 'none'; reviewsListScreen.style.display = 'none'; resultScreen.style.display='flex';
-              currentPlace = summary; currentReviews = []; currentStarFilter = null; currentReviewSort = 'time';
-
-              // ** FIX 3a: Disable Save and Compass buttons initially **
-              savePlaceButton.disabled = true;
-              compassButton.disabled = true; // Disable compass
-              updateSaveButtonState();
-
-              placeNameEl.textContent = 'Loading Details...';
-              const placeholdURL = `https://placehold.co/600x400/111827/f8f7f2?text=${encodeURIComponent(summary.name)}`;
-              placePhotoEl.src = placeholdURL; placePhotoEl.onerror = null;
-              placeRatingEl.textContent=''; placeStarsEl.innerHTML=''; placePriceEl.textContent=''; placeTypesContainer.innerHTML=''; websiteLink.classList.add('hidden'); phoneLink.textContent=''; phoneLink.removeAttribute('href'); placeAccessibility.textContent=''; placeAccessibility.style.display='none'; showReviewsButton.disabled = true; showReviewsButton.textContent = 'Loading Reviews...';
-              routeSteps=[]; stepIndex=0; stepTarget=null; destLatLng = null; // Ensure destLatLng is reset
-              stopCompass(); // Stop any previous compass session
-
-              console.log("DEBUG: Fetching details for placeId:", summary.place_id);
-              placesService.getDetails({
-                  placeId:summary.place_id,
-                  fields:['name','rating','user_ratings_total','price_level','website','vicinity','types','formatted_phone_number','geometry','wheelchair_accessible_entrance', 'reviews', 'formatted_address', 'place_id'] // Ensure place_id is requested
-              },(place,status)=>{
-                  console.log("DEBUG: Place Details status:", status, "Place:", place ? place.name : 'null');
-                  if(status===google.maps.places.PlacesServiceStatus.OK && place){
-                      currentPlace = place; // Update currentPlace with full details
-                      placeNameEl.textContent=place.name;
-                      renderStars(placeStarsEl, place.rating??0);
-                      placeRatingEl.textContent=place.rating?place.rating.toFixed(1):'N/A';
-                      placePriceEl.textContent=place.price_level?'$'.repeat(place.price_level):'';
-                      if(place.website){ try { const domain = new URL(place.website).hostname; placePhotoEl.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; placePhotoEl.onerror = () => { placePhotoEl.src = placeholdURL; }; } catch (e) { placePhotoEl.src = placeholdURL; } websiteLink.href=place.website; websiteLink.classList.remove('hidden'); } else { placePhotoEl.src = placeholdURL; }
-                      if(place.formatted_phone_number){phoneLink.href=`tel:${place.formatted_phone_number}`;phoneLink.textContent=place.formatted_phone_number}
-                      if(place.wheelchair_accessible_entrance){placeAccessibility.textContent='♿';placeAccessibility.style.display='inline'}
-                      if(place.types?.length){ place.types.filter(t=>!['point_of_interest','establishment'].includes(t)).slice(0,3).forEach(t=>{ const s=document.createElement('span'); s.className='place-type-tag'; s.textContent=t.replace(/_/g, ' '); placeTypesContainer.appendChild(s); }); }
-                      currentReviews = place.reviews || [];
-                      showReviewsButton.disabled = currentReviews.length === 0;
-                      showReviewsButton.textContent = `Show Reviews (${currentReviews.length})`;
-
-                      // ** FIX 2f: Use the correct ref for reviewFiltersContainer **
-                      // Ensure ref is valid before using style property
-                      if (reviewFiltersContainer) {
-                         reviewFiltersContainer.style.display = currentReviews.length >= 20 ? 'block' : 'none';
-                      } else {
-                         console.error("DEBUG: reviewFiltersContainer is null inside getDetails callback!");
-                      }
-
-
-                      const dest=`${place.name}, ${place.vicinity||place.formatted_address||''}`;
-                      directionsLink.href=`http://googleusercontent.com/maps/google.com/0{encodeURIComponent(dest)}`;
-
-                      // ** FIX 3b: Re-enable Save button only if place_id exists **
-                      if (place.place_id) {
-                          savePlaceButton.disabled = false;
-                          updateSaveButtonState();
-                      } else {
-                          console.error("DEBUG: Place details loaded BUT place_id is missing!", place);
-                          savePlaceButton.disabled = true;
-                      }
-
-                      // ** FIX 3c: Build route and enable Compass button **
-                      if (place.geometry && place.geometry.location) {
-                         buildRouteTo(place.geometry.location); // This sets destLatLng
-                         if (destLatLng) { // Check if destLatLng was set successfully
-                            compassButton.disabled = false; // Enable compass
-                         } else {
-                            compassButton.disabled = true;
-                            console.warn("DEBUG: buildRouteTo might have failed, destLatLng not set.");
-                         }
-                      } else {
-                         compassButton.disabled = true; // Keep disabled if no geometry
-                         console.warn("DEBUG: Place details missing geometry, cannot enable compass.");
-                      }
-
-                  } else {
-                      showReviewsButton.textContent = 'Reviews Unavailable';
-                      console.error('Place Details fetch failed:', status);
-                      savePlaceButton.disabled = true; // Keep disabled on error
-                      compassButton.disabled = true; // Keep compass disabled on error
-                  }
-              });
-          }
-
-          function buildRouteTo(latLng){ /* ... unchanged ... */ }
-          function setStep(i){ /* ... unchanged ... */ }
-          const toRad=d=>d*Math.PI/180; const norm=a=>((a%360)+360)%360; function bearingFromTo(a,b){ /* ... */ } function haversineMeters(a,b){ /* ... */ } function turnHint(delta){ /* ... */ } function updateCompassUI(){ /* ... */ } function onOrientation(e){ /* ... */ }
-          function openCompass(){
-               // ** FIX 3d: Check destLatLng validity before starting **
-               if(!destLatLng) {
-                   alert('No destination set. Please wait for place details to load.');
-                   console.warn("DEBUG: openCompass called but destLatLng is null.");
-                   return;
-               }
-               compassModal.style.display = 'flex'; compassDialog.focus(); startCompass();
-          }
-          function closeCompass(){ /* ... */ } function trapCompassTab(e){ /* ... */ } function startCompass(){ /* ... */ } function stopCompass(){ /* ... */ }
-
-          /* ====== Settings ====== */
-          function applyTheme(theme) { /* ... */ } function applyVoice(voiceURI) { /* ... */ } function loadVoices() { /* ... */ }
-          function loadSettings() { /* ... Called by initializeMapServices ... */ }
-          function openSettings() { /* ... */ } function closeSettings() { /* ... */ }
-
-          /* ====== UI & Events ====== */
-          function showSubMenu(filter){ /* ... */ } function hideSubMenu(){ /* ... */ } function findRandomAdventure() { /* ... */ } function resetApp(hide=true){ /* ... */ }
-
-          // Main document.addEventListener('click', ...)
-          document.addEventListener('click', (e)=>{
-              /* ... ALL click handling logic ... */
-          });
-
-          // Input listeners
-          locationInput.addEventListener('keyup',e=>{if(e.key==='Enter') geocodeLocation();});
-          voiceSelector.addEventListener('change', e => { applyVoice(e.target.value); });
-
-          console.log("DEBUG: Main script logic initialized.");
-
-          // ** Initialize Map Services AFTER DOM is ready and refs are set **
-          // initializeMapServices(); // <-- *** FIX: REMOVED FROM HERE ***
-
-      }); // *** End of DOMContentLoaded wrapper ***
-
-      /* ====== Init / Geocode ====== */
-      // initApp remains global for Google Maps callback
-      function initApp(){
-          console.log("DEBUG: initApp called by Google Maps callback.");
-          // *** FIX: MOVED HERE ***
-          initializeMapServices(); 
-      }
-      window.initApp=initApp; // Make it global
-
-      // This function contains the logic originally in initApp, now called safely
-      function initializeMapServices() {
-          console.log("DEBUG: initializeMapServices running.");
-          loadSettings(); // Okay here
-          placesService=new google.maps.places.PlacesService(document.createElement('div'));
-          geocoder=new google.maps.Geocoder();
-          directionsService=new google.maps.DirectionsService();
-
-          // Ensure locationStatus exists before setting textContent
-          const locationStatusElem = document.getElementById('location-status');
-          if (locationStatusElem) {
-              locationStatusElem.textContent = 'Acquiring location...';
-          } else {
-              console.error("DEBUG: location-status element not found in initializeMapServices!");
-          }
-
-          toggleFilterButtons(true); // toggleFilterButtons has internal checks now
-
-          if(navigator.geolocation){
-              console.log("DEBUG: Geolocation supported.");
-              navigator.geolocation.getCurrentPosition(
-                  pos => {
-                      console.log("DEBUG: Geolocation success.");
-                      const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                      reverseGeocodeSetLocation(coords); // Assumes reverseGeocodeSetLocation is available globally
-                  },
-                  handleLocationError, // Assumes handleLocationError is available globally
-                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-              );
-          } else {
-              console.log("DEBUG: Geolocation not supported.");
-              handleLocationError({ code: -1, message: "Geolocation not supported by this browser." }); // Assumes handleLocationError is available globally
-          }
-      }
-
-      // Global functions (ensure they don't rely on refs before DOMContentLoaded)
-       function handleLocationError(error) {
-           console.warn("DEBUG: Geolocation error:", error.code, error.message);
-           let message = "Couldn't get location.";
-           switch(error.code) { /* ... case statements ... */ }
-           // Safely update status and show manual entry
-           const locationStatusElem = document.getElementById('location-status');
-           if (locationStatusElem) locationStatusElem.textContent = message;
-           const manualEntryElem = document.getElementById('manual-location-entry');
-           if (manualEntryElem) manualEntryElem.classList.remove('hidden');
-           getFunFact({lat:40.7128,lng:-74.0060}); // Assumes getFunFact is available
-           toggleFilterButtons(false); // Safe to call
-       }
-       function reverseGeocodeSetLocation(coords){
-           console.log("DEBUG: reverseGeocodeSetLocation called with coords:", coords);
-           // Assumes geocoder is initialized
-           geocoder.geocode({location:coords},(results,status)=>{
-               console.log("DEBUG: Geocode status:", status);
-               let label="Your Current Location"; currentLocality='';
-               if(status==='OK'&&results?.[0]){ /* ... process results ... */ } else { /* ... handle fail ... */ }
-               currentGeocodeLabel = label;
-               setLocationAndEnableApp(coords,label); // Assumes setLocationAndEnableApp is available globally
-           });
-       }
-       function geocodeLocation(){
-           const locationInputElem = document.getElementById('location-input'); // Get ref here if needed
-           if (!locationInputElem) return;
-           const address=locationInputElem.value.trim();
-           if(!address) return;
-           console.log("DEBUG: geocodeLocation called for address:", address);
-           const searchingModalElem = document.getElementById('searching-modal'); // Get ref here if needed
-           if (searchingModalElem) searchingModalElem.style.display = 'flex';
-           // Assumes geocoder is initialized
-           geocoder.geocode({address},(results,status)=>{
-               if (searchingModalElem) searchingModalElem.style.display = 'none';
-               console.log("DEBUG: Address geocode status:", status);
-               if(status==='OK'&&results?.[0]){ /* ... process results ... */ } else { /* ... handle fail ... */ }
-           });
-       }
-       function setLocationAndEnableApp(coords,label){
-           console.log("DEBUG: setLocationAndEnableApp called:", {coords, label});
-           currentUserLocation=coords;
-           // Safely update status and hide manual entry
-           const locationStatusElem = document.getElementById('location-status');
-           if (locationStatusElem) locationStatusElem.textContent=`Exploring: ${label}`;
-           const manualEntryElem = document.getElementById('manual-location-entry');
-           if (manualEntryElem) manualEntryElem.classList.add('hidden');
-           toggleFilterButtons(false); // Safe to call
-           getFunFact(coords); // Assumes getFunFact is available
-           const funFactContainerElem = document.getElementById('fun-fact-container');
-           if (funFactContainerElem) funFactContainerElem.style.display='block';
-       }
-
-  </script>
-</body>
-</html>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Explorer</title>
+    <link rel="manifest" href="manifest.json">
+        <meta name="theme-color" content="#f8f7f2">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="keys.js"></script>
+  <style>
+    :root {
+      /* Modern rugged naval explorer palette */
+      --background: #f5f5f2; /* off‑white */
+      --card: #061f3e;      /* deep navy blue reminiscent of naval uniforms */
+      --primary: #e95420;   /* bright orange accent for call‑to‑actions */
+      --secondary: #0a324a; /* dark teal for secondary highlights */
+      --text-dark: #061f3e;
+      --text-light: #ffffff;
+      --accent: #b38a5e;    /* rope‑tan accent colour */
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Raleway', sans-serif;
+      background-color: var(--background);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: contain; /* Prevent scroll bounce on mobile */
+    }
+    h1, h2, h3 {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--card);
+      text-align: center;
+      padding: 1rem 0;
+      letter-spacing: 0.05rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-bottom: 3px solid var(--accent);
+    }
+    #locationDisplay {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      color: var(--card);
+      font-weight: 500;
+      letter-spacing: 0.02rem;
+    }
+    #manualInputContainer {
+      display: none;
+      margin: 0.5rem auto;
+      max-width: 90%;
+    }
+    #manualInputContainer input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      font-size: 1rem;
+      background-color: var(--background);
+      color: var(--card);
+      outline: none;
+    }
+    #factWidget {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      margin: 0.5rem auto;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      max-width: 90%;
+      min-height: 80px;
+      border: 2px dashed var(--accent);
+      position: relative;
+      overflow: hidden;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Single fact bubble styling */
+    #factBubble {
+      background-color: var(--card);
+      color: var(--text-light);
+      padding: 0.7rem 1rem;
+      border-radius: 1rem;
+      border: 2px solid var(--accent);
+      /* Expand to full width within its container for better readability */
+      max-width: 100%;
+      min-height: 80px;
+      margin: auto;
+      text-align: center;
+      line-height: 1.4;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    /* Out animation for bubble */
+    #factBubble.out {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+      max-width: 90%;
+      margin: 1rem auto;
+    }
+    .filter-btn {
+      background-color: var(--card);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+    }
+    .filter-btn:active {
+      transform: scale(0.96);
+      background-color: var(--secondary);
+    }
+
+    /* Special styling for the support button to evoke a steel anchor */
+    .support-btn {
+      background: linear-gradient(145deg, #48586b, #7b8b9e);
+      color: var(--text-light);
+      border: 1px solid #a4b0bc;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
+    }
+    #primaryActions {
+      max-width: 90%;
+      margin: 1rem auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    #myListBtn, #surpriseBtn {
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      padding: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    #myListBtn {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+    }
+    #surpriseBtn {
+      background-color: var(--primary);
+      color: var(--text-light);
+      font-weight: 600;
+      border: 1px solid var(--primary);
+    }
+    #myPlanBtn {
+      background-color: var(--secondary);
+      color: var(--text-light);
+      border: 1px solid var(--accent);
+    }
+    #donateBtn {
+      /* Steel effect for rugged naval style */
+      background: linear-gradient(145deg, #48586b, #7b8b9e);
+      color: var(--text-light);
+      border: 1px solid #a4b0bc;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
+    }
+    #ghostBtn {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      background: transparent;
+      border: none;
+      font-size: 2.2rem;
+      opacity: 0.4;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.3s;
+      z-index: 30;
+    }
+    #ghostBtn:hover {
+      opacity: 1;
+      transform: rotate(5deg);
+    }
+    /* Modal overlay */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .modal.active {
+      display: flex;
+      /* Blur underlying content for focus */
+      backdrop-filter: blur(2px);
+    }
+
+    /* When a modal is open, prevent scrolling on body */
+    body.modal-open {
+      overflow: hidden;
+    }
+    .modal-content {
+      background-color: var(--background);
+      border-radius: var(--radius);
+      max-height: 80vh;
+      overflow-y: auto;
+      width: 92%;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      padding: 1rem;
+      position: relative;
+      border: 2px solid var(--accent);
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    /* Animate modal content expansion */
+    .modal.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--card);
+      padding: 0.2rem;
+    }
+    .subMenuList button,
+    .results-list button {
+      width: 100%;
+      background: var(--card);
+      color: var(--text-light);
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    /* Special button for surprise actions */
+    .special-btn {
+      background: var(--primary);
+      color: var(--text-light
