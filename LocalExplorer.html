@@ -1,42 +1,15 @@
-<!--
-  Local Explorer Progressive Web App
-
-  This single‑file application helps users discover interesting, highly‑rated or
-  essential places near their current location. It leverages the Geolocation
-  API to determine the user's location and Google Maps services for reverse
-  geocoding and nearby searches. When the user grants permission, the app
-  reverse geocodes the current coordinates into a human-readable address and
-  immediately enables category filters. If permission is denied or the device
-  cannot provide location data, a manual search field is displayed so the
-  traveller can type in a desired location. According to MDN, calls to
-  `navigator.geolocation` trigger a prompt asking for permission, and if
-  accepted the browser uses the best available capabilities (GPS, Wi-Fi
-  positioning, etc.) to acquire coordinates. Reverse
-  geocoding translates latitude/longitude into a formatted address
-  . Results are cached by the service worker so
-  that repeat visits work offline. A service worker
-  runs in its own thread and intercepts network requests, returning cached
-  responses when possible. Favourites are stored
-  using `localStorage`, which persists key/value pairs across browser sessions
-  for the same origin.
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Local Explorer</title>
-  <!-- Link the manifest file for PWA installation -->
   <link rel="manifest" href="manifest.json">
-  <!-- App icons for browsers and OS shortcuts -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  <!-- Theme color for mobile address bar -->
   <meta name="theme-color" content="#f8f7f2">
-  <!-- Include Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Load API keys from external file early so global variables are available -->
-  <script src="keys.js"></script>
+  <script src="key.js"></script>
   <style>
     :root {
       /* Modern rugged naval explorer palette */
@@ -319,7 +292,7 @@
       flex-direction: column;
       gap: 0.5rem;
     }
-    #myListBtn, #surpriseBtn {
+    #myListBtn, #surpriseBtn, #myPlanBtn {
       border: none;
       border-radius: var(--radius);
       font-size: 1rem;
@@ -353,20 +326,10 @@
       border: 1px solid #a4b0bc;
       box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
     }
-      position: fixed;
-      bottom: 1rem;
-      left: 1rem;
-      background: transparent;
-      border: none;
-      font-size: 2.2rem;
-      opacity: 0.4;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.3s;
-      z-index: 30;
-    }
-      opacity: 1;
-      transform: rotate(5deg);
-    }
+    /* REMOVED INVALID CSS BLOCK 1
+    */
+    /* REMOVED INVALID CSS BLOCK 2
+    */
     /* Modal overlay */
     .modal {
       position: fixed;
@@ -755,6 +718,13 @@
       height: 1px;
       overflow: hidden;
     }
+    /* Basic large text support */
+    body.large-text .results-info h4 { font-size: 1.15rem; }
+    body.large-text #detailsContent h3 { font-size: 1.6rem; }
+    body.large-text #detailsAddress { font-size: 1.1rem; }
+    body.large-text .accordion-content p { font-size: 1rem; }
+    body.large-text .filter-btn, body.large-text #primaryActions button { font-size: 1.1rem; }
+    
     /* Responsive adjustments */
     @media (max-width: 520px) {
       #appHeader {
@@ -800,28 +770,27 @@
         <span id="weatherTitle">Local Weather</span>
         <span id="weatherUpdated">Waiting for location...</span>
       </div>
-      <button id="refreshWeatherBtn" type="button" aria-label="Refresh weather">&#8635;</button>
+      <button id="refreshWeatherBtn" type="button" aria-label="Refresh weather">↻</button>
     </div>
     <div id="weatherContent">
-      <div id=\ weatherPrimary\>
-        <span id=\weatherIcon\>--</span>
-        <span id=\weatherTemp\>--°</span>
+      <div id="weatherPrimary">
+        <span id="weatherIcon">--</span>
+        <span id="weatherTemp">--°</span>
       </div>
-      <div id=\weatherDetails\>
-        <div id=\weatherDescription\>We will pull the forecast once we know where you are.</div>
-        <div id=\weatherMeta\>
-          <span id=\weatherFeels\>Feels like --°</span>
-          <span id=\weatherWind\>Wind -- mph</span>
+      <div id="weatherDetails">
+        <div id="weatherDescription">We will pull the forecast once we know where you are.</div>
+        <div id="weatherMeta">
+          <span id="weatherFeels">Feels like --°</span>
+          <span id="weatherWind">Wind -- mph</span>
         </div>
-        <div id=\weatherRange\>High --° / Low --°</div>
+        <div id="weatherRange">High --° / Low --°</div>
       </div>
     </div>
   </div>
   <div class="filters" id="filterGrid">
-    <!-- Buttons populated by JS -->
-  </div>
+    </div>
   <div id="primaryActions">
-    <button id="myListBtn">📋 My List</button>
+    <button id="myListBtn">⭐ My Favorites</button>
     <button id="myPlanBtn">🗺️ My Plan</button>
     <button id="surpriseBtn">🤷 Surprise Me!</button>
   </div>
@@ -838,6 +807,8 @@
           <option value="sunset">Sunset Cruise</option>
           <option value="neon">Neon Harbor</option>
           <option value="arctic">Arctic Dawn</option>
+          <option value="system-light">System Light</option>
+          <option value="system-dark">System Dark</option>
         </select>
         <span class="setting-hint">Pick a vibe and we will remember it for next time.</span>
       </div>
@@ -849,19 +820,24 @@
       <div class="setting-group">
         <label class="setting-toggle">
           <input type="checkbox" id="ambientModeToggle">
-          <span>Ambient harbor sound cues</span>
+          <span>Gentle wave and seagull sounds</span>
         </label>
         <span class="setting-hint">Adds soft ambience while navigating (experimental).</span>
+      </div>
+      <div class="setting-group">
+        <label class="setting-toggle">
+          <input type="checkbox" id="largeTextToggle">
+          <span>Larger Text</span>
+        </label>
+        <span class="setting-hint">Increases font size for readability.</span>
       </div>
       <div class="setting-group">
         <button id="resetSettingsBtn" class="settings-secondary" type="button">Reset to defaults</button>
       </div>
     </div>
   </div>
-  <!-- Hidden map for PlacesService and Geocoder -->
   <div id="hiddenMap"></div>
 
-  <!-- Sub‑menu modal -->
   <div id="subMenuModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -872,7 +848,6 @@
     </div>
   </div>
 
-  <!-- Results modal -->
   <div id="resultsModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -883,19 +858,17 @@
     </div>
   </div>
 
-  <!-- My List modal -->
   <div id="myListModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>My List</h3>
+        <h3>My Favorites</h3>
         <button class="close-btn" id="closeMyList">×</button>
       </div>
       <div class="results-list" id="myListContent"></div>
-      <div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div>
+      <div class="empty-state" id="myListEmpty" style="display:none;">Your favorite places will appear here.</div>
     </div>
   </div>
 
-  <!-- Plan modal -->
   <div id="planModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -911,7 +884,6 @@
     </div>
   </div>
 
-  <!-- Donate modal -->
   <div id="donateModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -922,16 +894,14 @@
         If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!
       </p>
       <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">
-        Venmo: <strong>@Stephen-Mohamed-1</strong>
+        Use our secure portal to support development.
       </p>
       <div style="display:flex; gap:0.5rem;">
-        <button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button>
-        <button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button>
+        <button id="openDonatePortalBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Donate via PayPal</button>
       </div>
     </div>
   </div>
 
-  <!-- Details sheet -->
   <div id="detailsSheet">
     <div id="detailsMap"></div>
     <div id="detailsContent">
@@ -957,7 +927,6 @@
     </div>
   </div>
 
-  <!-- Compass & navigation overlay -->
   <div id="compassOverlay">
     <div id="compassTop">
       <div id="radar">
@@ -984,7 +953,6 @@
     </div>
   </div>
 
-  <!-- Dynamically inject Google Maps script using the key defined in keys.js -->
   <script>
     // Create the script tag for Google Maps after reading the API key from keys.js
     (function() {
@@ -1038,7 +1006,26 @@
         '--text-dark': '#1b3b5f',
         '--text-light': '#ffffff',
         '--accent': '#8bc6ec'
-      }
+      },
+      // IMPROVEMENT: Added system light/dark themes
+      'system-light': {
+        '--background': '#ffffff',
+        '--card': '#f0f0f0',
+        '--primary': '#007aff',
+        '--secondary': '#e5e5e5',
+        '--text-dark': '#000000',
+        '--text-light': '#000000',
+        '--accent': '#cccccc'
+      },
+      'system-dark': {
+        '--background': '#000000',
+        '--card': '#1c1c1e',
+        '--primary': '#0a84ff',
+        '--secondary': '#2c2c2e',
+        '--text-dark': '#ffffff',
+        '--text-light': '#ffffff',
+        '--accent': '#3a3a3c'
+      },
     };
     let currentThemeKey = DEFAULT_THEME;
 
@@ -1147,6 +1134,14 @@ let streetViewVisible = false;
         { name: "Movie Theaters", type: "movie_theater" },
         { name: "Bowling Alleys", type: "bowling_alley" },
         { name: "Concert Venues", keyword: "concert", type: "point_of_interest" }
+      ],
+      // IMPROVEMENT: Added Veteran Resources
+      "Veteran Resources": [
+        { name: "VA Clinics", keyword: "veteran affairs clinic", type: "hospital", ignoreRating: true },
+        { name: "VA Hospitals", keyword: "veteran affairs hospital", type: "hospital", ignoreRating: true },
+        { name: "Veteran Centers", keyword: "veteran center", type: "point_of_interest" },
+        { name: "Quiet Parks", keyword: "quiet park", type: "park" },
+        { name: "Veteran Owned", keyword: "veteran owned business", type: "point_of_interest" }
       ],
       "Hidden Gems": [
         { name: "Libraries", type: "library" },
@@ -1338,6 +1333,7 @@ let streetViewVisible = false;
         case 'Foodie Finds': return '🍽️';
         case 'Iconic Sights': return '🏛️';
         case 'Night Out': return '🌙';
+        case 'Veteran Resources': return '🇺🇸'; // IMPROVEMENT: Added icon
         case 'Hidden Gems': return '💎';
         case 'Pet Friendly': return '🐾';
         case 'Utilities & Help': return '🛠️';
@@ -1984,12 +1980,18 @@ let streetViewVisible = false;
           info.appendChild(visitedSpan);
           wrapper.appendChild(info);
           btn.appendChild(wrapper);
-          // Toggle visited on context menu (long press)
-          btn.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
+
+          // IMPROVEMENT: Removed 'contextmenu' listener and added a visible button
+          const visitedBtn = document.createElement('button');
+          visitedBtn.textContent = visited.includes(item.place_id) ? '✔️ Visited' : '◻️ Visit';
+          visitedBtn.style.cssText = 'flex-shrink: 0; margin-left: 0.5rem; background: var(--card); color: var(--text-light); border: 1px solid var(--accent); border-radius: 8px; padding: 0.3rem 0.5rem; font-size: 0.8rem; cursor: pointer;';
+          visitedBtn.onclick = (e) => {
+            e.stopPropagation(); // Prevent opening details
             toggleVisited(item.place_id);
             loadPlan();
-          });
+          };
+          btn.appendChild(visitedBtn);
+
           // Clicking opens details
           btn.addEventListener('click', () => {
             showDetails(item.place_id);
@@ -2078,20 +2080,13 @@ let streetViewVisible = false;
         document.body.classList.remove('modal-open');
       }
     });
-    // Open Venmo page in new tab
-    $("openVenmoBtn").addEventListener('click', () => {
-      const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
-      window.open(venmoUrl);
+    
+    // IMPROVEMENT: Removed venmo listeners, added one for a general portal
+    $("openDonatePortalBtn").addEventListener('click', () => {
+      // Replace with your actual PayPal.me link or other portal
+      window.open('https://paypal.me/your-business-link', '_blank');
     });
-    // Copy Venmo handle to clipboard
-    $("copyVenmoBtn").addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText('@Stephen-Mohamed-1');
-        alert('Venmo handle copied to clipboard!');
-      } catch (err) {
-        alert('Unable to copy. Please copy manually.');
-      }
-    });
+
     function loadMyList() {
       const list = getSavedList();
       const content = $("myListContent");
@@ -2240,9 +2235,9 @@ let streetViewVisible = false;
               if (selectedVoice) {
                 utter.voice = selectedVoice;
               }
-              // Slightly lower pitch and slower rate for a rugged, confident tone
-              utter.pitch = 0.85;
-              utter.rate = 0.95;
+              // IMPROVEMENT: Set pitch and rate to 1 for clarity
+              utter.pitch = 1;
+              utter.rate = 1;
               utter.volume = 1;
               window.speechSynthesis.speak(utter);
               idx++;
@@ -2463,6 +2458,8 @@ let streetViewVisible = false;
       const themeSelect = $("themeSelect");
       const ambientToggle = $("ambientModeToggle");
       const resetBtn = $("resetSettingsBtn");
+      // IMPROVEMENT: Added large text toggle
+      const largeTextToggle = $("largeTextToggle");
 
       const openPanel = () => {
         if (!settingsPanel) return;
@@ -2505,6 +2502,18 @@ let streetViewVisible = false;
         });
       }
 
+      // IMPROVEMENT: Added listener logic for large text toggle
+      const storedLargeText = localStorage.getItem('largeTextEnabled') === 'true';
+      if (largeTextToggle) {
+        largeTextToggle.checked = storedLargeText;
+        document.body.classList.toggle('large-text', storedLargeText); // Apply on load
+        largeTextToggle.addEventListener('change', () => {
+          const isEnabled = largeTextToggle.checked;
+          localStorage.setItem('largeTextEnabled', isEnabled ? 'true' : 'false');
+          document.body.classList.toggle('large-text', isEnabled);
+        });
+      }
+
       if (resetBtn) {
         resetBtn.addEventListener('click', () => {
           setTheme(DEFAULT_THEME);
@@ -2518,6 +2527,12 @@ let streetViewVisible = false;
           if (ambientToggle) {
             ambientToggle.checked = false;
             localStorage.setItem('ambientModeEnabled', 'false');
+          }
+          // IMPROVEMENT: Reset large text toggle
+          if (largeTextToggle) {
+            largeTextToggle.checked = false;
+            localStorage.setItem('largeTextEnabled', 'false');
+            document.body.classList.remove('large-text');
           }
           updateWeatherTitle();
         });
@@ -2533,7 +2548,8 @@ let streetViewVisible = false;
     // Register service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
+        // FIX: Changed to 'service-worker-v2.js'
+        navigator.serviceWorker.register('service-worker-v2.js');
       });
     }
 
