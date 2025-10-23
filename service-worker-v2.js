@@ -68,18 +68,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event listener remains the same as the last version
-self.addEventListener('fetch', event => {
-  const { request } = event;
-  if (request.method !== 'GET') { return; }
-  const url = new URL(request.url);
-
-  if (request.mode === 'navigate' || url.pathname.endsWith('.html')) {
-    event.respondWith( (async () => { /* Network-First logic */ })() );
-    return;
-  }
-  event.respondWith( (async () => { /* Cache-First logic for assets */ })() );
-});
+// *** FIX: Removed the empty/duplicate fetch listener that was here ***
 
 // Make sure the fetch handlers inside respondWith are included:
 self.addEventListener('fetch', event => {
