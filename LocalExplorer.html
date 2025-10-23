@@ -1979,10 +1979,10 @@ let streetViewVisible = false;
   	  bubble.textContent = 'Fetching local facts…';
   	  try {
   	  
-  	  	const url = 'https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=20000&gslimit=20&format=json&origin=*';
+  	  	const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${pos.lat}%7C${pos.lng}&gsradius=20000&gslimit=20&format=json&origin=*`;
   	  	const geoData = await fetch(url).then(res => res.json());
   	  	const pageIds = geoData.query.geosearch.map(item => item.pageid).join('|');
-  	  	const extractsUrl = 'https://en.wikipedia.org/w/api.php?action=query&pageids=${pageIds}&prop=extracts&explaintext=1&exchars=280&format=json&origin=*';
+  	  	const extractsUrl = `https://en.wikipedia.org/w/api.php?action=query&pageids=${pageIds}&prop=extracts&explaintext=1&exchars=280&format=json&origin=*`;
   	  	const extracts = await fetch(extractsUrl).then(res => res.json());
   	  	const facts = [];
   	  	Object.values(extracts.query.pages).forEach(page => {
