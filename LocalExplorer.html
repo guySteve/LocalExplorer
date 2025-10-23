@@ -116,12 +116,15 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      transition: gap 0.3s ease;
     }
     #weatherHeader {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 0.75rem;
+      position: relative; /* For anchor button */
+      min-height: 40px; /* Ensure space for anchor */
     }
     #weatherLabels {
       display: flex;
@@ -150,6 +153,7 @@
       font-size: 1rem;
       cursor: pointer;
       transition: transform 0.2s ease, background 0.2s ease;
+      flex-shrink: 0;
     }
     #refreshWeatherBtn:hover {
       background: rgba(255,255,255,0.25);
@@ -159,6 +163,34 @@
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
+    /* IMPROVEMENT: Added anchor toggle button */
+    .weather-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 1.5rem;
+      cursor: pointer;
+      position: absolute;
+      bottom: -10px;
+      right: 5px;
+      opacity: 0.7;
+      transition: transform 0.3s ease, opacity 0.2s ease;
+    }
+    .weather-toggle-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    #weatherWidget.weather-minimized .weather-toggle-btn {
+      transform: rotate(180deg);
+    }
+    /* IMPROVEMENT: Hide content when minimized */
+    #weatherWidget.weather-minimized #weatherContent {
+      display: none;
+    }
+    #weatherWidget.weather-minimized {
+      gap: 0;
+    }
+
     #weatherContent {
       display: flex;
       align-items: center;
@@ -326,10 +358,9 @@
       border: 1px solid #a4b0bc;
       box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
     }
-    /* REMOVED INVALID CSS BLOCK 1
-    */
-    /* REMOVED INVALID CSS BLOCK 2
-    */
+    
+    /* FIX: Removed two invalid/orphaned CSS blocks that were here */
+
     /* Modal overlay */
     .modal {
       position: fixed;
@@ -413,21 +444,19 @@
     .results-list button:hover {
       background: #1e293b;
     }
+    /* IMPROVEMENT: Text-Only styling */
     .results-item {
       display: flex;
       gap: 0.75rem;
+      align-items: center; /* Center text vertically */
+      width: 100%;
     }
-    .results-item img {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: var(--radius);
-      flex-shrink: 0;
-    }
+    /* IMPROVEMENT: Removed image styling */
     .results-info {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
+      text-align: left; /* Ensure text is left-aligned */
     }
     .results-info h4 {
       margin: 0;
@@ -467,6 +496,7 @@
       font-size: 1.5rem;
       color: var(--text-light);
       cursor: pointer;
+      z-index: 5; /* Ensure it's above the map */
     }
     #detailsSheet.active {
       transform: translateY(0);
@@ -534,9 +564,11 @@
       background: var(--primary);
       color: var(--text-light);
     }
+    /* IMPROVEMENT: Make compass button high-visibility */
     #compassBtn {
-      background: #0f172a;
+      background: var(--primary);
       color: var(--text-light);
+      font-weight: 600;
     }
     #addToPlanBtn.in-plan {
       background: var(--accent);
@@ -718,13 +750,6 @@
       height: 1px;
       overflow: hidden;
     }
-    /* Basic large text support */
-    body.large-text .results-info h4 { font-size: 1.15rem; }
-    body.large-text #detailsContent h3 { font-size: 1.6rem; }
-    body.large-text #detailsAddress { font-size: 1.1rem; }
-    body.large-text .accordion-content p { font-size: 1rem; }
-    body.large-text .filter-btn, body.large-text #primaryActions button { font-size: 1.1rem; }
-    
     /* Responsive adjustments */
     @media (max-width: 520px) {
       #appHeader {
@@ -771,6 +796,7 @@
         <span id="weatherUpdated">Waiting for location...</span>
       </div>
       <button id="refreshWeatherBtn" type="button" aria-label="Refresh weather">↻</button>
+      <button id="toggleWeatherBtn" type="button" aria-label="Toggle weather details" class="weather-toggle-btn">⚓</button>
     </div>
     <div id="weatherContent">
       <div id="weatherPrimary">
@@ -790,7 +816,7 @@
   <div class="filters" id="filterGrid">
     </div>
   <div id="primaryActions">
-    <button id="myListBtn">⭐ My Favorites</button>
+    <button id="myListBtn">📋 My List</button>
     <button id="myPlanBtn">🗺️ My Plan</button>
     <button id="surpriseBtn">🤷 Surprise Me!</button>
   </div>
@@ -803,12 +829,10 @@
       <div class="setting-group">
         <label for="themeSelect">Theme</label>
         <select id="themeSelect">
-          <option value="naval">Naval Explorer</option>
+          <option value="naval">Polished Sailor</option>
           <option value="sunset">Sunset Cruise</option>
           <option value="neon">Neon Harbor</option>
           <option value="arctic">Arctic Dawn</option>
-          <option value="system-light">System Light</option>
-          <option value="system-dark">System Dark</option>
         </select>
         <span class="setting-hint">Pick a vibe and we will remember it for next time.</span>
       </div>
@@ -820,16 +844,9 @@
       <div class="setting-group">
         <label class="setting-toggle">
           <input type="checkbox" id="ambientModeToggle">
-          <span>Gentle wave and seagull sounds</span>
+          <span>Ambient harbor sound cues</span>
         </label>
         <span class="setting-hint">Adds soft ambience while navigating (experimental).</span>
-      </div>
-      <div class="setting-group">
-        <label class="setting-toggle">
-          <input type="checkbox" id="largeTextToggle">
-          <span>Larger Text</span>
-        </label>
-        <span class="setting-hint">Increases font size for readability.</span>
       </div>
       <div class="setting-group">
         <button id="resetSettingsBtn" class="settings-secondary" type="button">Reset to defaults</button>
@@ -861,11 +878,11 @@
   <div id="myListModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>My Favorites</h3>
+        <h3>My List</h3>
         <button class="close-btn" id="closeMyList">×</button>
       </div>
       <div class="results-list" id="myListContent"></div>
-      <div class="empty-state" id="myListEmpty" style="display:none;">Your favorite places will appear here.</div>
+      <div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div>
     </div>
   </div>
 
@@ -894,10 +911,11 @@
         If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!
       </p>
       <p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">
-        Use our secure portal to support development.
+        Venmo: <strong>@Stephen-Mohamed-1</strong>
       </p>
       <div style="display:flex; gap:0.5rem;">
-        <button id="openDonatePortalBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Donate via PayPal</button>
+        <button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button>
+        <button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button>
       </div>
     </div>
   </div>
@@ -918,8 +936,7 @@
         <button id="shareBtn">🔗 Share</button>
         <button id="compassBtn">🧭 Compass</button>
         <button id="addToPlanBtn">🗺️ Add to Plan</button>
-        <button id="toggleStreetBtn">🖼️ Street View</button>
-      </div>
+        </div>
       <button class="accordion" id="reviewsAccordion">Reviews</button>
       <div class="accordion-content" id="reviewsContent"></div>
       <button class="accordion" id="hoursAccordion">Weekly Hours</button>
@@ -969,16 +986,17 @@
     // Utility functions
     function $(id) { return document.getElementById(id); }
 
+    // IMPROVEMENT: Updated "Polished Salty Sailor" theme
     const DEFAULT_THEME = 'naval';
     const THEMES = {
       naval: {
-        '--background': '#f5f5f2',
-        '--card': '#061f3e',
-        '--primary': '#e95420',
-        '--secondary': '#0a324a',
-        '--text-dark': '#061f3e',
+        '--background': '#f8f7f2',
+        '--card': '#1a2b44',      /* Matte navy */
+        '--primary': '#c87941',   /* Brass/Copper */
+        '--secondary': '#334e68', /* Muted teal/blue */
+        '--text-dark': '#1a2b44',
         '--text-light': '#ffffff',
-        '--accent': '#b38a5e'
+        '--accent': '#8a5a44'     /* Teak brown */
       },
       sunset: {
         '--background': '#1b1c3d',
@@ -1006,26 +1024,7 @@
         '--text-dark': '#1b3b5f',
         '--text-light': '#ffffff',
         '--accent': '#8bc6ec'
-      },
-      // IMPROVEMENT: Added system light/dark themes
-      'system-light': {
-        '--background': '#ffffff',
-        '--card': '#f0f0f0',
-        '--primary': '#007aff',
-        '--secondary': '#e5e5e5',
-        '--text-dark': '#000000',
-        '--text-light': '#000000',
-        '--accent': '#cccccc'
-      },
-      'system-dark': {
-        '--background': '#000000',
-        '--card': '#1c1c1e',
-        '--primary': '#0a84ff',
-        '--secondary': '#2c2c2e',
-        '--text-dark': '#ffffff',
-        '--text-light': '#ffffff',
-        '--accent': '#3a3a3c'
-      },
+      }
     };
     let currentThemeKey = DEFAULT_THEME;
 
@@ -1135,20 +1134,14 @@ let streetViewVisible = false;
         { name: "Bowling Alleys", type: "bowling_alley" },
         { name: "Concert Venues", keyword: "concert", type: "point_of_interest" }
       ],
-      // IMPROVEMENT: Added Veteran Resources
-      "Veteran Resources": [
-        { name: "VA Clinics", keyword: "veteran affairs clinic", type: "hospital", ignoreRating: true },
-        { name: "VA Hospitals", keyword: "veteran affairs hospital", type: "hospital", ignoreRating: true },
-        { name: "Veteran Centers", keyword: "veteran center", type: "point_of_interest" },
-        { name: "Quiet Parks", keyword: "quiet park", type: "park" },
-        { name: "Veteran Owned", keyword: "veteran owned business", type: "point_of_interest" }
-      ],
       "Hidden Gems": [
         { name: "Libraries", type: "library" },
         { name: "Book Stores", type: "book_store" },
         { name: "Gardens", keyword: "garden", type: "park" },
         { name: "Historical Sites", keyword: "historical site", type: "point_of_interest" },
-        { name: "Local Favorites", keyword: "local favorite", type: "point_of_interest" }
+        { name: "Local Favorites", keyword: "local favorite", type: "point_of_interest" },
+        // IMPROVEMENT: Added Historical Markers per user request
+        { name: "Historical Markers", keyword: "historical marker", type: "point_of_interest" }
       ],
       "Pet Friendly": [
         { name: "Dog Parks", keyword: "dog park", type: "park" },
@@ -1333,7 +1326,6 @@ let streetViewVisible = false;
         case 'Foodie Finds': return '🍽️';
         case 'Iconic Sights': return '🏛️';
         case 'Night Out': return '🌙';
-        case 'Veteran Resources': return '🇺🇸'; // IMPROVEMENT: Added icon
         case 'Hidden Gems': return '💎';
         case 'Pet Friendly': return '🐾';
         case 'Utilities & Help': return '🛠️';
@@ -1546,14 +1538,9 @@ let streetViewVisible = false;
         btn.addEventListener('click', () => showDetails(place.place_id));
         const wrapper = document.createElement('div');
         wrapper.className = 'results-item';
-        // Photo
-        const img = document.createElement('img');
-        if (place.photos && place.photos.length > 0) {
-          img.src = place.photos[0].getUrl({ maxWidth: 80, maxHeight: 80 });
-        } else {
-          img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-        }
-        wrapper.appendChild(img);
+        
+        // IMPROVEMENT: Removed all photo logic to save costs
+        
         // Info
         const info = document.createElement('div');
         info.className = 'results-info';
@@ -1627,13 +1614,11 @@ let streetViewVisible = false;
 
     // Results details view
     function showDetails(placeId) {
-      placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','photos','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
+      // IMPROVEMENT: Removed 'photos' from fields to save cost
+      placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           currentPlaceDetails = place;
-          // Prepare Street View panorama and default to hidden. We request
-          // the panorama near the place and if none is available we
-          // position the viewer at the place's coordinates. After
-          // initialising, we hide the panorama and show a static photo.
+          // IMPROVEMENT: Street View now loads by default, no photo toggle.
           const loc = place.geometry.location;
           const streetService = new google.maps.StreetViewService();
           streetService.getPanorama({ location: loc, radius: 50 }, (data, status) => {
@@ -1654,20 +1639,10 @@ let streetViewVisible = false;
               streetViewPanorama.setPov(panoOptions.pov);
               streetViewPanorama.setZoom(panoOptions.zoom);
             }
-            // Hide the panorama initially
-            streetViewVisible = false;
-            streetViewPanorama.setVisible(false);
-            // Apply static background image if available
-            if (place.photos && place.photos.length > 0) {
-              const photoUrl = place.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
-              $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
-              $("detailsMap").style.backgroundSize = 'cover';
-              $("detailsMap").style.backgroundPosition = 'center';
-            } else {
-              $("detailsMap").style.backgroundImage = '';
-            }
-            const tBtn = $("toggleStreetBtn");
-            if (tBtn) tBtn.textContent = '🖼️ Street View';
+            // Show the panorama by default
+            streetViewPanorama.setVisible(true);
+            
+            // Removed all photo and toggle button logic
           });
           // Name
           $("detailsName").textContent = place.name;
@@ -1705,8 +1680,7 @@ let streetViewVisible = false;
             }
           };
           $("compassBtn").onclick = () => openCompass(loc);
-          // Bind Street View toggle
-          $("toggleStreetBtn").onclick = toggleStreetView;
+          
           // Show sheet and lock background scroll
           $("detailsSheet").classList.add('active');
           document.body.classList.add('modal-open');
@@ -1733,30 +1707,8 @@ let streetViewVisible = false;
     });
 
     /*
-      Toggle Street View visibility.
-      Street View imagery is disabled by default to reduce data usage. When
-      activated, the static background image is removed and the panorama
-      becomes visible. Toggling again hides the panorama and restores the
-      photo background if one exists.
+      IMPROVEMENT: Removed toggleStreetView() function as it's no longer used.
     */
-    function toggleStreetView() {
-      if (!streetViewPanorama) return;
-      streetViewVisible = !streetViewVisible;
-      streetViewPanorama.setVisible(streetViewVisible);
-      const btn = $("toggleStreetBtn");
-      if (streetViewVisible) {
-        if (btn) btn.textContent = '🖼️ Hide Street View';
-        $("detailsMap").style.backgroundImage = '';
-      } else {
-        if (btn) btn.textContent = '🖼️ Street View';
-        if (currentPlaceDetails && currentPlaceDetails.photos && currentPlaceDetails.photos.length > 0) {
-          const photoUrl = currentPlaceDetails.photos[0].getUrl({ maxWidth: 400, maxHeight: 200 });
-          $("detailsMap").style.backgroundImage = `url('${photoUrl}')`;
-          $("detailsMap").style.backgroundSize = 'cover';
-          $("detailsMap").style.backgroundPosition = 'center';
-        }
-      }
-    }
 
     // Populate reviews accordion
     function populateReviews(reviews) {
@@ -1823,8 +1775,8 @@ let streetViewVisible = false;
           name: place.name,
           address: place.formatted_address,
           rating: place.rating,
-          url: place.url,
-          photo: (place.photos && place.photos.length > 0) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
+          url: place.url
+          // IMPROVEMENT: Removed 'photo' property
         });
         localStorage.setItem('myPlaces', JSON.stringify(list));
       }
@@ -1909,8 +1861,8 @@ let streetViewVisible = false;
           lat: place.geometry.location.lat(),
           lng: place.geometry.location.lng(),
           address: place.formatted_address || '',
-          category: '',
-          photo: (place.photos && place.photos.length) ? place.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null
+          category: ''
+          // IMPROVEMENT: Removed 'photo' property
         });
         savePlan(list);
       }
@@ -1966,9 +1918,9 @@ let streetViewVisible = false;
           btn.style.width = '100%';
           const wrapper = document.createElement('div');
           wrapper.className = 'results-item';
-          const img = document.createElement('img');
-          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-          wrapper.appendChild(img);
+          
+          // IMPROVEMENT: Removed photo logic
+          
           const info = document.createElement('div');
           info.className = 'results-info';
           const title = document.createElement('h4');
@@ -1980,18 +1932,12 @@ let streetViewVisible = false;
           info.appendChild(visitedSpan);
           wrapper.appendChild(info);
           btn.appendChild(wrapper);
-
-          // IMPROVEMENT: Removed 'contextmenu' listener and added a visible button
-          const visitedBtn = document.createElement('button');
-          visitedBtn.textContent = visited.includes(item.place_id) ? '✔️ Visited' : '◻️ Visit';
-          visitedBtn.style.cssText = 'flex-shrink: 0; margin-left: 0.5rem; background: var(--card); color: var(--text-light); border: 1px solid var(--accent); border-radius: 8px; padding: 0.3rem 0.5rem; font-size: 0.8rem; cursor: pointer;';
-          visitedBtn.onclick = (e) => {
-            e.stopPropagation(); // Prevent opening details
+          // Toggle visited on context menu (long press)
+          btn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
             toggleVisited(item.place_id);
             loadPlan();
-          };
-          btn.appendChild(visitedBtn);
-
+          });
           // Clicking opens details
           btn.addEventListener('click', () => {
             showDetails(item.place_id);
@@ -2080,13 +2026,20 @@ let streetViewVisible = false;
         document.body.classList.remove('modal-open');
       }
     });
-    
-    // IMPROVEMENT: Removed venmo listeners, added one for a general portal
-    $("openDonatePortalBtn").addEventListener('click', () => {
-      // Replace with your actual PayPal.me link or other portal
-      window.open('https://paypal.me/your-business-link', '_blank');
+    // IMPROVEMENT: Restored Venmo button listeners
+    $("openVenmoBtn").addEventListener('click', () => {
+      const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
+      window.open(venmoUrl);
     });
-
+    // Copy Venmo handle to clipboard
+    $("copyVenmoBtn").addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('@Stephen-Mohamed-1');
+        alert('Venmo handle copied to clipboard!');
+      } catch (err) {
+        alert('Unable to copy. Please copy manually.');
+      }
+    });
     function loadMyList() {
       const list = getSavedList();
       const content = $("myListContent");
@@ -2101,9 +2054,9 @@ let streetViewVisible = false;
           btn.addEventListener('click', () => showDetails(item.place_id));
           const wrapper = document.createElement('div');
           wrapper.className = 'results-item';
-          const img = document.createElement('img');
-          img.src = item.photo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABt0lEQVR4Xu3bMU7DMAwG4Ay0BfwEdwOVyUBua6mTZEiuCCgU3hRd9xLax/vBLpqMbMLm3NHfv98bOw8DSBt3XE3MggDBljpA9Z33b+4CrzcFhVaCvA2e40D3QC4AgAmsr0MJfsuQAQEkDAACqzAUAIkEACyAKCEvNeigRN28p4EMDvUbWadND1U5sAIAJrMAdblXUg9wM4RZ2Pmdx9nYHv4gGIZAIDYD4gcQVAPqMcy7zXENr8U1WZ2zLvLXQm7YRMTgAQEAAAggxUwDQAGpAQNlxuqtXu3rbWw9weTgZ2VSPMR2pAQBIYh+gTn7IC0/nRSmDKaAFv/MxPAAAFQAGhUVL7S8b14ssoctKj/ncoPwwAICjS5tNvp0XLFaaK7ebHpQLNld4e2G9rY7aqGIb21vfgDBeCQAcIh4IgBwHbyOT7GyvN0aVaCuDXIl08WJWuZkcEzgSAIAPYldB8h8m7iRe98QjM85EJKiAdzdGOABAAAsZ4QAdyXmF+gQAdIWZ/j/t/v0y1mVldndWiZ6+ARIFfA2CXI8NwBAgZK3+1S1C7uPdhgGdzPAhgO9jUwEAAPZqSyvYf8DcnMt5XvNOtHJn2uf4H8vWlMbGv8cgwAAAAASUVORK5CYII=';
-          wrapper.appendChild(img);
+          
+          // IMPROVEMENT: Removed photo logic
+          
           const info = document.createElement('div');
           info.className = 'results-info';
           const title = document.createElement('h4');
@@ -2235,9 +2188,9 @@ let streetViewVisible = false;
               if (selectedVoice) {
                 utter.voice = selectedVoice;
               }
-              // IMPROVEMENT: Set pitch and rate to 1 for clarity
-              utter.pitch = 1;
-              utter.rate = 1;
+              // Slightly lower pitch and slower rate for a rugged, confident tone
+              utter.pitch = 0.85;
+              utter.rate = 0.95;
               utter.volume = 1;
               window.speechSynthesis.speak(utter);
               idx++;
@@ -2350,7 +2303,7 @@ let streetViewVisible = false;
         63: { icon: '🌧️', text: 'Rain' },
         65: { icon: '🌧️', text: 'Heavy rain' },
         66: { icon: '🌧️', text: 'Freezing rain' },
-        67: { icon: '🌧️', text: 'Freezing rain' },
+        67: { icon: '🌧️',T text: 'Freezing rain' },
         71: { icon: '🌨️', text: 'Light snow' },
         73: { icon: '🌨️', text: 'Snow' },
         75: { icon: '❄️', text: 'Heavy snow' },
@@ -2449,6 +2402,20 @@ let streetViewVisible = false;
         });
       }
       updateWeatherTitle();
+
+      // IMPROVEMENT: Add listener for anchor toggle
+      const toggleBtn = $("toggleWeatherBtn");
+      const weatherWidget = $("weatherWidget");
+      if (toggleBtn && weatherWidget) {
+        // Apply saved state on load
+        const isMinimized = localStorage.getItem('weatherMinimized') === 'true';
+        weatherWidget.classList.toggle('weather-minimized', isMinimized);
+
+        toggleBtn.addEventListener('click', () => {
+          const nowMinimized = weatherWidget.classList.toggle('weather-minimized');
+          localStorage.setItem('weatherMinimized', nowMinimized ? 'true' : 'false');
+        });
+      }
     }
 
     function initSettingsPanel() {
@@ -2458,8 +2425,6 @@ let streetViewVisible = false;
       const themeSelect = $("themeSelect");
       const ambientToggle = $("ambientModeToggle");
       const resetBtn = $("resetSettingsBtn");
-      // IMPROVEMENT: Added large text toggle
-      const largeTextToggle = $("largeTextToggle");
 
       const openPanel = () => {
         if (!settingsPanel) return;
@@ -2502,18 +2467,6 @@ let streetViewVisible = false;
         });
       }
 
-      // IMPROVEMENT: Added listener logic for large text toggle
-      const storedLargeText = localStorage.getItem('largeTextEnabled') === 'true';
-      if (largeTextToggle) {
-        largeTextToggle.checked = storedLargeText;
-        document.body.classList.toggle('large-text', storedLargeText); // Apply on load
-        largeTextToggle.addEventListener('change', () => {
-          const isEnabled = largeTextToggle.checked;
-          localStorage.setItem('largeTextEnabled', isEnabled ? 'true' : 'false');
-          document.body.classList.toggle('large-text', isEnabled);
-        });
-      }
-
       if (resetBtn) {
         resetBtn.addEventListener('click', () => {
           setTheme(DEFAULT_THEME);
@@ -2527,12 +2480,6 @@ let streetViewVisible = false;
           if (ambientToggle) {
             ambientToggle.checked = false;
             localStorage.setItem('ambientModeEnabled', 'false');
-          }
-          // IMPROVEMENT: Reset large text toggle
-          if (largeTextToggle) {
-            largeTextToggle.checked = false;
-            localStorage.setItem('largeTextEnabled', 'false');
-            document.body.classList.remove('large-text');
           }
           updateWeatherTitle();
         });
