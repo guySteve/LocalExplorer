@@ -610,6 +610,7 @@
       background-color: var(--card); /* Darken on hover */
     }
     /* Compass & navigation overlay */
+    /* --- Compass Overhaul CSS --- */
     #compassOverlay {
       position: fixed;
       bottom: 0.5rem;
@@ -629,51 +630,22 @@
     #compassOverlay.active {
       transform: translateY(0);
     }
-    /* --- Compass Overhaul CSS --- */
-    #compassOverlay { /* Keep existing rule, ensure border added */ border: 2px solid var(--accent); }
-    #compassTop { background-color: var(--secondary); /* Added */ padding: 1rem; display: flex; justify-content: center; align-items: center; position: relative; }
+    #compassTop { background-color: var(--secondary); padding: 1rem; display: flex; justify-content: center; align-items: center; position: relative; }
     #compassNeedleContainer { width: 150px; height: 150px; border-radius: 50%; background-color: var(--card); border: 3px solid var(--accent); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
     #compassNeedle { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 70px solid var(--primary); position: absolute; top: 10px; left: 50%; transform-origin: center calc(100% - 10px); transform: translateX(-50%) rotate(0deg); filter: brightness(0.7); transition: transform 0.5s ease-out; }
     #compassNeedle::after { content: ''; position: absolute; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 40px solid var(--background); top: -65px; left: -6px; }
-    #compassControls { background-color: var(--card); /* Match main dark */ padding: 0.5rem 1rem 1rem 1rem; border-top: 1px solid var(--accent); }
+    #compassControls { background-color: var(--card); padding: 0.5rem 1rem 1rem 1rem; border-top: 1px solid var(--accent); }
     .compass-note { background: rgba(0,0,0,0.2); color: var(--text-light); padding: 0.3rem 0.6rem; border-radius: calc(var(--radius) / 2); font-size: 0.8rem; }
     #advancedCompassControls label { color: var(--text-light); }
     #travelModeToggle label { color: var(--text-light); font-size: 0.9rem;}
-    #navigationButtons { /* Keep existing styles */ }
-    #navigationButtons button:hover { background-color: #4a6572; } /* Adjusted hover */
+    #navigationButtons { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+    #navigationButtons button { flex: 1; padding: 0.4rem; border-radius: var(--radius); border: 1px solid var(--accent); background-color: var(--card); color: var(--text-light); cursor: pointer; }
+    #navigationButtons button:hover { background-color: #4a6572; }
     #navigationButtons button:disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--secondary); }
     #directionsList { max-height: 150px; overflow-y: auto; font-size: 0.85rem; line-height: 1.4; margin-top: 0.5rem; padding: 0.3rem; background: rgba(0,0,0,0.1); border-radius: 8px; }
     #directionsList div { padding: 0.2rem 0.4rem; margin-bottom: 0.1rem; border-radius: 4px; transition: background-color 0.3s ease; }
     #directionsList .current-step { background-color: var(--primary); color: var(--card); font-weight: bold; }
     .direction-icon { display: inline-block; width: 1.2em; margin-right: 0.3em; font-weight: bold; }
-
-    #navigationButtons {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    #navigationButtons button {
-      flex: 1;
-      padding: 0.4rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--accent);
-      background-color: var(--card);
-      color: var(--text-light);
-      cursor: pointer;
-    }
-    #navigationButtons button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    #directionsList {
-      max-height: 150px;
-      overflow-y: auto;
-      font-size: 0.85rem;
-      line-height: 1.3;
-    }
-    #radarControls label {
-      color: var(--text-light);
-    }
     #hiddenMap { /* Hide map container used for Places Service */
       position: absolute;
       top: -10px; left: -10px; width: 1px; height: 1px; overflow: hidden;
@@ -844,7 +816,7 @@
 
     // Global state variables
     let currentPosition = null, currentAddress = '', map, placesService, geocoder, streetViewPanorama;
-    let currentResults = [], currentPlaceDetails, compassWatchId, miniMap, latestLocationLabel = '';
+    let currentResults = [], currentPlaceDetails, compassWatchId, latestLocationLabel = '';
     let lastWeatherFetch = 0, lastWeatherCoords = null, cachedWeather = null;
     const WEATHER_CACHE_MS = 10 * 60 * 1000; // 10 minutes
     let selectedVoiceUri = localStorage.getItem('selectedVoiceUri') || '';
@@ -1202,10 +1174,23 @@
     // Donate Modal Listeners (Restored Venmo)
     $("closeDonate").onclick = () => { $("donateModal").classList.remove('active'); document.body.classList.remove('modal-open'); };
     $("donateModal").onclick = (e) => { if (e.target.id === 'donateModal') { $("donateModal").classList.remove('active'); document.body.classList.remove('modal-open'); }};
-    $("openVenmoBtn").onclick = () => window.open('https://venmo.com/Stephen-Mohamed-1', '_blank');
-    $("copyVenmoBtn").onclick = async () => { try { await navigator.clipboard.writeText('@Stephen-Mohamed-1'); alert('Venmo handle copied!'); } catch (err) { alert('Unable to copy.'); } };
+    if ($("openVenmoBtn")) {
+      $("openVenmoBtn").addEventListener('click', () => {
+        const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
+        window.open(venmoUrl, '_blank');
+      });
+    }
+    if ($("copyVenmoBtn")) {
+      $("copyVenmoBtn").addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText('@Stephen-Mohamed-1');
+          alert('Venmo handle copied to clipboard!');
+        } catch (err) {
+          alert('Unable to copy. Please copy manually.');
+        }
+      });
+    }
 
-    // Compass/Navigation Logic (Mostly unchanged, ensure voice pitch/rate are reset if needed)
     function getIconForInstruction(instruction) {
       const lowerInstruction = instruction.toLowerCase();
       if (lowerInstruction.includes('turn left')) return '↖️';
@@ -1219,6 +1204,7 @@
       if (lowerInstruction.includes('destination')) return '🏁';
       return '➡️'; // Default
     }
+
     let navigationStopped = false;
     let currentRouteSteps = [];
     let currentNavigationIndex = 0;
@@ -1227,64 +1213,64 @@
     let orientationListener = null; // Keep track of the listener
 
     function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or google.maps.LatLng
-      const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
-      populateVoices(); navigationStopped=true; speechSynthesis.cancel(); currentRouteSteps=[]; currentNavigationIndex=0;
-      $("readDirectionsBtn").disabled=true; $("silenceBtn").disabled=true; $("directionsList").innerHTML='Calculating…';
-      const needle = $("compassNeedle"); if(needle) needle.style.transform='translateX(-50%) rotate(0deg)';
-      currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
-       // Reset listener state specific to this opening
-      if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true);
-      orientationListener = null;
+        const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
+        populateVoices(); navigationStopped=true; speechSynthesis.cancel(); currentRouteSteps=[]; currentNavigationIndex=0;
+        $("readDirectionsBtn").disabled=true; $("silenceBtn").disabled=true; $("directionsList").innerHTML='Calculating…';
+        const needle = $("compassNeedle"); if(needle) needle.style.transform='translateX(-50%) rotate(0deg)';
+        currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
+         // Reset listener state specific to this opening
+        if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true);
+        orientationListener = null;
 
 
-      const updateCompassArrow = (ev) => {
-          if (!currentPosition || !destLatLng || !needle) return;
-          try {
-              const cur = typeof currentPosition.lat === 'function' ? currentPosition : new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-              const destLat = typeof destLatLng.lat === 'function' ? destLatLng.lat() : destLatLng.lat;
-              const destLng = typeof destLatLng.lng === 'function' ? destLatLng.lng() : destLatLng.lng;
-              if (typeof destLat !== 'number' || typeof destLng !== 'number') { console.error("Invalid destination coordinates"); return; }
-              const dest = new google.maps.LatLng(destLat, destLng);
+        const updateCompassArrow = (ev) => {
+            if (!currentPosition || !destLatLng || !needle) return;
+            try {
+                const cur = typeof currentPosition.lat === 'function' ? currentPosition : new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+                const destLat = typeof destLatLng.lat === 'function' ? destLatLng.lat() : destLatLng.lat;
+                const destLng = typeof destLatLng.lng === 'function' ? destLatLng.lng() : destLatLng.lng;
+                if (typeof destLat !== 'number' || typeof destLng !== 'number') { console.error("Invalid destination coordinates"); return; }
+                const dest = new google.maps.LatLng(destLat, destLng);
 
-              const h=google.maps.geometry.spherical.computeHeading(cur,dest);
-              const d=ev?.alpha;
-              if(typeof h==='number'&&typeof d==='number'){ needle.style.transform=`translateX(-50%) rotate(${h-d}deg)`; }
-               else if (typeof h === 'number' && ev === null) { needle.style.transform=`translateX(-50%) rotate(${h}deg)`; }
-          } catch(e){ console.error("Heading error:",e); }
-      };
+                const h=google.maps.geometry.spherical.computeHeading(cur,dest);
+                const d=ev?.alpha;
+                if(typeof h==='number'&&typeof d==='number'){ needle.style.transform=`translateX(-50%) rotate(${h-d}deg)`; }
+                 else if (typeof h === 'number' && ev === null) { needle.style.transform=`translateX(-50%) rotate(${h}deg)`; }
+            } catch(e){ console.error("Heading error:",e); }
+        };
 
-      const startOrientationListener = () => {
-          if (orientationListener) return; // Prevent duplicates if somehow called again
-          if (window.DeviceOrientationEvent?.requestPermission) { window.DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); } else { console.warn("Orientation permission denied."); } }).catch(e => { console.error("Orientation permission error:", e); }); }
-          else if ('ondeviceorientation' in window) { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); }
-          else { console.warn("Orientation not supported."); }
-      };
-      startOrientationListener();
+        const startOrientationListener = () => {
+            if (orientationListener) return; // Prevent duplicates if somehow called again
+            if (window.DeviceOrientationEvent?.requestPermission) { window.DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); } else { console.warn("Orientation permission denied."); } }).catch(e => { console.error("Orientation permission error:", e); }); }
+            else if ('ondeviceorientation' in window) { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); }
+            else { console.warn("Orientation not supported."); }
+        };
+        startOrientationListener();
 
-      if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
+        if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
 
-      const ds=new google.maps.DirectionsService();const dl=$("directionsList");
-      function fetchAndDisplayRoute(mode){dl.innerHTML='Calculating…';$("readDirectionsBtn").disabled=true;ds.route({origin:currentPosition,destination:destLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;dl.appendChild(d);});$("readDirectionsBtn").disabled=false;}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];}}); }
-      fetchAndDisplayRoute(currentTravelMode);
+        const ds=new google.maps.DirectionsService();const dl=$("directionsList");
+        function fetchAndDisplayRoute(mode){dl.innerHTML='Calculating…';$("readDirectionsBtn").disabled=true;ds.route({origin:currentPosition,destination:destLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;dl.appendChild(d);});$("readDirectionsBtn").disabled=false;}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];}}); }
+        fetchAndDisplayRoute(currentTravelMode);
 
-      const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
-      function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;speakNextStep();}
-      function silenceDirections(){navigationStopped=true;speechSynthesis.cancel();if(currentSpeechUtterance)currentSpeechUtterance.onend=null;rb.disabled=(currentRouteSteps.length===0);rb.textContent="🔊 Read Directions";sb.disabled=true;}
-      function highlightStep(idx){Array.from(dl.children).forEach((el,i)=>{el.classList.toggle('current-step',i===idx);if(i===idx)el.scrollIntoView({behavior:'smooth',block:'nearest'});});}
-      function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);const step=currentRouteSteps[currentNavigationIndex];const clean=step.instructions.replace(/<[^>]+>/g,'');const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSel?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
-      rb.onclick=readDirections;sb.onclick=silenceDirections;
-      stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
-      tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
-      const brightnessSlider = $("radarBrightness"); if(brightnessSlider) brightnessSlider.oninput=()=>{const n=$("compassNeedle");if(n)n.style.filter=`brightness(${brightnessSlider.value/100})`;};
-       // Ensure miniMap reference is removed if brightnessSlider logic uses it (it doesn't here, but good practice)
-       const zoomSlider = $("radarZoom"); if (zoomSlider) zoomSlider.oninput = () => { /* No miniMap to zoom */ };
+        const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
+        function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;speakNextStep();}
+        function silenceDirections(){navigationStopped=true;speechSynthesis.cancel();if(currentSpeechUtterance)currentSpeechUtterance.onend=null;rb.disabled=(currentRouteSteps.length===0);rb.textContent="🔊 Read Directions";sb.disabled=true;}
+        function highlightStep(idx){Array.from(dl.children).forEach((el,i)=>{el.classList.toggle('current-step',i===idx);if(i===idx)el.scrollIntoView({behavior:'smooth',block:'nearest'});});}
+        function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);const step=currentRouteSteps[currentNavigationIndex];const clean=step.instructions.replace(/<[^>]+>/g,'');const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSelect?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
+        rb.onclick=readDirections;sb.onclick=silenceDirections;
+        stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
+        tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
+        const brightnessSlider = $("radarBrightness"); if(brightnessSlider) brightnessSlider.oninput=()=>{const n=$("compassNeedle");if(n)n.style.filter=`brightness(${brightnessSlider.value/100})`;};
+         // Ensure miniMap reference is removed if brightnessSlider logic uses it (it doesn't here, but good practice)
+         const zoomSlider = $("radarZoom"); if (zoomSlider) zoomSlider.oninput = () => { /* No miniMap to zoom */ };
 
-      cb.onclick=()=>{
-          overlay.classList.remove('active'); document.body.classList.remove('modal-open');
-          if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
-          if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); orientationListener=null;
-          silenceDirections(); ac.style.display='none';
-      };
+        cb.onclick=()=>{
+            overlay.classList.remove('active'); document.body.classList.remove('modal-open');
+            if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
+            if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); orientationListener=null;
+            silenceDirections(); ac.style.display='none';
+        };
     } // End openCompass
 
     // Weather Fetching & Rendering Logic (Unchanged)
@@ -1297,9 +1283,13 @@
     async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) return renderWeather(cachedWeather); showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
     function initWeatherControls() { /* Attach listeners for weather */ const refBtn = $("refreshWeatherBtn"); if (refBtn) refBtn.onclick = () => updateWeather(currentPosition, { force: true }); updateWeatherTitle(); const tglBtn = $("toggleWeatherBtn"), wWidget = $("weatherWidget"); if (tglBtn && wWidget) { const isMin = localStorage.getItem('weatherMinimized') === 'true'; wWidget.classList.toggle('weather-minimized', isMin); tglBtn.onclick = () => { const nowMin = wWidget.classList.toggle('weather-minimized'); localStorage.setItem('weatherMinimized', nowMin ? 'true' : 'false'); }; } }
 
-    function initSettingsPanel() { /* Setup settings modal listeners */ const panel = $("settingsPanel"), openBtn = $("settingsBtn"), closeBtn = $("closeSettingsBtn"), themeSel = $("themeSelect"), ambToggle = $("ambientModeToggle"), resetBtn = $("resetSettingsBtn"); const open = () => { panel?.classList.add('active'); document.body.classList.add('modal-open'); }; const close = () => { panel?.classList.remove('active'); document.body.classList.remove('modal-open'); }; if (openBtn) openBtn.onclick = open; if (closeBtn) closeBtn.onclick = close; if (panel) panel.onclick = (e) => { if (e.target === panel) close(); }; document.onkeydown = (e) => { if (e.key === 'Escape' && panel?.classList.contains('active')) close(); }; if (themeSel) { themeSel.value = currentThemeKey; themeSel.onchange = (e) => setTheme(e.target.value || DEFAULT_THEME); } const storedAmb = localStorage.getItem('ambientModeEnabled') === 'true'; if (ambToggle) { ambToggle.checked = storedAmb; ambToggle.onchange = () => localStorage.setItem('ambientModeEnabled', ambToggle.checked ? 'true' : 'false'); } if (resetBtn) resetBtn.onclick = () => { setTheme(DEFAULT_THEME); if (themeSel) themeSel.value = DEFAULT_THEME; selectedVoiceUri = ''; localStorage.removeItem('selectedVoiceUri'); populateVoices(); if (voiceSelect) voiceSelect.dispatchEvent(new Event('change')); if (ambToggle) { ambToggle.checked = false; localStorage.setItem('ambientModeEnabled', 'false'); } updateWeatherTitle(); }; }
+    function initSettingsPanel() { /* Setup settings modal listeners */ const panel = $("settingsPanel"), openBtn = $("settingsBtn"), closeBtn = $("closeSettingsBtn"), themeSel = $("themeSelect"), ambToggle = $("ambientModeToggle"), resetBtn = $("resetSettingsBtn"); const open = () => { panel?.classList.add('active'); document.body.classList.add('modal-open'); }; const close = () => { panel?.classList.remove('active'); document.body.classList.remove('modal-open'); }; if (openBtn) openBtn.onclick = open; if (closeBtn) closeBtn.onclick = close; if (panel) panel.onclick = (e) => { if (e.target === panel) close(); }; document.onkeydown = (e) => { if (e.key === 'Escape' && panel?.classList.contains('active')) close(); }; if (themeSel) { themeSel.value = currentThemeKey; themeSel.onchange = (e) => setTheme(e.target.value || DEFAULT_THEME); } const storedAmb = localStorage.getItem('ambientModeEnabled') === 'true'; if (ambToggle) { ambToggle.checked = storedAmb; ambToggle.onchange = () => localStorage.setItem('ambientModeEnabled', ambToggle.checked ? 'true' : 'false'); } if (resetBtn) resetBtn.onclick = () => { setTheme(DEFAULT_THEME); if (themeSel) themeSel.value = DEFAULT_THEME; selectedVoiceUri = ''; localStorage.removeItem('selectedVoiceUri'); populateVoices(); if (voiceSelect) voiceSelect.dispatchEvent(new Event('change')); if (ambToggle) { ambToggle.checked = false; localStorage.setItem('ambientModeEnabled', 'false'); } if ($("weatherWidget")) { $("weatherWidget").classList.remove('weather-minimized'); localStorage.removeItem('weatherMinimized'); } updateWeatherTitle(); }; }
 
     function checkSharedPlan() { /* Check URL for ?plan=... */ try { const params = new URLSearchParams(window.location.search); if (params.has('plan')) { const data = JSON.parse(decodeURIComponent(atob(params.get('plan')))); if (data?.items) { localStorage.setItem('myPlan', JSON.stringify(data.items)); localStorage.removeItem('visitedPlan'); setTimeout(() => { loadPlan(); $("planModal").classList.add('active'); document.body.classList.add('modal-open'); }, 500); } } } catch (e) { console.warn('Failed to decode shared plan', e); } }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker-v2.js');
+    }
 
     // Final Setup
     window.initMap = initApp; // Google Maps callback
