@@ -238,39 +238,85 @@
       font-size: 0.85rem;
       opacity: 0.9;
     }
+    #vibeSection {
+      max-width: 90%;
+      margin: 1rem auto 0;
+      background: rgba(26,43,68,0.04);
+      border: 1px solid rgba(26,43,68,0.08);
+      border-radius: calc(var(--radius) * 1.4);
+      padding: 1rem;
+    }
+    .vibe-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: 0.05rem;
+      color: var(--card);
+    }
+    .vibe-header p {
+      margin: 0.2rem 0 0.8rem;
+      font-size: 0.9rem;
+      color: rgba(26,43,68,0.8);
+    }
     .filters {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 0.5rem;
-      max-width: 90%;
-      margin: 1rem auto;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.75rem;
     }
     .filter-btn {
-      background-color: var(--card);
-      color: var(--text-light);
-      border: 1px solid var(--accent);
-      border-radius: var(--radius);
-      padding: 0.75rem;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+      border-radius: calc(var(--radius) * 1.1);
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(26,43,68,0.12);
+      background: #fff;
+      color: var(--card);
       cursor: pointer;
-      transition: transform 0.1s ease, background-color 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      text-align: left;
     }
-    .filter-btn:active {
-      transform: scale(0.96);
-      background-color: var(--secondary);
+    .filter-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.16);
     }
-
-    /* Special styling for the support button */
-    .support-btn {
+    .filter-btn .vibe-title {
+      display: block;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 0.2rem;
+    }
+    .filter-btn .vibe-tagline {
+      font-size: 0.78rem;
+      line-height: 1.4;
+      opacity: 0.8;
+    }
+    .filter-btn.vibe-card {
+      background: linear-gradient(160deg, rgba(26,43,68,0.95), rgba(51,78,104,0.82));
+      color: var(--text-light);
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: 0 16px 26px rgba(0,0,0,0.22);
+    }
+    .filter-btn.vibe-card .vibe-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+    .filter-btn.outline {
+      background: transparent;
+      border-style: dashed;
+      justify-content: center;
+      font-weight: 600;
+    }
+    .filter-btn.support-btn {
       background: linear-gradient(145deg, #48586b, #7b8b9e);
       color: var(--text-light);
       border: 1px solid #a4b0bc;
       box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
+      justify-content: center;
     }
+    .filter-btn.support-btn:hover {
+      filter: brightness(1.05);
+    }
+
     #settingsPanel .modal-content {
       max-width: 420px;
       padding: 1.25rem 1.5rem 1.5rem;
@@ -438,6 +484,22 @@
     .results-list button:hover {
       background: var(--secondary); /* Use secondary color for hover */
     }
+    .load-more-btn {
+      width: 100%;
+      margin: 0.75rem 0 0;
+      border: 1px dashed rgba(26,43,68,0.3);
+      background: transparent;
+      color: var(--card);
+      border-radius: var(--radius);
+      padding: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+    }
+    .load-more-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
     .results-item {
       display: flex;
       gap: 0.75rem;
@@ -521,46 +583,54 @@
     }
     #detailsContent .stars { margin-right: 0.5rem; }
     #detailsActions {
+      margin-top: 0.75rem;
+    }
+    .action-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .action-row {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      margin-top: 0.75rem;
     }
-    #detailsActions button {
+    .action-pill {
       flex: 1;
-      min-width: 100px;
-      border: 1px solid var(--accent); /* Add border for definition */
-      border-radius: var(--radius);
-      padding: 0.5rem;
-      font-size: 0.9rem;
+      min-width: 130px;
+      border-radius: calc(var(--radius) * 1.1);
+      padding: 0.55rem 0.75rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: var(--text-light);
       cursor: pointer;
-      display: flex;
+      font-weight: 600;
+      display: inline-flex;
       justify-content: center;
       align-items: center;
-      gap: 0.3rem;
-      background: var(--secondary); /* Use secondary for most buttons */
-      color: var(--text-light);
-      transition: background-color 0.2s ease;
+      gap: 0.35rem;
+      transition: transform 0.15s ease, background-color 0.2s ease;
     }
-     #detailsActions button:hover {
-      background-color: var(--card); /* Darken on hover */
+    .action-pill:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.16);
     }
-    #saveBtn {
-       background: #4b5563; /* Keep grey for save */
-    }
-    #shareBtn, #compassBtn { /* Make share & compass primary actions */
+    .action-pill.primary {
       background: var(--primary);
-      color: var(--text-light);
-      font-weight: 600;
       border-color: var(--primary);
+      color: var(--text-light);
     }
-     #shareBtn:hover, #compassBtn:hover {
-       background: #a63f17; /* Darker primary */
-     }
-    #addToPlanBtn.in-plan {
-      background: var(--accent);
-      color: var(--card);
-      border: 1px solid var(--accent);
+    .action-pill.outline {
+      background: transparent;
+      border-color: rgba(255,255,255,0.45);
+    }
+    .action-pill.ghost {
+      background: rgba(255,255,255,0.05);
+    }
+    .action-pill.in-plan {
+      background: rgba(72,187,120,0.35);
+      border-color: rgba(72,187,120,0.9);
+      color: #e8ffef;
     }
     /* Accordion */
     .accordion {
@@ -687,6 +757,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .holo-core::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      background: conic-gradient(from 0deg, rgba(120,200,255,0.35), transparent 60%);
+      animation: radarSweep 4.5s linear infinite;
+      mix-blend-mode: screen;
+      opacity: 0.65;
     }
     .holo-grid {
       position: absolute;
@@ -844,6 +923,55 @@
       font-weight: 700;
       color: rgba(255,198,148,0.9);
     }
+    #nextStepCard {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border-radius: calc(var(--radius) / 1.2);
+      background: rgba(14,24,36,0.7);
+      border: 1px solid rgba(120,180,255,0.18);
+      box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
+    }
+    .next-step-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+    }
+    #nextStepText {
+      font-size: 0.95rem;
+      margin: 0.4rem 0 0.6rem;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    .next-step-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .next-step-actions button {
+      flex: 1;
+      border-radius: calc(var(--radius) / 1.5);
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-light);
+      padding: 0.35rem 0.4rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .next-step-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #directionsList.collapsed {
+      max-height: 0;
+      padding: 0;
+      border: none;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #directionsList .future-step {
+      opacity: 0.35;
+      filter: blur(0.2px);
+    }
     @keyframes pulseRing {
       0%, 100% { transform: scale(1); opacity: 0.9; }
       50% { transform: scale(1.04); opacity: 0.6; }
@@ -856,6 +984,10 @@
     @keyframes glowPulse {
       0% { opacity: 0.35; transform: scale(0.96); }
       100% { opacity: 0.65; transform: scale(1.05); }
+    }
+    @keyframes radarSweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     #hiddenMap { /* Hide map container used for Places Service */
       position: absolute;
@@ -913,12 +1045,17 @@
       </div>
     </div>
   </div>
-  <div class="filters" id="filterGrid">
+  <section id="vibeSection">
+    <div class="vibe-header">
+      <h2>Choose your vibe</h2>
+      <p>Pick a mood and we will chart a course with matching spots.</p>
     </div>
+    <div class="filters" id="filterGrid"></div>
+  </section>
   <div id="primaryActions">
     <button id="myListBtn">📋 My List</button>
     <button id="myPlanBtn">🗺️ My Plan</button>
-    <button id="surpriseBtn">🤷 Surprise Me!</button>
+    <button id="surpriseBtn">🎲 Surprise Events</button>
   </div>
   <div id="settingsPanel" class="modal">
     <div class="modal-content">
@@ -954,12 +1091,12 @@
     </div>
   </div>
   <div id="hiddenMap"></div> <div id="subMenuModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="subMenuTitle">Categories</h3><button class="close-btn" id="closeSubMenu">×</button></div><div class="subMenuList" id="subMenuList"></div></div></div>
-  <div id="resultsModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="resultsTitle">Results</h3><button class="close-btn" id="closeResults">×</button></div><div class="results-list" id="resultsList"></div></div></div>
+  <div id="resultsModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="resultsTitle">Results</h3><button class="close-btn" id="closeResults">×</button></div><div class="results-list" id="resultsList"></div><button id="loadMoreResultsBtn" class="load-more-btn" type="button">Keep scanning</button></div></div>
   <div id="myListModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My List</h3><button class="close-btn" id="closeMyList">×</button></div><div class="results-list" id="myListContent"></div><div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div></div></div>
   <div id="planModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My Plan</h3><button class="close-btn" id="closePlan">×</button></div><div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div><div class="results-list" id="planContent"></div><div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty.</div><div style="margin-top:0.5rem; display:flex; gap:0.5rem;"><button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button></div></div></div>
   <div id="donateModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Support Local Explorer</h3><button class="close-btn" id="closeDonate">×</button></div><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!</p><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">Venmo: <strong>@Stephen-Mohamed-1</strong></p><div style="display:flex; gap:0.5rem;"><button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button><button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button></div></div></div>
 
-  <div id="detailsSheet"><div id="detailsMap"></div><div id="detailsContent"><button id="closeDetailsBtn" class="sheet-close">×</button><h3 id="detailsName"></h3><div id="detailsRating"></div><div id="detailsPhone"></div><div id="detailsAddress"></div><div id="detailsPrice"></div><div id="detailsActions"><button id="saveBtn">☆ Save</button><button id="openMapsBtn">📍 Open in Maps</button><button id="websiteBtn">🔗 Website</button><button id="shareBtn">🔗 Share</button><button id="compassBtn">🧭 Compass</button><button id="addToPlanBtn">🗺️ Add to Plan</button></div><button class="accordion" id="reviewsAccordion">Reviews</button><div class="accordion-content" id="reviewsContent"></div><button class="accordion" id="hoursAccordion">Weekly Hours</button><div class="accordion-content" id="hoursContent"></div></div></div>
+  <div id="detailsSheet"><div id="detailsMap"></div><div id="detailsContent"><button id="closeDetailsBtn" class="sheet-close">×</button><h3 id="detailsName"></h3><div id="detailsRating"></div><div id="detailsPhone"></div><div id="detailsAddress"></div><div id="detailsPrice"></div><div id="detailsActions" class="action-grid"><div class="action-row primary"><button id="guideBtn" class="action-pill primary">🧭 Radar Route</button><button id="mapsBtn" class="action-pill outline">📍 Open in Maps</button></div><div class="action-row secondary"><button id="saveBtn" class="action-pill ghost">☆ Save</button><button id="planBtn" class="action-pill ghost">🗺️ Add to Plan</button><button id="shareBtn" class="action-pill ghost">📤 Share</button><button id="websiteBtn" class="action-pill ghost">🔗 Website</button></div></div><button class="accordion" id="reviewsAccordion">Reviews</button><div class="accordion-content" id="reviewsContent"></div><button class="accordion" id="hoursAccordion">Weekly Hours</button><div class="accordion-content" id="hoursContent"></div></div></div>
 
   <div id="compassOverlay">
     <div id="compassTop">
@@ -992,11 +1129,19 @@
         </div>
       </div>
       <div id="navigationButtons">
-        <button id="readDirectionsBtn">🔊 Read Directions</button>
+        <button id="readDirectionsBtn">🗣️ Read Directions</button>
         <button id="silenceBtn" disabled>🔇 Silence</button>
         <button id="closeCompassBtn">Close</button>
       </div>
-      <div id="directionsList"></div>
+      <div id="nextStepCard">
+        <div class="next-step-label">Next move</div>
+        <div id="nextStepText">Waiting for route...</div>
+        <div class="next-step-actions">
+          <button id="nextStepBtn" type="button" disabled>Next step</button>
+          <button id="showAllStepsBtn" type="button">Show full route</button>
+        </div>
+      </div>
+      <div id="directionsList" class="collapsed"></div>
     </div>
   </div>
 
@@ -1012,6 +1157,15 @@
       document.head.appendChild(mapsScript);
     })();
     function $(id) { return document.getElementById(id); } // Utility
+    function sampleFromArray(list, count = 5) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy.slice(0, count);
+    }
+    function stripHtml(text) { return (text || '').replace(/<[^>]+>/g, '').trim(); }
 
     const DEFAULT_THEME = 'naval'; // Polished Sailor is the new 'naval'
     const THEMES = {
@@ -1039,7 +1193,7 @@
 
     // Global state variables
     let currentPosition = null, currentAddress = '', map, placesService, geocoder, streetViewPanorama;
-    let currentResults = [], currentPlaceDetails, compassWatchId, latestLocationLabel = '';
+    let currentResults = [], currentPlaceDetails, compassWatchId, latestLocationLabel = '', currentPaginationHandle = null, appendNextResults = false, lastResultsTitle = 'Results';
     let lastWeatherFetch = 0, lastWeatherCoords = null, cachedWeather = null;
     const WEATHER_CACHE_MS = 10 * 60 * 1000; // 10 minutes
     let selectedVoiceUri = localStorage.getItem('selectedVoiceUri') || '';
@@ -1080,6 +1234,24 @@
       "Outdoor": [{ name: "Parks", type: "park" }, { name: "Trails", keyword: "hiking trail", type: "park" }, { name: "Nature Reserves", keyword: "nature reserve", type: "park" }, { name: "Beaches", keyword: "beach", type: "park" }, { name: "Campgrounds", keyword: "campground", type: "campground" }],
       "Local Events": [{ name: "All Events", value: "all" }, { name: "Music", value: "music" }, { name: "Sports", value: "sports" }, { name: "Comedy", value: "comedy" }, { name: "Festivals", value: "festival" }]
     };
+    const vibeFilters = [
+      { name: "Cozy Coffee Crawl", icon: "☕", tagline: "Nooks, latte art, low lights", keyword: "cozy cafe", type: "cafe", radius: 4000, minRating: 4.3 },
+      { name: "Culture Cruise", icon: "🎨", tagline: "Museums, murals, galleries", keyword: "art gallery", type: "museum", radius: 6000, minRating: 4.2 },
+      { name: "After-Dark Energy", icon: "🌃", tagline: "Live music, lounges, neon", keyword: "live music", type: "bar", radius: 5000 },
+      { name: "Fresh Air Reset", icon: "🌿", tagline: "Parks, overlooks, mellow trails", keyword: "scenic overlook", type: "park", radius: 9000, minRating: 4.0 },
+      { name: "Pet Playdate", icon: "🐾", tagline: "Dog parks & friendly patios", keyword: "dog park", type: "park", radius: 7000, minRating: 4.0 },
+      { name: "Local Legends Tour", icon: "🧭", tagline: "Landmarks & story-rich stops", keyword: "historic landmark", type: "point_of_interest", radius: 8000, minRating: 4.1 }
+    ];
+    const foodSurpriseIdeas = [
+      { name: "Mediterranean Mezze", keyword: "mediterranean restaurant", type: "restaurant", tagline: "Shareable spreads & grilled bites" },
+      { name: "Street Taco Run", keyword: "street tacos", type: "restaurant", tagline: "Handheld flavor bombs" },
+      { name: "Dim Sum Cart Chase", keyword: "dim sum", type: "restaurant", tagline: "Baskets, buns, and tea" },
+      { name: "Plant-Powered Feast", keyword: "vegan restaurant", type: "restaurant", tagline: "Veg-forward plates" },
+      { name: "Supper Club Steak", keyword: "steakhouse", type: "restaurant", tagline: "Classic cuts & sides" },
+      { name: "Late Night Noodles", keyword: "ramen", type: "restaurant", tagline: "Broths for the night owl" },
+      { name: "Global Spice Market", keyword: "ethiopian restaurant", type: "restaurant", tagline: "Family-style platters" },
+      { name: "Sweet Tooth Crawl", keyword: "dessert shop", type: "bakery", tagline: "Treat flights & confections" }
+    ];
 
     function initApp() { /* Main app initialization after Maps loads */
       map = new google.maps.Map($("hiddenMap"), { center: { lat: 0, lng: 0 }, zoom: 15 });
@@ -1150,16 +1322,21 @@
         $("locationDisplay").innerHTML = `${locStr}<br><span style="font-size:0.75rem; opacity:0.8;">${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}</span>`;
         updateWeatherTitle();
     }
-    function populateFilterButtons() { /* Create main category buttons */
-      const grid = $("filterGrid"); grid.innerHTML = ''; // Clear existing
-      Object.keys(categories).forEach(cat => {
-        const btn = document.createElement('button'); btn.className = 'filter-btn';
-        btn.innerHTML = `${getIconForCategory(cat)} ${cat}`;
-        btn.onclick = () => openSubMenu(cat); grid.appendChild(btn);
+    function populateFilterButtons() { /* Create vibe-first filters */
+      const grid = $("filterGrid"); grid.innerHTML = '';
+      vibeFilters.forEach(vibe => {
+        const btn = document.createElement('button'); btn.className = 'filter-btn vibe-card';
+        btn.innerHTML = `<span class="vibe-icon">${vibe.icon}</span><div><strong class="vibe-title">${vibe.name}</strong><span class="vibe-tagline">${vibe.tagline}</span></div>`;
+        btn.onclick = () => performSearch('Vibe', vibe);
+        grid.appendChild(btn);
       });
+      const browseBtn = document.createElement('button'); browseBtn.className = 'filter-btn outline';
+      browseBtn.textContent = 'Browse all filters';
+      browseBtn.onclick = openCategoryPicker;
+      grid.appendChild(browseBtn);
       const supportBtn = document.createElement('button'); supportBtn.className = 'filter-btn support-btn';
       supportBtn.innerHTML = '⚓ Donate'; supportBtn.onclick = () => { $("donateModal").classList.add('active'); document.body.classList.add('modal-open'); };
-      grid.appendChild(supportBtn); // Add donate button
+      grid.appendChild(supportBtn);
     }
     function getIconForCategory(cat) { /* Get emoji for category */
       switch (cat) {
@@ -1167,6 +1344,14 @@
         case 'Hidden Gems': return '💎'; case 'Pet Friendly': return '🐾'; case 'Utilities & Help': return '🛠️';
         case 'Outdoor': return '🌲'; case 'Local Events': return '🎟️'; default: return '';
       }
+    }
+    function openCategoryPicker() { /* Let users fall back to legacy categories */
+      $("subMenuTitle").textContent = 'Browse by Category'; const list = $("subMenuList"); list.innerHTML = '';
+      Object.keys(categories).forEach(cat => {
+        const btn = document.createElement('button'); btn.textContent = `${getIconForCategory(cat)} ${cat}`;
+        btn.onclick = () => openSubMenu(cat); list.appendChild(btn);
+      });
+      $("subMenuModal").classList.add('active'); document.body.classList.add('modal-open');
     }
     function openSubMenu(categoryName) { /* Open sub-category modal */
       $("subMenuTitle").textContent = categoryName; const list = $("subMenuList"); list.innerHTML = '';
@@ -1176,23 +1361,56 @@
       });
       if (categoryName === 'Foodie Finds') { // Special button for Foodie Finds
         const surpriseBtn = document.createElement('button'); surpriseBtn.className = 'special-btn'; surpriseBtn.textContent = '🤤 Surprise Me!';
-        surpriseBtn.onclick = () => { const r = categories['Foodie Finds'][Math.floor(Math.random() * categories['Foodie Finds'].length)]; closeSubMenu(); performSearch('Foodie Finds', r); }; list.appendChild(surpriseBtn);
+        surpriseBtn.onclick = () => { closeSubMenu(); showFoodSurpriseBoard(); }; list.appendChild(surpriseBtn);
       }
+      const backBtn = document.createElement('button'); backBtn.className = 'filter-btn outline'; backBtn.textContent = '← Back to vibes';
+      backBtn.onclick = () => { openCategoryPicker(); };
+      list.appendChild(backBtn);
       $("subMenuModal").classList.add('active'); document.body.classList.add('modal-open');
     }
     function closeSubMenu() { $("subMenuModal").classList.remove('active'); document.body.classList.remove('modal-open'); }
     $("closeSubMenu").onclick = closeSubMenu;
+    function showFoodSurpriseBoard() {
+      const picks = sampleFromArray(foodSurpriseIdeas, 5);
+      const title = "Tonight's Flavor Board";
+      $("resultsTitle").textContent = title;
+      const list = $("resultsList"); list.innerHTML = '';
+      picks.forEach(option => {
+        const btn = document.createElement('button');
+        btn.innerHTML = `<div class="results-item"><div class="results-info"><h4>${option.name}</h4><span class="rating">${option.tagline}</span></div></div>`;
+        btn.onclick = () => { $("resultsModal").classList.remove('active'); document.body.classList.remove('modal-open'); performSearch('Foodie Finds', option); };
+        list.appendChild(btn);
+      });
+      setLoadMoreState(null);
+      $("resultsModal").classList.add('active'); document.body.classList.add('modal-open');
+    }
 
     function performSearch(category, item) { /* Perform Google Places search */
       if (!currentPosition) return alert('Please provide a location first.');
       if (category === 'Local Events') return searchLocalEvents(item); // Handle events separately
-      const request = { location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), radius: 7000, type: item.type || undefined, keyword: item.keyword || undefined, rankBy: google.maps.places.RankBy.PROMINENCE };
-      placesService.nearbySearch(request, (results, status) => {
+      const request = { location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), radius: item.radius || 7000, type: item.type || undefined, keyword: item.keyword || undefined, rankBy: item.rankBy || google.maps.places.RankBy.PROMINENCE };
+      lastResultsTitle = item.name || category;
+      appendNextResults = false;
+      setLoadMoreState(null);
+      placesService.nearbySearch(request, (results, status, pagination) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          let filtered = item.ignoreRating ? results : results.filter(p => p.rating && p.rating >= 4.2 && p.user_ratings_total && p.user_ratings_total >= 20);
-          filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0)); // Sort by rating, then reviews
-          currentResults = filtered; displayResults(item.name || category, filtered); // Use item name for title if specific
-        } else alert('No results found.');
+          const minRating = item.minRating ?? 4.2;
+          const minReviews = item.minReviews ?? 20;
+          let filtered = item.ignoreRating ? results : results.filter(p => (p.rating || 0) >= minRating && (p.user_ratings_total || 0) >= minReviews);
+          if (!filtered.length) filtered = results.slice(0, 8);
+          filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
+          if (appendNextResults) {
+            currentResults = currentResults.concat(filtered); displayResults(lastResultsTitle, filtered, { append: true });
+          } else {
+            currentResults = filtered; displayResults(lastResultsTitle, filtered);
+          }
+          appendNextResults = false;
+          setLoadMoreState(pagination);
+        } else {
+          if (!appendNextResults) alert('No results found.');
+          appendNextResults = false;
+          setLoadMoreState(null);
+        }
       });
     }
     async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
@@ -1210,6 +1428,7 @@
     function displayEventResults(events, subCategory) { /* Display Ticketmaster results */
         const list = $("resultsList"); list.innerHTML = '';
         $("resultsTitle").textContent = `${subCategory} Events`;
+        setLoadMoreState(null);
         if (events.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--card);">No events found nearby.</p>'; }
         events.forEach(event => {
             const btn = document.createElement('button'); btn.onclick = () => { if (event.url) window.open(event.url, '_blank'); };
@@ -1230,41 +1449,78 @@
         });
         $("resultsModal").classList.add('active'); document.body.classList.add('modal-open');
     }
+    async function showSurpriseEvents() {
+      if (!currentPosition) return alert('Please provide location first.');
+      const apiKey = window.TICKETMASTER_API_KEY || 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
+      if (!apiKey) return alert('Ticketmaster API key missing.');
+      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=80&size=40`;
+      try {
+        const resp = await fetch(url); const data = await resp.json();
+        const events = (data._embedded && data._embedded.events) || [];
+        const picks = sampleFromArray(events, Math.min(6, events.length));
+        if (!picks.length) return alert('No events found for Surprise Me.');
+        displayEventResults(picks, 'Surprise Mix');
+      } catch (err) {
+        console.error(err);
+        alert('Unable to fetch surprise events.');
+      }
+    }
 
-    function displayResults(title, results) { /* Display Google Places results (text-only) */
-      $("resultsTitle").textContent = `${title} Results`; const list = $("resultsList"); list.innerHTML = '';
+    function displayResults(title, results, opts = {}) { /* Display Google Places results (text-only) */
+      const { append = false } = opts;
+      const list = $("resultsList");
+      if (!append) {
+        $("resultsTitle").textContent = `${title} Results`;
+        list.innerHTML = '';
+      }
       const planIds = getPlan().map(p => p.place_id), visitedIds = getVisitedPlan();
-      if (results.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--card);">No results found.</p>'; }
+      if (!append && results.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color: var(--card);">No results found.</p>';
+        setLoadMoreState(null);
+      }
       results.forEach(place => {
         const btn = document.createElement('button'); btn.onclick = () => showDetails(place.place_id);
-        const wrap = document.createElement('div'); wrap.className = 'results-item'; // Keep class for flex styling
-        // Info (Takes full width now)
+        const wrap = document.createElement('div'); wrap.className = 'results-item';
         const info = document.createElement('div'); info.className = 'results-info';
-        const title = document.createElement('h4'); title.textContent = place.name; info.appendChild(title);
+        const titleEl = document.createElement('h4'); titleEl.textContent = place.name; info.appendChild(titleEl);
         const rating = document.createElement('span'); rating.className = 'rating';
-        rating.textContent = place.rating ? `★${place.rating.toFixed(1)} (${place.user_ratings_total})` : 'No rating'; info.appendChild(rating);
-        if (planIds.includes(place.place_id)) { // Visited marker
+        rating.textContent = place.rating ? `⭐${place.rating.toFixed(1)} (${place.user_ratings_total || 0})` : 'No rating'; info.appendChild(rating);
+        if (planIds.includes(place.place_id)) {
           const visit = document.createElement('span'); visit.className = 'rating'; visit.style.marginLeft = '0.3rem';
-          visit.textContent = visitedIds.includes(place.place_id) ? '✔️' : '◻️'; info.appendChild(visit);
+          visit.textContent = visitedIds.includes(place.place_id) ? '✅' : '🧭'; info.appendChild(visit);
         }
         wrap.appendChild(info); btn.appendChild(wrap); list.appendChild(btn);
       });
       $("resultsModal").classList.add('active'); document.body.classList.add('modal-open');
     }
+    const loadMoreBtn = $("loadMoreResultsBtn");
+    if (loadMoreBtn) {
+      loadMoreBtn.onclick = () => {
+        if (!currentPaginationHandle) return;
+        appendNextResults = true;
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.textContent = 'Scanning...';
+        currentPaginationHandle.nextPage();
+      };
+    }
+    function setLoadMoreState(pagination) {
+      currentPaginationHandle = (pagination && pagination.hasNextPage) ? pagination : null;
+      const btn = $("loadMoreResultsBtn");
+      if (!btn) return;
+      if (currentPaginationHandle) {
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Keep scanning';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
     $("closeResults").onclick = () => { $("resultsModal").classList.remove('active'); document.body.classList.remove('modal-open'); };
     $("resultsModal").onclick = (e) => { if (e.target.id === 'resultsModal') { $("resultsModal").classList.remove('active'); document.body.classList.remove('modal-open'); } }; // Close on overlay click
 
-    $("surpriseBtn").onclick = () => { /* Find random high-rated place */
-      if (!currentPosition) return alert('Please provide location first.');
-      const request = { location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), radius: 8000, rankBy: google.maps.places.RankBy.PROMINENCE, type: ['tourist_attraction', 'point_of_interest'] };
-      placesService.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          const good = results.filter(p => p.rating && p.rating >= 4.5 && p.user_ratings_total >= 50);
-          if (good.length > 0) showDetails(good[Math.floor(Math.random() * good.length)].place_id);
-          else alert('No high‑quality places found nearby.');
-        } else alert('No results found for Surprise Me.');
-      });
-    };
+    $("surpriseBtn").onclick = showSurpriseEvents;
+
+
 
     function showDetails(placeId) { /* Show place details sheet */
       // Reduced fields: removed 'photos'
@@ -1288,11 +1544,11 @@
           $("detailsAddress").textContent = place.formatted_address || '';
           // Set button states/actions
           updateSaveButtonState(place.place_id); updatePlanButtonState(place.place_id);
-          $("openMapsBtn").onclick = () => window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`, '_blank');
+          $("mapsBtn").onclick = () => window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`, '_blank');
           $("websiteBtn").style.display = place.website ? 'inline-flex' : 'none';
           $("websiteBtn").onclick = () => { if (place.website) window.open(place.website, '_blank'); };
           $("shareBtn").onclick = () => { if (navigator.share) navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(console.error); else alert('Sharing not supported.'); };
-          $("compassBtn").onclick = () => openCompass(loc);
+          $("guideBtn").onclick = () => openCompass(loc);
           // Populate accordions
           populateReviews(place.reviews || []); populateHours(place.opening_hours);
           $("detailsSheet").classList.add('active'); document.body.classList.add('modal-open'); // Show sheet
@@ -1335,7 +1591,7 @@
     function addToPlan(place) { let l = getPlan(); if (!l.some(p => p.place_id === place.place_id)) { l.push({ place_id: place.place_id, name: place.name, lat: place.geometry.location.lat(), lng: place.geometry.location.lng(), address: place.formatted_address || '' }); savePlan(l); } }
     function removeFromPlan(id) { let l = getPlan().filter(p => p.place_id !== id); savePlan(l); }
     function toggleVisited(id) { let v = getVisitedPlan(); v.includes(id) ? v = v.filter(i => i !== id) : v.push(id); saveVisitedPlan(v); }
-    function updatePlanButtonState(id) { const inPlan = getPlan().some(p => p.place_id === id); const btn = $("addToPlanBtn"); btn.textContent = inPlan ? '🗺️ In Plan' : '🗺️ Add to Plan'; btn.classList.toggle('in-plan', inPlan); btn.onclick = () => { if (!currentPlaceDetails) return; inPlan ? removeFromPlan(id) : addToPlan(currentPlaceDetails); loadPlan(); updatePlanButtonState(id); }; }
+    function updatePlanButtonState(id) { const inPlan = getPlan().some(p => p.place_id === id); const btn = $("planBtn"); btn.textContent = inPlan ? '🗺️ In Plan' : '🗺️ Add to Plan'; btn.classList.toggle('in-plan', inPlan); btn.onclick = () => { if (!currentPlaceDetails) return; inPlan ? removeFromPlan(id) : addToPlan(currentPlaceDetails); loadPlan(); updatePlanButtonState(id); }; }
 
     function loadPlan() { /* Load and display plan items */
         const list = getPlan(), content = $("planContent"), empty = $("planEmpty"), summary = $("planSummary");
@@ -1438,10 +1694,13 @@
     function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or google.maps.LatLng
         const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
         populateVoices(); navigationStopped=true; speechSynthesis.cancel(); currentRouteSteps=[]; currentNavigationIndex=0;
-        $("readDirectionsBtn").disabled=true; $("silenceBtn").disabled=true; $("directionsList").innerHTML='Calibrating…';
+        $("readDirectionsBtn").disabled=true; $("silenceBtn").disabled=true;
+        const dl = $("directionsList");
+        if (dl) { dl.innerHTML='Calibrating…'; dl.classList.add('collapsed'); }
+        const nextStepTextEl = $("nextStepText");
+        if (nextStepTextEl) nextStepTextEl.textContent = 'Calibrating route...';
         const needle = $("compassNeedle"); if(needle) needle.style.transform='translateX(-50%) rotate(0deg)';
         currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
-         // Reset listener state specific to this opening
         if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true);
         orientationListener = null;
 
@@ -1472,20 +1731,80 @@
 
         if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
 
-        const ds=new google.maps.DirectionsService();const dl=$("directionsList");
-        function fetchAndDisplayRoute(mode){dl.innerHTML='Calibrating…';$("readDirectionsBtn").disabled=true;ds.route({origin:currentPosition,destination:destLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;dl.appendChild(d);});$("readDirectionsBtn").disabled=false;}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];}}); }
+        const ds=new google.maps.DirectionsService();
+        const nextStepBtn = $("nextStepBtn");
+        const showAllBtn = $("showAllStepsBtn");
+        let nextStepPointer = 0;
+        let stepsExpanded = false;
+
+        const collapseStepList = () => { if (dl) dl.classList.add('collapsed'); stepsExpanded = false; if (showAllBtn) showAllBtn.textContent = 'Show full route'; };
+        const expandStepList = () => { if (dl) dl.classList.remove('collapsed'); stepsExpanded = true; if (showAllBtn) showAllBtn.textContent = 'Hide steps'; };
+        const updateStepPreview = () => {
+            if (!nextStepTextEl || !nextStepBtn) return;
+            if (!currentRouteSteps.length) {
+                nextStepTextEl.textContent = 'Waiting for route...';
+                nextStepBtn.disabled = true;
+                nextStepBtn.textContent = 'Next step';
+                return;
+            }
+            if (nextStepPointer >= currentRouteSteps.length) {
+                nextStepTextEl.textContent = 'All clear. Enjoy the stop!';
+                nextStepBtn.disabled = true;
+                nextStepBtn.textContent = 'Arrived';
+                return;
+            }
+            const upcoming = stripHtml(currentRouteSteps[nextStepPointer].instructions) || 'Continue on course';
+            nextStepTextEl.textContent = upcoming;
+            nextStepBtn.disabled = false;
+            nextStepBtn.textContent = nextStepPointer === 0 ? 'Start route' : 'Next step';
+        };
+        const setNextStepPointer = (value) => {
+            nextStepPointer = Math.min(value, currentRouteSteps.length);
+            updateStepPreview();
+        };
+        const revealStep = (idx) => { if (!dl) return; const node = dl.children[idx]; if (node) node.classList.remove('future-step'); };
+        const resetStepUi = (message = 'Waiting for route...') => {
+            if (dl) dl.innerHTML = '';
+            if (nextStepTextEl) nextStepTextEl.textContent = message;
+            if (nextStepBtn) { nextStepBtn.disabled = true; nextStepBtn.textContent = 'Next step'; }
+            setNextStepPointer(0);
+            collapseStepList();
+        };
+        resetStepUi('Calibrating route...');
+
+        if (nextStepBtn) nextStepBtn.onclick = () => {
+            if (!currentRouteSteps || !currentRouteSteps.length) return;
+            const idx = Math.min(nextStepPointer, currentRouteSteps.length - 1);
+            highlightStep(idx);
+            revealStep(idx);
+            setNextStepPointer(idx + 1);
+        };
+        if (showAllBtn) showAllBtn.onclick = () => {
+            if (!dl) return;
+            if (stepsExpanded) collapseStepList();
+            else {
+                expandStepList();
+                Array.from(dl.children).forEach(el => el.classList.remove('future-step'));
+            }
+        };
+
+        function fetchAndDisplayRoute(mode){
+            if (!dl) return;
+            resetStepUi('Plotting route...');
+            dl.innerHTML='Calibrating…';
+            $("readDirectionsBtn").disabled=true;
+            ds.route({origin:currentPosition,destination:destLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;d.classList.add('future-step');dl.appendChild(d);});$("readDirectionsBtn").disabled=false;if (nextStepBtn) { nextStepBtn.disabled=false; nextStepBtn.textContent='Start route'; }setNextStepPointer(0);}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];setNextStepPointer(0);}}); }
         fetchAndDisplayRoute(currentTravelMode);
 
         const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
-        function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;speakNextStep();}
+        function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;setNextStepPointer(currentNavigationIndex);speakNextStep();}
         function silenceDirections(){navigationStopped=true;speechSynthesis.cancel();if(currentSpeechUtterance)currentSpeechUtterance.onend=null;rb.disabled=(currentRouteSteps.length===0);rb.textContent="🔊 Read Directions";sb.disabled=true;}
-        function highlightStep(idx){Array.from(dl.children).forEach((el,i)=>{el.classList.toggle('current-step',i===idx);if(i===idx)el.scrollIntoView({behavior:'smooth',block:'nearest'});});}
-        function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);const step=currentRouteSteps[currentNavigationIndex];const clean=step.instructions.replace(/<[^>]+>/g,'');const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSelect?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
+        function highlightStep(idx){if(!dl)return;Array.from(dl.children).forEach((el,i)=>{const isMatch=i===idx;el.classList.toggle('current-step',isMatch);if(isMatch){el.classList.remove('future-step');el.scrollIntoView({behavior:'smooth',block:'nearest'});}});}
+        function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);setNextStepPointer(currentNavigationIndex+1);const step=currentRouteSteps[currentNavigationIndex];const clean=stripHtml(step.instructions);const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSelect?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
         rb.onclick=readDirections;sb.onclick=silenceDirections;
         stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
         tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
         const brightnessSlider = $("radarBrightness"); if(brightnessSlider) brightnessSlider.oninput=()=>{const n=$("compassNeedle");if(n)n.style.filter=`brightness(${brightnessSlider.value/100})`;};
-         // Ensure miniMap reference is removed if brightnessSlider logic uses it (it doesn't here, but good practice)
          const zoomSlider = $("radarZoom"); if (zoomSlider) zoomSlider.oninput = () => { /* No miniMap to zoom */ };
 
         cb.onclick=()=>{
@@ -1495,7 +1814,6 @@
             silenceDirections(); ac.style.display='none';
         };
     } // End openCompass
-
     // Weather Fetching & Rendering Logic (Unchanged)
     function updateWeatherTitle() { /* Sets title based on location */ weatherElements.title.textContent = latestLocationLabel ? `Weather · ${latestLocationLabel}` : 'Local Weather'; }
     function setWeatherPlaceholder(msg) { /* Shows placeholder text */ Object.assign(weatherElements, { icon: '⛅', temp: '--°', description: msg, feels: 'Feels like --°', wind: 'Wind -- mph', range: 'High --° / Low --°', updated: 'Updated --' }); updateWeatherTitle(); }
