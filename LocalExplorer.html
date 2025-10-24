@@ -629,73 +629,24 @@
     #compassOverlay.active {
       transform: translateY(0);
     }
-    #compassTop {
-      padding: 1rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-    #compassArrow {
-      width: 0;
-      height: 0;
-      border-top: 45px solid var(--primary);
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      transform-origin: center bottom;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    #radar {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: radial-gradient(circle at center, rgba(200, 121, 65, 0.4) 0%, transparent 70%); /* Use primary color */
-      border: 2px solid var(--primary);
-      overflow: hidden;
-    }
-    #miniMap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      overflow: hidden;
-      z-index: 0;
-    }
-    #radar::before { /* Radar sweep */
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 100%;
-      height: 100%;
-      transform-origin: left center;
-      background: linear-gradient(to right, transparent, var(--primary) 5%, transparent 15%);
-      animation: radarSweep 6s linear infinite;
-    }
-    @keyframes radarSweep {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    #compassControls {
-      padding: 0.5rem 1rem 1rem 1rem;
-      border-top: 1px solid var(--accent);
-      background-color: var(--secondary);
-    }
-    .compass-note {
-      background: rgba(0,0,0,0.2);
-      color: var(--text-light);
-      padding: 0.5rem 0.6rem;
-      border-radius: var(--radius);
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-      text-align: left;
-    }
+    /* --- Compass Overhaul CSS --- */
+    #compassOverlay { /* Keep existing rule, ensure border added */ border: 2px solid var(--accent); }
+    #compassTop { background-color: var(--secondary); /* Added */ padding: 1rem; display: flex; justify-content: center; align-items: center; position: relative; }
+    #compassNeedleContainer { width: 150px; height: 150px; border-radius: 50%; background-color: var(--card); border: 3px solid var(--accent); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+    #compassNeedle { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 70px solid var(--primary); position: absolute; top: 10px; left: 50%; transform-origin: center calc(100% - 10px); transform: translateX(-50%) rotate(0deg); filter: brightness(0.7); transition: transform 0.5s ease-out; }
+    #compassNeedle::after { content: ''; position: absolute; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 40px solid var(--background); top: -65px; left: -6px; }
+    #compassControls { background-color: var(--card); /* Match main dark */ padding: 0.5rem 1rem 1rem 1rem; border-top: 1px solid var(--accent); }
+    .compass-note { background: rgba(0,0,0,0.2); color: var(--text-light); padding: 0.3rem 0.6rem; border-radius: calc(var(--radius) / 2); font-size: 0.8rem; }
+    #advancedCompassControls label { color: var(--text-light); }
+    #travelModeToggle label { color: var(--text-light); font-size: 0.9rem;}
+    #navigationButtons { /* Keep existing styles */ }
+    #navigationButtons button:hover { background-color: #4a6572; } /* Adjusted hover */
+    #navigationButtons button:disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--secondary); }
+    #directionsList { max-height: 150px; overflow-y: auto; font-size: 0.85rem; line-height: 1.4; margin-top: 0.5rem; padding: 0.3rem; background: rgba(0,0,0,0.1); border-radius: 8px; }
+    #directionsList div { padding: 0.2rem 0.4rem; margin-bottom: 0.1rem; border-radius: 4px; transition: background-color 0.3s ease; }
+    #directionsList .current-step { background-color: var(--primary); color: var(--card); font-weight: bold; }
+    .direction-icon { display: inline-block; width: 1.2em; margin-right: 0.3em; font-weight: bold; }
+
     #navigationButtons {
       display: flex;
       gap: 0.5rem;
@@ -827,7 +778,32 @@
 
   <div id="detailsSheet"><div id="detailsMap"></div><div id="detailsContent"><button id="closeDetailsBtn" class="sheet-close">×</button><h3 id="detailsName"></h3><div id="detailsRating"></div><div id="detailsPhone"></div><div id="detailsAddress"></div><div id="detailsPrice"></div><div id="detailsActions"><button id="saveBtn">☆ Save</button><button id="openMapsBtn">📍 Open in Maps</button><button id="websiteBtn">🔗 Website</button><button id="shareBtn">🔗 Share</button><button id="compassBtn">🧭 Compass</button><button id="addToPlanBtn">🗺️ Add to Plan</button></div><button class="accordion" id="reviewsAccordion">Reviews</button><div class="accordion-content" id="reviewsContent"></div><button class="accordion" id="hoursAccordion">Weekly Hours</button><div class="accordion-content" id="hoursContent"></div></div></div>
 
-  <div id="compassOverlay"><div id="compassTop"><div id="radar"><div id="miniMap"></div><div id="compassArrow"></div></div></div><div id="compassControls"><div class="compass-note">Set your voice in ⚙️ Settings.</div><div id="navigationButtons"><button id="startNavigationBtn">Start</button><button id="stopNavigationBtn" disabled>Stop</button><button id="closeCompassBtn">Close</button></div><div id="directionsList"></div><div id="radarControls"><label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Zoom<input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;"></label><label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Brightness<input type="range" id="radarBrightness" min="30" max="100" value="50" style="width:100%;"></label></div></div></div>
+  <div id="compassOverlay">
+    <div id="compassTop">
+      <div id="compassNeedleContainer"><div id="compassNeedle"></div></div>
+    </div>
+    <div id="compassControls">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div class="compass-note">Set voice in main ⚙️</div>
+        <button id="compassSettingsBtn" type="button" aria-label="Compass Settings" style="background:none; border:none; color: var(--text-light); font-size: 1.2rem; cursor: pointer;">⚙️</button>
+      </div>
+      <div id="advancedCompassControls" style="display: none; margin-bottom: 0.5rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: var(--radius);">
+        <div id="travelModeToggle" style="margin-bottom: 0.5rem;">
+          <label style="margin-right: 0.5rem;"><input type="radio" name="travelMode" value="DRIVING" checked> Driving</label>
+          <label><input type="radio" name="travelMode" value="WALKING"> Walking</label>
+        </div>
+        <div id="radarControls"> <label style="display:block; font-size:0.8rem;">Map Zoom<input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;"></label>
+          <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Needle Brightness<input type="range" id="radarBrightness" min="30" max="100" value="70" style="width:100%;"></label>
+        </div>
+      </div>
+      <div id="navigationButtons">
+        <button id="readDirectionsBtn">🔊 Read Directions</button>
+        <button id="silenceBtn" disabled>🔇 Silence</button>
+        <button id="closeCompassBtn">Close</button>
+      </div>
+      <div id="directionsList"></div>
+    </div>
+  </div>
 
   <script>
     // Create the script tag for Google Maps after reading the API key from keys.js
@@ -1230,37 +1206,86 @@
     $("copyVenmoBtn").onclick = async () => { try { await navigator.clipboard.writeText('@Stephen-Mohamed-1'); alert('Venmo handle copied!'); } catch (err) { alert('Unable to copy.'); } };
 
     // Compass/Navigation Logic (Mostly unchanged, ensure voice pitch/rate are reset if needed)
-    let navigationStopped = false;
-    function openCompass(destLatLng) { /* ... same as before ... */
-        const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
-        populateVoices(); $("startNavigationBtn").disabled = false; $("stopNavigationBtn").disabled = true;
-        const directionsList = $("directionsList"); directionsList.innerHTML = 'Calculating route…';
-        let orientationListener; const updateCompassArrow = (event) => { /* ... */ };
-        // Request orientation permission if needed
-        if (window.DeviceOrientationEvent?.requestPermission) { window.DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); } }).catch(console.error); }
-        else if (window.DeviceOrientationEvent) { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); }
-        // Geolocation watch
-        if (navigator.geolocation) { if (compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId = navigator.geolocation.watchPosition(pos => { currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude }; }); }
-        // Directions Service
-        const directionsService = new google.maps.DirectionsService();
-        directionsService.route({ origin: currentPosition, destination: destLatLng, travelMode: google.maps.TravelMode.DRIVING }, (result, status) => {
-            directionsList.innerHTML = '';
-            if (status === google.maps.DirectionsStatus.OK && result) {
-                const steps = result.routes[0].legs[0].steps;
-                steps.forEach((step, i) => { const div = document.createElement('div'); div.dataset.index = i; div.innerHTML = step.instructions; directionsList.appendChild(div); });
-                function startNav() { /* ... */ navigationStopped = false; $("startNavigationBtn").disabled = true; $("stopNavigationBtn").disabled = false; let idx = 0; function speakNext() { if (navigationStopped || idx >= steps.length) { /* stop */ $("startNavigationBtn").disabled = false; $("stopNavigationBtn").disabled = true; return; } /* highlight step */ Array.from(directionsList.children).forEach(el => el.style.fontWeight = 'normal'); directionsList.children[idx].style.fontWeight = 'bold'; const clean = steps[idx].instructions.replace(/<[^>]+>/g, ''); const text = `Step ${idx + 1}: ${clean}.`; const utter = new SpeechSynthesisUtterance(text); const voices = speechSynthesis.getVoices(); const prefUri = selectedVoiceUri || voiceSelect?.value || ''; const selVoice = voices.find(v => v.voiceURI === prefUri) || voices[0]; if (selVoice) utter.voice = selVoice; utter.pitch = 1; utter.rate = 1; utter.volume = 1; speechSynthesis.speak(utter); idx++; utter.onend = () => { if (!navigationStopped) setTimeout(speakNext, 3000); }; } speakNext(); }
-                function stopNav() { navigationStopped = true; speechSynthesis.cancel(); $("startNavigationBtn").disabled = false; $("stopNavigationBtn").disabled = true; }
-                $("startNavigationBtn").onclick = startNav; $("stopNavigationBtn").onclick = stopNav;
-            } else directionsList.textContent = 'Unable to compute route.';
-        });
-        // Mini Map
-        if (google?.maps) { if (!miniMap) miniMap = new google.maps.Map($("miniMap"), { center: destLatLng, zoom: 15, disableDefaultUI: true, gestureHandling: 'none' }); else { miniMap.setCenter(destLatLng); miniMap.setZoom(15); } }
-        // Radar Controls
-        $("radarZoom").oninput = () => { if (miniMap) miniMap.setZoom(parseInt($("radarZoom").value)); };
-        $("radarBrightness").oninput = () => { $("radar").style.filter = `brightness(${$("radarBrightness").value / 50})`; };
-        // Close Button
-        $("closeCompassBtn").onclick = () => { overlay.classList.remove('active'); document.body.classList.remove('modal-open'); if (compassWatchId) navigator.geolocation.clearWatch(compassWatchId); if (orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); speechSynthesis.cancel(); navigationStopped = true; };
+    function getIconForInstruction(instruction) {
+      const lowerInstruction = instruction.toLowerCase();
+      if (lowerInstruction.includes('turn left')) return '↖️';
+      if (lowerInstruction.includes('turn right')) return '↗️';
+      if (lowerInstruction.includes('keep left')) return '↰';
+      if (lowerInstruction.includes('keep right')) return '↱';
+      if (lowerInstruction.includes('straight')) return '⬆️';
+      if (lowerInstruction.includes('merge')) return '⤸';
+      if (lowerInstruction.includes('roundabout') || lowerInstruction.includes('traffic circle')) return '🔄';
+      if (lowerInstruction.includes('exit')) return '↘️';
+      if (lowerInstruction.includes('destination')) return '🏁';
+      return '➡️'; // Default
     }
+    let navigationStopped = false;
+    let currentRouteSteps = [];
+    let currentNavigationIndex = 0;
+    let currentSpeechUtterance = null;
+    let currentTravelMode = 'DRIVING';
+    let orientationListener = null; // Keep track of the listener
+
+    function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or google.maps.LatLng
+      const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
+      populateVoices(); navigationStopped=true; speechSynthesis.cancel(); currentRouteSteps=[]; currentNavigationIndex=0;
+      $("readDirectionsBtn").disabled=true; $("silenceBtn").disabled=true; $("directionsList").innerHTML='Calculating…';
+      const needle = $("compassNeedle"); if(needle) needle.style.transform='translateX(-50%) rotate(0deg)';
+      currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
+       // Reset listener state specific to this opening
+      if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true);
+      orientationListener = null;
+
+
+      const updateCompassArrow = (ev) => {
+          if (!currentPosition || !destLatLng || !needle) return;
+          try {
+              const cur = typeof currentPosition.lat === 'function' ? currentPosition : new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+              const destLat = typeof destLatLng.lat === 'function' ? destLatLng.lat() : destLatLng.lat;
+              const destLng = typeof destLatLng.lng === 'function' ? destLatLng.lng() : destLatLng.lng;
+              if (typeof destLat !== 'number' || typeof destLng !== 'number') { console.error("Invalid destination coordinates"); return; }
+              const dest = new google.maps.LatLng(destLat, destLng);
+
+              const h=google.maps.geometry.spherical.computeHeading(cur,dest);
+              const d=ev?.alpha;
+              if(typeof h==='number'&&typeof d==='number'){ needle.style.transform=`translateX(-50%) rotate(${h-d}deg)`; }
+               else if (typeof h === 'number' && ev === null) { needle.style.transform=`translateX(-50%) rotate(${h}deg)`; }
+          } catch(e){ console.error("Heading error:",e); }
+      };
+
+      const startOrientationListener = () => {
+          if (orientationListener) return; // Prevent duplicates if somehow called again
+          if (window.DeviceOrientationEvent?.requestPermission) { window.DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); } else { console.warn("Orientation permission denied."); } }).catch(e => { console.error("Orientation permission error:", e); }); }
+          else if ('ondeviceorientation' in window) { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); }
+          else { console.warn("Orientation not supported."); }
+      };
+      startOrientationListener();
+
+      if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
+
+      const ds=new google.maps.DirectionsService();const dl=$("directionsList");
+      function fetchAndDisplayRoute(mode){dl.innerHTML='Calculating…';$("readDirectionsBtn").disabled=true;ds.route({origin:currentPosition,destination:destLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;dl.appendChild(d);});$("readDirectionsBtn").disabled=false;}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];}}); }
+      fetchAndDisplayRoute(currentTravelMode);
+
+      const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
+      function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;speakNextStep();}
+      function silenceDirections(){navigationStopped=true;speechSynthesis.cancel();if(currentSpeechUtterance)currentSpeechUtterance.onend=null;rb.disabled=(currentRouteSteps.length===0);rb.textContent="🔊 Read Directions";sb.disabled=true;}
+      function highlightStep(idx){Array.from(dl.children).forEach((el,i)=>{el.classList.toggle('current-step',i===idx);if(i===idx)el.scrollIntoView({behavior:'smooth',block:'nearest'});});}
+      function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);const step=currentRouteSteps[currentNavigationIndex];const clean=step.instructions.replace(/<[^>]+>/g,'');const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSel?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
+      rb.onclick=readDirections;sb.onclick=silenceDirections;
+      stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
+      tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
+      const brightnessSlider = $("radarBrightness"); if(brightnessSlider) brightnessSlider.oninput=()=>{const n=$("compassNeedle");if(n)n.style.filter=`brightness(${brightnessSlider.value/100})`;};
+       // Ensure miniMap reference is removed if brightnessSlider logic uses it (it doesn't here, but good practice)
+       const zoomSlider = $("radarZoom"); if (zoomSlider) zoomSlider.oninput = () => { /* No miniMap to zoom */ };
+
+      cb.onclick=()=>{
+          overlay.classList.remove('active'); document.body.classList.remove('modal-open');
+          if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
+          if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); orientationListener=null;
+          silenceDirections(); ac.style.display='none';
+      };
+    } // End openCompass
 
     // Weather Fetching & Rendering Logic (Unchanged)
     function updateWeatherTitle() { /* Sets title based on location */ weatherElements.title.textContent = latestLocationLabel ? `Weather · ${latestLocationLabel}` : 'Local Weather'; }
