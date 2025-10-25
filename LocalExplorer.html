@@ -408,6 +408,7 @@
       overflow: hidden;
     }
     .modal-content {
+      --swipe-offset: 0px;
       background-color: var(--background);
       border-radius: var(--radius);
       max-height: 80vh;
@@ -417,11 +418,11 @@
       padding: 1rem;
       position: relative;
       border: 2px solid var(--accent);
-      transform: scale(0.95) translateY(20px);
+      transform: translateY(calc(20px + var(--swipe-offset, 0px))) scale(0.95);
       transition: transform 0.3s ease;
     }
     .modal.active .modal-content {
-      transform: scale(1) translateY(0);
+      transform: translateY(var(--swipe-offset, 0px)) scale(1);
     }
     .modal-header {
       display: flex;
@@ -452,6 +453,17 @@
       margin-bottom: 0.5rem;
       cursor: pointer;
       transition: background-color 0.2s;
+    }
+    .list-remove {
+      margin-left: auto;
+      font-size: 1.1rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+    .list-remove:hover,
+    .list-remove:focus-visible {
+      opacity: 1;
     }
     .special-btn {
       background: var(--primary);
@@ -503,6 +515,7 @@
     }
     /* Details sheet */
     #detailsSheet {
+      --swipe-offset: 0px;
       position: fixed;
       left: 0;
       bottom: 0;
@@ -511,7 +524,7 @@
       background-color: var(--card);
       color: var(--text-light);
       border-radius: 20px 20px 0 0;
-      transform: translateY(100%);
+      transform: translateY(calc(100% + var(--swipe-offset, 0px)));
       transition: transform 0.35s ease;
       z-index: 25;
       display: flex;
@@ -530,7 +543,7 @@
       z-index: 5;
     }
     #detailsSheet.active {
-      transform: translateY(0);
+      transform: translateY(var(--swipe-offset, 0px));
     }
     #detailsMap {
       position: absolute;
@@ -538,7 +551,29 @@
       left: 0;
       width: 100%;
       height: 40%;
-      background: #333; /* Darker placeholder if street view fails */
+      background: linear-gradient(135deg, rgba(26,43,68,0.9), rgba(51,78,104,0.85));
+      pointer-events: none; /* Only interactive after opt-in */
+    }
+    #detailsSheet.streetview-active #detailsMap {
+      pointer-events: auto;
+    }
+    #activateStreetViewBtn {
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(200,121,65,0.9);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+      pointer-events: auto;
+    }
+    #detailsSheet.streetview-active #activateStreetViewBtn {
+      display: none;
     }
     #detailsContent {
       position: absolute;
@@ -550,6 +585,13 @@
       padding: 1rem;
       background: rgba(26, 43, 68, 0.9); /* Use card color with alpha */
       backdrop-filter: blur(4px);
+    }
+    .sheet-handle {
+      width: 54px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.35);
+      margin: 0 auto 0.7rem;
     }
     #detailsContent h3 {
       margin-top: 0;
@@ -1089,7 +1131,36 @@
   <div id="planModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My Plan</h3><button class="close-btn" id="closePlan">×</button></div><div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div><div class="results-list" id="planContent"></div><div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty.</div><div style="margin-top:0.5rem; display:flex; gap:0.5rem;"><button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button></div></div></div>
   <div id="donateModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Support Local Explorer</h3><button class="close-btn" id="closeDonate">×</button></div><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!</p><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">Venmo: <strong>@Stephen-Mohamed-1</strong></p><div style="display:flex; gap:0.5rem;"><button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button><button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button></div></div></div>
 
-  <div id="detailsSheet"><div id="detailsMap"></div><div id="detailsContent"><button id="closeDetailsBtn" class="sheet-close">×</button><h3 id="detailsName"></h3><div id="detailsRating"></div><div id="detailsPhone"></div><div id="detailsAddress"></div><div id="detailsPrice"></div><div id="detailsActions" class="action-grid"><div class="action-row primary"><button id="guideBtn" class="action-pill primary">🧭 Radar Route</button><button id="mapsBtn" class="action-pill outline">📍 Open in Maps</button></div><div class="action-row secondary"><button id="saveBtn" class="action-pill ghost">☆ Save</button><button id="planBtn" class="action-pill ghost">🗺️ Add to Plan</button><button id="shareBtn" class="action-pill ghost">📤 Share</button><button id="websiteBtn" class="action-pill ghost">🔗 Website</button></div></div><button class="accordion" id="reviewsAccordion">Reviews</button><div class="accordion-content" id="reviewsContent"></div><button class="accordion" id="hoursAccordion">Weekly Hours</button><div class="accordion-content" id="hoursContent"></div></div></div>
+  <div id="detailsSheet">
+    <div id="detailsMap">
+      <button id="activateStreetViewBtn" type="button" aria-label="Enable Street View Peek">👁️ Street View</button>
+    </div>
+    <div id="detailsContent">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <button id="closeDetailsBtn" class="sheet-close">×</button>
+      <h3 id="detailsName"></h3>
+      <div id="detailsRating"></div>
+      <div id="detailsPhone"></div>
+      <div id="detailsAddress"></div>
+      <div id="detailsPrice"></div>
+      <div id="detailsActions" class="action-grid">
+        <div class="action-row primary">
+          <button id="guideBtn" class="action-pill primary">🧭 Radar Route</button>
+          <button id="mapsBtn" class="action-pill outline">📍 Open in Maps</button>
+        </div>
+        <div class="action-row secondary">
+          <button id="saveBtn" class="action-pill ghost">☆ Save</button>
+          <button id="planBtn" class="action-pill ghost">🗺️ Add to Plan</button>
+          <button id="shareBtn" class="action-pill ghost">📤 Share</button>
+          <button id="websiteBtn" class="action-pill ghost">🔗 Website</button>
+        </div>
+      </div>
+      <button class="accordion" id="reviewsAccordion">Reviews</button>
+      <div class="accordion-content" id="reviewsContent"></div>
+      <button class="accordion" id="hoursAccordion">Weekly Hours</button>
+      <div class="accordion-content" id="hoursContent"></div>
+    </div>
+  </div>
 
   <div id="compassOverlay">
     <div id="compassTop">
@@ -1167,6 +1238,158 @@
       }
       if (typeof latLng.lat === 'number' && typeof latLng.lng === 'number') return latLng;
       return null;
+    }
+
+    let lastDeviceHeading = null, lastGeolocationHeading = null, pendingStreetViewLatLng = null;
+
+    function normalizeHeading(value) {
+      if (typeof value !== 'number' || Number.isNaN(value)) return null;
+      return (value % 360 + 360) % 360;
+    }
+
+    function deriveHeadingFromEvent(ev) {
+      if (!ev) return null;
+      if (typeof ev.webkitCompassHeading === 'number') return normalizeHeading(ev.webkitCompassHeading);
+      if (typeof ev.alpha === 'number') {
+        const orientation = (screen?.orientation?.angle ?? window.orientation ?? 0);
+        return normalizeHeading(360 - (ev.alpha + orientation));
+      }
+      return null;
+    }
+
+    function closeOverlayElement(el) {
+      if (!el) return;
+      el.classList.remove('active');
+      const otherModalsOpen = document.querySelector('.modal.active');
+      const detailsOpen = $("detailsSheet")?.classList.contains('active');
+      const compassOpen = $("compassOverlay")?.classList.contains('active');
+      if (!otherModalsOpen && !detailsOpen && !compassOpen) {
+        document.body.classList.remove('modal-open');
+      }
+    }
+
+    function enableSwipeDismiss({ container, dragTarget, scrollElement, onDismiss, threshold = 90, maxOffset = 220 }) {
+      if (!container || !dragTarget || typeof onDismiss !== 'function') return;
+      const scrollRef = scrollElement || dragTarget;
+      let startY = 0;
+      let currentOffset = 0;
+      let dragging = false;
+
+      const setOffset = (value) => dragTarget.style.setProperty('--swipe-offset', `${Math.max(0, value)}px`);
+      const clearOffset = () => {
+        dragTarget.style.transition = 'transform 0.18s ease';
+        setOffset(0);
+        requestAnimationFrame(() => {
+          dragTarget.style.transition = '';
+          dragTarget.style.removeProperty('--swipe-offset');
+        });
+      };
+
+      const handleStart = (evt) => {
+        if (!container.classList.contains('active')) return;
+        if (evt.touches.length !== 1) return;
+        if (scrollRef && scrollRef.scrollTop > 2) {
+          dragging = false;
+          return;
+        }
+        dragging = true;
+        startY = evt.touches[0].clientY;
+        currentOffset = 0;
+        dragTarget.style.transition = '';
+      };
+
+      const handleMove = (evt) => {
+        if (!dragging) return;
+        const deltaY = evt.touches[0].clientY - startY;
+        if (deltaY <= 0) {
+          setOffset(0);
+          return;
+        }
+        evt.preventDefault();
+        currentOffset = Math.min(deltaY, maxOffset);
+        setOffset(currentOffset);
+      };
+
+      const handleEnd = () => {
+        if (!dragging) return;
+        dragging = false;
+        if (currentOffset > threshold) {
+          setOffset(0);
+          dragTarget.style.removeProperty('--swipe-offset');
+          onDismiss();
+        } else {
+          clearOffset();
+        }
+        currentOffset = 0;
+      };
+
+      dragTarget.addEventListener('touchstart', handleStart, { passive: true });
+      dragTarget.addEventListener('touchmove', handleMove, { passive: false });
+      dragTarget.addEventListener('touchend', handleEnd, { passive: true });
+      dragTarget.addEventListener('touchcancel', () => { dragging = false; clearOffset(); }, { passive: true });
+    }
+
+    function attachModalSwipe(modalEl, closeHandler) {
+      if (!modalEl || typeof closeHandler !== 'function') return;
+      const content = modalEl.querySelector('.modal-content');
+      if (!content) return;
+      enableSwipeDismiss({ container: modalEl, dragTarget: content, scrollElement: content, onDismiss: closeHandler });
+    }
+
+    function prepareStreetViewPreview(latLng) {
+      pendingStreetViewLatLng = latLng || null;
+      const sheet = $("detailsSheet");
+      if (sheet) sheet.classList.remove('streetview-active');
+      const btn = $("activateStreetViewBtn");
+      if (btn) {
+        btn.disabled = !latLng;
+        btn.textContent = '👁️ Street View';
+        btn.style.opacity = latLng ? '1' : '0.6';
+      }
+      if (streetViewPanorama) streetViewPanorama.setVisible(false);
+    }
+
+    function activateStreetViewPeek() {
+      if (!pendingStreetViewLatLng || typeof google === 'undefined' || !google.maps) return;
+      const btn = $("activateStreetViewBtn");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading...';
+      }
+      const sheet = $("detailsSheet");
+      const latLngLiteral = toPlainLatLng(pendingStreetViewLatLng);
+      if (!latLngLiteral) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '👁️ Street View';
+        }
+        return;
+      }
+      const targetLatLng = new google.maps.LatLng(latLngLiteral.lat, latLngLiteral.lng);
+      const streetService = new google.maps.StreetViewService();
+      streetService.getPanorama({ location: targetLatLng, radius: 50 }, (data, status) => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '👁️ Street View';
+        }
+        if (status !== google.maps.StreetViewStatus.OK) {
+          alert('Street View is not available for this location.');
+          return;
+        }
+        const panoOpts = data?.location
+          ? { pano: data.location.pano, pov: { heading: 270, pitch: 0 }, zoom: 1 }
+          : { position: targetLatLng, pov: { heading: 0, pitch: 0 }, zoom: 0 };
+        if (!streetViewPanorama) {
+          streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), panoOpts);
+        } else {
+          if (panoOpts.pano) streetViewPanorama.setPano(panoOpts.pano);
+          streetViewPanorama.setPosition(panoOpts.position || targetLatLng);
+          streetViewPanorama.setPov(panoOpts.pov);
+          streetViewPanorama.setZoom(panoOpts.zoom);
+        }
+        streetViewPanorama.setVisible(true);
+        sheet?.classList.add('streetview-active');
+      });
     }
 
     const DEFAULT_THEME = 'naval'; // Polished Sailor is the new 'naval'
@@ -1338,8 +1561,9 @@
       }
       $("subMenuModal").classList.add('active'); document.body.classList.add('modal-open');
     }
-    function closeSubMenu() { $("subMenuModal").classList.remove('active'); document.body.classList.remove('modal-open'); }
+    function closeSubMenu() { closeOverlayElement($("subMenuModal")); }
     $("closeSubMenu").onclick = closeSubMenu;
+    attachModalSwipe($("subMenuModal"), closeSubMenu);
 
     function performSearch(category, item) { /* Perform Google Places search */
       if (!currentPosition) return alert('Please provide a location first.');
@@ -1471,8 +1695,10 @@
         btn.style.display = 'none';
       }
     }
-    $("closeResults").onclick = () => { $("resultsModal").classList.remove('active'); document.body.classList.remove('modal-open'); };
-    $("resultsModal").onclick = (e) => { if (e.target.id === 'resultsModal') { $("resultsModal").classList.remove('active'); document.body.classList.remove('modal-open'); } }; // Close on overlay click
+    function closeResultsModal() { closeOverlayElement($("resultsModal")); }
+    $("closeResults").onclick = closeResultsModal;
+    $("resultsModal").onclick = (e) => { if (e.target.id === 'resultsModal') closeResultsModal(); }; // Close on overlay click
+    attachModalSwipe($("resultsModal"), closeResultsModal);
 
     $("surpriseBtn").onclick = showSurpriseEvents;
 
@@ -1483,14 +1709,7 @@
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           currentPlaceDetails = place; const loc = place.geometry.location;
-          // Street View (loads by default now)
-          const streetService = new google.maps.StreetViewService();
-          streetService.getPanorama({ location: loc, radius: 50 }, (data, status) => {
-            let panoOpts = (status === google.maps.StreetViewStatus.OK && data?.location) ? { pano: data.location.pano, pov: { heading: 270, pitch: 0 }, zoom: 1 } : { position: loc, pov: { heading: 0, pitch: 0 }, zoom: 0 };
-            if (!streetViewPanorama) streetViewPanorama = new google.maps.StreetViewPanorama($("detailsMap"), panoOpts);
-            else { streetViewPanorama.setPano(panoOpts.pano); streetViewPanorama.setPosition(panoOpts.position); streetViewPanorama.setPov(panoOpts.pov); streetViewPanorama.setZoom(panoOpts.zoom); }
-            streetViewPanorama.setVisible(true); // Show immediately
-          });
+          prepareStreetViewPreview(loc);
           // Populate text fields
           $("detailsName").textContent = place.name || 'No Name';
           let stars = ''; if (place.rating) { const full = Math.floor(place.rating), half = (place.rating - full) >= 0.5; stars = '★'.repeat(full) + (half ? '½' : '') + ` (${place.rating.toFixed(1)})`; }
@@ -1511,9 +1730,24 @@
         } else console.error("Place details request failed:", status);
       });
     }
-    function closeDetails() { $("detailsSheet").classList.remove('active'); document.body.classList.remove('modal-open'); }
+    function closeDetails() {
+      prepareStreetViewPreview(null);
+      closeOverlayElement($("detailsSheet"));
+    }
     $("detailsSheet").onclick = (e) => { if (e.target.id === 'detailsSheet') closeDetails(); }; // Close on overlay click
     $("closeDetailsBtn").onclick = closeDetails;
+    if ($("activateStreetViewBtn")) $("activateStreetViewBtn").onclick = activateStreetViewPeek;
+    const detailsSheetEl = $("detailsSheet");
+    if (detailsSheetEl) {
+      enableSwipeDismiss({
+        container: detailsSheetEl,
+        dragTarget: detailsSheetEl,
+        scrollElement: $("detailsContent"),
+        onDismiss: closeDetails,
+        threshold: 110,
+        maxOffset: 320
+      });
+    }
 
     function populateReviews(reviews) { /* Fill reviews accordion */
       const content = $("reviewsContent"); content.innerHTML = '';
@@ -1571,10 +1805,11 @@
             btn.onclick = () => { showDetails(item.place_id); closePlan(); }; content.appendChild(btn);
         });
     }
-    function closePlan() { $("planModal").classList.remove('active'); document.body.classList.remove('modal-open'); }
+    function closePlan() { closeOverlayElement($("planModal")); }
     $("myPlanBtn").onclick = () => { loadPlan(); $("planModal").classList.add('active'); document.body.classList.add('modal-open'); };
     $("closePlan").onclick = closePlan;
     $("planModal").onclick = (e) => { if (e.target.id === 'planModal') closePlan(); };
+    attachModalSwipe($("planModal"), closePlan);
     $("sharePlanBtn").onclick = () => { /* Share plan via URL */
       const plan = getPlan(); if (!plan || plan.length === 0) return alert('Plan is empty.');
       try { const data = { items: plan }; const encoded = btoa(encodeURIComponent(JSON.stringify(data))); const url = `${window.location.origin}${window.location.pathname}?plan=${encoded}`;
@@ -1595,20 +1830,27 @@
             const title = document.createElement('h4'); title.textContent = item.name; info.appendChild(title);
             const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = item.rating ? `★${item.rating.toFixed(1)}` : ''; info.appendChild(rating);
             wrap.appendChild(info); btn.appendChild(wrap);
-            // Delete icon
-            const del = document.createElement('span'); del.textContent = '🗑️'; del.style.marginLeft = 'auto'; btn.appendChild(del);
-            btn.oncontextmenu = (e) => { e.preventDefault(); removePlace(item.place_id); loadMyList(); }; // Allow delete via long press
+            const del = document.createElement('span');
+            del.className = 'list-remove';
+            del.setAttribute('aria-label', `Remove ${item.name} from My List`);
+            del.title = 'Remove from My List';
+            del.textContent = '✕';
+            del.onclick = (e) => { e.stopPropagation(); removePlace(item.place_id); loadMyList(); };
+            btn.appendChild(del);
             content.appendChild(btn);
         });
     }
-    function closeMyList() { $("myListModal").classList.remove('active'); document.body.classList.remove('modal-open'); }
+    function closeMyList() { closeOverlayElement($("myListModal")); }
     $("myListBtn").onclick = () => { loadMyList(); $("myListModal").classList.add('active'); document.body.classList.add('modal-open'); };
     $("closeMyList").onclick = closeMyList;
     $("myListModal").onclick = (e) => { if (e.target.id === 'myListModal') closeMyList(); };
+    attachModalSwipe($("myListModal"), closeMyList);
 
     // Donate Modal Listeners (Restored Venmo)
-    $("closeDonate").onclick = () => { $("donateModal").classList.remove('active'); document.body.classList.remove('modal-open'); };
-    $("donateModal").onclick = (e) => { if (e.target.id === 'donateModal') { $("donateModal").classList.remove('active'); document.body.classList.remove('modal-open'); }};
+    function closeDonateModal() { closeOverlayElement($("donateModal")); }
+    $("closeDonate").onclick = closeDonateModal;
+    $("donateModal").onclick = (e) => { if (e.target.id === 'donateModal') closeDonateModal(); };
+    attachModalSwipe($("donateModal"), closeDonateModal);
     if ($("openVenmoBtn")) {
       $("openVenmoBtn").addEventListener('click', () => {
         const venmoUrl = 'https://venmo.com/Stephen-Mohamed-1';
@@ -1712,28 +1954,58 @@
         };
         ensureRadarMap();
         refreshRadarOrigin();
+        updateCompassArrow();
 
-        const updateCompassArrow = (ev) => {
+        const updateCompassArrow = (ev, override = {}) => {
             if (!currentPosition || !radarDestLatLng || !needle) return;
             try {
-                const cur = typeof currentPosition.lat === 'function' ? currentPosition : new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-                const dest = radarDestLatLng;
-                const h=google.maps.geometry.spherical.computeHeading(cur,dest);
-                const d=ev?.alpha;
-                if(typeof h==='number'&&typeof d==='number'){ needle.style.transform=`translateX(-50%) rotate(${h-d}deg)`; }
-                 else if (typeof h === 'number' && ev === null) { needle.style.transform=`translateX(-50%) rotate(${h}deg)`; }
+                const curLatLng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+                const bearing = google.maps.geometry.spherical.computeHeading(curLatLng, radarDestLatLng);
+                let deviceHeading = null;
+                if (ev) {
+                    const derived = deriveHeadingFromEvent(ev);
+                    if (derived !== null) {
+                        lastDeviceHeading = derived;
+                        deviceHeading = derived;
+                    }
+                }
+                if (typeof override.heading === 'number') {
+                    deviceHeading = normalizeHeading(override.heading);
+                }
+                if (deviceHeading === null && lastDeviceHeading !== null) deviceHeading = lastDeviceHeading;
+                if (deviceHeading === null && lastGeolocationHeading !== null) deviceHeading = lastGeolocationHeading;
+                const rotation = normalizeHeading(bearing - (deviceHeading ?? 0)) ?? 0;
+                needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
             } catch(e){ console.error("Heading error:",e); }
         };
 
         const startOrientationListener = () => {
             if (orientationListener) return; // Prevent duplicates if somehow called again
-            if (window.DeviceOrientationEvent?.requestPermission) { window.DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); } else { console.warn("Orientation permission denied."); } }).catch(e => { console.error("Orientation permission error:", e); }); }
-            else if ('ondeviceorientation' in window) { orientationListener = updateCompassArrow; window.addEventListener('deviceorientation', orientationListener, true); }
+            const handler = (event) => updateCompassArrow(event);
+            if (window.DeviceOrientationEvent?.requestPermission) {
+                window.DeviceOrientationEvent.requestPermission().then(r => {
+                    if (r === 'granted') {
+                        orientationListener = handler;
+                        window.addEventListener('deviceorientation', orientationListener, true);
+                    } else { console.warn("Orientation permission denied."); }
+                }).catch(e => { console.error("Orientation permission error:", e); });
+            }
+            else if ('ondeviceorientation' in window) { orientationListener = handler; window.addEventListener('deviceorientation', orientationListener, true); }
             else { console.warn("Orientation not supported."); }
         };
         startOrientationListener();
 
-        if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);refreshRadarOrigin();},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
+        if(navigator.geolocation){
+            if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);
+            compassWatchId=navigator.geolocation.watchPosition(p=>{
+                currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};
+                if (typeof p.coords.heading === 'number' && !Number.isNaN(p.coords.heading)) {
+                    lastGeolocationHeading = normalizeHeading(p.coords.heading);
+                }
+                updateCompassArrow();
+                refreshRadarOrigin();
+            },e=>console.error("Watch err:",e),{enableHighAccuracy:true});
+        }
 
         const ds=new google.maps.DirectionsService();
         const nextStepBtn = $("nextStepBtn");
@@ -1820,7 +2092,7 @@
         }
 
         cb.onclick=()=>{
-            overlay.classList.remove('active'); document.body.classList.remove('modal-open');
+            closeOverlayElement(overlay);
             if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
             if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); orientationListener=null;
             silenceDirections(); ac.style.display='none';
@@ -1836,7 +2108,7 @@
     async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) return renderWeather(cachedWeather); showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
     function initWeatherControls() { /* Attach listeners for weather */ const refBtn = $("refreshWeatherBtn"); if (refBtn) refBtn.onclick = () => updateWeather(currentPosition, { force: true }); updateWeatherTitle(); const tglBtn = $("toggleWeatherBtn"), wWidget = $("weatherWidget"); if (tglBtn && wWidget) { const isMin = localStorage.getItem('weatherMinimized') === 'true'; wWidget.classList.toggle('weather-minimized', isMin); tglBtn.onclick = () => { const nowMin = wWidget.classList.toggle('weather-minimized'); localStorage.setItem('weatherMinimized', nowMin ? 'true' : 'false'); }; } }
 
-    function initSettingsPanel() { /* Setup settings modal listeners */ const panel = $("settingsPanel"), openBtn = $("settingsBtn"), closeBtn = $("closeSettingsBtn"), themeSel = $("themeSelect"), ambToggle = $("ambientModeToggle"), resetBtn = $("resetSettingsBtn"); const open = () => { panel?.classList.add('active'); document.body.classList.add('modal-open'); }; const close = () => { panel?.classList.remove('active'); document.body.classList.remove('modal-open'); }; if (openBtn) openBtn.onclick = open; if (closeBtn) closeBtn.onclick = close; if (panel) panel.onclick = (e) => { if (e.target === panel) close(); }; document.onkeydown = (e) => { if (e.key === 'Escape' && panel?.classList.contains('active')) close(); }; if (themeSel) { themeSel.value = currentThemeKey; themeSel.onchange = (e) => setTheme(e.target.value || DEFAULT_THEME); } const storedAmb = localStorage.getItem('ambientModeEnabled') === 'true'; if (ambToggle) { ambToggle.checked = storedAmb; ambToggle.onchange = () => localStorage.setItem('ambientModeEnabled', ambToggle.checked ? 'true' : 'false'); } if (resetBtn) resetBtn.onclick = () => { setTheme(DEFAULT_THEME); if (themeSel) themeSel.value = DEFAULT_THEME; selectedVoiceUri = ''; localStorage.removeItem('selectedVoiceUri'); populateVoices(); if (voiceSelect) voiceSelect.dispatchEvent(new Event('change')); if (ambToggle) { ambToggle.checked = false; localStorage.setItem('ambientModeEnabled', 'false'); } if ($("weatherWidget")) { $("weatherWidget").classList.remove('weather-minimized'); localStorage.removeItem('weatherMinimized'); } updateWeatherTitle(); }; }
+    function initSettingsPanel() { /* Setup settings modal listeners */ const panel = $("settingsPanel"), openBtn = $("settingsBtn"), closeBtn = $("closeSettingsBtn"), themeSel = $("themeSelect"), ambToggle = $("ambientModeToggle"), resetBtn = $("resetSettingsBtn"); const open = () => { panel?.classList.add('active'); document.body.classList.add('modal-open'); }; const close = () => { closeOverlayElement(panel); }; if (openBtn) openBtn.onclick = open; if (closeBtn) closeBtn.onclick = close; if (panel) { panel.onclick = (e) => { if (e.target === panel) close(); }; attachModalSwipe(panel, close); } document.onkeydown = (e) => { if (e.key === 'Escape' && panel?.classList.contains('active')) close(); }; if (themeSel) { themeSel.value = currentThemeKey; themeSel.onchange = (e) => setTheme(e.target.value || DEFAULT_THEME); } const storedAmb = localStorage.getItem('ambientModeEnabled') === 'true'; if (ambToggle) { ambToggle.checked = storedAmb; ambToggle.onchange = () => localStorage.setItem('ambientModeEnabled', ambToggle.checked ? 'true' : 'false'); } if (resetBtn) resetBtn.onclick = () => { setTheme(DEFAULT_THEME); if (themeSel) themeSel.value = DEFAULT_THEME; selectedVoiceUri = ''; localStorage.removeItem('selectedVoiceUri'); populateVoices(); if (voiceSelect) voiceSelect.dispatchEvent(new Event('change')); if (ambToggle) { ambToggle.checked = false; localStorage.setItem('ambientModeEnabled', 'false'); } if ($("weatherWidget")) { $("weatherWidget").classList.remove('weather-minimized'); localStorage.removeItem('weatherMinimized'); } updateWeatherTitle(); }; }
 
     function checkSharedPlan() { /* Check URL for ?plan=... */ try { const params = new URLSearchParams(window.location.search); if (params.has('plan')) { const data = JSON.parse(decodeURIComponent(atob(params.get('plan')))); if (data?.items) { localStorage.setItem('myPlan', JSON.stringify(data.items)); localStorage.removeItem('visitedPlan'); setTimeout(() => { loadPlan(); $("planModal").classList.add('active'); document.body.classList.add('modal-open'); }, 500); } } } catch (e) { console.warn('Failed to decode shared plan', e); } }
 
