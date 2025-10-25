@@ -7,7 +7,10 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="theme-color" content="#f8f7f2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="key.js"></script>
   <style>
@@ -33,6 +36,8 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       overscroll-behavior: contain; /* Prevent scroll bounce on mobile */
+      min-height: 100vh;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     h1, h2, h3 {
       font-family: 'Poppins', sans-serif;
@@ -52,9 +57,13 @@
       justify-content: space-between;
       max-width: 90%;
       margin: 0 auto;
-      padding: 1rem 0 0.75rem;
+      padding: 1rem 0.5rem 0.75rem;
       border-bottom: 3px solid var(--accent);
       gap: 0.75rem;
+      position: sticky;
+      top: 0;
+      background: var(--background);
+      z-index: 6;
     }
     #appHeader h1 {
       margin: 0;
@@ -238,80 +247,40 @@
       font-size: 0.85rem;
       opacity: 0.9;
     }
-    #vibeSection {
-      max-width: 90%;
-      margin: 1rem auto 0;
-      background: rgba(26,43,68,0.04);
-      border: 1px solid rgba(26,43,68,0.08);
-      border-radius: calc(var(--radius) * 1.4);
-      padding: 1rem;
-    }
-    .vibe-header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      letter-spacing: 0.05rem;
-      color: var(--card);
-    }
-    .vibe-header p {
-      margin: 0.2rem 0 0.8rem;
-      font-size: 0.9rem;
-      color: rgba(26,43,68,0.8);
-    }
     .filters {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+      max-width: 90%;
+      margin: 1rem auto;
     }
     .filter-btn {
-      border-radius: calc(var(--radius) * 1.1);
-      padding: 0.85rem 1rem;
-      border: 1px solid rgba(26,43,68,0.12);
-      background: #fff;
-      color: var(--card);
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.6rem;
-      text-align: left;
-    }
-    .filter-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 22px rgba(0,0,0,0.16);
-    }
-    .filter-btn .vibe-title {
-      display: block;
-      font-family: 'Poppins', sans-serif;
-      font-size: 1rem;
-      margin-bottom: 0.2rem;
-    }
-    .filter-btn .vibe-tagline {
-      font-size: 0.78rem;
-      line-height: 1.4;
-      opacity: 0.8;
-    }
-    .filter-btn.vibe-card {
-      background: linear-gradient(160deg, rgba(26,43,68,0.95), rgba(51,78,104,0.82));
+      background-color: var(--card);
       color: var(--text-light);
-      border-color: rgba(255,255,255,0.15);
-      box-shadow: 0 16px 26px rgba(0,0,0,0.22);
-    }
-    .filter-btn.vibe-card .vibe-icon {
-      font-size: 1.4rem;
-      line-height: 1;
-    }
-    .filter-btn.outline {
-      background: transparent;
-      border-style: dashed;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
       justify-content: center;
-      font-weight: 600;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+      touch-action: manipulation;
+    }
+    .filter-btn .emoji {
+      font-size: 1.1rem;
+    }
+    .filter-btn:active {
+      transform: scale(0.96);
+      background-color: var(--secondary);
     }
     .filter-btn.support-btn {
       background: linear-gradient(145deg, #48586b, #7b8b9e);
       color: var(--text-light);
       border: 1px solid #a4b0bc;
       box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.4);
-      justify-content: center;
     }
     .filter-btn.support-btn:hover {
       filter: brightness(1.05);
@@ -400,6 +369,15 @@
       background-color: var(--secondary);
       color: var(--text-light);
       border: 1px solid var(--accent);
+    }
+    #primaryActions button {
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      touch-action: manipulation;
+    }
+    #primaryActions button:active {
+      transform: scale(0.97);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.12);
     }
     #donateBtn { /* Legacy rule, kept in case used elsewhere */
       background: linear-gradient(145deg, #48586b, #7b8b9e);
@@ -837,6 +815,15 @@
       background: linear-gradient(120deg, rgba(200,120,65,0.08), transparent 50%);
       pointer-events: none;
     }
+    #radarMap {
+      width: 100%;
+      height: 140px;
+      border-radius: calc(var(--radius) / 1.2);
+      border: 1px solid rgba(120,180,255,0.18);
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      background: rgba(0,0,0,0.2);
+    }
     .compass-note {
       background: rgba(200,120,65,0.18);
       color: rgba(255,255,255,0.82);
@@ -1004,6 +991,15 @@
       #weatherContent { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       #weatherPrimary { font-size: 2.2rem; }
     }
+    @media (min-width: 640px) {
+      #primaryActions {
+        flex-direction: row;
+        gap: 0.75rem;
+      }
+      #primaryActions button {
+        flex: 1;
+      }
+    }
     @media (min-width: 768px) {
       h1 { font-size: 2rem; }
       #detailsSheet { height: 60vh; }
@@ -1045,13 +1041,7 @@
       </div>
     </div>
   </div>
-  <section id="vibeSection">
-    <div class="vibe-header">
-      <h2>Choose your vibe</h2>
-      <p>Pick a mood and we will chart a course with matching spots.</p>
-    </div>
-    <div class="filters" id="filterGrid"></div>
-  </section>
+  <div class="filters" id="filterGrid"></div>
   <div id="primaryActions">
     <button id="myListBtn">📋 My List</button>
     <button id="myPlanBtn">🗺️ My Plan</button>
@@ -1070,8 +1060,11 @@
           <option value="sunset">Sunset Cruise</option>
           <option value="neon">Neon Harbor</option>
           <option value="arctic">Arctic Dawn</option>
+          <option value="highseas">High Seas Neon</option>
+          <option value="mojave">Mojave Drift</option>
+          <option value="aurora">Aurora Mist</option>
         </select>
-        <span class="setting-hint">Pick a vibe and we will remember it for next time.</span>
+        <span class="setting-hint">Pick a style and we will remember it for next time.</span>
       </div>
       <div class="setting-group">
         <label for="voiceSelect">Voice</label>
@@ -1128,6 +1121,7 @@
           <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Needle Brightness<input type="range" id="radarBrightness" min="30" max="100" value="70" style="width:100%;"></label>
         </div>
       </div>
+      <div id="radarMap" aria-label="Route preview map"></div>
       <div id="navigationButtons">
         <button id="readDirectionsBtn">🗣️ Read Directions</button>
         <button id="silenceBtn" disabled>🔇 Silence</button>
@@ -1166,13 +1160,24 @@
       return copy.slice(0, count);
     }
     function stripHtml(text) { return (text || '').replace(/<[^>]+>/g, '').trim(); }
+    function toPlainLatLng(latLng) {
+      if (!latLng) return null;
+      if (typeof latLng.lat === 'function' && typeof latLng.lng === 'function') {
+        return { lat: latLng.lat(), lng: latLng.lng() };
+      }
+      if (typeof latLng.lat === 'number' && typeof latLng.lng === 'number') return latLng;
+      return null;
+    }
 
     const DEFAULT_THEME = 'naval'; // Polished Sailor is the new 'naval'
     const THEMES = {
       naval: { '--background': '#f8f7f2', '--card': '#1a2b44', '--primary': '#c87941', '--secondary': '#334e68', '--text-dark': '#1a2b44', '--text-light': '#ffffff', '--accent': '#8a5a44' },
       sunset: { '--background': '#1b1c3d', '--card': '#ef476f', '--primary': '#ffd166', '--secondary': '#073b4c', '--text-dark': '#f7f5ff', '--text-light': '#fff8f0', '--accent': '#06d6a0' },
       neon: { '--background': '#080b1a', '--card': '#1f2a44', '--primary': '#ef2d56', '--secondary': '#2fbf71', '--text-dark': '#f2f7ff', '--text-light': '#f2f7ff', '--accent': '#08f7fe' },
-      arctic: { '--background': '#e4f0f6', '--card': '#1b3b5f', '--primary': '#3d9be9', '--secondary': '#1f5673', '--text-dark': '#1b3b5f', '--text-light': '#ffffff', '--accent': '#8bc6ec' }
+      arctic: { '--background': '#e4f0f6', '--card': '#1b3b5f', '--primary': '#3d9be9', '--secondary': '#1f5673', '--text-dark': '#1b3b5f', '--text-light': '#ffffff', '--accent': '#8bc6ec' },
+      highseas: { '--background': '#050a1c', '--card': '#0f2447', '--primary': '#1dd3b0', '--secondary': '#16355f', '--text-dark': '#d7f3ff', '--text-light': '#f0fbff', '--accent': '#58a4ff' },
+      mojave: { '--background': '#fff3e1', '--card': '#4a2c22', '--primary': '#f4a259', '--secondary': '#bc5f34', '--text-dark': '#3f2a1b', '--text-light': '#fffaf5', '--accent': '#f7c59f' },
+      aurora: { '--background': '#060b1b', '--card': '#102a43', '--primary': '#7f5af0', '--secondary': '#2cb67d', '--text-dark': '#e6f0ff', '--text-light': '#f7f2ff', '--accent': '#64dfdf' }
     };
     let currentThemeKey = DEFAULT_THEME;
 
@@ -1234,25 +1239,6 @@
       "Outdoor": [{ name: "Parks", type: "park" }, { name: "Trails", keyword: "hiking trail", type: "park" }, { name: "Nature Reserves", keyword: "nature reserve", type: "park" }, { name: "Beaches", keyword: "beach", type: "park" }, { name: "Campgrounds", keyword: "campground", type: "campground" }],
       "Local Events": [{ name: "All Events", value: "all" }, { name: "Music", value: "music" }, { name: "Sports", value: "sports" }, { name: "Comedy", value: "comedy" }, { name: "Festivals", value: "festival" }]
     };
-    const vibeFilters = [
-      { name: "Cozy Coffee Crawl", icon: "☕", tagline: "Nooks, latte art, low lights", keyword: "cozy cafe", type: "cafe", radius: 4000, minRating: 4.3 },
-      { name: "Culture Cruise", icon: "🎨", tagline: "Museums, murals, galleries", keyword: "art gallery", type: "museum", radius: 6000, minRating: 4.2 },
-      { name: "After-Dark Energy", icon: "🌃", tagline: "Live music, lounges, neon", keyword: "live music", type: "bar", radius: 5000 },
-      { name: "Fresh Air Reset", icon: "🌿", tagline: "Parks, overlooks, mellow trails", keyword: "scenic overlook", type: "park", radius: 9000, minRating: 4.0 },
-      { name: "Pet Playdate", icon: "🐾", tagline: "Dog parks & friendly patios", keyword: "dog park", type: "park", radius: 7000, minRating: 4.0 },
-      { name: "Local Legends Tour", icon: "🧭", tagline: "Landmarks & story-rich stops", keyword: "historic landmark", type: "point_of_interest", radius: 8000, minRating: 4.1 }
-    ];
-    const foodSurpriseIdeas = [
-      { name: "Mediterranean Mezze", keyword: "mediterranean restaurant", type: "restaurant", tagline: "Shareable spreads & grilled bites" },
-      { name: "Street Taco Run", keyword: "street tacos", type: "restaurant", tagline: "Handheld flavor bombs" },
-      { name: "Dim Sum Cart Chase", keyword: "dim sum", type: "restaurant", tagline: "Baskets, buns, and tea" },
-      { name: "Plant-Powered Feast", keyword: "vegan restaurant", type: "restaurant", tagline: "Veg-forward plates" },
-      { name: "Supper Club Steak", keyword: "steakhouse", type: "restaurant", tagline: "Classic cuts & sides" },
-      { name: "Late Night Noodles", keyword: "ramen", type: "restaurant", tagline: "Broths for the night owl" },
-      { name: "Global Spice Market", keyword: "ethiopian restaurant", type: "restaurant", tagline: "Family-style platters" },
-      { name: "Sweet Tooth Crawl", keyword: "dessert shop", type: "bakery", tagline: "Treat flights & confections" }
-    ];
-
     function initApp() { /* Main app initialization after Maps loads */
       map = new google.maps.Map($("hiddenMap"), { center: { lat: 0, lng: 0 }, zoom: 15 });
       placesService = new google.maps.places.PlacesService(map);
@@ -1322,18 +1308,13 @@
         $("locationDisplay").innerHTML = `${locStr}<br><span style="font-size:0.75rem; opacity:0.8;">${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}</span>`;
         updateWeatherTitle();
     }
-    function populateFilterButtons() { /* Create vibe-first filters */
+    function populateFilterButtons() { /* Create main category buttons */
       const grid = $("filterGrid"); grid.innerHTML = '';
-      vibeFilters.forEach(vibe => {
-        const btn = document.createElement('button'); btn.className = 'filter-btn vibe-card';
-        btn.innerHTML = `<span class="vibe-icon">${vibe.icon}</span><div><strong class="vibe-title">${vibe.name}</strong><span class="vibe-tagline">${vibe.tagline}</span></div>`;
-        btn.onclick = () => performSearch('Vibe', vibe);
-        grid.appendChild(btn);
+      Object.keys(categories).forEach(cat => {
+        const btn = document.createElement('button'); btn.className = 'filter-btn';
+        btn.innerHTML = `<span class="emoji">${getIconForCategory(cat)}</span>${cat}`;
+        btn.onclick = () => openSubMenu(cat); grid.appendChild(btn);
       });
-      const browseBtn = document.createElement('button'); browseBtn.className = 'filter-btn outline';
-      browseBtn.textContent = 'Browse all filters';
-      browseBtn.onclick = openCategoryPicker;
-      grid.appendChild(browseBtn);
       const supportBtn = document.createElement('button'); supportBtn.className = 'filter-btn support-btn';
       supportBtn.innerHTML = '⚓ Donate'; supportBtn.onclick = () => { $("donateModal").classList.add('active'); document.body.classList.add('modal-open'); };
       grid.appendChild(supportBtn);
@@ -1345,14 +1326,6 @@
         case 'Outdoor': return '🌲'; case 'Local Events': return '🎟️'; default: return '';
       }
     }
-    function openCategoryPicker() { /* Let users fall back to legacy categories */
-      $("subMenuTitle").textContent = 'Browse by Category'; const list = $("subMenuList"); list.innerHTML = '';
-      Object.keys(categories).forEach(cat => {
-        const btn = document.createElement('button'); btn.textContent = `${getIconForCategory(cat)} ${cat}`;
-        btn.onclick = () => openSubMenu(cat); list.appendChild(btn);
-      });
-      $("subMenuModal").classList.add('active'); document.body.classList.add('modal-open');
-    }
     function openSubMenu(categoryName) { /* Open sub-category modal */
       $("subMenuTitle").textContent = categoryName; const list = $("subMenuList"); list.innerHTML = '';
       categories[categoryName].forEach(item => {
@@ -1361,29 +1334,12 @@
       });
       if (categoryName === 'Foodie Finds') { // Special button for Foodie Finds
         const surpriseBtn = document.createElement('button'); surpriseBtn.className = 'special-btn'; surpriseBtn.textContent = '🤤 Surprise Me!';
-        surpriseBtn.onclick = () => { closeSubMenu(); showFoodSurpriseBoard(); }; list.appendChild(surpriseBtn);
+        surpriseBtn.onclick = () => { const r = categories['Foodie Finds'][Math.floor(Math.random() * categories['Foodie Finds'].length)]; closeSubMenu(); performSearch('Foodie Finds', r); }; list.appendChild(surpriseBtn);
       }
-      const backBtn = document.createElement('button'); backBtn.className = 'filter-btn outline'; backBtn.textContent = '← Back to vibes';
-      backBtn.onclick = () => { openCategoryPicker(); };
-      list.appendChild(backBtn);
       $("subMenuModal").classList.add('active'); document.body.classList.add('modal-open');
     }
     function closeSubMenu() { $("subMenuModal").classList.remove('active'); document.body.classList.remove('modal-open'); }
     $("closeSubMenu").onclick = closeSubMenu;
-    function showFoodSurpriseBoard() {
-      const picks = sampleFromArray(foodSurpriseIdeas, 5);
-      const title = "Tonight's Flavor Board";
-      $("resultsTitle").textContent = title;
-      const list = $("resultsList"); list.innerHTML = '';
-      picks.forEach(option => {
-        const btn = document.createElement('button');
-        btn.innerHTML = `<div class="results-item"><div class="results-info"><h4>${option.name}</h4><span class="rating">${option.tagline}</span></div></div>`;
-        btn.onclick = () => { $("resultsModal").classList.remove('active'); document.body.classList.remove('modal-open'); performSearch('Foodie Finds', option); };
-        list.appendChild(btn);
-      });
-      setLoadMoreState(null);
-      $("resultsModal").classList.add('active'); document.body.classList.add('modal-open');
-    }
 
     function performSearch(category, item) { /* Perform Google Places search */
       if (!currentPosition) return alert('Please provide a location first.');
@@ -1690,6 +1646,7 @@
     let currentSpeechUtterance = null;
     let currentTravelMode = 'DRIVING';
     let orientationListener = null; // Keep track of the listener
+    let radarMap, radarDirectionsRenderer, radarCurrentMarker, radarDestinationMarker, radarDestLatLng = null;
 
     function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or google.maps.LatLng
         const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
@@ -1700,20 +1657,67 @@
         const nextStepTextEl = $("nextStepText");
         if (nextStepTextEl) nextStepTextEl.textContent = 'Calibrating route...';
         const needle = $("compassNeedle"); if(needle) needle.style.transform='translateX(-50%) rotate(0deg)';
+        const destPlain = toPlainLatLng(destLatLng);
+        if (!destPlain) { alert('Unable to load destination.'); return; }
+        radarDestLatLng = new google.maps.LatLng(destPlain.lat, destPlain.lng);
         currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
         if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true);
         orientationListener = null;
 
+        const ensureRadarMap = () => {
+            const mapHost = $("radarMap");
+            if (!mapHost || typeof google === 'undefined') return;
+            if (!radarMap) {
+                radarMap = new google.maps.Map(mapHost, {
+                    center: radarDestLatLng,
+                    zoom: 14,
+                    disableDefaultUI: true,
+                    gestureHandling: 'none',
+                    backgroundColor: '#0f1624',
+                    styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }, { featureType: 'transit', stylers: [{ visibility: 'off' }] }]
+                });
+            }
+            if (!radarDirectionsRenderer) {
+                radarDirectionsRenderer = new google.maps.DirectionsRenderer({
+                    map: radarMap,
+                    suppressMarkers: true,
+                    preserveViewport: true,
+                    polylineOptions: { strokeColor: '#c87941', strokeWeight: 4 }
+                });
+            } else {
+                radarDirectionsRenderer.setMap(radarMap);
+            }
+            if (!radarDestinationMarker) {
+                radarDestinationMarker = new google.maps.Marker({
+                    map: radarMap,
+                    position: radarDestLatLng,
+                    zIndex: 1,
+                    icon: { path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW, scale: 5, strokeColor: '#c87941', fillColor: '#c87941', fillOpacity: 1 }
+                });
+            } else radarDestinationMarker.setPosition(radarDestLatLng);
+            const zoomSlider = $("radarZoom");
+            if (zoomSlider && radarMap) zoomSlider.value = radarMap.getZoom();
+        };
+        const refreshRadarOrigin = () => {
+            if (!radarMap || !currentPosition) return;
+            const origin = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+            if (!radarCurrentMarker) {
+                radarCurrentMarker = new google.maps.Marker({
+                    map: radarMap,
+                    zIndex: 2,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, strokeWeight: 2, strokeColor: '#8fd8ff', fillColor: '#8fd8ff', fillOpacity: 1 }
+                });
+            }
+            radarCurrentMarker.setPosition(origin);
+        };
+        ensureRadarMap();
+        refreshRadarOrigin();
 
         const updateCompassArrow = (ev) => {
-            if (!currentPosition || !destLatLng || !needle) return;
+            if (!currentPosition || !radarDestLatLng || !needle) return;
             try {
                 const cur = typeof currentPosition.lat === 'function' ? currentPosition : new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-                const destLat = typeof destLatLng.lat === 'function' ? destLatLng.lat() : destLatLng.lat;
-                const destLng = typeof destLatLng.lng === 'function' ? destLatLng.lng() : destLatLng.lng;
-                if (typeof destLat !== 'number' || typeof destLng !== 'number') { console.error("Invalid destination coordinates"); return; }
-                const dest = new google.maps.LatLng(destLat, destLng);
-
+                const dest = radarDestLatLng;
                 const h=google.maps.geometry.spherical.computeHeading(cur,dest);
                 const d=ev?.alpha;
                 if(typeof h==='number'&&typeof d==='number'){ needle.style.transform=`translateX(-50%) rotate(${h-d}deg)`; }
@@ -1729,7 +1733,7 @@
         };
         startOrientationListener();
 
-        if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
+        if(navigator.geolocation){if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);compassWatchId=navigator.geolocation.watchPosition(p=>{currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};updateCompassArrow(null);refreshRadarOrigin();},e=>console.error("Watch err:",e),{enableHighAccuracy:true});}
 
         const ds=new google.maps.DirectionsService();
         const nextStepBtn = $("nextStepBtn");
@@ -1790,10 +1794,15 @@
 
         function fetchAndDisplayRoute(mode){
             if (!dl) return;
+            if (!currentPosition) {
+                dl.textContent = 'Waiting for your location…';
+                $("readDirectionsBtn").disabled = true;
+                return;
+            }
             resetStepUi('Plotting route...');
             dl.innerHTML='Calibrating…';
             $("readDirectionsBtn").disabled=true;
-            ds.route({origin:currentPosition,destination:destLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;d.classList.add('future-step');dl.appendChild(d);});$("readDirectionsBtn").disabled=false;if (nextStepBtn) { nextStepBtn.disabled=false; nextStepBtn.textContent='Start route'; }setNextStepPointer(0);}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];setNextStepPointer(0);}}); }
+            ds.route({origin:currentPosition,destination:radarDestLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;d.classList.add('future-step');dl.appendChild(d);});$("readDirectionsBtn").disabled=false;if (nextStepBtn) { nextStepBtn.disabled=false; nextStepBtn.textContent='Start route'; }setNextStepPointer(0);refreshRadarOrigin();if(radarDirectionsRenderer){radarDirectionsRenderer.setDirections(r);radarDirectionsRenderer.setRouteIndex(0);}if(radarMap&&currentPosition){const bounds=new google.maps.LatLngBounds();bounds.extend(new google.maps.LatLng(currentPosition.lat,currentPosition.lng));bounds.extend(radarDestLatLng);radarMap.fitBounds(bounds);}}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];setNextStepPointer(0);}}); }
         fetchAndDisplayRoute(currentTravelMode);
 
         const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
@@ -1805,7 +1814,10 @@
         stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
         tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
         const brightnessSlider = $("radarBrightness"); if(brightnessSlider) brightnessSlider.oninput=()=>{const n=$("compassNeedle");if(n)n.style.filter=`brightness(${brightnessSlider.value/100})`;};
-         const zoomSlider = $("radarZoom"); if (zoomSlider) zoomSlider.oninput = () => { /* No miniMap to zoom */ };
+        const zoomSlider = $("radarZoom"); if (zoomSlider) {
+            if (radarMap) zoomSlider.value = radarMap.getZoom();
+            zoomSlider.oninput = () => { if (radarMap) radarMap.setZoom(parseInt(zoomSlider.value, 10) || radarMap.getZoom()); };
+        }
 
         cb.onclick=()=>{
             overlay.classList.remove('active'); document.body.classList.remove('modal-open');
