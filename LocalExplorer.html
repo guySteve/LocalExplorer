@@ -883,7 +883,6 @@
       border-radius: 10px;
       background: linear-gradient(180deg, #ffe9b6 0%, #c27a3a 70%, #18263d 100%);
       box-shadow: 0 0 18px rgba(194,122,58,0.4);
-      transition: transform 0.4s ease-out;
     }
     #compassNeedle::after {
       content: '';
@@ -1417,6 +1416,8 @@
     }
 
     let lastDeviceHeading = null, lastGeolocationHeading = null, pendingStreetViewLatLng = null;
+    let orientationEventType = null;
+    let needleAnimationFrameId = null, needleVisualRotation = 0, needleTargetRotation = 0;
 
     function normalizeHeading(value) {
       if (typeof value !== 'number' || Number.isNaN(value)) return null;
@@ -2105,13 +2106,40 @@
         if (dl) { dl.innerHTML='Calibrating…'; dl.classList.add('collapsed'); }
         const nextStepTextEl = $("nextStepText");
         if (nextStepTextEl) nextStepTextEl.textContent = 'Calibrating route...';
-        const needle = $("compassNeedle"); if(needle) needle.style.transform='translateX(-50%) rotate(0deg)';
+        const needle = $("compassNeedle");
+        const resetNeedle = (value = 0) => {
+            needleVisualRotation = needleTargetRotation = value;
+            if (needle) needle.style.transform = `translateX(-50%) rotate(${value}deg)`;
+        };
+        if (needle) {
+            if (needleAnimationFrameId) cancelAnimationFrame(needleAnimationFrameId);
+            needleAnimationFrameId = null;
+            resetNeedle(0);
+        }
+        const animateNeedle = () => {
+            if (!needle) { needleAnimationFrameId = null; return; }
+            const diff = ((needleTargetRotation - needleVisualRotation + 540) % 360) - 180;
+            if (Math.abs(diff) < 0.15) {
+                needleVisualRotation = needleTargetRotation;
+                needle.style.transform = `translateX(-50%) rotate(${needleVisualRotation}deg)`;
+                needleAnimationFrameId = null;
+                return;
+            }
+            needleVisualRotation = (needleVisualRotation + diff * 0.2 + 360) % 360;
+            needle.style.transform = `translateX(-50%) rotate(${needleVisualRotation}deg)`;
+            needleAnimationFrameId = requestAnimationFrame(animateNeedle);
+        };
+        const requestNeedleAnimation = () => {
+            if (!needle) return;
+            if (!needleAnimationFrameId) needleAnimationFrameId = requestAnimationFrame(animateNeedle);
+        };
         const destPlain = toPlainLatLng(destLatLng);
         if (!destPlain) { alert('Unable to load destination.'); return; }
         radarDestLatLng = new google.maps.LatLng(destPlain.lat, destPlain.lng);
         currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
-        if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true);
+        if(orientationListener && orientationEventType) window.removeEventListener(orientationEventType, orientationListener, true);
         orientationListener = null;
+        orientationEventType = null;
 
         const ensureRadarMap = () => {
             const mapHost = $("radarMap");
@@ -2183,23 +2211,31 @@
                 if (deviceHeading === null && lastGeolocationHeading !== null) deviceHeading = lastGeolocationHeading;
                 const course = normalizeHeading(bearing) ?? 0;
                 const rotation = normalizeHeading(bearing - (deviceHeading ?? 0)) ?? 0;
-                needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
-                if (compassLabels.heading) compassLabels.heading.textContent = `${Math.round(course)}°`;
+                needleTargetRotation = rotation;
+                requestNeedleAnimation();
+                if (compassLabels.heading) {
+                    const formatted = String(Math.round(course)).padStart(3, '0');
+                    compassLabels.heading.textContent = `${formatted}°`;
+                }
             } catch(e){ console.error("Heading error:",e); }
         }
 
         const startOrientationListener = () => {
             if (orientationListener) return; // Prevent duplicates if somehow called again
             const handler = (event) => updateCompassNeedle(event);
+            const register = (eventName) => {
+                orientationEventType = eventName;
+                orientationListener = handler;
+                window.addEventListener(eventName, orientationListener, true);
+            };
             if (window.DeviceOrientationEvent?.requestPermission) {
                 window.DeviceOrientationEvent.requestPermission().then(r => {
-                    if (r === 'granted') {
-                        orientationListener = handler;
-                        window.addEventListener('deviceorientation', orientationListener, true);
-                    } else { console.warn("Orientation permission denied."); }
+                    if (r === 'granted') register('deviceorientation');
+                    else { console.warn("Orientation permission denied."); }
                 }).catch(e => { console.error("Orientation permission error:", e); });
             }
-            else if ('ondeviceorientation' in window) { orientationListener = handler; window.addEventListener('deviceorientation', orientationListener, true); }
+            else if ('ondeviceorientationabsolute' in window) { register('deviceorientationabsolute'); }
+            else if ('ondeviceorientation' in window) { register('deviceorientation'); }
             else { console.warn("Orientation not supported."); }
         };
         startOrientationListener();
@@ -2311,7 +2347,15 @@
             }
             closeOverlayElement(overlay);
             if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
-            if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); orientationListener=null;
+            if(orientationListener && orientationEventType) {
+                window.removeEventListener(orientationEventType, orientationListener, true);
+                orientationListener=null;
+                orientationEventType=null;
+            }
+            if (needleAnimationFrameId) {
+                cancelAnimationFrame(needleAnimationFrameId);
+                needleAnimationFrameId = null;
+            }
             silenceDirections(); ac.style.display='none';
         };
     } // End openCompass
