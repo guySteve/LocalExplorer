@@ -12,6 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <script src="key.js"></script>
   <style>
     :root {
@@ -47,6 +48,59 @@
       flex-direction: column;
       gap: 0.85rem;
       padding: 0 0 2rem;
+    }
+    body.theme-retro90 {
+      font-family: 'Press Start 2P', 'Raleway', sans-serif;
+      background-color: #1a0b2a;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        radial-gradient(circle at top, #2c0c5d, #0b0315);
+      background-size: 4px 4px, 4px 4px, 100% 100%;
+      color: #fef9ff;
+    }
+    body.theme-retro90 #appHeader,
+    body.theme-retro90 #locationDisplay,
+    body.theme-retro90 #weatherWidget,
+    body.theme-retro90 .filter-btn,
+    body.theme-retro90 #primaryActions button {
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.2);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.45) inset, 0 12px 16px rgba(0,0,0,0.5);
+    }
+    body.theme-retro90 button,
+    body.theme-retro90 .filter-btn {
+      font-family: 'Press Start 2P', 'Raleway', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+    }
+    body.theme-retro90 #weatherWidget {
+      background: linear-gradient(135deg, #2d0f5d, #ff5ddb);
+    }
+    body.theme-retro90 #compassOverlay {
+      background: linear-gradient(120deg, #2d0f5d, #09031a);
+      border-color: rgba(255,255,255,0.35);
+    }
+    body.theme-retro90 #toggleDirectionsPanel,
+    body.theme-retro90 #compassSettingsBtn {
+      border-radius: 4px;
+      border-width: 2px;
+    }
+    body.theme-groove70 {
+      background-image: radial-gradient(circle at top, #ffe4b5, #ffcf99 40%, #f3b172 75%, #f28c61);
+      color: #4b2c20;
+    }
+    body.theme-groove70 #appHeader {
+      border-bottom-color: #ff8a3c;
+    }
+    body.theme-groove70 #weatherWidget {
+      background: linear-gradient(135deg, #f5a65b, #f67544);
+      color: #4b2c20;
+    }
+    body.theme-groove70 .filter-btn {
+      background: linear-gradient(120deg, #f6c143, #f6933a);
+      color: #4b2c20;
+      border-color: rgba(75,44,32,0.2);
     }
     h1, h2, h3 {
       font-family: 'Poppins', sans-serif;
@@ -719,162 +773,174 @@
       background-color: var(--card); /* Darken on hover */
     }
     /* Compass & navigation overlay */
-    /* --- Compass Futuristic HUD --- */
     #compassOverlay {
       position: fixed;
-      bottom: 0.5rem;
-      right: 0.5rem;
+      bottom: 0.75rem;
+      right: 0.75rem;
       transform: translateY(100%);
-      width: 300px;
-      max-width: 90%;
-      background: linear-gradient(165deg, rgba(20,32,48,0.92), rgba(8,18,30,0.98));
+      width: min(420px, 92%);
+      max-height: 90vh;
+      background: linear-gradient(165deg, #040d18 0%, #0f223d 100%);
       color: var(--text-light);
-      border-radius: calc(var(--radius) + 6px);
-      box-shadow: 0 18px 36px rgba(0,0,0,0.55), inset 0 0 18px rgba(138,90,68,0.18);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.55);
       z-index: 40;
-      transition: transform 0.4s ease;
+      transition: transform 0.35s ease;
       overflow: hidden;
-      border: 1px solid rgba(138,90,68,0.55);
-      backdrop-filter: blur(8px);
-    }
-    #compassOverlay::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 20% 0%, rgba(255,204,153,0.18), transparent 55%), radial-gradient(circle at 80% 20%, rgba(120,180,255,0.12), transparent 60%);
-      pointer-events: none;
     }
     #compassOverlay.active {
       transform: translateY(0);
     }
-    #compassTop {
-      position: relative;
-      padding: 1.6rem;
+    .compass-shell {
+      padding: 1.25rem;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      background: radial-gradient(circle at center, rgba(50,80,118,0.45) 0%, rgba(8,18,30,0.92) 70%);
+      flex-direction: column;
+      gap: 1.1rem;
     }
-    .compass-holo {
-      position: relative;
-      width: 180px;
-      height: 180px;
+    .compass-header {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      filter: drop-shadow(0 0 24px rgba(200,120,65,0.45));
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
     }
-    .holo-ring {
-      position: absolute;
+    .compass-title {
+      text-transform: uppercase;
+      letter-spacing: 0.3rem;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.75);
+    }
+    .compass-subtitle {
+      margin-top: 0.15rem;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.9);
+    }
+    #closeCompassBtn {
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 1.2rem;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      border: 1px solid rgba(200,120,65,0.35);
-      box-shadow: 0 0 25px rgba(200,120,65,0.25);
-      animation: pulseRing 7s ease-in-out infinite;
+      cursor: pointer;
+      box-shadow: inset 0 0 8px rgba(255,255,255,0.15);
     }
-    .holo-ring.outer {
-      width: 170px;
-      height: 170px;
-      animation-delay: 0s;
+    #closeCompassBtn:hover {
+      background: rgba(255,255,255,0.18);
     }
-    .holo-ring.inner {
-      width: 140px;
-      height: 140px;
-      border-color: rgba(255,255,255,0.18);
-      box-shadow: 0 0 18px rgba(120,200,255,0.18);
-      animation-duration: 9s;
-      animation-direction: alternate;
-    }
-    .holo-core {
-      position: relative;
-      width: 122px;
-      height: 122px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(22,36,58,0.92) 70%);
+    .compass-main {
       display: flex;
+      flex-direction: column;
+      gap: 1rem;
       align-items: center;
-      justify-content: center;
     }
-    .holo-core::after {
-      content: '';
-      position: absolute;
-      inset: -20%;
-      background: conic-gradient(from 0deg, rgba(120,200,255,0.35), transparent 60%);
-      animation: radarSweep 4.5s linear infinite;
-      mix-blend-mode: screen;
-      opacity: 0.65;
+    .compass-face {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.9rem;
     }
-    .holo-grid {
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 2px, transparent 2px, transparent 6px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 2px, transparent 2px, transparent 6px);
-      animation: gridDrift 14s linear infinite;
-      opacity: 0.7;
-    }
-    .holo-glow {
-      position: absolute;
-      width: 120%;
-      height: 120%;
+    .compass-dial {
+      position: relative;
+      width: 240px;
+      height: 240px;
       border-radius: 50%;
-      pointer-events: none;
-      background: radial-gradient(circle, rgba(200,120,65,0.35) 0%, transparent 65%);
-      filter: blur(14px);
-      animation: glowPulse 5.5s ease-in-out infinite alternate;
+      border: 10px solid rgba(248,231,189,0.25);
+      background: radial-gradient(circle at center, rgba(19,38,64,0.95) 40%, rgba(5,12,21,0.95) 100%);
+      box-shadow: inset 0 0 22px rgba(0,0,0,0.65);
+    }
+    .dial-cardinal {
+      position: absolute;
+      font-weight: 700;
+      letter-spacing: 0.4rem;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.8rem;
+    }
+    .dial-cardinal.north { top: 10px; left: 50%; transform: translateX(-50%); }
+    .dial-cardinal.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+    .dial-cardinal.east { right: 14px; top: 50%; transform: translateY(-50%); }
+    .dial-cardinal.west { left: 14px; top: 50%; transform: translateY(-50%); }
+    .dial-center {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f6c784 0%, #c27a3a 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 14px rgba(0,0,0,0.5);
     }
     #compassNeedle {
       position: absolute;
-      top: 18px;
       left: 50%;
-      width: 10px;
-      height: 86px;
-      transform: translateX(-50%) rotate(0deg);
-      transform-origin: center 74px;
-      border-radius: 999px 999px 18px 18px;
-      background: linear-gradient(180deg, rgba(255,186,140,0.96) 0%, rgba(200,120,65,0.85) 60%, rgba(255,255,255,0.7) 100%);
-      box-shadow: 0 0 22px rgba(200,120,65,0.5), 0 0 6px rgba(255,255,255,0.45);
-      transition: transform 0.45s ease-out;
+      top: 50%;
+      width: 12px;
+      height: 110px;
+      margin-left: -6px;
+      transform-origin: 50% calc(100% - 12px);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #ffe9b6 0%, #c27a3a 70%, #18263d 100%);
+      box-shadow: 0 0 18px rgba(194,122,58,0.4);
+      transition: transform 0.4s ease-out;
     }
     #compassNeedle::after {
       content: '';
       position: absolute;
-      bottom: -20px;
+      bottom: -16px;
       left: 50%;
-      width: 3px;
-      height: 20px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(200,120,65,0.55));
-      border-radius: 4px;
+      width: 6px;
+      height: 16px;
       transform: translateX(-50%);
-      opacity: 0.7;
-      box-shadow: 0 0 10px rgba(255,255,255,0.35);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.6);
     }
-    .cardinal {
-      position: absolute;
-      font-size: 0.75rem;
-      letter-spacing: 0.28rem;
+    .compass-readout {
+      text-align: center;
+    }
+    .readout-label {
+      text-transform: uppercase;
+      letter-spacing: 0.25rem;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.65);
+    }
+    .readout-value {
+      font-size: 1.1rem;
+      margin-top: 0.25rem;
+      color: #ffe7b5;
       font-weight: 600;
-      color: rgba(255,255,255,0.75);
-      text-shadow: 0 0 8px rgba(200,120,65,0.6);
     }
-    .cardinal.north { top: 6px; left: 50%; transform: translateX(-50%); }
-    .cardinal.south { bottom: 6px; left: 50%; transform: translateX(-50%); }
-    .cardinal.east { right: 10px; top: 50%; transform: translateY(-50%); letter-spacing: 0.2rem; }
-    .cardinal.west { left: 10px; top: 50%; transform: translateY(-50%); letter-spacing: 0.2rem; }
-    #compassControls {
-      position: relative;
-      background: linear-gradient(180deg, rgba(18,30,46,0.92), rgba(12,20,30,0.96));
-      padding: 0.75rem 1.1rem 1.1rem;
-      border-top: 1px solid rgba(138,90,68,0.4);
+    .compass-map-card {
+      width: 100%;
+      background: rgba(6,14,24,0.85);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 0.85rem;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.35);
     }
-    #compassControls::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(200,120,65,0.08), transparent 50%);
-      pointer-events: none;
+    .map-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18rem;
+      color: rgba(255,255,255,0.65);
+    }
+    #toggleDirectionsPanel, #compassSettingsBtn {
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    #toggleDirectionsPanel:hover, #compassSettingsBtn:hover {
+      background: rgba(255,255,255,0.12);
     }
     #radarMap {
       width: 100%;
@@ -882,29 +948,35 @@
       border-radius: calc(var(--radius) / 1.2);
       border: 1px solid rgba(120,180,255,0.18);
       overflow: hidden;
-      margin-bottom: 0.75rem;
-      background: rgba(0,0,0,0.2);
-    }
-    .compass-note {
-      background: rgba(200,120,65,0.18);
-      color: rgba(255,255,255,0.82);
-      padding: 0.35rem 0.7rem;
-      border-radius: calc(var(--radius) / 1.4);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14rem;
+      background: rgba(0,0,0,0.35);
     }
     #advancedCompassControls {
-      border: 1px solid rgba(120,180,255,0.18);
-      box-shadow: inset 0 0 16px rgba(120,180,255,0.08);
+      margin-top: 0.6rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 0.55rem;
+      background: rgba(4,10,18,0.7);
     }
     #advancedCompassControls label {
       color: rgba(255,255,255,0.8);
     }
     #travelModeToggle label {
-      color: rgba(255,255,255,0.85);
-      font-size: 0.92rem;
+      margin-right: 0.75rem;
+      font-size: 0.85rem;
       letter-spacing: 0.05rem;
+    }
+    #directionsPanel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #directionsPanel.open {
+      max-height: 600px;
+      margin-top: 0.6rem;
+      opacity: 1;
+      pointer-events: auto;
     }
     #navigationButtons {
       display: flex;
@@ -913,10 +985,10 @@
     }
     #navigationButtons button {
       flex: 1;
-      padding: 0.45rem 0.4rem;
+      padding: 0.5rem 0.4rem;
       border-radius: var(--radius);
       border: 1px solid rgba(120,180,255,0.25);
-      background: linear-gradient(160deg, rgba(30,48,70,0.65), rgba(18,30,46,0.95));
+      background: linear-gradient(160deg, rgba(30,48,70,0.8), rgba(18,30,46,1));
       color: rgba(255,255,255,0.9);
       cursor: pointer;
       font-weight: 600;
@@ -926,11 +998,11 @@
     }
     #navigationButtons button:hover {
       transform: translateY(-1px);
-      background: linear-gradient(160deg, rgba(44,70,110,0.8), rgba(22,38,60,0.95));
+      background: linear-gradient(160deg, rgba(44,70,110,0.9), rgba(22,38,60,1));
       box-shadow: 0 10px 20px rgba(0,0,0,0.35), inset 0 0 10px rgba(200,120,65,0.22);
     }
     #navigationButtons button:disabled {
-      opacity: 0.55;
+      opacity: 0.5;
       cursor: not-allowed;
       box-shadow: inset 0 0 6px rgba(120,180,255,0.12);
       background: rgba(25,40,62,0.7);
@@ -938,6 +1010,87 @@
     #navigationButtons button:focus-visible {
       outline: 2px solid rgba(120,180,255,0.55);
       outline-offset: 2px;
+    }
+    #nextStepCard {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      border-radius: calc(var(--radius) / 1.1);
+      background: rgba(14,24,36,0.7);
+      border: 1px solid rgba(120,180,255,0.18);
+      box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
+    }
+    .next-step-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+    }
+    #nextStepText {
+      font-size: 0.95rem;
+      margin: 0.4rem 0 0.6rem;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    .next-step-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .next-step-actions button {
+      flex: 1;
+      border-radius: calc(var(--radius) / 1.5);
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-light);
+      padding: 0.35rem 0.4rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .next-step-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #directionsList {
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 0.86rem;
+      line-height: 1.45;
+      margin-top: 0.6rem;
+      padding: 0.45rem;
+      border-radius: calc(var(--radius) / 1.2);
+      background: rgba(14,24,36,0.68);
+      border: 1px solid rgba(120,180,255,0.12);
+      box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
+    }
+    #directionsList div {
+      padding: 0.25rem 0.45rem;
+      margin-bottom: 0.2rem;
+      border-radius: 6px;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      background: rgba(255,255,255,0.04);
+    }
+    #directionsList .current-step {
+      background: rgba(200,120,65,0.2);
+      color: rgba(255,255,255,0.95);
+      font-weight: 700;
+      box-shadow: 0 0 10px rgba(200,120,65,0.25);
+    }
+    .direction-icon {
+      display: inline-block;
+      width: 1.2em;
+      margin-right: 0.35em;
+      font-weight: 700;
+      color: rgba(255,198,148,0.9);
+    }
+    #directionsList.collapsed {
+      max-height: 0;
+      padding: 0;
+      border: none;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #directionsList .future-step {
+      opacity: 0.35;
+      filter: blur(0.2px);
     }
     #directionsList {
       max-height: 160px;
@@ -1019,23 +1172,6 @@
     #directionsList .future-step {
       opacity: 0.35;
       filter: blur(0.2px);
-    }
-    @keyframes pulseRing {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.04); opacity: 0.6; }
-    }
-    @keyframes gridDrift {
-      0% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(6deg) scale(1.02); }
-      100% { transform: rotate(12deg) scale(1); }
-    }
-    @keyframes glowPulse {
-      0% { opacity: 0.35; transform: scale(0.96); }
-      100% { opacity: 0.65; transform: scale(1.05); }
-    }
-    @keyframes radarSweep {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
     #hiddenMap { /* Hide map container used for Places Service */
       position: absolute;
@@ -1182,50 +1318,71 @@
   </div>
 
   <div id="compassOverlay">
-    <div id="compassTop">
-      <div class="compass-holo">
-        <div class="holo-ring outer"></div>
-        <div class="holo-ring inner"></div>
-        <div class="holo-core">
-          <div class="holo-grid"></div>
-          <div id="compassNeedle"></div>
-          <div class="cardinal north">N</div>
-          <div class="cardinal east">E</div>
-          <div class="cardinal south">S</div>
-          <div class="cardinal west">W</div>
+    <div class="compass-shell">
+      <div class="compass-header">
+        <div>
+          <div class="compass-title">Bridge Compass</div>
+          <div class="compass-subtitle" id="compassLocationLabel">Awaiting course</div>
         </div>
-        <div class="holo-glow"></div>
+        <button id="closeCompassBtn" type="button" aria-label="Close compass">×</button>
       </div>
-    </div>
-    <div id="compassControls">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <div class="compass-note">Set voice in main ⚙️</div>
-        <button id="compassSettingsBtn" type="button" aria-label="Compass Settings" style="background:none; border:none; color: var(--text-light); font-size: 1.2rem; cursor: pointer;">⚙️</button>
-      </div>
-      <div id="advancedCompassControls" style="display: none; margin-bottom: 0.5rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: var(--radius);">
-        <div id="travelModeToggle" style="margin-bottom: 0.5rem;">
-          <label style="margin-right: 0.5rem;"><input type="radio" name="travelMode" value="DRIVING" checked> Driving</label>
-          <label><input type="radio" name="travelMode" value="WALKING"> Walking</label>
+      <div class="compass-main">
+        <div class="compass-face">
+          <div class="compass-dial">
+            <span class="dial-cardinal north">N</span>
+            <span class="dial-cardinal east">E</span>
+            <span class="dial-cardinal south">S</span>
+            <span class="dial-cardinal west">W</span>
+            <div class="dial-center"></div>
+            <div id="compassNeedle"></div>
+          </div>
+          <div class="compass-readout">
+            <div class="readout-label">Bearing</div>
+            <div class="readout-value" id="compassHeadingValue">000°</div>
+            <div class="readout-label" style="margin-top:0.75rem;">Destination</div>
+            <div class="readout-value" id="compassDestinationLabel">Set a place</div>
+          </div>
         </div>
-        <div id="radarControls"> <label style="display:block; font-size:0.8rem;">Map Zoom<input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;"></label>
-          <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Needle Brightness<input type="range" id="radarBrightness" min="30" max="100" value="70" style="width:100%;"></label>
+        <div class="compass-map-card">
+          <div class="map-card-header">
+            <span>Route preview</span>
+            <div style="display:flex; gap:0.4rem;">
+              <button id="toggleDirectionsPanel" type="button">Show directions</button>
+              <button id="compassSettingsBtn" type="button" aria-label="Compass settings">⚙️</button>
+            </div>
+          </div>
+          <div id="radarMap" aria-label="Route preview map"></div>
+          <div id="advancedCompassControls" style="display: none;">
+            <div id="travelModeToggle" style="margin-bottom: 0.5rem;">
+              <label style="margin-right: 0.5rem;"><input type="radio" name="travelMode" value="DRIVING" checked> Driving</label>
+              <label><input type="radio" name="travelMode" value="WALKING"> Walking</label>
+            </div>
+            <div id="radarControls">
+              <label style="display:block; font-size:0.8rem;">Map Zoom
+                <input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;">
+              </label>
+              <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Needle Brightness
+                <input type="range" id="radarBrightness" min="30" max="100" value="70" style="width:100%;">
+              </label>
+            </div>
+          </div>
+          <div id="directionsPanel">
+            <div id="navigationButtons">
+              <button id="readDirectionsBtn">🗣️ Read Directions</button>
+              <button id="silenceBtn" disabled>🔇 Silence</button>
+            </div>
+            <div id="nextStepCard">
+              <div class="next-step-label">Next move</div>
+              <div id="nextStepText">Waiting for route...</div>
+              <div class="next-step-actions">
+                <button id="nextStepBtn" type="button" disabled>Next step</button>
+                <button id="showAllStepsBtn" type="button">Show full route</button>
+              </div>
+            </div>
+            <div id="directionsList" class="collapsed"></div>
+          </div>
         </div>
       </div>
-      <div id="radarMap" aria-label="Route preview map"></div>
-      <div id="navigationButtons">
-        <button id="readDirectionsBtn">🗣️ Read Directions</button>
-        <button id="silenceBtn" disabled>🔇 Silence</button>
-        <button id="closeCompassBtn">Close</button>
-      </div>
-      <div id="nextStepCard">
-        <div class="next-step-label">Next move</div>
-        <div id="nextStepText">Waiting for route...</div>
-        <div class="next-step-actions">
-          <button id="nextStepBtn" type="button" disabled>Next step</button>
-          <button id="showAllStepsBtn" type="button">Show full route</button>
-        </div>
-      </div>
-      <div id="directionsList" class="collapsed"></div>
     </div>
   </div>
 
@@ -1359,6 +1516,7 @@
       pendingStreetViewLatLng = latLng || null;
       const sheet = $("detailsSheet");
       if (sheet) sheet.classList.remove('streetview-active');
+      if (!latLng && compassLabels.destination) compassLabels.destination.textContent = 'Set a place';
       const btn = $("activateStreetViewBtn");
       if (btn) {
         btn.disabled = !latLng;
@@ -1432,6 +1590,13 @@
       Object.entries(theme).forEach(([token, value]) => root.style.setProperty(token, value));
       const themeColorMeta = document.querySelector('meta[name="theme-color"]');
       if (themeColorMeta) themeColorMeta.content = theme['--background'] || '#f8f7f2';
+      if (document.body) {
+        document.body.classList.toggle('theme-retro90', themeKey === 'retro90');
+        document.body.classList.toggle('theme-groove70', themeKey === 'groove70');
+        if (themeKey !== 'retro90' && themeKey !== 'groove70') {
+          document.body.classList.remove('theme-retro90', 'theme-groove70');
+        }
+      }
       currentThemeKey = themeKey;
     }
     function setTheme(themeKey, persist = true) { /* Sets theme and saves preference */
@@ -1450,6 +1615,11 @@
     // DOM element references
     const weatherElements = { widget: $("weatherWidget"), title: $("weatherTitle"), updated: $("weatherUpdated"), icon: $("weatherIcon"), temp: $("weatherTemp"), description: $("weatherDescription"), feels: $("weatherFeels"), wind: $("weatherWind"), range: $("weatherRange") };
     const voiceSelect = $("voiceSelect");
+    const compassLabels = {
+      location: $("compassLocationLabel"),
+      destination: $("compassDestinationLabel"),
+      heading: $("compassHeadingValue")
+    };
 
     function populateVoices() { /* Populates voice dropdown in settings */
       const voices = window.speechSynthesis.getVoices();
@@ -1534,7 +1704,9 @@
           displayLocation(results[0], pos);
           updateWeather(pos);
         } else { // Fallback display
-          $("locationDisplay").innerHTML = `<span style="font-size:0.85rem;">${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}</span>`;
+          const coordsLabel = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+          $("locationDisplay").innerHTML = `<span style="font-size:0.85rem;">${coordsLabel}</span>`;
+          if (compassLabels.location) compassLabels.location.textContent = coordsLabel;
           latestLocationLabel = ''; updateWeatherTitle(); updateWeather(pos);
         }
       });
@@ -1550,6 +1722,7 @@
         let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
         latestLocationLabel = locStr.replace(/[<>]/g, ''); // Sanitize
         $("locationDisplay").innerHTML = `${locStr}<br><span style="font-size:0.75rem; opacity:0.8;">${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}</span>`;
+        if (compassLabels.location) compassLabels.location.textContent = locStr ? `Near ${locStr}` : 'Awaiting course';
         updateWeatherTitle();
     }
     function populateFilterButtons() { /* Create main category buttons */
@@ -1704,6 +1877,18 @@
         currentPaginationHandle.nextPage();
       };
     }
+    const directionsPanel = $("directionsPanel");
+    const toggleDirectionsBtn = $("toggleDirectionsPanel");
+    if (toggleDirectionsBtn && directionsPanel) {
+      toggleDirectionsBtn.setAttribute('aria-expanded', 'false');
+      directionsPanel.setAttribute('aria-hidden', 'true');
+      toggleDirectionsBtn.onclick = () => {
+        const open = directionsPanel.classList.toggle('open');
+        toggleDirectionsBtn.textContent = open ? 'Hide directions' : 'Show directions';
+        toggleDirectionsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        directionsPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+      };
+    }
     function setLoadMoreState(pagination) {
       currentPaginationHandle = (pagination && pagination.hasNextPage) ? pagination : null;
       const btn = $("loadMoreResultsBtn");
@@ -1730,6 +1915,7 @@
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           currentPlaceDetails = place; const loc = place.geometry.location;
+          if (compassLabels.destination) compassLabels.destination.textContent = place.name || 'Selected place';
           prepareStreetViewPreview(loc);
           // Populate text fields
           $("detailsName").textContent = place.name || 'No Name';
@@ -1995,8 +2181,10 @@
                 }
                 if (deviceHeading === null && lastDeviceHeading !== null) deviceHeading = lastDeviceHeading;
                 if (deviceHeading === null && lastGeolocationHeading !== null) deviceHeading = lastGeolocationHeading;
+                const course = normalizeHeading(bearing) ?? 0;
                 const rotation = normalizeHeading(bearing - (deviceHeading ?? 0)) ?? 0;
                 needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+                if (compassLabels.heading) compassLabels.heading.textContent = `${Math.round(course)}°`;
             } catch(e){ console.error("Heading error:",e); }
         }
 
@@ -2113,6 +2301,14 @@
         }
 
         cb.onclick=()=>{
+            if (directionsPanel) {
+                directionsPanel.classList.remove('open');
+                directionsPanel.setAttribute('aria-hidden', 'true');
+            }
+            if (toggleDirectionsBtn) {
+                toggleDirectionsBtn.textContent = 'Show directions';
+                toggleDirectionsBtn.setAttribute('aria-expanded', 'false');
+            }
             closeOverlayElement(overlay);
             if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
             if(orientationListener) window.removeEventListener('deviceorientation', orientationListener, true); orientationListener=null;
