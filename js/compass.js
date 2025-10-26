@@ -123,10 +123,14 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
         updateCompassNeedle();
 
         function updateCompassNeedle(ev, override = {}) {
-            if (!currentPosition || !radarDestLatLng || !needle) return;
+            // We no longer need radarDestLatLng, so we only check for the needle.
+            if (!needle) return; 
+            
             try {
-                const curLatLng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-                const bearing = google.maps.geometry.spherical.computeHeading(curLatLng, radarDestLatLng);
+                // Destination-related calculations are removed.
+                // const curLatLng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+                // const bearing = google.maps.geometry.spherical.computeHeading(curLatLng, radarDestLatLng);
+
                 let deviceHeading = null;
                 if (ev) {
                     const derived = deriveHeadingFromEvent(ev);
@@ -138,14 +142,32 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
                 if (typeof override.heading === 'number') {
                     deviceHeading = normalizeHeading(override.heading);
                 }
+                
                 if (deviceHeading === null && lastDeviceHeading !== null) deviceHeading = lastDeviceHeading;
                 if (deviceHeading === null && lastGeolocationHeading !== null) deviceHeading = lastGeolocationHeading;
-                const course = normalizeHeading(bearing) ?? 0;
-                const rotation = normalizeHeading(bearing - (deviceHeading ?? 0)) ?? 0;
+
+                // If we still don't have a heading, we can't rotate.
+                if (deviceHeading === null) return;
+
+                // const course = normalizeHeading(bearing) ?? 0; // No longer needed
+
+                // --- This is the key change ---
+                // Old logic pointed to the destination:
+                // const rotation = normalizeHeading(bearing - (deviceHeading ?? 0)) ?? 0;
+                
+                // New logic points the needle North by applying the *opposite* of the device's heading:
+                const rotation = normalizeHeading(0 - deviceHeading) ?? 0;
+                // --- End of key change ---
+
                 needleTargetRotation = rotation;
                 requestNeedleAnimation();
+
                 if (compassLabels.heading) {
-                    const formatted = String(Math.round(course)).padStart(3, '0');
+                    // Old logic showed destination bearing:
+                    // const formatted = String(Math.round(course)).padStart(3, '0');
+                    
+                    // New logic shows the device's heading:
+                    const formatted = String(Math.round(deviceHeading)).padStart(3, '0');
                     compassLabels.heading.textContent = `${formatted}°`;
                 }
             } catch(e){ console.error("Heading error:",e); }
