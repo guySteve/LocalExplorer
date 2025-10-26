@@ -8,19 +8,56 @@
   --text-light: #ffffff;
   --accent: #8a5a44;     /* Teak brown */
   --radius: 12px;
+  
+  /* Compass Base Variables */
+  --compass-bg: linear-gradient(165deg, #040d18 0%, #0f223d 100%);
+  --compass-text: #ffffff;
+  --compass-label: rgba(255,255,255,0.75);
+  --compass-value: #ffe7b5; /* Light gold readout */
+  --compass-border: rgba(255,255,255,0.08);
+  --compass-button-bg: rgba(255,255,255,0.08);
+  --compass-button-hover-bg: rgba(255,255,255,0.18);
+  --compass-button-text: #fff;
+  
+  --compass-dial-border: rgba(248, 231, 189, 0.25); /* Faint gold border */
+  --compass-dial-bg: radial-gradient(circle at center, rgba(19, 38, 64, 0.95) 40%, rgba(5, 12, 21, 0.95) 100%); /* Dark blue gradient */
+  --compass-dial-shadow: inset 0 0 22px rgba(0, 0, 0, 0.65);
+  --compass-marker-color: #c87941; /* Muted Brass */
+  --compass-marker-shadow: 0 0 8px rgba(200, 120, 65, 0.7);
+  --compass-arrow-color: #f5d48c; /* Bright Brass */
+  --compass-arrow-shadow: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
 }
 
+/* --- Retro 90s Theme --- */
 body.theme-retro90 {
   font-family: 'Press Start 2P', 'Raleway', sans-serif;
-  background-color: #1a0b2a;
+  --background: #1a0b2a;
+  --card: #3a0e6e;
+  --primary: #ff5ddb;
+  --secondary: #5d1a9d;
+  --text-dark: #fef9ff;
+  --text-light: #ffffff;
+  --accent: #ffcc00;
+  
   background-image:
     linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
     linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
     radial-gradient(circle at top, #2c0c5d, #0b0315);
   background-size: 4px 4px, 4px 4px, 100% 100%;
   color: #fef9ff;
-}
 
+  /* Compass overrides */
+  --compass-bg: linear-gradient(120deg, #2d0f5d, #09031a);
+  --compass-border: rgba(255, 93, 219, 0.35); /* Pinkish border */
+  --compass-dial-border: rgba(255, 204, 0, 0.35); /* Yellow border */
+  --compass-dial-bg: radial-gradient(circle at center, #3a0e6e 40%, #1a0b2a 100%);
+  --compass-marker-color: #ffcc00; /* Yellow markers */
+  --compass-marker-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
+  --compass-arrow-color: #ff5ddb; /* Pink arrow */
+  --compass-arrow-shadow: drop-shadow(0 0 10px rgba(255, 93, 219, 0.7));
+  --compass-value: #ffcc00; /* Yellow readout */
+}
+/* ... other retro90 specific styles ... */
 body.theme-retro90 #appHeader,
 body.theme-retro90 #locationDisplay,
 body.theme-retro90 #weatherWidget,
@@ -30,45 +67,199 @@ body.theme-retro90 #primaryActions button {
   border: 2px solid rgba(255,255,255,0.2);
   box-shadow: 0 0 0 2px rgba(0,0,0,0.45) inset, 0 12px 16px rgba(0,0,0,0.5);
 }
-
 body.theme-retro90 button,
 body.theme-retro90 .filter-btn {
   font-family: 'Press Start 2P', 'Raleway', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05rem;
 }
-
 body.theme-retro90 #weatherWidget {
   background: linear-gradient(135deg, #2d0f5d, #ff5ddb);
 }
+/* Removed old compass overlay styles for retro90 */
 
-body.theme-retro90 #compassOverlay {
-  background: linear-gradient(120deg, #2d0f5d, #09031a);
-  border-color: rgba(255,255,255,0.35);
-}
-
-body.theme-retro90 #toggleDirectionsPanel,
-body.theme-retro90 #compassSettingsBtn {
-  border-radius: 4px;
-  border-width: 2px;
-}
-
+/* --- Groove 70s Theme --- */
 body.theme-groove70 {
+  --background: #fff4da;
+  --card: #4b2c20; /* Dark brown */
+  --primary: #ff8a3c; /* Orange */
+  --secondary: #d95f26; /* Burnt orange */
+  --text-dark: #4b2c20;
+  --text-light: #fff9f1; /* Off-white */
+  --accent: #ffc857; /* Yellow */
+
   background-image: radial-gradient(circle at top, #ffe4b5, #ffcf99 40%, #f3b172 75%, #f28c61);
   color: #4b2c20;
-}
 
+  /* Compass overrides */
+   --compass-bg: linear-gradient(165deg, #6e3e2f 0%, #4b2c20 100%); /* Brown gradient */
+   --compass-text: #fff9f1;
+   --compass-label: rgba(255, 249, 241, 0.75);
+   --compass-value: #ffc857; /* Yellow readout */
+   --compass-border: rgba(255, 138, 60, 0.3); /* Orange border */
+   --compass-button-bg: rgba(255, 249, 241, 0.1);
+   --compass-button-hover-bg: rgba(255, 249, 241, 0.2);
+   --compass-button-text: #fff9f1;
+   --compass-dial-border: rgba(255, 200, 87, 0.4); /* Yellow border */
+   --compass-dial-bg: radial-gradient(circle at center, #6e3e2f 50%, #4b2c20 100%);
+   --compass-dial-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+   --compass-marker-color: #ffc857; /* Yellow markers */
+   --compass-marker-shadow: 0 0 6px rgba(255, 200, 87, 0.6);
+   --compass-arrow-color: #ff8a3c; /* Orange arrow */
+   --compass-arrow-shadow: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+}
+/* ... other groove70 specific styles ... */
 body.theme-groove70 #appHeader {
   border-bottom-color: #ff8a3c;
 }
-
 body.theme-groove70 #weatherWidget {
   background: linear-gradient(135deg, #f5a65b, #f67544);
   color: #4b2c20;
 }
-
 body.theme-groove70 .filter-btn {
   background: linear-gradient(120deg, #f6c143, #f6933a);
   color: #4b2c20;
   border-color: rgba(75,44,32,0.2);
+}
+
+/* --- NEW THEMES --- */
+
+/* Promised Neverland Theme */
+body.theme-neverland {
+  --background: #f0e8d8; /* Parchment / Old paper */
+  --card: #3a2e28; /* Dark wood brown */
+  --primary: #d4a373; /* Muted gold/tan */
+  --secondary: #586f6b; /* Muted forest green/teal */
+  --text-dark: #3a2e28;
+  --text-light: #fdfaf6; /* Creamy off-white */
+  --accent: #8a5a44; /* Existing teak brown works well */
+
+  /* Compass overrides */
+   --compass-bg: linear-gradient(165deg, #5c4e46 0%, #3a2e28 100%); /* Dark wood gradient */
+   --compass-text: #fdfaf6;
+   --compass-label: rgba(253, 250, 246, 0.7);
+   --compass-value: #d4a373; /* Muted gold readout */
+   --compass-border: rgba(212, 163, 115, 0.3);
+   --compass-button-bg: rgba(253, 250, 246, 0.08);
+   --compass-button-hover-bg: rgba(253, 250, 246, 0.15);
+   --compass-button-text: #fdfaf6;
+   --compass-dial-border: rgba(138, 90, 68, 0.5); /* Teak border */
+   --compass-dial-bg: radial-gradient(circle at center, #6b5c54 40%, #3a2e28 100%);
+   --compass-dial-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6);
+   --compass-marker-color: #d4a373; /* Muted gold markers */
+   --compass-marker-shadow: 0 0 6px rgba(212, 163, 115, 0.5);
+   --compass-arrow-color: #fdfaf6; /* Creamy arrow */
+   --compass-arrow-shadow: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Arcane Theme */
+body.theme-arcane {
+  --background: #0a1128; /* Very dark blue */
+  --card: #122c34; /* Dark teal/blue */
+  --primary: #fec601; /* Hextech Gold */
+  --secondary: #005f73; /* Deep teal */
+  --text-dark: #e0fbfc; /* Light cyan text */
+  --text-light: #ffffff;
+  --accent: #94d2bd; /* Muted seafoam green */
+
+  /* Compass overrides */
+   --compass-bg: linear-gradient(165deg, #1b3a4b 0%, #0a1128 100%); /* Dark gradient */
+   --compass-text: #e0fbfc;
+   --compass-label: rgba(224, 251, 252, 0.7);
+   --compass-value: #fec601; /* Gold readout */
+   --compass-border: rgba(0, 95, 115, 0.4); /* Teal border */
+   --compass-button-bg: rgba(224, 251, 252, 0.06);
+   --compass-button-hover-bg: rgba(224, 251, 252, 0.12);
+   --compass-button-text: #e0fbfc;
+   --compass-dial-border: rgba(254, 198, 1, 0.3); /* Gold border */
+   --compass-dial-bg: radial-gradient(circle at center, #122c34 30%, #0a1128 100%);
+   --compass-dial-shadow: inset 0 0 25px rgba(0, 0, 0, 0.7);
+   --compass-marker-color: #fec601; /* Gold markers */
+   --compass-marker-shadow: 0 0 10px rgba(254, 198, 1, 0.6);
+   --compass-arrow-color: #94d2bd; /* Seafoam arrow */
+   --compass-arrow-shadow: drop-shadow(0 0 8px rgba(148, 210, 189, 0.5));
+}
+
+/* Roblox Theme */
+body.theme-roblox {
+  --background: #e1e1e1; /* Light grey */
+  --card: #a3a3a3; /* Medium grey */
+  --primary: #da242a; /* Roblox Red */
+  --secondary: #00a2ff; /* Bright blue */
+  --text-dark: #393939; /* Dark grey text */
+  --text-light: #ffffff;
+  --accent: #ffcb00; /* Yellow */
+
+  /* Compass overrides */
+   --compass-bg: linear-gradient(165deg, #c0c0c0 0%, #a3a3a3 100%); /* Grey gradient */
+   --compass-text: #393939;
+   --compass-label: rgba(57, 57, 57, 0.7);
+   --compass-value: #00a2ff; /* Blue readout */
+   --compass-border: rgba(0, 162, 255, 0.3); /* Blue border */
+   --compass-button-bg: rgba(57, 57, 57, 0.1);
+   --compass-button-hover-bg: rgba(57, 57, 57, 0.2);
+   --compass-button-text: #393939;
+   --compass-dial-border: rgba(218, 36, 42, 0.5); /* Red border */
+   --compass-dial-bg: radial-gradient(circle at center, #c0c0c0 50%, #a3a3a3 100%);
+   --compass-dial-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+   --compass-marker-color: #da242a; /* Red markers */
+   --compass-marker-shadow: none;
+   --compass-arrow-color: #393939; /* Dark grey arrow */
+   --compass-arrow-shadow: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Ramen Theme */
+body.theme-ramen {
+  --background: #fff9e6; /* Creamy broth */
+  --card: #d44d5c; /* Chashu pink/red */
+  --primary: #ffc107; /* Egg yolk yellow */
+  --secondary: #77bfa3; /* Nori green */
+  --text-dark: #4a2c22; /* Dark soy brown */
+  --text-light: #ffffff;
+  --accent: #f4a259; /* Noodle tan */
+
+  /* Compass overrides */
+   --compass-bg: linear-gradient(165deg, #f0e6cc 0%, #fff9e6 100%); /* Broth gradient */
+   --compass-text: #4a2c22;
+   --compass-label: rgba(74, 44, 34, 0.7);
+   --compass-value: #d44d5c; /* Red readout */
+   --compass-border: rgba(244, 162, 89, 0.4); /* Noodle border */
+   --compass-button-bg: rgba(74, 44, 34, 0.08);
+   --compass-button-hover-bg: rgba(74, 44, 34, 0.15);
+   --compass-button-text: #4a2c22;
+   --compass-dial-border: rgba(119, 191, 163, 0.6); /* Green border */
+   --compass-dial-bg: radial-gradient(circle at center, #fff0c7 50%, #ffe8b3 100%); /* Noodle color */
+   --compass-dial-shadow: inset 0 0 15px rgba(244, 162, 89, 0.3);
+   --compass-marker-color: #d44d5c; /* Red markers */
+   --compass-marker-shadow: none;
+   --compass-arrow-color: #4a2c22; /* Brown arrow */
+   --compass-arrow-shadow: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+/* Dog Theme */
+body.theme-dog {
+  --background: #f5f5f5; /* Light grey fur */
+  --card: #6d4c41; /* Brown leather collar */
+  --primary: #ffb300; /* Golden retriever */
+  --secondary: #455a64; /* Blue grey */
+  --text-dark: #3e2723; /* Dark brown */
+  --text-light: #ffffff;
+  --accent: #ef5350; /* Red bandana */
+
+  /* Compass overrides */
+   --compass-bg: linear-gradient(165deg, #a1887f 0%, #6d4c41 100%); /* Brown gradient */
+   --compass-text: #ffffff;
+   --compass-label: rgba(255, 255, 255, 0.75);
+   --compass-value: #ffb300; /* Gold readout */
+   --compass-border: rgba(239, 83, 80, 0.4); /* Red border */
+   --compass-button-bg: rgba(255, 255, 255, 0.1);
+   --compass-button-hover-bg: rgba(255, 255, 255, 0.2);
+   --compass-button-text: #ffffff;
+   --compass-dial-border: rgba(69, 90, 100, 0.5); /* Blue grey border */
+   --compass-dial-bg: radial-gradient(circle at center, #8d6e63 40%, #5d4037 100%); /* Darker brown */
+   --compass-dial-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+   --compass-marker-color: #ffb300; /* Gold markers */
+   --compass-marker-shadow: 0 0 8px rgba(255, 179, 0, 0.6);
+   --compass-arrow-color: #ffffff; /* White arrow */
+   --compass-arrow-shadow: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.4));
 }
