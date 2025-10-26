@@ -1,8 +1,5 @@
 let appInitialized = false;
 let globalHandlersBound = false;
-let map; // Make map, placesService, geocoder globally accessible (consider refactoring later)
-let placesService;
-let geocoder;
 
 // Ensure DOM elements are ready before trying to use them
 document.addEventListener('DOMContentLoaded', () => {
