@@ -36,10 +36,10 @@ function initApp() {
           // Request Geolocation
           if (navigator.geolocation) {
               console.log("Requesting geolocation...");
-              navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
-                  enableHighAccuracy: true,
-                  timeout: 10000, // 10 seconds timeout
-                  maximumAge: 0 // Force fresh location
+navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
+                  enableHighAccuracy: false, // Use faster Wi-Fi/cell tower location
+                  timeout: 15000, // Increase timeout to 15 seconds
+                  maximumAge: 60000 // Allow a cached location from the last minute
               });
           } else {
               console.warn("Geolocation not supported.");
