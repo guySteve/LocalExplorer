@@ -376,6 +376,12 @@ function initUiEvents() {
   if (uiEventsBound) return;
   uiEventsBound = true;
 
+  // NEW: Main page compass button listener
+  const compassBtn = $("compassBtn");
+  if (compassBtn) {
+    compassBtn.onclick = () => openCompass(null); // Pass null for simple mode
+  }
+
   const subMenuModal = $("subMenuModal");
   const closeSubMenuBtn = $("closeSubMenu");
   if (closeSubMenuBtn) closeSubMenuBtn.onclick = closeSubMenu;
