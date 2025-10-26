@@ -29,7 +29,8 @@
     </div>
     <div id="primaryActions">
       <button id="myListBtn">📋 My List</button>
-      <button id="myPlanBtn">🧭 My Plan</button>
+      <button id="myPlanBtn">🗺️ My Plan</button>
+      <button id="compassBtn">🧭 Compass</button>
     </div>
     <div id="weatherWidget" aria-live="polite">
     <div id="weatherHeader">
@@ -108,11 +109,13 @@
 
   <div id="detailsSheet">
     <div id="detailsMap">
-      <button id="activateStreetViewBtn" type="button" aria-label="Enable Street View Peek">👁️ Street View</button>
-    </div>
+      </div>
     <div id="detailsContent">
       <div class="sheet-handle" aria-hidden="true"></div>
       <button id="closeDetailsBtn" class="sheet-close">×</button>
+      
+      <button id="activateStreetViewBtn" type="button" aria-label="Enable Street View Peek">👁️ Street View</button>
+      
       <h3 id="detailsName"></h3>
       <div id="detailsRating"></div>
       <div id="detailsPhone"></div>
@@ -148,43 +151,23 @@
       </div>
       <div class="compass-main">
         <div class="compass-face">
-          <div class="compass-dial">
-            <span class="dial-cardinal north">N</span>
-            <span class="dial-cardinal east">E</span>
-            <span class="dial-cardinal south">S</span>
-            <span class="dial-cardinal west">W</span>
-            <div class="dial-center"></div>
-            <div id="compassNeedle"></div>
+          
+          <div id="compassArrowContainer">
+            <div id="compassArrow">⬆️</div>
           </div>
           <div class="compass-readout">
             <div class="readout-label">Bearing</div>
-            <div class="readout-value" id="compassHeadingValue">000°</div>
+            <div class="readout-value" id="compassHeadingValue">---°</div>
             <div class="readout-label" style="margin-top:0.75rem;">Destination</div>
             <div class="readout-value" id="compassDestinationLabel">Set a place</div>
           </div>
         </div>
-        <div class="compass-map-card">
+        <div class="compass-map-card" id="compassDirectionsCard">
           <div class="map-card-header">
-            <span>Route preview</span>
+            <span>Route Directions</span>
             <div style="display:flex; gap:0.4rem;">
               <button id="toggleDirectionsPanel" type="button">Show directions</button>
-              <button id="compassSettingsBtn" type="button" aria-label="Compass settings">⚙️</button>
-            </div>
-          </div>
-          <div id="radarMap" aria-label="Route preview map"></div>
-          <div id="advancedCompassControls" style="display: none;">
-            <div id="travelModeToggle" style="margin-bottom: 0.5rem;">
-              <label style="margin-right: 0.5rem;"><input type="radio" name="travelMode" value="DRIVING" checked> Driving</label>
-              <label><input type="radio" name="travelMode" value="WALKING"> Walking</label>
-            </div>
-            <div id="radarControls">
-              <label style="display:block; font-size:0.8rem;">Map Zoom
-                <input type="range" id="radarZoom" min="12" max="20" value="15" style="width:100%;">
-              </label>
-              <label style="display:block; margin-top:0.5rem; font-size:0.8rem;">Needle Brightness
-                <input type="range" id="radarBrightness" min="30" max="100" value="70" style="width:100%;">
-              </label>
-            </div>
+              </div>
           </div>
           <div id="directionsPanel">
             <div id="navigationButtons">
@@ -214,4 +197,3 @@
   <script defer src="js/app.js"></script>
 </body>
 </html>
-
