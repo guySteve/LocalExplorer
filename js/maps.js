@@ -124,17 +124,41 @@ function displayLocation(result, pos) { /* Update UI with location */
 function performSearch(category, item) { /* Perform Google Places search */
       if (!currentPosition) return alert('Please provide a location first.');
       if (category === 'Local Events') return searchLocalEvents(item); // Handle events separately
+      // Request *all* fields so we have 'types' for filtering
       const request = { location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), radius: item.radius || 7000, type: item.type || undefined, keyword: item.keyword || undefined, rankBy: item.rankBy || google.maps.places.RankBy.PROMINENCE };
       lastResultsTitle = item.name || category;
       appendNextResults = false;
       setLoadMoreState(null);
-      placesService.nearbySearch(request, (results, status, pagination) => {
+      
+      // We must use textSearch for 'types' to be reliably returned for filtering
+      // Note: textSearch doesn't support 'type' field, 'keyword' is used instead
+      const textSearchRequest = {
+        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
+        radius: item.radius || 7000,
+        query: item.keyword || item.name, // Use keyword or name as the query
+        type: item.type || undefined // Still pass type, it can help influence results
+      };
+
+      placesService.nearbySearch(textSearchRequest, (results, status, pagination) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
           const minRating = item.minRating ?? 4.2;
           const minReviews = item.minReviews ?? 20;
+
+          // 1. Filter by rating
           let filtered = item.ignoreRating ? results : results.filter(p => (p.rating || 0) >= minRating && (p.user_ratings_total || 0) >= minReviews);
-          if (!filtered.length) filtered = results.slice(0, 8);
+
+          // 2. NEW: Filter by primary type
+          if (item.primaryTypeOnly && item.type) {
+            filtered = filtered.filter(p => p.types && p.types.includes(item.type));
+          }
+          
+          if (!filtered.length && !item.primaryTypeOnly) {
+             // Fallback if filtering removed everything
+             filtered = results.slice(0, 8);
+          }
+
           filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
+          
           if (appendNextResults) {
             currentResults = currentResults.concat(filtered); displayResults(lastResultsTitle, filtered, { append: true });
           } else {
