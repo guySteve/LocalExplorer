@@ -381,7 +381,18 @@ function initUiEvents() {
   if (compassBtn) {
     compassBtn.onclick = () => openCompass(null); // Pass null for simple mode
   }
-
+// NEW: Add swipe-to-dismiss for compass
+  const compassOverlay = $("compassOverlay");
+  const closeCompassBtnForSwipe = $("closeCompassBtn");
+  if (compassOverlay && closeCompassBtnForSwipe) {
+      enableSwipeDismiss({
+          container: compassOverlay,
+          dragTarget: compassOverlay, // Swipe the whole overlay
+          scrollElement: compassOverlay.querySelector('.compass-shell'), // Allow scroll inside
+          onDismiss: () => closeCompassBtnForSwipe.click(), // Trigger existing close logic
+          threshold: 90
+      });
+  }
   const subMenuModal = $("subMenuModal");
   const closeSubMenuBtn = $("closeSubMenu");
   if (closeSubMenuBtn) closeSubMenuBtn.onclick = closeSubMenu;
@@ -471,3 +482,4 @@ function initUiEvents() {
 }
 
 setTheme(localStorage.getItem('selectedTheme') || DEFAULT_THEME, false);
+
