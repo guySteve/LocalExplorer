@@ -124,22 +124,20 @@ function displayLocation(result, pos) { /* Update UI with location */
 function performSearch(category, item) { /* Perform Google Places search */
       if (!currentPosition) return alert('Please provide a location first.');
       if (category === 'Local Events') return searchLocalEvents(item); // Handle events separately
-      // Request *all* fields so we have 'types' for filtering
-      const request = { location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), radius: item.radius || 7000, type: item.type || undefined, keyword: item.keyword || undefined, rankBy: item.rankBy || google.maps.places.RankBy.PROMINENCE };
+      
+      const request = { 
+        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), 
+        radius: item.radius || 7000, 
+        type: item.type || undefined, 
+        keyword: item.keyword || item.name, // Use keyword or name
+        rankBy: item.rankBy || google.maps.places.RankBy.PROMINENCE 
+      };
+      
       lastResultsTitle = item.name || category;
       appendNextResults = false;
       setLoadMoreState(null);
       
-      // We must use textSearch for 'types' to be reliably returned for filtering
-      // Note: textSearch doesn't support 'type' field, 'keyword' is used instead
-      const textSearchRequest = {
-        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
-        radius: item.radius || 7000,
-        query: item.keyword || item.name, // Use keyword or name as the query
-        type: item.type || undefined // Still pass type, it can help influence results
-      };
-
-      placesService.nearbySearch(textSearchRequest, (results, status, pagination) => {
+      placesService.nearbySearch(request, (results, status, pagination) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
           const minRating = item.minRating ?? 4.2;
           const minReviews = item.minReviews ?? 20;
@@ -147,13 +145,12 @@ function performSearch(category, item) { /* Perform Google Places search */
           // 1. Filter by rating
           let filtered = item.ignoreRating ? results : results.filter(p => (p.rating || 0) >= minRating && (p.user_ratings_total || 0) >= minReviews);
 
-          // 2. NEW: Filter by primary type
+          // 2. Filter by primary type
           if (item.primaryTypeOnly && item.type) {
             filtered = filtered.filter(p => p.types && p.types.includes(item.type));
           }
           
           if (!filtered.length && !item.primaryTypeOnly) {
-             // Fallback if filtering removed everything
              filtered = results.slice(0, 8);
           }
 
@@ -175,29 +172,30 @@ function performSearch(category, item) { /* Perform Google Places search */
     }
 
 function showDetails(placeId) { /* Show place details sheet */
-      // Reduced fields: removed 'photos'
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           currentPlaceDetails = place; const loc = place.geometry.location;
-          if (compassLabels.destination) compassLabels.destination.textContent = place.name || 'Selected place';
+          
           prepareStreetViewPreview(loc);
-          // Populate text fields
+          
           $("detailsName").textContent = place.name || 'No Name';
           let stars = ''; if (place.rating) { const full = Math.floor(place.rating), half = (place.rating - full) >= 0.5; stars = '★'.repeat(full) + (half ? '½' : '') + ` (${place.rating.toFixed(1)})`; }
           $("detailsRating").innerHTML = `<span class="stars">${stars}</span>`;
           $("detailsPrice").textContent = place.price_level ? '$'.repeat(place.price_level) : '';
           $("detailsPhone").textContent = place.formatted_phone_number || '';
           $("detailsAddress").textContent = place.formatted_address || '';
-          // Set button states/actions
+          
           updateSaveButtonState(place.place_id); updatePlanButtonState(place.place_id);
           $("mapsBtn").onclick = () => window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`, '_blank');
           $("websiteBtn").style.display = place.website ? 'inline-flex' : 'none';
           $("websiteBtn").onclick = () => { if (place.website) window.open(place.website, '_blank'); };
           $("shareBtn").onclick = () => { if (navigator.share) navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(console.error); else alert('Sharing not supported.'); };
-          $("guideBtn").onclick = () => openCompass(loc);
-          // Populate accordions
+          
+          // --- UPDATED: Pass place.name to openCompass ---
+          $("guideBtn").onclick = () => openCompass(loc, place.name);
+          
           populateReviews(place.reviews || []); populateHours(place.opening_hours);
-          $("detailsSheet").classList.add('active'); document.body.classList.add('modal-open'); // Show sheet
+          $("detailsSheet").classList.add('active'); document.body.classList.add('modal-open');
         } else console.error("Place details request failed:", status);
       });
     }
