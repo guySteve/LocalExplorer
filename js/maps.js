@@ -57,7 +57,18 @@ function activateStreetViewPeek() {
 
 function onLocationSuccess(position) { /* Geolocation success */
       currentPosition = { lat: position.coords.latitude, lng: position.coords.longitude };
-      reverseGeocode(currentPosition); // Get address from coordinates
+      try {
+          reverseGeocode(currentPosition); // Get address from coordinates
+      } catch (err) {
+          console.error("CRITICAL: reverseGeocode failed. 'geocoder' variable is likely undefined.", err);
+          // Manually call the fallback display if reverseGeocode crashes
+          const coordsLabel = `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`;
+          $("locationDisplay").innerHTML = `<span style="font-size:0.85rem;">${coordsLabel}</span>`;
+          if (compassLabels.location) compassLabels.location.textContent = coordsLabel;
+          latestLocationLabel = ''; 
+          updateWeatherTitle(); 
+          updateWeather(currentPosition);
+      }
     }
 
 function onLocationError(err) { /* Geolocation failed */
@@ -220,3 +231,4 @@ function initDetailsSheetInteractions() {
         maxOffset: 320
       });
     }
+
