@@ -33,21 +33,7 @@ function initApp() {
           geocoder = new google.maps.Geocoder();
           console.log("Maps services initialized.");
 
-          // Request Geolocation
-          if (navigator.geolocation) {
-              console.log("Requesting geolocation...");
-navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
-                  enableHighAccuracy: false, // Use faster Wi-Fi/cell tower location
-                  timeout: 15000, // Increase timeout to 15 seconds
-                  maximumAge: 60000 // Allow a cached location from the last minute
-              });
-          } else {
-              console.warn("Geolocation not supported.");
-              showManualInput(); 
-              setWeatherPlaceholder('Geolocation not available. Enter location.');
-          }
-
-          // Initialize UI components
+          // Initialize ALL UI components
           populateFilterButtons(); 
           initWeatherControls(); 
           initSettingsPanel(); 
@@ -62,6 +48,20 @@ navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
           }
           
           checkSharedPlan(); 
+          
+          // NOW Request Geolocation
+          if (navigator.geolocation) {
+              console.log("Requesting geolocation...");
+              navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
+                  enableHighAccuracy: false, // Use faster Wi-Fi/cell tower location
+                  timeout: 15000, // Increase timeout to 15 seconds
+                  maximumAge: 60000 // Allow a cached location from the last minute
+              });
+          } else {
+              console.warn("Geolocation not supported.");
+              showManualInput(); 
+              setWeatherPlaceholder('Geolocation not available. Enter location.');
+          }
           
           console.log("App initialization complete.");
 
