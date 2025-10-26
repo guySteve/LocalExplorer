@@ -262,7 +262,17 @@ function closeDetails() {
 function populateReviews(reviews) { /* Fill reviews accordion */
       const content = $("reviewsContent"); content.innerHTML = '';
       if (!reviews || reviews.length === 0) content.innerHTML = '<p>No reviews available.</p>';
-      else reviews.slice(0, 5).forEach(r => { const p = document.createElement('p'); p.style.marginBottom = '0.5rem'; p.textContent = `"${r.text}" — ${r.author_name}`; content.appendChild(p); });
+      else reviews.slice(0, 5).forEach(r => { 
+          const item = document.createElement('div');
+          item.className = 'review-item';
+          const author = document.createElement('strong');
+          author.textContent = r.author_name;
+          const text = document.createElement('blockquote');
+          text.textContent = `"${r.text}"`;
+          item.appendChild(author);
+          item.appendChild(text);
+          content.appendChild(item);
+      });
     }
 
 function populateHours(hours) { /* Fill hours accordion */
