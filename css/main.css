@@ -706,7 +706,7 @@ h1, h2, h3 {
       background-color: var(--card);
     }
     
-    /* COMPASS STYLES */
+    /* --- NEW COMPASS STYLES --- */
     #compassOverlay {
       position: fixed;
       bottom: 0.75rem;
@@ -714,10 +714,11 @@ h1, h2, h3 {
       transform: translateY(100%);
       width: min(420px, 92%);
       max-height: 90vh;
-      background: linear-gradient(165deg, #040d18 0%, #0f223d 100%);
-      color: var(--text-light);
+      /* Base colors set via CSS variables */
+      background: var(--compass-bg, linear-gradient(165deg, #040d18 0%, #0f223d 100%));
+      color: var(--compass-text, var(--text-light));
       border-radius: 24px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid var(--compass-border, rgba(255,255,255,0.08));
       box-shadow: 0 18px 36px rgba(0,0,0,0.55);
       z-index: 40;
       transition: transform 0.35s ease;
@@ -742,17 +743,17 @@ h1, h2, h3 {
       text-transform: uppercase;
       letter-spacing: 0.3rem;
       font-size: 0.75rem;
-      color: rgba(255,255,255,0.75);
+      color: var(--compass-label, rgba(255,255,255,0.75));
     }
     .compass-subtitle {
       margin-top: 0.15rem;
       font-size: 0.85rem;
-      color: rgba(255,255,255,0.9);
+      color: var(--compass-text, rgba(255,255,255,0.9));
     }
     #closeCompassBtn {
       border: none;
-      background: rgba(255,255,255,0.08);
-      color: #fff;
+      background: var(--compass-button-bg, rgba(255,255,255,0.08));
+      color: var(--compass-button-text, #fff);
       font-size: 1.2rem;
       width: 34px;
       height: 34px;
@@ -761,7 +762,7 @@ h1, h2, h3 {
       box-shadow: inset 0 0 8px rgba(255,255,255,0.15);
     }
     #closeCompassBtn:hover {
-      background: rgba(255,255,255,0.18);
+      background: var(--compass-button-hover-bg, rgba(255,255,255,0.18));
     }
     .compass-main {
       display: flex;
@@ -774,46 +775,59 @@ h1, h2, h3 {
       flex-direction: column;
       align-items: center;
       gap: 0.9rem;
-      position: relative; /* Needed for the fixed heading arrow */
+      position: relative; 
     }
     
-    /* NEW COMPASS DIAL/ARROW STYLES */
-    #compassArrowContainer {
-      position: relative; /* For the 'N' marker */
-      width: 200px;
-      height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      border: 10px solid rgba(248,231,189,0.25);
-      background: radial-gradient(circle at center, rgba(19,38,64,0.95) 40%, rgba(5,12,21,0.95) 100%);
-      box-shadow: inset 0 0 22px rgba(0,0,0,0.65);
-      /* Rotation is applied by JS */
+    #compassDialContainer {
+      position: relative; /* Context for arrow */
+      width: 240px;
+      height: 240px;
     }
-    #compassNorthMarker {
+
+    #compassDial {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 10px solid var(--compass-dial-border, rgba(248, 231, 189, 0.25));
+      background: var(--compass-dial-bg, radial-gradient(circle at center, rgba(19, 38, 64, 0.95) 40%, rgba(5, 12, 21, 0.95) 100%));
+      box-shadow: var(--compass-dial-shadow, inset 0 0 22px rgba(0, 0, 0, 0.65));
+      position: relative; /* For markers */
+       /* Rotation applied by JS */
+       /* Futuristic touch: Subtle glow/scanline? */
+       /* animation: scanline 4s linear infinite; */
+       /* background-image: linear-gradient(rgba(0,255,255,0.05) 1px, transparent 1px); background-size: 100% 3px; */
+    }
+
+    .compass-marker {
       position: absolute;
-      top: 6px; /* Position 'N' at the top of the dial */
-      left: 50%;
-      transform: translateX(-50%);
       font-family: 'Poppins', sans-serif;
       font-weight: 700;
-      font-size: 24px;
-      color: #c87941; /* Muted Brass */
-      text-shadow: 0 0 8px rgba(200, 120, 65, 0.7);
+      font-size: 20px;
+      color: var(--compass-marker-color, #c87941); /* Muted Brass/Themeable */
+      text-shadow: var(--compass-marker-shadow, 0 0 8px rgba(200, 120, 65, 0.7));
+      /* Futuristic: Maybe a slight neon glow? */
+      /* filter: drop-shadow(0 0 3px var(--compass-marker-glow, #f5d48c)); */
     }
+    .compass-marker.north { top: 10px; left: 50%; transform: translateX(-50%); }
+    .compass-marker.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+    .compass-marker.east { right: 10px; top: 50%; transform: translateY(-50%); }
+    .compass-marker.west { left: 10px; top: 50%; transform: translateY(-50%); }
+    
     #compassHeadingArrow {
-      position: absolute; /* Position over the dial */
-      top: 0; /* Align to top center */
-      left: 50%;
-      transform: translateX(-50%);
+      position: absolute; 
+      top: 50%; /* Center vertically */
+      left: 50%; /* Center horizontally */
       width: 0; 
       height: 0; 
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-bottom: 30px solid #f5d48c; /* Your brass color */
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-      /* This arrow is fixed and does NOT rotate */
+      border-left: 18px solid transparent; /* Arrow width */
+      border-right: 18px solid transparent;
+      border-bottom: 90px solid var(--compass-arrow-color, #f5d48c); /* Arrow length & color */
+      transform-origin: 50% 100%; /* Rotate from the bottom center */
+      transform: translate(-50%, -100%) rotate(0deg); /* Position base at center top, initial rotation by JS */
+      filter: var(--compass-arrow-shadow, drop-shadow(0 4px 6px rgba(0,0,0,0.6)));
+       /* Futuristic: Add a subtle inner line or glow */
+       /* border-bottom-color: transparent; */
+       /* background: linear-gradient(var(--compass-arrow-color, #f5d48c), rgba(255,255,255,0.1)); */
     }
         
     .compass-readout {
@@ -823,14 +837,16 @@ h1, h2, h3 {
       text-transform: uppercase;
       letter-spacing: 0.25rem;
       font-size: 0.65rem;
-      color: rgba(255,255,255,0.65);
+      color: var(--compass-label, rgba(255,255,255,0.65));
     }
     .readout-value {
       font-size: 1.1rem;
       margin-top: 0.25rem;
-      color: #ffe7b5;
+      color: var(--compass-value, #ffe7b5); /* Themeable value color */
       font-weight: 600;
     }
+    
+    /* --- END NEW COMPASS STYLES --- */
     
     .compass-map-card {
       width: 100%;
