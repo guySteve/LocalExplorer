@@ -280,8 +280,7 @@ function openCompass(destLatLng = null, destName = '') {
 
     // --- Navigation UI Logic (Only if destination exists) ---
      if (radarDestLatLng) {
-        currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
-        
+          
         const ds=new google.maps.DirectionsService();
         const nextStepBtn = $("nextStepBtn");
         const showAllBtn = $("showAllStepsBtn");
@@ -445,3 +444,4 @@ function openCompass(destLatLng = null, destName = '') {
         // Travel mode change listener removed as it's not in the simplified HTML
     }
 }
+
