@@ -711,7 +711,7 @@ h1, h2, h3 {
       position: fixed;
       bottom: 0.75rem;
       right: 0.75rem;
-      transform: translateY(100%);
+      transform: translateY(calc(100% + var(--swipe-offset, 0px))); /* UPDATED */
       width: min(420px, 92%);
       max-height: 90vh;
       background: linear-gradient(165deg, #040d18 0%, #0f223d 100%);
@@ -724,7 +724,7 @@ h1, h2, h3 {
       overflow: hidden;
     }
     #compassOverlay.active {
-      transform: translateY(0);
+      transform: translateY(var(--swipe-offset, 0px)); /* UPDATED */
     }
     .compass-shell {
       padding: 1.25rem;
@@ -1047,3 +1047,4 @@ h1, h2, h3 {
     .accordion-content p {
       margin: 0.5rem 0;
     }
+
