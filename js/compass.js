@@ -193,15 +193,31 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
         };
         startOrientationListener();
 
+        let routeFetched = false; // <-- Flag to prevent multiple fetches
+
         if(navigator.geolocation){
             if(compassWatchId)navigator.geolocation.clearWatch(compassWatchId);
             compassWatchId=navigator.geolocation.watchPosition(p=>{
                 currentPosition={lat:p.coords.latitude,lng:p.coords.longitude};
+                
+                let headingUpdated = false;
                 if (typeof p.coords.heading === 'number' && !Number.isNaN(p.coords.heading)) {
                     lastGeolocationHeading = normalizeHeading(p.coords.heading);
+                    headingUpdated = true;
                 }
-                updateCompassNeedle();
+
+                // Only call update if device orientation fails AND we got a new heading
+                if (lastDeviceHeading === null && headingUpdated) {
+                    updateCompassNeedle(); 
+                }
+                
                 refreshRadarOrigin();
+
+                // NOW fetch the route, since we have a position
+                if (!routeFetched) {
+                    fetchAndDisplayRoute(currentTravelMode);
+                    routeFetched = true;
+                }
             },e=>console.error("Watch err:",e),{enableHighAccuracy:true});
         }
 
@@ -273,7 +289,7 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
             dl.innerHTML='Calibrating…';
             $("readDirectionsBtn").disabled=true;
             ds.route({origin:currentPosition,destination:radarDestLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;d.classList.add('future-step');dl.appendChild(d);});$("readDirectionsBtn").disabled=false;if (nextStepBtn) { nextStepBtn.disabled=false; nextStepBtn.textContent='Start route'; }setNextStepPointer(0);refreshRadarOrigin();if(radarDirectionsRenderer){radarDirectionsRenderer.setDirections(r);radarDirectionsRenderer.setRouteIndex(0);}if(radarMap&&currentPosition){const bounds=new google.maps.LatLngBounds();bounds.extend(new google.maps.LatLng(currentPosition.lat,currentPosition.lng));bounds.extend(radarDestLatLng);radarMap.fitBounds(bounds);}}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];setNextStepPointer(0);}}); }
-        fetchAndDisplayRoute(currentTravelMode);
+        // We no longer call fetchAndDisplayRoute(currentTravelMode); here. It's called by watchPosition.
 
         const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
         function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;setNextStepPointer(currentNavigationIndex);speakNextStep();}
@@ -282,7 +298,8 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
         function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);setNextStepPointer(currentNavigationIndex+1);const step=currentRouteSteps[currentNavigationIndex];const clean=stripHtml(step.instructions);const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSelect?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
         rb.onclick=readDirections;sb.onclick=silenceDirections;
         stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
-        tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
+        tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();routeFetched=false; // Allow refetch for new mode
+fetchAndDisplayRoute(currentTravelMode);}};});
         const brightnessSlider = $("radarBrightness"); if(brightnessSlider) brightnessSlider.oninput=()=>{const n=$("compassNeedle");if(n)n.style.filter=`brightness(${brightnessSlider.value/100})`;};
         const zoomSlider = $("radarZoom"); if (zoomSlider) {
             if (radarMap) zoomSlider.value = radarMap.getZoom();
