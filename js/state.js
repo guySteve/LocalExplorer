@@ -88,7 +88,7 @@ const categories = {
   ],
   'Local Events': [
     { name: 'All Events', value: 'all' },
-    { name: 'Music', value: 'music' },
+    { name:g: 'Music', value: 'music' },
     { name: 'Sports', value: 'sports' },
     { name: 'Comedy', value: 'comedy' },
     { name: 'Festivals', value: 'festival' }
