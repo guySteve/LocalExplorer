@@ -103,16 +103,27 @@ function geocodeAddress(address) { /* Get coords from address */
     }
 
 function reverseGeocode(pos) { /* Get address from coords */
+      if (!geocoder) {
+         console.error("CRITICAL: geocoder is not available in reverseGeocode.");
+         // This will show the manual input box if the first bug is still somehow present
+         onLocationError({ message: "Geocoder service not ready." }); 
+         return;
+      }
       geocoder.geocode({ location: pos }, (results, status) => {
         if (status === 'OK' && results[0]) {
           currentAddress = results[0].formatted_address;
           displayLocation(results[0], pos);
           updateWeather(pos);
-        } else { // Fallback display
-          const coordsLabel = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
-          $("locationDisplay").innerHTML = `<span style="font-size:0.85rem;">${coordsLabel}</span>`;
-          if (compassLabels.location) compassLabels.location.textContent = coordsLabel;
-          latestLocationLabel = ''; updateWeatherTitle(); updateWeather(pos);
+        } else { 
+          // Geocode failed (e.g., API key issue, no address for location)
+          console.warn(`Reverse geocode failed with status: ${status}`);
+          $("locationDisplay").textContent = "Could not find address. Enter manually.";
+          showManualInput(); // Give the user a way forward
+          
+          // Still update weather using the coords
+          latestLocationLabel = ''; 
+          updateWeatherTitle(); 
+          updateWeather(pos);
         }
       });
     }
@@ -231,4 +242,5 @@ function initDetailsSheetInteractions() {
         maxOffset: 320
       });
     }
+
 
