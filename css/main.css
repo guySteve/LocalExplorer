@@ -322,10 +322,10 @@ h1, h2, h3 {
       width: 100%;
       margin: 0 auto 1rem;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Adjusted for 3 buttons */
       gap: 0.75rem;
     }
-    #myListBtn, #myPlanBtn {
+    #myListBtn, #myPlanBtn, #compassBtn { /* Added #compassBtn */
       border: none;
       border-radius: var(--radius);
       font-size: 1rem;
@@ -337,7 +337,8 @@ h1, h2, h3 {
       gap: 0.5rem;
     }
     #myListBtn,
-    #myPlanBtn {
+    #myPlanBtn,
+    #compassBtn { /* Added #compassBtn */
       background-color: var(--secondary);
       color: var(--text-light);
       border: 1px solid var(--accent);
@@ -554,21 +555,19 @@ h1, h2, h3 {
       top: 0;
       left: 0;
       width: 100%;
-      height: 0; /* <-- MODIFIED: Hide map by default */
+      height: 0; /* Hide map by default */
       background: linear-gradient(135deg, rgba(26,43,68,0.9), rgba(51,78,104,0.85));
-      pointer-events: none; /* Only interactive after opt-in */
-      transition: height 0.3s ease; /* <-- ADDED: Animate height */
+      pointer-events: none;
+      transition: height 0.3s ease;
     }
     #detailsSheet.streetview-active #detailsMap {
       pointer-events: auto;
-      height: 40%; /* <-- MODIFIED: Show map when active */
+      height: 40%; /* Show map when active */
     }
+    
+    /* STREET VIEW BUTTON - FIXED FLOATING */
     #activateStreetViewBtn {
-      position: absolute;
-      /* MODIFIED: Position relative to content top */
-      top: 60px; 
-      left: 50%;
-      transform: translateX(-50%);
+      /* Removed absolute positioning */
       background: rgba(200,121,65,0.9);
       border: 1px solid rgba(255,255,255,0.4);
       color: #fff;
@@ -578,25 +577,31 @@ h1, h2, h3 {
       cursor: pointer;
       box-shadow: 0 10px 20px rgba(0,0,0,0.35);
       pointer-events: auto;
-      z-index: 3; /* <-- ADDED: Ensure button is on top */
+      
+      /* New styles */
+      display: inline-block; /* Fit into flow */
+      width: auto;
+      margin-bottom: 0.75rem; /* Space below it */
+      margin-top: 0.25rem; /* Space above it */
     }
     #detailsSheet.streetview-active #activateStreetViewBtn {
       display: none;
     }
+    
     #detailsContent {
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 100%; /* <-- MODIFIED: Take full height by default */
+      height: 100%; /* Take full height by default */
       overflow-y: auto;
       padding: 1rem;
       background: rgba(26, 43, 68, 0.9); /* Use card color with alpha */
       backdrop-filter: blur(4px);
-      transition: height 0.3s ease; /* <-- ADDED: Animate height */
+      transition: height 0.3s ease;
     }
     #detailsSheet.streetview-active #detailsContent {
-        height: 60%; /* <-- MODIFIED: Shrink when map is active */
+        height: 60%; /* Shrink when map is active */
     }
     .sheet-handle {
       width: 54px;
@@ -683,20 +688,21 @@ h1, h2, h3 {
      .accordion:hover {
        background: var(--card);
      }
+    
+    /* ACCORDION CLEANUP */
     .accordion-content {
-      background: var(--secondary);
+      /* Removed background, border, padding */
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
-      border-radius: 0 0 var(--radius) var(--radius);
-      padding: 0 0.5rem;
-      border: 1px solid var(--accent);
-      border-top: none;
     }
     .accordion.active + .accordion-content {
       max-height: 300px;
-      padding: 0.5rem;
+      /* Add back padding for spacing */
+      padding-top: 0.75rem;
+      padding-bottom: 0.5rem;
     }
+    
     /* My List modal */
     #myListModal .results-list button {
       background: var(--secondary); /* Match plan modal */
@@ -711,7 +717,8 @@ h1, h2, h3 {
     #planModal .results-list button:hover {
       background-color: var(--card); /* Darken on hover */
     }
-    /* Compass & navigation overlay */
+    
+    /* COMPASS STRIPPED STYLES */
     #compassOverlay {
       position: fixed;
       bottom: 0.75rem;
@@ -780,60 +787,29 @@ h1, h2, h3 {
       align-items: center;
       gap: 0.9rem;
     }
-    .compass-dial {
-      position: relative;
-      width: 240px;
-      height: 240px;
+    
+    /* NEW COMPASS ARROW STYLES */
+    #compassArrowContainer {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 50%;
       border: 10px solid rgba(248,231,189,0.25);
       background: radial-gradient(circle at center, rgba(19,38,64,0.95) 40%, rgba(5,12,21,0.95) 100%);
       box-shadow: inset 0 0 22px rgba(0,0,0,0.65);
     }
-    .dial-cardinal {
-      position: absolute;
-      font-weight: 700;
-      letter-spacing: 0.4rem;
-      color: rgba(255,255,255,0.75);
-      font-size: 0.8rem;
+    #compassArrow {
+      font-size: 100px; /* Big arrow */
+      line-height: 1;
+      color: #ffe9b6;
+      text-shadow: 0 0 18px rgba(194,122,58,0.7);
+      /* transform is applied by JS */
     }
-    .dial-cardinal.north { top: 10px; left: 50%; transform: translateX(-50%); }
-    .dial-cardinal.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
-    .dial-cardinal.east { right: 14px; top: 50%; transform: translateY(-50%); }
-    .dial-cardinal.west { left: 14px; top: 50%; transform: translateY(-50%); }
-    .dial-center {
-      position: absolute;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #f6c784 0%, #c27a3a 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 14px rgba(0,0,0,0.5);
-    }
-    #compassNeedle {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 12px;
-      height: 110px;
-      margin-left: -6px;
-      transform-origin: 50% calc(100% - 12px);
-      border-radius: 10px;
-      background: linear-gradient(180deg, #ffe9b6 0%, #c27a3a 70%, #18263d 100%);
-      box-shadow: 0 0 18px rgba(194,122,58,0.4);
-    }
-    #compassNeedle::after {
-      content: '';
-      position: absolute;
-      bottom: -16px;
-      left: 50%;
-      width: 6px;
-      height: 16px;
-      transform: translateX(-50%);
-      border-radius: 6px;
-      background: rgba(255,255,255,0.6);
-    }
+    
+    /* REMOVED all old .compass-dial, .dial-cardinal, .dial-center, #compassNeedle styles */
+    
     .compass-readout {
       text-align: center;
     }
@@ -849,6 +825,8 @@ h1, h2, h3 {
       color: #ffe7b5;
       font-weight: 600;
     }
+    
+    /* DIRECTIONS PANEL FIX */
     .compass-map-card {
       width: 100%;
       background: rgba(6,14,24,0.85);
@@ -880,39 +858,20 @@ h1, h2, h3 {
     #toggleDirectionsPanel:hover, #compassSettingsBtn:hover {
       background: rgba(255,255,255,0.12);
     }
-    #radarMap {
-      width: 100%;
-      height: 140px;
-      border-radius: calc(var(--radius) / 1.2);
-      border: 1px solid rgba(120,180,255,0.18);
-      overflow: hidden;
-      background: rgba(0,0,0,0.35);
-    }
-    #advancedCompassControls {
-      margin-top: 0.6rem;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 0.55rem;
-      background: rgba(4,10,18,0.7);
-    }
-    #advancedCompassControls label {
-      color: rgba(255,255,255,0.8);
-    }
-    #travelModeToggle label {
-      margin-right: 0.75rem;
-      font-size: 0.85rem;
-      letter-spacing: 0.05rem;
-    }
+    
+    /* REMOVED #radarMap, #advancedCompassControls */
+    
     #directionsPanel {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease, opacity 0.3s ease;
       opacity: 0;
       pointer-events: none;
+      /* Add margin since map is gone */
+      margin-top: 0.6rem; 
     }
     #directionsPanel.open {
       max-height: 600px;
-      margin-top: 0.6rem;
       opacity: 1;
       pointer-events: auto;
     }
@@ -1030,87 +989,6 @@ h1, h2, h3 {
       opacity: 0.35;
       filter: blur(0.2px);
     }
-    #directionsList {
-      max-height: 160px;
-      overflow-y: auto;
-      font-size: 0.86rem;
-      line-height: 1.45;
-      margin-top: 0.6rem;
-      padding: 0.45rem;
-      border-radius: calc(var(--radius) / 1.2);
-      background: rgba(14,24,36,0.68);
-      border: 1px solid rgba(120,180,255,0.12);
-      box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
-    }
-    #directionsList div {
-      padding: 0.25rem 0.45rem;
-      margin-bottom: 0.2rem;
-      border-radius: 6px;
-      transition: background-color 0.25s ease, color 0.25s ease;
-      background: rgba(255,255,255,0.04);
-    }
-    #directionsList .current-step {
-      background: rgba(200,120,65,0.2);
-      color: rgba(255,255,255,0.95);
-      font-weight: 700;
-      box-shadow: 0 0 10px rgba(200,120,65,0.25);
-    }
-    .direction-icon {
-      display: inline-block;
-      width: 1.2em;
-      margin-right: 0.35em;
-      font-weight: 700;
-      color: rgba(255,198,148,0.9);
-    }
-    #nextStepCard {
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      border-radius: calc(var(--radius) / 1.2);
-      background: rgba(14,24,36,0.7);
-      border: 1px solid rgba(120,180,255,0.18);
-      box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
-    }
-    .next-step-label {
-      font-size: 0.75rem;
-      letter-spacing: 0.1rem;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.65);
-    }
-    #nextStepText {
-      font-size: 0.95rem;
-      margin: 0.4rem 0 0.6rem;
-      font-weight: 600;
-      color: var(--text-light);
-    }
-    .next-step-actions {
-      display: flex;
-      gap: 0.4rem;
-    }
-    .next-step-actions button {
-      flex: 1;
-      border-radius: calc(var(--radius) / 1.5);
-      border: 1px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.05);
-      color: var(--text-light);
-      padding: 0.35rem 0.4rem;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-    .next-step-actions button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    #directionsList.collapsed {
-      max-height: 0;
-      padding: 0;
-      border: none;
-      opacity: 0;
-      pointer-events: none;
-    }
-    #directionsList .future-step {
-      opacity: 0.35;
-      filter: blur(0.2px);
-    }
     #hiddenMap { /* Hide map container used for Places Service */
       position: absolute;
       top: -10px; left: -10px; width: 1px; height: 1px; overflow: hidden;
@@ -1125,10 +1003,13 @@ h1, h2, h3 {
       #settingsBtn { width: 40px; height: 40px; }
       #weatherContent { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       #weatherPrimary { font-size: 2.2rem; }
+      #primaryActions {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Better fit for 3 buttons */
+      }
     }
     @media (min-width: 640px) {
       #primaryActions {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
       }
     }
     @media (min-width: 768px) {
@@ -1143,35 +1024,32 @@ h1, h2, h3 {
       }
     }
 
-/* Hide radar map and directions panel for simple compass */
-.compass-map-card {
-  display: none;
-}
+    /* REMOVED .compass-map-card display:none rule */
+    
+    /* Optional: Center the compass face since the map is gone */
+    /* .compass-main {
+      justify-content: center;
+    } */
 
-/* Optional: Center the compass face since the map is gone */
-.compass-main {
-  justify-content: center;
-}
-
-/* NEW: Review formatting */
-.review-item {
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 0.75rem;
-}
-.review-item strong {
-  color: var(--text-light);
-  font-weight: 600;
-  display: block;
-  margin-bottom: 0.25rem;
-}
-.review-item blockquote {
-  margin: 0;
-  padding: 0;
-  font-style: italic;
-  color: rgba(255,255,255,0.8);
-  font-size: 0.9rem;
-}
-.accordion-content p { /* Fix for hours/no-review text */
-  margin: 0.5rem 0;
-}
+    /* NEW: Review formatting */
+    .review-item {
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 0.75rem;
+    }
+    .review-item strong {
+      color: var(--text-light);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .review-item blockquote {
+      margin: 0;
+      padding: 0;
+      font-style: italic;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+    }
+    .accordion-content p { /* Fix for hours/no-review text */
+      margin: 0.5rem 0;
+    }
