@@ -35,9 +35,6 @@ let currentThemeKey = DEFAULT_THEME;
 // Shared state
 let currentPosition = null;
 let currentAddress = '';
-let map;
-let placesService;
-let geocoder;
 let streetViewPanorama;
 let currentResults = [];
 let currentPlaceDetails;
