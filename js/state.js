@@ -37,54 +37,54 @@ let selectedVoiceUri = localStorage.getItem('selectedVoiceUri') || '';
 // Search categories
 const categories = {
   'Foodie Finds': [
-    { name: 'Italian', keyword: 'italian restaurant', type: 'restaurant' },
-    { name: 'Pizza', keyword: 'pizza', type: 'restaurant' },
-    { name: 'Cafes', keyword: 'cafe', type: 'cafe' },
-    { name: 'Bakeries', keyword: 'bakery', type: 'bakery' },
-    { name: 'Sushi', keyword: 'sushi', type: 'restaurant' }
+    { name: 'Italian', keyword: 'italian restaurant', type: 'restaurant', primaryTypeOnly: true },
+    { name: 'Pizza', keyword: 'pizza', type: 'restaurant', primaryTypeOnly: true },
+    { name: 'Cafes', keyword: 'cafe', type: 'cafe', primaryTypeOnly: true },
+    { name: 'Bakeries', keyword: 'bakery', type: 'bakery', primaryTypeOnly: true },
+    { name: 'Sushi', keyword: 'sushi', type: 'restaurant', primaryTypeOnly: true }
   ],
   'Iconic Sights': [
-    { name: 'Tourist Attractions', type: 'tourist_attraction' },
-    { name: 'Museums', type: 'museum' },
-    { name: 'Art Galleries', type: 'art_gallery' },
-    { name: 'Parks', type: 'park' },
+    { name: 'Tourist Attractions', type: 'tourist_attraction', primaryTypeOnly: true },
+    { name: 'Museums', type: 'museum', primaryTypeOnly: true },
+    { name: 'Art Galleries', type: 'art_gallery', primaryTypeOnly: true },
+    { name: 'Parks', type: 'park', primaryTypeOnly: true },
     { name: 'Landmarks', keyword: 'landmark', type: 'point_of_interest' }
   ],
   'Night Out': [
-    { name: 'Bars', type: 'bar' },
-    { name: 'Night Clubs', type: 'night_club' },
-    { name: 'Movie Theaters', type: 'movie_theater' },
-    { name: 'Bowling Alleys', type: 'bowling_alley' },
+    { name: 'Bars', type: 'bar', primaryTypeOnly: true },
+    { name: 'Night Clubs', type: 'night_club', primaryTypeOnly: true },
+    { name: 'Movie Theaters', type: 'movie_theater', primaryTypeOnly: true },
+    { name: 'Bowling Alleys', type: 'bowling_alley', primaryTypeOnly: true },
     { name: 'Concert Venues', keyword: 'concert', type: 'point_of_interest' }
   ],
   'Hidden Gems': [
-    { name: 'Libraries', type: 'library' },
-    { name: 'Book Stores', type: 'book_store' },
-    { name: 'Gardens', keyword: 'garden', type: 'park' },
+    { name: 'Libraries', type: 'library', primaryTypeOnly: true },
+    { name: 'Book Stores', type: 'book_store', primaryTypeOnly: true },
+    { name: 'Gardens', keyword: 'garden', type: 'park', primaryTypeOnly: true },
     { name: 'Historical Sites', keyword: 'historical site', type: 'point_of_interest' },
     { name: 'Local Favorites', keyword: 'local favorite', type: 'point_of_interest' },
     { name: 'Historical Markers', keyword: 'historical marker', type: 'point_of_interest' }
   ],
   'Pet Friendly': [
-    { name: 'Dog Parks', keyword: 'dog park', type: 'park' },
-    { name: 'Pet Stores', type: 'pet_store' },
-    { name: 'Veterinary Care', type: 'veterinary_care' },
-    { name: 'Pet Friendly Cafes', keyword: 'pet friendly cafe', type: 'cafe' },
-    { name: 'Pet Friendly Hotels', keyword: 'pet friendly hotel', type: 'lodging' }
+    { name: 'Dog Parks', keyword: 'dog park', type: 'park', primaryTypeOnly: true },
+    { name: 'Pet Stores', type: 'pet_store', primaryTypeOnly: true },
+    { name: 'Veterinary Care', type: 'veterinary_care', primaryTypeOnly: true },
+    { name: 'Pet Friendly Cafes', keyword: 'pet friendly cafe', type: 'cafe', primaryTypeOnly: true },
+    { name: 'Pet Friendly Hotels', keyword: 'pet friendly hotel', type: 'lodging', primaryTypeOnly: true }
   ],
   'Utilities & Help': [
-    { name: 'Hospitals', type: 'hospital', ignoreRating: true },
-    { name: 'Pharmacies', type: 'pharmacy', ignoreRating: true },
-    { name: 'Police', type: 'police', ignoreRating: true },
-    { name: 'Gas Stations', type: 'gas_station', ignoreRating: true },
-    { name: 'ATMs', type: 'atm', ignoreRating: true }
+    { name: 'Hospitals', type: 'hospital', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'Pharmacies', type: 'pharmacy', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'Police', type: 'police', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'Gas Stations', type: 'gas_station', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'ATMs', type: 'atm', ignoreRating: true, primaryTypeOnly: true }
   ],
   Outdoor: [
-    { name: 'Parks', type: 'park' },
-    { name: 'Trails', keyword: 'hiking trail', type: 'park' },
-    { name: 'Nature Reserves', keyword: 'nature reserve', type: 'park' },
-    { name: 'Beaches', keyword: 'beach', type: 'park' },
-    { name: 'Campgrounds', keyword: 'campground', type: 'campground' }
+    { name: 'Parks', type: 'park', primaryTypeOnly: true },
+    { name: 'Trails', keyword: 'hiking trail', type: 'park', primaryTypeOnly: true },
+    { name: 'Nature Reserves', keyword: 'nature reserve', type: 'park', primaryTypeOnly: true },
+    { name: 'Beaches', keyword: 'beach', type: 'park', primaryTypeOnly: true },
+    { name: 'Campgrounds', keyword: 'campground', type: 'campground', primaryTypeOnly: true }
   ],
   'Local Events': [
     { name: 'All Events', value: 'all' },
