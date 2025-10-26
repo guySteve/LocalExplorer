@@ -1,52 +1,127 @@
 // Core app state and storage helpers
-const DEFAULT_THEME = 'naval'; 
+const DEFAULT_THEME = 'naval'; // Polished Sailor is the new 'naval'
 const THEMES = {
-  // --- Existing Themes with Compass Vars ---
-  naval:    { '--background': '#f8f7f2', '--card': '#1a2b44', '--primary': '#c87941', '--secondary': '#334e68', '--text-dark': '#1a2b44', '--text-light': '#ffffff', '--accent': '#8a5a44', 
-              /* Uses default compass vars from :root */ },
+  // --- Existing Themes ---
+  naval:    { '--background': '#f8f7f2', '--card': '#1a2b44', '--primary': '#c87941', '--secondary': '#334e68', '--text-dark': '#1a2b44', '--text-light': '#ffffff', '--accent': '#8a5a44', /* Compass Defaults used */ },
   sunset:   { '--background': '#1b1c3d', '--card': '#ef476f', '--primary': '#ffd166', '--secondary': '#073b4c', '--text-dark': '#f7f5ff', '--text-light': '#fff8f0', '--accent': '#06d6a0', 
-              '--compass-bg': 'linear-gradient(165deg, #4a4e8f 0%, #1b1c3d 100%)', '--compass-text': '#fff8f0', '--compass-label': 'rgba(255, 248, 240, 0.7)', '--compass-value': '#ffd166', '--compass-border': 'rgba(6, 214, 160, 0.3)', '--compass-button-bg': 'rgba(255, 248, 240, 0.08)', '--compass-button-hover-bg': 'rgba(255, 248, 240, 0.16)', '--compass-button-text': '#fff8f0', '--compass-dial-border': 'rgba(255, 209, 102, 0.5)', '--compass-dial-bg': 'radial-gradient(circle, #2a2d5a 40%, #1b1c3d 100%)', '--compass-dial-shadow': 'inset 0 0 20px rgba(0, 0, 0, 0.6)', '--compass-marker-color': '#ffd166', '--compass-marker-shadow': '0 0 8px rgba(255, 209, 102, 0.6)', '--compass-intercardinal-color': 'rgba(255, 209, 102, 0.7)', '--compass-tick-color': 'rgba(255, 209, 102, 0.5)', '--compass-arrow-color': '#ef476f', '--compass-arrow-shadow': 'drop-shadow(0 0 8px rgba(239, 71, 111, 0.6))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.15)'},
+              '--compass-dial-border': 'rgba(255, 209, 102, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #2a2d5a 40%, #1b1c3d 100%)', '--compass-marker-color': '#ffd166', '--compass-marker-shadow': '0 0 8px rgba(255, 209, 102, 0.6)', '--compass-arrow-color': '#ef476f', '--compass-arrow-shadow': 'drop-shadow(0 0 8px rgba(239, 71, 111, 0.6))', '--compass-value': '#ffd166'},
   neon:     { '--background': '#080b1a', '--card': '#1f2a44', '--primary': '#ef2d56', '--secondary': '#2fbf71', '--text-dark': '#f2f7ff', '--text-light': '#f2f7ff', '--accent': '#08f7fe', 
-              '--compass-bg': 'linear-gradient(165deg, #101828 0%, #080b1a 100%)', '--compass-text': '#f2f7ff', '--compass-label': 'rgba(242, 247, 255, 0.7)', '--compass-value': '#08f7fe', '--compass-border': 'rgba(8, 247, 254, 0.3)', '--compass-button-bg': 'rgba(242, 247, 255, 0.05)', '--compass-button-hover-bg': 'rgba(242, 247, 255, 0.1)', '--compass-button-text': '#f2f7ff', '--compass-dial-border': 'rgba(8, 247, 254, 0.6)', '--compass-dial-bg': 'radial-gradient(circle, #1f2a44 30%, #080b1a 100%)', '--compass-dial-shadow': 'inset 0 0 25px rgba(0, 0, 0, 0.7), 0 0 15px rgba(8, 247, 254, 0.2)', '--compass-marker-color': '#08f7fe', '--compass-marker-shadow': '0 0 12px rgba(8, 247, 254, 0.8)', '--compass-intercardinal-color': 'rgba(8, 247, 254, 0.7)', '--compass-tick-color': 'rgba(8, 247, 254, 0.5)', '--compass-arrow-color': '#ef2d56', '--compass-arrow-shadow': 'drop-shadow(0 0 10px rgba(239, 45, 86, 0.7))', '--compass-arrow-highlight': 'rgba(255, 100, 150, 0.2)'},
+              '--compass-bg': 'linear-gradient(165deg, #101828 0%, #080b1a 100%)', '--compass-dial-border': 'rgba(8, 247, 254, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #1f2a44 30%, #080b1a 100%)', '--compass-marker-color': '#08f7fe', '--compass-marker-shadow': '0 0 10px rgba(8, 247, 254, 0.7)', '--compass-arrow-color': '#ef2d56', '--compass-arrow-shadow': 'drop-shadow(0 0 10px rgba(239, 45, 86, 0.7))', '--compass-value': '#08f7fe'},
   arctic:   { '--background': '#e4f0f6', '--card': '#1b3b5f', '--primary': '#3d9be9', '--secondary': '#1f5673', '--text-dark': '#1b3b5f', '--text-light': '#ffffff', '--accent': '#8bc6ec', 
-              '--compass-bg': 'linear-gradient(165deg, #607d8b 0%, #37474f 100%)', '--compass-text': '#ffffff', '--compass-label': 'rgba(255,255,255,0.8)', '--compass-value': '#8bc6ec', '--compass-border': 'rgba(61, 155, 233, 0.3)', '--compass-button-bg': 'rgba(255, 255, 255, 0.1)', '--compass-button-hover-bg': 'rgba(255, 255, 255, 0.2)', '--compass-button-text': '#ffffff', '--compass-dial-border': 'rgba(139, 198, 236, 0.6)', '--compass-dial-bg': 'radial-gradient(circle, #263238 40%, #1b3b5f 100%)', '--compass-dial-shadow': 'inset 0 0 18px rgba(0, 0, 0, 0.5)', '--compass-marker-color': '#8bc6ec', '--compass-marker-shadow': '0 0 6px rgba(139, 198, 236, 0.5)', '--compass-intercardinal-color': 'rgba(139, 198, 236, 0.7)', '--compass-tick-color': 'rgba(139, 198, 236, 0.5)', '--compass-arrow-color': '#ffffff', '--compass-arrow-shadow': 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.25)'},
+              '--compass-bg': 'linear-gradient(165deg, #607d8b 0%, #37474f 100%)', '--compass-text': '#ffffff', '--compass-label': 'rgba(255,255,255,0.8)', '--compass-value': '#8bc6ec', '--compass-dial-border': 'rgba(139, 198, 236, 0.4)', '--compass-dial-bg': 'radial-gradient(circle, #263238 40%, #1b3b5f 100%)', '--compass-marker-color': '#8bc6ec', '--compass-marker-shadow': '0 0 6px rgba(139, 198, 236, 0.5)', '--compass-arrow-color': '#ffffff', '--compass-arrow-shadow': 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))'},
   highseas: { '--background': '#050a1c', '--card': '#0f2447', '--primary': '#1dd3b0', '--secondary': '#16355f', '--text-dark': '#d7f3ff', '--text-light': '#f0fbff', '--accent': '#58a4ff', 
-              '--compass-bg': 'linear-gradient(165deg, #16355f 0%, #050a1c 100%)', '--compass-text': '#f0fbff', '--compass-label': 'rgba(240, 251, 255, 0.7)', '--compass-value': '#58a4ff', '--compass-border': 'rgba(29, 211, 176, 0.3)', '--compass-button-bg': 'rgba(240, 251, 255, 0.07)', '--compass-button-hover-bg': 'rgba(240, 251, 255, 0.14)', '--compass-button-text': '#f0fbff', '--compass-dial-border': 'rgba(88, 164, 255, 0.5)', '--compass-dial-bg': 'radial-gradient(circle, #16355f 35%, #050a1c 100%)', '--compass-dial-shadow': 'inset 0 0 22px rgba(0, 0, 0, 0.6), 0 0 12px rgba(29, 211, 176, 0.15)', '--compass-marker-color': '#58a4ff', '--compass-marker-shadow': '0 0 9px rgba(88, 164, 255, 0.6)', '--compass-intercardinal-color': 'rgba(88, 164, 255, 0.7)', '--compass-tick-color': 'rgba(88, 164, 255, 0.5)', '--compass-arrow-color': '#1dd3b0', '--compass-arrow-shadow': 'drop-shadow(0 0 9px rgba(29, 211, 176, 0.6))', '--compass-arrow-highlight': 'rgba(180, 255, 240, 0.2)'},
+              '--compass-dial-border': 'rgba(88, 164, 255, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #16355f 35%, #050a1c 100%)', '--compass-marker-color': '#58a4ff', '--compass-marker-shadow': '0 0 9px rgba(88, 164, 255, 0.6)', '--compass-arrow-color': '#1dd3b0', '--compass-arrow-shadow': 'drop-shadow(0 0 9px rgba(29, 211, 176, 0.6))', '--compass-value': '#58a4ff'},
   mojave:   { '--background': '#fff3e1', '--card': '#4a2c22', '--primary': '#f4a259', '--secondary': '#bc5f34', '--text-dark': '#3f2a1b', '--text-light': '#fffaf5', '--accent': '#f7c59f', 
-              '--compass-bg': 'linear-gradient(165deg, #a1887f 0%, #6d4c41 100%)', '--compass-text': '#fffaf5', '--compass-label': 'rgba(255, 250, 245, 0.7)', '--compass-value': '#f4a259', '--compass-border': 'rgba(188, 95, 52, 0.3)', '--compass-button-bg': 'rgba(255, 250, 245, 0.08)', '--compass-button-hover-bg': 'rgba(255, 250, 245, 0.16)', '--compass-button-text': '#fffaf5', '--compass-dial-border': 'rgba(247, 197, 159, 0.6)', '--compass-dial-bg': 'radial-gradient(circle, #6d4c41 40%, #4a2c22 100%)', '--compass-dial-shadow': 'inset 0 0 16px rgba(0, 0, 0, 0.5)', '--compass-marker-color': '#f7c59f', '--compass-marker-shadow': '0 0 6px rgba(247, 197, 159, 0.5)', '--compass-intercardinal-color': 'rgba(247, 197, 159, 0.7)', '--compass-tick-color': 'rgba(247, 197, 159, 0.5)', '--compass-arrow-color': '#fffaf5', '--compass-arrow-shadow': 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.15)'},
+              '--compass-bg': 'linear-gradient(165deg, #a1887f 0%, #6d4c41 100%)', '--compass-text': '#fffaf5', '--compass-label': 'rgba(255, 250, 245, 0.7)', '--compass-value': '#f4a259', '--compass-dial-border': 'rgba(247, 197, 159, 0.4)', '--compass-dial-bg': 'radial-gradient(circle, #6d4c41 40%, #4a2c22 100%)', '--compass-marker-color': '#f7c59f', '--compass-marker-shadow': '0 0 6px rgba(247, 197, 159, 0.5)', '--compass-arrow-color': '#fffaf5', '--compass-arrow-shadow': 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))'},
   aurora:   { '--background': '#060b1b', '--card': '#102a43', '--primary': '#7f5af0', '--secondary': '#2cb67d', '--text-dark': '#e6f0ff', '--text-light': '#f7f2ff', '--accent': '#64dfdf', 
-              '--compass-bg': 'linear-gradient(165deg, #1f3b53 0%, #060b1b 100%)', '--compass-text': '#e6f0ff', '--compass-label': 'rgba(230, 240, 255, 0.7)', '--compass-value': '#64dfdf', '--compass-border': 'rgba(44, 182, 125, 0.3)', '--compass-button-bg': 'rgba(230, 240, 255, 0.06)', '--compass-button-hover-bg': 'rgba(230, 240, 255, 0.12)', '--compass-button-text': '#e6f0ff', '--compass-dial-border': 'rgba(100, 223, 223, 0.5)', '--compass-dial-bg': 'radial-gradient(circle, #102a43 30%, #060b1b 100%)', '--compass-dial-shadow': 'inset 0 0 25px rgba(0, 0, 0, 0.7), 0 0 15px rgba(127, 90, 240, 0.15)', '--compass-marker-color': '#64dfdf', '--compass-marker-shadow': '0 0 10px rgba(100, 223, 223, 0.6)', '--compass-intercardinal-color': 'rgba(100, 223, 223, 0.7)', '--compass-tick-color': 'rgba(100, 223, 223, 0.5)', '--compass-arrow-color': '#7f5af0', '--compass-arrow-shadow': 'drop-shadow(0 0 10px rgba(127, 90, 240, 0.6))', '--compass-arrow-highlight': 'rgba(200, 180, 255, 0.2)'},
-  retro90:  { /* Vars defined in main.css body rule */ },
-  groove70: { /* Vars defined in main.css body rule */ },
+              '--compass-dial-border': 'rgba(100, 223, 223, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #102a43 30%, #060b1b 100%)', '--compass-marker-color': '#64dfdf', '--compass-marker-shadow': '0 0 10px rgba(100, 223, 223, 0.6)', '--compass-arrow-color': '#7f5af0', '--compass-arrow-shadow': 'drop-shadow(0 0 10px rgba(127, 90, 240, 0.6))', '--compass-value': '#64dfdf'},
+  retro90:  { /* Defined in theme.css */ },
+  groove70: { /* Defined in theme.css */ },
 
   // --- New Themes ---
   neverland:{ '--background': '#f0e8d8', '--card': '#3a2e28', '--primary': '#d4a373', '--secondary': '#586f6b', '--text-dark': '#3a2e28', '--text-light': '#fdfaf6', '--accent': '#8a5a44', 
-              '--compass-bg': 'linear-gradient(165deg, #5c4e46 0%, #3a2e28 100%)', '--compass-text': '#fdfaf6', '--compass-label': 'rgba(253, 250, 246, 0.7)', '--compass-value': '#d4a373', '--compass-border': 'rgba(212, 163, 115, 0.3)', '--compass-button-bg': 'rgba(253, 250, 246, 0.08)', '--compass-button-hover-bg': 'rgba(253, 250, 246, 0.15)', '--compass-button-text': '#fdfaf6', '--compass-dial-border': 'rgba(138, 90, 68, 0.7)', '--compass-dial-bg': 'radial-gradient(circle at center, #6b5c54 40%, #3a2e28 100%)', '--compass-dial-shadow': 'inset 0 0 18px rgba(0, 0, 0, 0.6)', '--compass-marker-color': '#d4a373', '--compass-marker-shadow': '0 0 6px rgba(212, 163, 115, 0.5)', '--compass-intercardinal-color': 'rgba(212, 163, 115, 0.6)', '--compass-tick-color': 'rgba(212, 163, 115, 0.4)', '--compass-arrow-color': '#fdfaf6', '--compass-arrow-shadow': 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.1)' },
+              /* Compass vars defined in theme.css body rule */ },
   arcane:   { '--background': '#0a1128', '--card': '#122c34', '--primary': '#fec601', '--secondary': '#005f73', '--text-dark': '#e0fbfc', '--text-light': '#ffffff', '--accent': '#94d2bd', 
-              '--compass-bg': 'linear-gradient(165deg, #1b3a4b 0%, #0a1128 100%)', '--compass-text': '#e0fbfc', '--compass-label': 'rgba(224, 251, 252, 0.7)', '--compass-value': '#fec601', '--compass-border': 'rgba(0, 95, 115, 0.6)', '--compass-button-bg': 'rgba(224, 251, 252, 0.06)', '--compass-button-hover-bg': 'rgba(224, 251, 252, 0.12)', '--compass-button-text': '#e0fbfc', '--compass-dial-border': 'rgba(254, 198, 1, 0.5)', '--compass-dial-bg': 'radial-gradient(circle at center, #122c34 30%, #0a1128 100%)', '--compass-dial-shadow': 'inset 0 0 25px rgba(0, 0, 0, 0.7), 0 0 12px rgba(148, 210, 189, 0.2)', '--compass-marker-color': '#fec601', '--compass-marker-shadow': '0 0 10px rgba(254, 198, 1, 0.6)', '--compass-intercardinal-color': 'rgba(254, 198, 1, 0.7)', '--compass-tick-color': 'rgba(254, 198, 1, 0.4)', '--compass-arrow-color': '#94d2bd', '--compass-arrow-shadow': 'drop-shadow(0 0 8px rgba(148, 210, 189, 0.5))', '--compass-arrow-highlight': 'rgba(200, 255, 240, 0.2)' },
+              /* Compass vars defined in theme.css body rule */ },
   roblox:   { '--background': '#e1e1e1', '--card': '#a3a3a3', '--primary': '#da242a', '--secondary': '#00a2ff', '--text-dark': '#393939', '--text-light': '#ffffff', '--accent': '#ffcb00', 
-              '--compass-bg': 'linear-gradient(165deg, #c0c0c0 0%, #a3a3a3 100%)', '--compass-text': '#393939', '--compass-label': 'rgba(57, 57, 57, 0.7)', '--compass-value': '#00a2ff', '--compass-border': 'rgba(0, 162, 255, 0.5)', '--compass-button-bg': 'rgba(57, 57, 57, 0.1)', '--compass-button-hover-bg': 'rgba(57, 57, 57, 0.2)', '--compass-button-text': '#393939', '--compass-dial-border': 'rgba(218, 36, 42, 0.7)', '--compass-dial-bg': '#c0c0c0', '--compass-dial-shadow': 'inset 0 0 10px rgba(0, 0, 0, 0.3)', '--compass-marker-color': '#da242a', '--compass-marker-shadow': 'none', '--compass-intercardinal-color': 'rgba(218, 36, 42, 0.8)', '--compass-tick-color': 'rgba(218, 36, 42, 0.5)', '--compass-arrow-color': '#393939', '--compass-arrow-shadow': 'drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.1)' },
+              /* Compass vars defined in theme.css body rule */ },
   ramen:    { '--background': '#fff9e6', '--card': '#d44d5c', '--primary': '#ffc107', '--secondary': '#77bfa3', '--text-dark': '#4a2c22', '--text-light': '#ffffff', '--accent': '#f4a259', 
-              '--compass-bg': 'linear-gradient(165deg, #f0e6cc 0%, #fff9e6 100%)', '--compass-text': '#4a2c22', '--compass-label': 'rgba(74, 44, 34, 0.7)', '--compass-value': '#d44d5c', '--compass-border': 'rgba(244, 162, 89, 0.6)', '--compass-button-bg': 'rgba(74, 44, 34, 0.08)', '--compass-button-hover-bg': 'rgba(74, 44, 34, 0.15)', '--compass-button-text': '#4a2c22', '--compass-dial-border': 'rgba(119, 191, 163, 0.8)', '--compass-dial-bg': 'radial-gradient(circle at center, #fff0c7 50%, #ffe8b3 100%)', '--compass-dial-shadow': 'inset 0 0 15px rgba(244, 162, 89, 0.3)', '--compass-marker-color': '#d44d5c', '--compass-marker-shadow': 'none', '--compass-intercardinal-color': 'rgba(212, 77, 92, 0.8)', '--compass-tick-color': 'rgba(212, 77, 92, 0.5)', '--compass-arrow-color': '#4a2c22', '--compass-arrow-shadow': 'drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.05)' },
+              /* Compass vars defined in theme.css body rule */ },
   dog:      { '--background': '#f5f5f5', '--card': '#6d4c41', '--primary': '#ffb300', '--secondary': '#455a64', '--text-dark': '#3e2723', '--text-light': '#ffffff', '--accent': '#ef5350', 
-              '--compass-bg': 'linear-gradient(165deg, #a1887f 0%, #6d4c41 100%)', '--compass-text': '#ffffff', '--compass-label': 'rgba(255, 255, 255, 0.75)', '--compass-value': '#ffb300', '--compass-border': 'rgba(239, 83, 80, 0.5)', '--compass-button-bg': 'rgba(255, 255, 255, 0.1)', '--compass-button-hover-bg': 'rgba(255, 255, 255, 0.2)', '--compass-button-text': '#ffffff', '--compass-dial-border': 'rgba(69, 90, 100, 0.7)', '--compass-dial-bg': 'radial-gradient(circle at center, #8d6e63 40%, #5d4037 100%)', '--compass-dial-shadow': 'inset 0 0 20px rgba(0, 0, 0, 0.5)', '--compass-marker-color': '#ffb300', '--compass-marker-shadow': '0 0 8px rgba(255, 179, 0, 0.6)', '--compass-intercardinal-color': 'rgba(255, 179, 0, 0.7)', '--compass-tick-color': 'rgba(255, 179, 0, 0.5)', '--compass-arrow-color': '#ffffff', '--compass-arrow-shadow': 'drop-shadow(0 3px 4px rgba(0, 0, 0, 0.4))', '--compass-arrow-highlight': 'rgba(255, 255, 255, 0.2)' },
+              /* Compass vars defined in theme.css body rule */ },
 };
 let currentThemeKey = DEFAULT_THEME;
 
-// Shared state (Unchanged)
-// let currentPosition = null; /* ... */
+// Shared state
+let currentPosition = null;
+let currentAddress = '';
+let map;
+let placesService;
+let geocoder;
+let streetViewPanorama;
+let currentResults = [];
+let currentPlaceDetails;
+let latestLocationLabel = '';
+let currentPaginationHandle = null;
+let appendNextResults = false;
+let lastResultsTitle = 'Results';
+let pendingStreetViewLatLng = null;
 
-// Search categories (Unchanged)
-// const categories = { /* ... */ };
+let lastWeatherFetch = 0;
+let lastWeatherCoords = null;
+let cachedWeather = null;
+const WEATHER_CACHE_MS = 10 * 60 * 1000; // 10 minutes
+let selectedVoiceUri = localStorage.getItem('selectedVoiceUri') || '';
 
-// Storage Functions (Unchanged)
-function getSavedList() { return JSON.parse(localStorage.getItem('myPlaces') || '[]'); }
-function savePlace(place) { /* ... */ }
-function removePlace(id) { /* ... */ }
-function getPlan() { return JSON.parse(localStorage.getItem('myPlan') || '[]'); }
-function savePlan(list) { /* ... */ }
-function getVisitedPlan() { return JSON.parse(localStorage.getItem('visitedPlan') || '[]'); }
-function saveVisitedPlan(list) { /* ... */ }
-function addToPlan(place) { /* ... */ }
-function removeFromPlan(id) { /* ... */ }
-function toggleVisited(id) { /* ... */ }
+// Search categories
+const categories = {
+  'Foodie Finds': [
+    { name: 'Italian', keyword: 'italian restaurant', type: 'restaurant', primaryTypeOnly: true },
+    { name: 'Pizza', keyword: 'pizza', type: 'restaurant', primaryTypeOnly: true },
+    { name: 'Cafes', keyword: 'cafe', type: 'cafe', primaryTypeOnly: true },
+    { name: 'Bakeries', keyword: 'bakery', type: 'bakery', primaryTypeOnly: true },
+    { name: 'Sushi', keyword: 'sushi', type: 'restaurant', primaryTypeOnly: true }
+  ],
+  'Iconic Sights': [
+    { name: 'Tourist Attractions', type: 'tourist_attraction', primaryTypeOnly: true },
+    { name: 'Museums', type: 'museum', primaryTypeOnly: true },
+    { name: 'Art Galleries', type: 'art_gallery', primaryTypeOnly: true },
+    { name: 'Parks', type: 'park', primaryTypeOnly: true },
+    { name: 'Landmarks', keyword: 'landmark', type: 'point_of_interest' }
+  ],
+  'Night Out': [
+    { name: 'Bars', type: 'bar', primaryTypeOnly: true },
+    { name: 'Night Clubs', type: 'night_club', primaryTypeOnly: true },
+    { name: 'Movie Theaters', type: 'movie_theater', primaryTypeOnly: true },
+    { name: 'Bowling Alleys', type: 'bowling_alley', primaryTypeOnly: true },
+    { name: 'Concert Venues', keyword: 'concert', type: 'point_of_interest' }
+  ],
+  'Hidden Gems': [
+    { name: 'Libraries', type: 'library', primaryTypeOnly: true },
+    { name: 'Book Stores', type: 'book_store', primaryTypeOnly: true },
+    { name: 'Gardens', keyword: 'garden', type: 'park', primaryTypeOnly: true },
+    { name: 'Historical Sites', keyword: 'historical site', type: 'point_of_interest' },
+    { name: 'Local Favorites', keyword: 'local favorite', type: 'point_of_interest' },
+    { name: 'Historical Markers', keyword: 'historical marker', type: 'point_of_interest' }
+  ],
+  'Pet Friendly': [
+    { name: 'Dog Parks', keyword: 'dog park', type: 'park', primaryTypeOnly: true },
+    { name: 'Pet Stores', type: 'pet_store', primaryTypeOnly: true },
+    { name: 'Veterinary Care', type: 'veterinary_care', primaryTypeOnly: true },
+    { name: 'Pet Friendly Cafes', keyword: 'pet friendly cafe', type: 'cafe', primaryTypeOnly: true },
+    { name: 'Pet Friendly Hotels', keyword: 'pet friendly hotel', type: 'lodging', primaryTypeOnly: true }
+  ],
+  'Utilities & Help': [
+    { name: 'Hospitals', type: 'hospital', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'Pharmacies', type: 'pharmacy', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'Police', type: 'police', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'Gas Stations', type: 'gas_station', ignoreRating: true, primaryTypeOnly: true },
+    { name: 'ATMs', type: 'atm', ignoreRating: true, primaryTypeOnly: true }
+  ],
+  Outdoor: [
+    { name: 'Parks', type: 'park', primaryTypeOnly: true },
+    { name: 'Trails', keyword: 'hiking trail', type: 'park', primaryTypeOnly: true },
+    { name: 'Nature Reserves', keyword: 'nature reserve', type: 'park', primaryTypeOnly: true },
+    { name: 'Beaches', keyword: 'beach', type: 'park', primaryTypeOnly: true },
+    { name: 'Campgrounds', keyword: 'campground', type: 'campground', primaryTypeOnly: true }
+  ],
+  'Local Events': [
+    { name: 'All Events', value: 'all' },
+    { name: 'Music', value: 'music' },
+    { name: 'Sports', value: 'sports' },
+    { name: 'Comedy', value: 'comedy' },
+    { name: 'Festivals', value: 'festival' }
+  ]
+};
+
+// --- Storage Functions ---
+function getSavedList() { /* ... unchanged ... */ }
+function savePlace(place) { /* ... unchanged ... */ }
+function removePlace(id) { /* ... unchanged ... */ }
+function getPlan() { /* ... unchanged ... */ }
+function savePlan(list) { /* ... unchanged ... */ }
+function getVisitedPlan() { /* ... unchanged ... */ }
+function saveVisitedPlan(list) { /* ... unchanged ... */ }
+function addToPlan(place) { /* ... unchanged ... */ }
+function removeFromPlan(id) { /* ... unchanged ... */ }
+function toggleVisited(id) { /* ... unchanged ... */ }
