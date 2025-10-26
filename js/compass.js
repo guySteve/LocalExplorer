@@ -5,36 +5,57 @@ let orientationEventType = null;
 let needleAnimationFrameId = null;
 let needleVisualRotation = 0;
 let needleTargetRotation = 0;
-let navigationStopped = false;
+let navigationStopped = true; // Start as stopped
+let isNavigating = false; // Separate state for active navigation
 let currentRouteSteps = [];
 let currentNavigationIndex = 0;
 let currentSpeechUtterance = null;
 let currentTravelMode = 'DRIVING';
 let orientationListener = null;
 let radarMap, radarDirectionsRenderer, radarCurrentMarker, radarDestinationMarker, radarDestLatLng = null;
+let currentTargetLatLng = null; // NEW: The lat/lng of the current step target
 
 function getIconForInstruction(instruction) {
       const lowerInstruction = instruction.toLowerCase();
-      if (lowerInstruction.includes('turn left')) return '↖️';
-      if (lowerInstruction.includes('turn right')) return '↗️';
+      // Replaced emoji with clearer text/unicode symbols
+      if (lowerInstruction.includes('turn left')) return '↖';
+      if (lowerInstruction.includes('turn right')) return '↗';
       if (lowerInstruction.includes('keep left')) return '↰';
       if (lowerInstruction.includes('keep right')) return '↱';
-      if (lowerInstruction.includes('straight')) return '⬆️';
+      if (lowerInstruction.includes('straight')) return '↑';
       if (lowerInstruction.includes('merge')) return '⤸';
-      if (lowerInstruction.includes('roundabout') || lowerInstruction.includes('traffic circle')) return '🔄';
-      if (lowerInstruction.includes('exit')) return '↘️';
+      if (lowerInstruction.includes('roundabout') || lowerInstruction.includes('traffic circle')) return '↻';
+      if (lowerInstruction.includes('exit')) return '↘';
       if (lowerInstruction.includes('destination')) return '🏁';
       return '➡️'; // Default
     }
 
+// Helper function to speak arbitrary text
+function speakText(text) {
+    if (navigationStopped) return;
+    const txt = new SpeechSynthesisUtterance(text);
+    const voices = speechSynthesis.getVoices();
+    const pref = selectedVoiceUri || voiceSelect?.value || '';
+    const voice = voices.find(v => v.voiceURI === pref) || voices[0];
+    if (voice) txt.voice = voice;
+    txt.pitch = 1;
+    txt.rate = 1;
+    txt.volume = 1;
+    txt.onerror = (e) => { console.error('Speech err:', e); silenceDirections(); };
+    speechSynthesis.speak(txt);
+}
+
 function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or google.maps.LatLng
         const overlay = $("compassOverlay"); overlay.classList.add('active'); document.body.classList.add('modal-open');
-        populateVoices(); navigationStopped=true; speechSynthesis.cancel(); currentRouteSteps=[]; currentNavigationIndex=0;
+        populateVoices(); navigationStopped=true; isNavigating=false; // Reset navigation state
+        speechSynthesis.cancel(); currentRouteSteps=[]; currentNavigationIndex=0;
         $("readDirectionsBtn").disabled=true; $("silenceBtn").disabled=true;
         const dl = $("directionsList");
-        if (dl) { dl.innerHTML='Calibrating…'; dl.classList.add('collapsed'); }
-        const nextStepTextEl = $("nextStepText");
-        if (nextStepTextEl) nextStepTextEl.textContent = 'Calibrating route...';
+        if (dl) { dl.innerHTML='Calibrating…'; }
+        
+        // Remove 'collapsed' class logic
+        if (dl) dl.innerHTML='Calibrating…';
+
         const needle = $("compassNeedle");
         const resetNeedle = (value = 0) => {
             needleVisualRotation = needleTargetRotation = value;
@@ -65,6 +86,7 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
         const destPlain = toPlainLatLng(destLatLng);
         if (!destPlain) { alert('Unable to load destination.'); return; }
         radarDestLatLng = new google.maps.LatLng(destPlain.lat, destPlain.lng);
+        currentTargetLatLng = radarDestLatLng; // Default target is final destination
         currentTravelMode=document.querySelector('input[name="travelMode"]:checked')?.value||'DRIVING';
         if(orientationListener && orientationEventType) window.removeEventListener(orientationEventType, orientationListener, true);
         orientationListener = null;
@@ -124,7 +146,11 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
             if (!currentPosition || !radarDestLatLng || !needle) return;
             try {
                 const curLatLng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-                const bearing = google.maps.geometry.spherical.computeHeading(curLatLng, radarDestLatLng);
+                
+                // CORE FIX: Target the current step OR the final destination
+                const target = isNavigating ? (currentTargetLatLng || radarDestLatLng) : radarDestLatLng;
+                const bearing = google.maps.geometry.spherical.computeHeading(curLatLng, target);
+                
                 let deviceHeading = null;
                 if (ev) {
                     const derived = deriveHeadingFromEvent(ev);
@@ -176,67 +202,57 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
                 if (typeof p.coords.heading === 'number' && !Number.isNaN(p.coords.heading)) {
                     lastGeolocationHeading = normalizeHeading(p.coords.heading);
                 }
+
+                // --- START NEW AUTO-NAVIGATION LOGIC ---
+                if (isNavigating && currentRouteSteps.length > 0 && currentNavigationIndex < currentRouteSteps.length) {
+                    const currentStep = currentRouteSteps[currentNavigationIndex];
+                    // Target the *start* of the current step
+                    const stepStartTarget = currentStep.start_location; 
+                    const currentLatLng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+
+                    currentTargetLatLng = stepStartTarget; // Update compass target
+
+                    const distanceToStepStart = google.maps.geometry.spherical.computeDistanceBetween(currentLatLng, stepStartTarget);
+
+                    // Proximity threshold to trigger step completion (e.g., 25 meters)
+                    if (distanceToStepStart < 25) {
+                        // Advance to the next step
+                        currentNavigationIndex++;
+                        if (currentNavigationIndex < currentRouteSteps.length) {
+                            const nextStep = currentRouteSteps[currentNavigationIndex];
+                            currentTargetLatLng = nextStep.start_location; // Set compass to *next* step's start
+                            speakNextStep(true); // Speak the new instruction
+                            highlightStep(currentNavigationIndex);
+                        } else {
+                            // Reached destination
+                            speakText("You have arrived at your destination.");
+                            silenceDirections();
+                            currentTargetLatLng = radarDestLatLng; // Point compass at final spot
+                        }
+                    }
+                }
+                // --- END NEW AUTO-NAVIGATION LOGIC ---
+
                 updateCompassNeedle();
                 refreshRadarOrigin();
             },e=>console.error("Watch err:",e),{enableHighAccuracy:true});
         }
 
         const ds=new google.maps.DirectionsService();
-        const nextStepBtn = $("nextStepBtn");
-        const showAllBtn = $("showAllStepsBtn");
-        let nextStepPointer = 0;
-        let stepsExpanded = false;
+        let stepsExpanded = false; // Kept for potential future use, but button is gone
 
-        const collapseStepList = () => { if (dl) dl.classList.add('collapsed'); stepsExpanded = false; if (showAllBtn) showAllBtn.textContent = 'Show full route'; };
-        const expandStepList = () => { if (dl) dl.classList.remove('collapsed'); stepsExpanded = true; if (showAllBtn) showAllBtn.textContent = 'Hide steps'; };
-        const updateStepPreview = () => {
-            if (!nextStepTextEl || !nextStepBtn) return;
-            if (!currentRouteSteps.length) {
-                nextStepTextEl.textContent = 'Waiting for route...';
-                nextStepBtn.disabled = true;
-                nextStepBtn.textContent = 'Next step';
-                return;
-            }
-            if (nextStepPointer >= currentRouteSteps.length) {
-                nextStepTextEl.textContent = 'All clear. Enjoy the stop!';
-                nextStepBtn.disabled = true;
-                nextStepBtn.textContent = 'Arrived';
-                return;
-            }
-            const upcoming = stripHtml(currentRouteSteps[nextStepPointer].instructions) || 'Continue on course';
-            nextStepTextEl.textContent = upcoming;
-            nextStepBtn.disabled = false;
-            nextStepBtn.textContent = nextStepPointer === 0 ? 'Start route' : 'Next step';
-        };
-        const setNextStepPointer = (value) => {
-            nextStepPointer = Math.min(value, currentRouteSteps.length);
-            updateStepPreview();
-        };
+        const collapseStepList = () => { if (dl) dl.classList.add('collapsed'); stepsExpanded = false; };
+        const expandStepList = () => { if (dl) dl.classList.remove('collapsed'); stepsExpanded = true; };
+
         const revealStep = (idx) => { if (!dl) return; const node = dl.children[idx]; if (node) node.classList.remove('future-step'); };
         const resetStepUi = (message = 'Waiting for route...') => {
-            if (dl) dl.innerHTML = '';
-            if (nextStepTextEl) nextStepTextEl.textContent = message;
-            if (nextStepBtn) { nextStepBtn.disabled = true; nextStepBtn.textContent = 'Next step'; }
-            setNextStepPointer(0);
+            if (dl) dl.innerHTML = message;
+            // No more nextStepBtn
             collapseStepList();
         };
         resetStepUi('Calibrating route...');
 
-        if (nextStepBtn) nextStepBtn.onclick = () => {
-            if (!currentRouteSteps || !currentRouteSteps.length) return;
-            const idx = Math.min(nextStepPointer, currentRouteSteps.length - 1);
-            highlightStep(idx);
-            revealStep(idx);
-            setNextStepPointer(idx + 1);
-        };
-        if (showAllBtn) showAllBtn.onclick = () => {
-            if (!dl) return;
-            if (stepsExpanded) collapseStepList();
-            else {
-                expandStepList();
-                Array.from(dl.children).forEach(el => el.classList.remove('future-step'));
-            }
-        };
+        // Removed nextStepBtn and showAllStepsBtn click handlers
 
         function fetchAndDisplayRoute(mode){
             if (!dl) return;
@@ -248,14 +264,68 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
             resetStepUi('Plotting route...');
             dl.innerHTML='Calibrating…';
             $("readDirectionsBtn").disabled=true;
-            ds.route({origin:currentPosition,destination:radarDestLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){currentRouteSteps=r.routes[0].legs[0].steps;currentNavigationIndex=0;currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;d.classList.add('future-step');dl.appendChild(d);});$("readDirectionsBtn").disabled=false;if (nextStepBtn) { nextStepBtn.disabled=false; nextStepBtn.textContent='Start route'; }setNextStepPointer(0);refreshRadarOrigin();if(radarDirectionsRenderer){radarDirectionsRenderer.setDirections(r);radarDirectionsRenderer.setRouteIndex(0);}if(radarMap&&currentPosition){const bounds=new google.maps.LatLngBounds();bounds.extend(new google.maps.LatLng(currentPosition.lat,currentPosition.lng));bounds.extend(radarDestLatLng);radarMap.fitBounds(bounds);}}else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[];setNextStepPointer(0);}}); }
+            ds.route({origin:currentPosition,destination:radarDestLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{dl.innerHTML='';if(s===google.maps.DirectionsStatus.OK&&r){
+                currentRouteSteps=r.routes[0].legs[0].steps;
+                currentNavigationIndex=0;
+                // CORE FIX: Set initial compass target to the start of the first step
+                if (currentRouteSteps.length > 0) {
+                    currentTargetLatLng = currentRouteSteps[0].start_location;
+                }
+                currentRouteSteps.forEach((st,i)=>{const d=document.createElement('div');d.dataset.index=i;const ic=getIconForInstruction(st.instructions);d.innerHTML=`<span class="direction-icon">${ic}</span> ${st.instructions}`;d.classList.add('future-step');dl.appendChild(d);});
+                $("readDirectionsBtn").disabled=false;
+                // No more nextStepBtn
+                refreshRadarOrigin();
+                if(radarDirectionsRenderer){radarDirectionsRenderer.setDirections(r);radarDirectionsRenderer.setRouteIndex(0);}
+                if(radarMap&&currentPosition){const bounds=new google.maps.LatLngBounds();bounds.extend(new google.maps.LatLng(currentPosition.lat,currentPosition.lng));bounds.extend(radarDestLatLng);radarMap.fitBounds(bounds);}
+            }else{dl.textContent=`Route error: ${s}`;currentRouteSteps=[]; currentTargetLatLng = radarDestLatLng;}}); }
+        
         fetchAndDisplayRoute(currentTravelMode);
 
         const rb=$("readDirectionsBtn"),sb=$("silenceBtn"),cb=$("closeCompassBtn"),stb=$("compassSettingsBtn"),ac=$("advancedCompassControls"),tmr=document.querySelectorAll('input[name="travelMode"]');
-        function readDirections(){if(!currentRouteSteps||currentRouteSteps.length===0)return;navigationStopped=false;rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;setNextStepPointer(currentNavigationIndex);speakNextStep();}
-        function silenceDirections(){navigationStopped=true;speechSynthesis.cancel();if(currentSpeechUtterance)currentSpeechUtterance.onend=null;rb.disabled=(currentRouteSteps.length===0);rb.textContent="🔊 Read Directions";sb.disabled=true;}
+        function readDirections(){
+            if(!currentRouteSteps||currentRouteSteps.length===0)return;
+            isNavigating=true; navigationStopped=false;
+            rb.disabled=true;rb.textContent="Reading...";sb.disabled=false;
+            currentNavigationIndex = 0; // Start from the beginning
+            currentTargetLatLng = currentRouteSteps[0]?.start_location; // Target first step
+            speakNextStep(true); // Force speak the first step
+            highlightStep(0);
+        }
+        function silenceDirections(){
+            isNavigating=false; navigationStopped=true;
+            speechSynthesis.cancel();
+            if(currentSpeechUtterance)currentSpeechUtterance.onend=null;
+            rb.disabled=(currentRouteSteps.length===0);rb.textContent="🔊 Read Directions";sb.disabled=true;
+        }
         function highlightStep(idx){if(!dl)return;Array.from(dl.children).forEach((el,i)=>{const isMatch=i===idx;el.classList.toggle('current-step',isMatch);if(isMatch){el.classList.remove('future-step');el.scrollIntoView({behavior:'smooth',block:'nearest'});}});}
-        function speakNextStep(){if(navigationStopped||currentNavigationIndex>=currentRouteSteps.length){silenceDirections();return;}highlightStep(currentNavigationIndex);setNextStepPointer(currentNavigationIndex+1);const step=currentRouteSteps[currentNavigationIndex];const clean=stripHtml(step.instructions);const txt=`Step ${currentNavigationIndex+1}: ${clean}.`;currentSpeechUtterance=new SpeechSynthesisUtterance(txt);const voices=speechSynthesis.getVoices();const pref=selectedVoiceUri||voiceSelect?.value||'';const voice=voices.find(v=>v.voiceURI===pref)||voices[0];if(voice)currentSpeechUtterance.voice=voice;currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;currentSpeechUtterance.onend=()=>{if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);}if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}};currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};speechSynthesis.speak(currentSpeechUtterance);if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
+        
+        function speakNextStep(forceSpeak = false){
+            if(((navigationStopped || currentNavigationIndex >= currentRouteSteps.length)) && !forceSpeak){
+                silenceDirections();
+                return;
+            }
+            highlightStep(currentNavigationIndex);
+            // setNextStepPointer(currentNavigationIndex+1); // REMOVED
+            const step=currentRouteSteps[currentNavigationIndex];
+            const clean=stripHtml(step.instructions);
+            const txt=`${clean}.`; // Simpler speech
+            currentSpeechUtterance=new SpeechSynthesisUtterance(txt);
+            const voices=speechSynthesis.getVoices();
+            const pref=selectedVoiceUri||voiceSelect?.value||'';
+            const voice=voices.find(v=>v.voiceURI===pref)||voices[0];
+            if(voice)currentSpeechUtterance.voice=voice;
+            currentSpeechUtterance.pitch=1;currentSpeechUtterance.rate=1;currentSpeechUtterance.volume=1;
+            
+            // MODIFIED: onend no longer advances. It just resets the button state.
+            currentSpeechUtterance.onend=()=>{
+                // if(!navigationStopped){currentNavigationIndex++;setTimeout(speakNextStep,1500);} // REMOVED AUTO-ADVANCE
+                if(rb.textContent==="Reading..."){rb.textContent="🔊 Read Directions";if(!navigationStopped)rb.disabled=true;}
+            };
+            currentSpeechUtterance.onerror=(e)=>{console.error('Speech err:',e);silenceDirections();};
+            speechSynthesis.speak(currentSpeechUtterance);
+            
+            if(currentNavigationIndex===0&&rb.textContent==="Reading..."){setTimeout(()=>{if(rb.textContent==="Reading...")rb.textContent="🔊 Read Directions";},500);}}
+        
         rb.onclick=readDirections;sb.onclick=silenceDirections;
         stb.onclick=()=>{ac.style.display=ac.style.display==='none'?'block':'none';};
         tmr.forEach(r=>{r.onchange=(e)=>{const newM=e.target.value;if(newM!==currentTravelMode){currentTravelMode=newM;silenceDirections();fetchAndDisplayRoute(currentTravelMode);}};});
@@ -266,14 +336,7 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
         }
 
         cb.onclick=()=>{
-            if (directionsPanel) {
-                directionsPanel.classList.remove('open');
-                directionsPanel.setAttribute('aria-hidden', 'true');
-            }
-            if (toggleDirectionsBtn) {
-                toggleDirectionsBtn.textContent = 'Show directions';
-                toggleDirectionsBtn.setAttribute('aria-expanded', 'false');
-            }
+            // Removed directionsPanel toggle logic
             closeOverlayElement(overlay);
             if(compassWatchId) navigator.geolocation.clearWatch(compassWatchId); compassWatchId=null;
             if(orientationListener && orientationEventType) {
@@ -286,5 +349,6 @@ function openCompass(destLatLng) { // `destLatLng` can be LatLngLiteral or googl
                 needleAnimationFrameId = null;
             }
             silenceDirections(); ac.style.display='none';
+            currentTargetLatLng = null; // Clear target
         };
     }
