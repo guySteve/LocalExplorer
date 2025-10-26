@@ -1,143 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Local Explorer</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="theme-color" content="#f8f7f2">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/main.css">
-  <script src="key.js"></script>
-</head>
-<body>
-  <header id="appHeader">
-    <h1 id="appTitle">Local Explorer</h1>
-    <button id="settingsBtn" type="button" aria-label="Open settings">⚙️</button>
-  </header>
-  <main class="appShell">
-    <div id="locationDisplay">Determining your location…</div>
-    <div id="manualInputContainer">
-      <input type="text" id="manualInput" placeholder="Enter a location">
-    </div>
-    <div id="primaryActions">
-      <button id="myListBtn">📋 My List</button>
-      <button id="myPlanBtn">🧭 My Plan</button>
-    </div>
-    <div id="weatherWidget" aria-live="polite">
-    <div id="weatherHeader">
-      <div id="weatherLabels">
-        <span id="weatherTitle">Local Weather</span>
-        <span id="weatherUpdated">Waiting for location...</span>
-      </div>
-      <button id="refreshWeatherBtn" type="button" aria-label="Refresh weather">↻</button>
-      <button id="toggleWeatherBtn" type="button" aria-label="Toggle weather details" class="weather-toggle-btn">⚓</button>
-    </div>
-    <div id="weatherContent">
-      <div id="weatherPrimary">
-        <span id="weatherIcon">--</span>
-        <span id="weatherTemp">--°</span>
-      </div>
-      <div id="weatherDetails">
-        <div id="weatherDescription">We will pull the forecast once we know where you are.</div>
-        <div id="weatherMeta">
-          <span id="weatherFeels">Feels like --°</span>
-          <span id="weatherWind">Wind -- mph</span>
-        </div>
-        <div id="weatherRange">High --° / Low --°</div>
-      </div>
-    </div>
-    </div>
-    <div class="filters" id="filterGrid"></div>
-    <div class="support-cta">
-      <h3>Support the App</h3>
-      <p>Enjoying these adventures? Help keep Local Explorer sailing.</p>
-      <button id="donateBtn" type="button">❤️ Donate</button>
-    </div>
-  </main>
-  <div id="settingsPanel" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Settings</h3>
-        <button class="close-btn" id="closeSettingsBtn">x</button>
-      </div>
-      <div class="setting-group">
-        <label for="themeSelect">Theme</label>
-        <select id="themeSelect">
-          <option value="naval">Polished Sailor</option>
-          <option value="sunset">Sunset Cruise</option>
-          <option value="neon">Neon Harbor</option>
-          <option value="arctic">Arctic Dawn</option>
-          <option value="highseas">High Seas Neon</option>
-          <option value="mojave">Mojave Drift</option>
-          <option value="aurora">Aurora Mist</option>
-          <option value="retro90">Retro Arcade 90s</option>
-          <option value="groove70">Sunburst 70s</option>
-        </select>
-        <span class="setting-hint">Pick a style and we will remember it for next time.</span>
-      </div>
-      <div class="setting-group">
-        <label for="voiceSelect">Voice</label>
-        <select id="voiceSelect"></select>
-        <span class="setting-hint">Used for spoken navigation prompts.</span>
-      </div>
-      <div class="setting-group">
-        <label class="setting-toggle">
-          <input type="checkbox" id="ambientModeToggle">
-          <span>Ambient harbor sound cues</span>
-        </label>
-        <span class="setting-hint">Adds soft ambience while navigating (experimental).</span>
-      </div>
-      <div class="setting-group">
-        <button id="resetSettingsBtn" class="settings-secondary" type="button">Reset to defaults</button>
-      </div>
-    </div>
-  </div>
-  <div id="hiddenMap"></div> <div id="subMenuModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="subMenuTitle">Categories</h3><button class="close-btn" id="closeSubMenu">×</button></div><div class="subMenuList" id="subMenuList"></div></div></div>
-  <div id="resultsModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="resultsTitle">Results</h3><button class="close-btn" id="closeResults">×</button></div><div class="results-list" id="resultsList"></div><button id="loadMoreResultsBtn" class="load-more-btn" type="button">Keep scanning</button></div></div>
-  <div id="myListModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My List</h3><button class="close-btn" id="closeMyList">×</button></div><div class="results-list" id="myListContent"></div><div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div></div></div>
-  <div id="planModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My Plan</h3><button class="close-btn" id="closePlan">×</button></div><div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div><div class="results-list" id="planContent"></div><div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty.</div><div style="margin-top:0.5rem; display:flex; gap:0.5rem;"><button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button></div></div></div>
-  <div id="donateModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Support Local Explorer</h3><button class="close-btn" id="closeDonate">×</button></div><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!</p><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">Venmo: <strong>@Stephen-Mohamed-1</strong></p><div style="display:flex; gap:0.5rem;"><button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button><button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button></div></div></div>
-
-  <div id="detailsSheet">
-    <div id="detailsMap">
-      <button id="activateStreetViewBtn" type="button" aria-label="Enable Street View Peek">👁️ Street View</button>
-    </div>
-    <div id="detailsContent">
-      <div class="sheet-handle" aria-hidden="true"></div>
-      <button id="closeDetailsBtn" class="sheet-close">×</button>
-      <h3 id="detailsName"></h3>
-      <div id="detailsRating"></div>
-      <div id="detailsPhone"></div>
-      <div id="detailsAddress"></div>
-      <div id="detailsPrice"></div>
-      <div id="detailsActions" class="action-grid">
-        <div class="action-row primary">
-          <button id="guideBtn" class="action-pill primary">🧭 Radar Route</button>
-          <button id="mapsBtn" class="action-pill outline">📍 Open in Maps</button>
-        </div>
-        <div class="action-row secondary">
-          <button id="saveBtn" class="action-pill ghost">☆ Save</button>
-          <button id="planBtn" class="action-pill ghost">🗺️ Add to Plan</button>
-          <button id="shareBtn" class="action-pill ghost">📤 Share</button>
-          <button id="websiteBtn" class="action-pill ghost">🔗 Website</button>
-        </div>
-      </div>
-      <button class="accordion" id="reviewsAccordion">Reviews</button>
-      <div class="accordion-content" id="reviewsContent"></div>
-      <button class="accordion" id="hoursAccordion">Weekly Hours</button>
-      <div class="accordion-content" id="hoursContent"></div>
-    </div>
-  </div>
-
-  <div id="compassOverlay">
+<div id="compassOverlay">
     <div class="compass-shell">
       <div class="compass-header">
         <div>
@@ -167,7 +28,6 @@
           <div class="map-card-header">
             <span>Route preview</span>
             <div style="display:flex; gap:0.4rem;">
-              <button id="toggleDirectionsPanel" type="button">Show directions</button>
               <button id="compassSettingsBtn" type="button" aria-label="Compass settings">⚙️</button>
             </div>
           </div>
@@ -191,15 +51,8 @@
               <button id="readDirectionsBtn">🗣️ Read Directions</button>
               <button id="silenceBtn" disabled>🔇 Silence</button>
             </div>
-            <div id="nextStepCard">
-              <div class="next-step-label">Next move</div>
-              <div id="nextStepText">Waiting for route...</div>
-              <div class="next-step-actions">
-                <button id="nextStepBtn" type="button" disabled>Next step</button>
-                <button id="showAllStepsBtn" type="button">Show full route</button>
-              </div>
-            </div>
-            <div id="directionsList" class="collapsed"></div>
+            
+            <div id="directionsList"></div>
           </div>
         </div>
       </div>
@@ -207,11 +60,3 @@
   </div>
 
   <script defer src="js/state.js"></script>
-  <script defer src="js/ui.js"></script>
-  <script defer src="js/api.js"></script>
-  <script defer src="js/compass.js"></script>
-  <script defer src="js/maps.js"></script>
-  <script defer src="js/app.js"></script>
-</body>
-</html>
-
