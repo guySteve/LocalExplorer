@@ -1,15 +1,96 @@
 // Core app state and storage helpers
-const DEFAULT_THEME = 'naval'; // Polished Sailor is the new 'naval'
+const DEFAULT_THEME = 'naval';
 const THEMES = {
-  naval: { '--background': '#f8f7f2', '--card': '#1a2b44', '--primary': '#c87941', '--secondary': '#334e68', '--text-dark': '#1a2b44', '--text-light': '#ffffff', '--accent': '#8a5a44' },
-  sunset: { '--background': '#1b1c3d', '--card': '#ef476f', '--primary': '#ffd166', '--secondary': '#073b4c', '--text-dark': '#f7f5ff', '--text-light': '#fff8f0', '--accent': '#06d6a0' },
-  neon: { '--background': '#080b1a', '--card': '#1f2a44', '--primary': '#ef2d56', '--secondary': '#2fbf71', '--text-dark': '#f2f7ff', '--text-light': '#f2f7ff', '--accent': '#08f7fe' },
-  arctic: { '--background': '#e4f0f6', '--card': '#1b3b5f', '--primary': '#3d9be9', '--secondary': '#1f5673', '--text-dark': '#1b3b5f', '--text-light': '#ffffff', '--accent': '#8bc6ec' },
-  highseas: { '--background': '#050a1c', '--card': '#0f2447', '--primary': '#1dd3b0', '--secondary': '#16355f', '--text-dark': '#d7f3ff', '--text-light': '#f0fbff', '--accent': '#58a4ff' },
-  mojave: { '--background': '#fff3e1', '--card': '#4a2c22', '--primary': '#f4a259', '--secondary': '#bc5f34', '--text-dark': '#3f2a1b', '--text-light': '#fffaf5', '--accent': '#f7c59f' },
-  aurora: { '--background': '#060b1b', '--card': '#102a43', '--primary': '#7f5af0', '--secondary': '#2cb67d', '--text-dark': '#e6f0ff', '--text-light': '#f7f2ff', '--accent': '#64dfdf' },
-  retro90: { '--background': '#f3f0ff', '--card': '#1f1d2b', '--primary': '#ff6ec7', '--secondary': '#3a86ff', '--text-dark': '#1f1d2b', '--text-light': '#fff8fb', '--accent': '#ffde03' },
-  groove70: { '--background': '#fff4da', '--card': '#4b2c20', '--primary': '#ff8a3c', '--secondary': '#d95f26', '--text-dark': '#4b2c20', '--text-light': '#fff9f1', '--accent': '#ffc857' }
+  naval: { 
+    '--background': '#f8f7f2', 
+    '--card': '#1a2b44', 
+    '--primary': '#c87941', 
+    '--secondary': '#334e68', 
+    '--text-dark': '#1a2b44', 
+    '--text-light': '#ffffff', 
+    '--accent': '#8a5a44',
+    '--radius': '12px'
+  },
+  sunset: { 
+    '--background': '#1b1c3d', 
+    '--card': '#ef476f', 
+    '--primary': '#ffd166', 
+    '--secondary': '#073b4c', 
+    '--text-dark': '#f7f5ff', 
+    '--text-light': '#fff8f0', 
+    '--accent': '#06d6a0',
+    '--radius': '12px'
+  },
+  neon: { 
+    '--background': '#080b1a', 
+    '--card': '#1f2a44', 
+    '--primary': '#ef2d56', 
+    '--secondary': '#2fbf71', 
+    '--text-dark': '#f2f7ff', 
+    '--text-light': '#f2f7ff', 
+    '--accent': '#08f7fe',
+    '--radius': '12px'
+  },
+  arctic: { 
+    '--background': '#e4f0f6', 
+    '--card': '#1b3b5f', 
+    '--primary': '#3d9be9', 
+    '--secondary': '#1f5673', 
+    '--text-dark': '#1b3b5f', 
+    '--text-light': '#ffffff', 
+    '--accent': '#8bc6ec',
+    '--radius': '12px'
+  },
+  highseas: { 
+    '--background': '#050a1c', 
+    '--card': '#0f2447', 
+    '--primary': '#1dd3b0', 
+    '--secondary': '#16355f', 
+    '--text-dark': '#d7f3ff', 
+    '--text-light': '#f0fbff', 
+    '--accent': '#58a4ff',
+    '--radius': '12px'
+  },
+  mojave: { 
+    '--background': '#fff3e1', 
+    '--card': '#4a2c22', 
+    '--primary': '#f4a259', 
+    '--secondary': '#bc5f34', 
+    '--text-dark': '#3f2a1b', 
+    '--text-light': '#fffaf5', 
+    '--accent': '#f7c59f',
+    '--radius': '12px'
+  },
+  aurora: { 
+    '--background': '#060b1b', 
+    '--card': '#102a43', 
+    '--primary': '#7f5af0', 
+    '--secondary': '#2cb67d', 
+    '--text-dark': '#e6f0ff', 
+    '--text-light': '#f7f2ff', 
+    '--accent': '#64dfdf',
+    '--radius': '12px'
+  },
+  retro90: { 
+    '--background': '#f3f0ff', 
+    '--card': '#1f1d2b', 
+    '--primary': '#ff6ec7', 
+    '--secondary': '#3a86ff', 
+    '--text-dark': '#1f1d2b', 
+    '--text-light': '#fff8fb', 
+    '--accent': '#ffde03',
+    '--radius': '12px'
+  },
+  groove70: { 
+    '--background': '#fff4da', 
+    '--card': '#4b2c20', 
+    '--primary': '#ff8a3c', 
+    '--secondary': '#d95f26', 
+    '--text-dark': '#4b2c20', 
+    '--text-light': '#fff9f1', 
+    '--accent': '#ffc857',
+    '--radius': '12px'
+  }
 };
 let currentThemeKey = DEFAULT_THEME;
 
@@ -88,7 +169,7 @@ const categories = {
   ],
   'Local Events': [
     { name: 'All Events', value: 'all' },
-    { name:g: 'Music', value: 'music' },
+    { name: 'Music', value: 'music' },
     { name: 'Sports', value: 'sports' },
     { name: 'Comedy', value: 'comedy' },
     { name: 'Festivals', value: 'festival' }
@@ -158,4 +239,33 @@ function toggleVisited(id) {
   let visited = getVisitedPlan();
   visited = visited.includes(id) ? visited.filter((i) => i !== id) : [...visited, id];
   saveVisitedPlan(visited);
+}
+
+// Helper functions for compass
+function normalizeHeading(deg) {
+  if (typeof deg !== 'number' || isNaN(deg)) return null;
+  let normalized = deg % 360;
+  if (normalized < 0) normalized += 360;
+  return normalized;
+}
+
+function deriveHeadingFromEvent(event) {
+  if (!event) return null;
+  
+  // Try absolute orientation first (webkitCompassHeading for iOS)
+  if (typeof event.webkitCompassHeading === 'number') {
+    return normalizeHeading(event.webkitCompassHeading);
+  }
+  
+  // Try absolute attribute
+  if (event.absolute && typeof event.alpha === 'number') {
+    return normalizeHeading(360 - event.alpha);
+  }
+  
+  // Fallback to regular alpha
+  if (typeof event.alpha === 'number') {
+    return normalizeHeading(360 - event.alpha);
+  }
+  
+  return null;
 }
