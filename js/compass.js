@@ -1,25 +1,32 @@
-// --- NEW COMPASS LOGIC (Simplified & Corrected) ---
+// --- NEW COMPASS LOGIC V3 ---
 
 let compassWatchId = null;
 let orientationListener = null;
-let orientationEventType = null; // To store the type of event listener used
-let dialAnimationFrameId = null;
-let currentHeading = 0; // The direction the device is facing (0-360)
-let dialVisualRotation = 0; // Current visual rotation of the dial
-let dialTargetRotation = 0; // Target rotation for smooth animation
+let orientationEventType = null; 
+let dialAnimationFrameId = null; 
+let arrowAnimationFrameId = null; // Separate animation frame for arrow
+let currentHeading = 0; // The direction the device is pointing (0-360)
 
-// --- Navigation Related (Only used if destination is provided) ---
-let navigationStopped = true; // Start stopped
+// Dial (NESW ring) rotation
+let dialVisualRotation = 0; 
+let dialTargetRotation = 0; 
+
+// Heading Arrow rotation
+let arrowVisualRotation = 0; 
+let arrowTargetRotation = 0;
+
+// --- Navigation Related ---
+let navigationStopped = true; 
 let currentRouteSteps = [];
 let currentNavigationIndex = 0;
 let currentSpeechUtterance = null;
 let currentTravelMode = 'DRIVING';
-let radarDestLatLng = null; // Store destination LatLng if provided
+let radarDestLatLng = null; 
 
 
 // --- Utility Functions ---
 function normalizeHeading(heading) {
-    if (heading === null || typeof heading === 'undefined') return null;
+    if (heading === null || typeof heading === 'undefined' || isNaN(heading)) return 0; // Default to 0 if invalid
     let h = heading % 360;
     return h < 0 ? h + 360 : h;
 }
@@ -52,12 +59,13 @@ function getIconForInstruction(instruction) {
 // --- Core Compass Function ---
 function openCompass(destLatLng = null, destName = '') {
     const overlay = $("compassOverlay"); 
-    const dial = $("compassArrowContainer");
+    const dial = $("compassDial"); // The rotating NESW ring
+    const headingArrow = $("compassHeadingArrow"); // The arrow pointing device direction
     const headingReadout = $("compassHeadingValue");
     const destinationReadout = $("compassDestinationLabel");
     const directionsCard = $("compassDirectionsCard");
 
-    if (!overlay || !dial) {
+    if (!overlay || !dial || !headingArrow) {
         console.error("Compass UI elements not found!");
         return;
     }
@@ -72,21 +80,27 @@ function openCompass(destLatLng = null, destName = '') {
         navigator.geolocation.clearWatch(compassWatchId);
         compassWatchId = null;
     }
-    if (dialAnimationFrameId) {
-        cancelAnimationFrame(dialAnimationFrameId);
-        dialAnimationFrameId = null;
-    }
+    if (dialAnimationFrameId) cancelAnimationFrame(dialAnimationFrameId);
+    if (arrowAnimationFrameId) cancelAnimationFrame(arrowAnimationFrameId);
+    dialAnimationFrameId = null;
+    arrowAnimationFrameId = null;
+    
     dialVisualRotation = 0;
     dialTargetRotation = 0;
+    arrowVisualRotation = 0;
+    arrowTargetRotation = 0;
     currentHeading = 0;
-    dial.style.transform = `rotate(0deg)`; // Reset rotation immediately
+    
+    dial.style.transform = `rotate(0deg)`; // Reset rotation
+    headingArrow.style.transform = `translate(-50%, -100%) rotate(0deg)`; // Reset rotation and position
     headingReadout.textContent = '---°';
+    
     populateVoices(); 
     navigationStopped = true; 
     speechSynthesis.cancel(); 
     currentRouteSteps = []; 
     currentNavigationIndex = 0;
-    radarDestLatLng = null; // Clear previous destination
+    radarDestLatLng = null; 
 
     // --- Setup Based on Destination ---
     if (destLatLng) {
@@ -95,17 +109,14 @@ function openCompass(destLatLng = null, destName = '') {
             radarDestLatLng = new google.maps.LatLng(destPlain.lat, destPlain.lng);
             destinationReadout.textContent = destName || 'Loading...';
             directionsCard.style.display = 'block';
-             // Reset and disable direction buttons
             $("readDirectionsBtn").disabled = true;
             $("silenceBtn").disabled = true;
             resetStepUi('Waiting for location...');
         } else {
-            // Invalid destination passed
             destinationReadout.textContent = 'Invalid Destination';
             directionsCard.style.display = 'none';
         }
     } else {
-        // No destination - Simple Compass Mode
         destinationReadout.textContent = 'Pointing North';
         directionsCard.style.display = 'none';
     }
@@ -113,24 +124,41 @@ function openCompass(destLatLng = null, destName = '') {
     overlay.classList.add('active'); 
     document.body.classList.add('modal-open');
 
-    // --- Animation Logic ---
+    // --- Animation Logic (Separate for Dial and Arrow) ---
     const animateDial = () => {
         if (!dial) { dialAnimationFrameId = null; return; }
-        // Smooth rotation using interpolation
         const diff = ((dialTargetRotation - dialVisualRotation + 540) % 360) - 180;
-        if (Math.abs(diff) < 0.1) { // Stop when close enough
+        if (Math.abs(diff) < 0.1) { 
             dialVisualRotation = dialTargetRotation;
-            dialAnimationFrameId = null; // Stop animation loop
+            dialAnimationFrameId = null; 
         } else {
-            dialVisualRotation = (dialVisualRotation + diff * 0.15 + 360) % 360; // Adjust multiplier for smoothness (0.15 is a good start)
-            dialAnimationFrameId = requestAnimationFrame(animateDial); // Continue loop
+            dialVisualRotation = (dialVisualRotation + diff * 0.15 + 360) % 360; 
+            dialAnimationFrameId = requestAnimationFrame(animateDial); 
         }
         dial.style.transform = `rotate(${dialVisualRotation}deg)`;
     };
+     const animateArrow = () => {
+        if (!headingArrow) { arrowAnimationFrameId = null; return; }
+        const diff = ((arrowTargetRotation - arrowVisualRotation + 540) % 360) - 180;
+        if (Math.abs(diff) < 0.1) {
+            arrowVisualRotation = arrowTargetRotation;
+            arrowAnimationFrameId = null;
+        } else {
+            arrowVisualRotation = (arrowVisualRotation + diff * 0.15 + 360) % 360;
+            arrowAnimationFrameId = requestAnimationFrame(animateArrow);
+        }
+         // Keep the translate part for centering!
+        headingArrow.style.transform = `translate(-50%, -100%) rotate(${arrowVisualRotation}deg)`;
+    };
 
     const requestDialAnimation = () => {
-        if (!dialAnimationFrameId && dial) { // Start loop only if not already running
+        if (!dialAnimationFrameId && dial) { 
              dialAnimationFrameId = requestAnimationFrame(animateDial);
+        }
+    };
+    const requestArrowAnimation = () => {
+         if (!arrowAnimationFrameId && headingArrow) {
+            arrowAnimationFrameId = requestAnimationFrame(animateArrow);
         }
     };
 
@@ -138,37 +166,45 @@ function openCompass(destLatLng = null, destName = '') {
     const handleOrientation = (event) => {
         let heading = null;
 
-        // Try different properties based on browser/device
-        if (event.webkitCompassHeading) {
-            // iOS
-            heading = normalizeHeading(event.webkitCompassHeading);
-        } else if (event.absolute === true && event.alpha !== null) {
-             // Android/Chrome with absolute orientation
-             // The alpha value is 0-360 degrees, where 0 is North.
-             // We want the rotation to be the NEGATIVE of this to make North point up.
-             heading = normalizeHeading(360 - event.alpha); 
-        } else if (event.alpha !== null) {
-            // Standard non-absolute (less reliable, might drift)
-            // Still use 360 - alpha
-            heading = normalizeHeading(360 - event.alpha);
+        if (event.webkitCompassHeading) { // iOS
+            heading = event.webkitCompassHeading;
+        } else if (event.absolute === true && event.alpha !== null) { // Absolute Orientation API
+            heading = event.alpha; // alpha is 0=North, 90=East, etc.
+        } else if (event.alpha !== null) { // Standard Orientation API (less reliable)
+             heading = event.alpha;
         }
         
-        if (heading !== null) {
-            currentHeading = heading; // Store the raw heading
-            // Calculate the dial rotation needed to make North point up
-            dialTargetRotation = normalizeHeading(0 - currentHeading); 
-            
-            // Update the readout showing the device's heading
-            headingReadout.textContent = `${String(Math.round(currentHeading)).padStart(3, '0')}°`;
-            
-            requestDialAnimation(); // Start/continue the smooth rotation
+        // Ensure heading is valid before proceeding
+        if (heading === null || isNaN(heading)) {
+             console.warn("Could not determine heading from event:", event);
+             return; 
         }
+
+        currentHeading = normalizeHeading(heading); // 0 = North, 90 = East
+        
+        // --- ROTATION LOGIC ---
+        // 1. Dial (NESW Ring): Rotate opposite to heading so N points North.
+        dialTargetRotation = normalizeHeading(0 - currentHeading); 
+        
+        // 2. Arrow: Rotate *with* the heading to show device direction.
+        arrowTargetRotation = normalizeHeading(currentHeading); 
+        // --- END ROTATION LOGIC ---
+
+        headingReadout.textContent = `${String(Math.round(currentHeading)).padStart(3, '0')}°`;
+            
+        requestDialAnimation(); 
+        requestArrowAnimation(); // Animate both
     };
 
     // --- Request Permissions and Start Listener ---
     const startOrientationListener = () => {
-        if (orientationListener) return; // Already listening
-
+        // Clear previous listener if any
+        if (orientationListener && orientationEventType) {
+            window.removeEventListener(orientationEventType, orientationListener, true);
+            orientationListener = null;
+            orientationEventType = null;
+        }
+        
         const register = (eventName) => {
             console.log(`Registering compass listener: ${eventName}`);
             orientationEventType = eventName;
@@ -176,11 +212,11 @@ function openCompass(destLatLng = null, destName = '') {
             window.addEventListener(eventName, orientationListener, true);
         };
 
+        // iOS 13+ requires explicit permission
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // iOS 13+ requires explicit permission
             DeviceOrientationEvent.requestPermission().then(permissionState => {
                 if (permissionState === 'granted') {
-                     // Prefer 'absolute' if available (more stable)
+                    // Prefer 'absolute' if available (more stable)
                     if ('ondeviceorientationabsolute' in window) {
                          register('deviceorientationabsolute');
                     } else {
@@ -192,10 +228,10 @@ function openCompass(destLatLng = null, destName = '') {
                 }
             }).catch(error => {
                 console.error('Error requesting DeviceOrientation permission:', error);
-                 // Fallback for browsers that might error but still support the event
+                // Fallback for browsers that might error but still support the event
                 if ('ondeviceorientationabsolute' in window) { register('deviceorientationabsolute'); }
                 else if ('ondeviceorientation' in window) { register('deviceorientation'); }
-                 else { alert("Compass features are not supported on this device."); }
+                else { alert("Compass features require sensor access permission."); }
             });
         } else {
             // Non-iOS 13+ or browsers without the permission API
@@ -205,30 +241,20 @@ function openCompass(destLatLng = null, destName = '') {
                  register('deviceorientation');
             } else {
                 console.warn('DeviceOrientation events not supported.');
-                alert("Compass features are not supported on this device.");
+                alert("Compass features are not supported on this device or browser.");
+                headingReadout.textContent = 'N/A'; // Indicate lack of support
             }
         }
     };
 
     startOrientationListener(); // Attempt to start listening
 
-    // --- Geolocation Watch (primarily for directions, can provide heading fallback) ---
+    // --- Geolocation Watch (for directions & destination bearing) ---
      let routeFetched = false; 
      if (navigator.geolocation) {
         compassWatchId = navigator.geolocation.watchPosition(
             (position) => {
                 currentPosition = { lat: position.coords.latitude, lng: position.coords.longitude };
-
-                // Use geolocation heading ONLY if device orientation fails
-                if (orientationListener === null && typeof position.coords.heading === 'number' && !isNaN(position.coords.heading)) {
-                     const geoHeading = normalizeHeading(position.coords.heading);
-                     if (geoHeading !== null) {
-                         currentHeading = geoHeading;
-                         dialTargetRotation = normalizeHeading(0 - currentHeading);
-                         headingReadout.textContent = `${String(Math.round(currentHeading)).padStart(3, '0')}°`;
-                         requestDialAnimation();
-                     }
-                }
                 
                 // Fetch route if we have a destination and haven't fetched yet
                 if (radarDestLatLng && !routeFetched) {
@@ -258,6 +284,8 @@ function openCompass(destLatLng = null, destName = '') {
     // --- Close Button ---
     const closeBtn = $("closeCompassBtn");
     if (closeBtn) {
+        // Remove previous listener if exists
+        closeBtn.onclick = null; 
         closeBtn.onclick = () => {
             closeOverlayElement(overlay);
             // Clean up listeners and timers
@@ -265,14 +293,20 @@ function openCompass(destLatLng = null, destName = '') {
                 window.removeEventListener(orientationEventType, orientationListener, true);
                 orientationListener = null;
                 orientationEventType = null;
+                console.log("Orientation listener removed.");
             }
             if (compassWatchId) {
                 navigator.geolocation.clearWatch(compassWatchId);
                 compassWatchId = null;
+                console.log("Geolocation watch cleared.");
             }
             if (dialAnimationFrameId) {
                 cancelAnimationFrame(dialAnimationFrameId);
                 dialAnimationFrameId = null;
+            }
+             if (arrowAnimationFrameId) {
+                cancelAnimationFrame(arrowAnimationFrameId);
+                arrowAnimationFrameId = null;
             }
             if (radarDestLatLng) silenceDirections(); // Stop speech if navigating
         };
@@ -334,7 +368,6 @@ function openCompass(destLatLng = null, destName = '') {
             if (stepsExpanded) collapseStepList();
             else {
                 expandStepList();
-                // Reveal all steps when showing full route
                 Array.from(dl.children).forEach(el => el.classList.remove('future-step'));
             }
         };
@@ -352,7 +385,7 @@ function openCompass(destLatLng = null, destName = '') {
             $("silenceBtn").disabled = true;
 
             ds.route({origin:currentPosition,destination:radarDestLatLng,travelMode:google.maps.TravelMode[mode]},(r,s)=>{
-                if (!dl) return; // Check if element still exists
+                if (!dl) return; 
                 dl.innerHTML='';
                 if(s===google.maps.DirectionsStatus.OK && r && r.routes && r.routes.length > 0 && r.routes[0].legs && r.routes[0].legs.length > 0){
                     currentRouteSteps=r.routes[0].legs[0].steps;
@@ -361,15 +394,14 @@ function openCompass(destLatLng = null, destName = '') {
                         const d=document.createElement('div');
                         d.dataset.index=i;
                         const ic=getIconForInstruction(st.instructions);
-                        // Sanitize instructions before adding to innerHTML
                         const cleanInstructions = stripHtml(st.instructions); 
                         d.innerHTML=`<span class="direction-icon">${ic}</span> ${cleanInstructions}`;
-                        d.classList.add('future-step'); // Initially hide future steps
+                        d.classList.add('future-step'); 
                         dl.appendChild(d);
                     });
                     $("readDirectionsBtn").disabled=false;
                     if (nextStepBtn) { nextStepBtn.disabled=false; nextStepBtn.textContent='Start route'; }
-                    setNextStepPointer(0); // Set preview to the first step
+                    setNextStepPointer(0); 
                  } else {
                     dl.textContent=`Route error: ${s}`;
                     currentRouteSteps=[];
@@ -386,7 +418,6 @@ function openCompass(destLatLng = null, destName = '') {
         function speakNextStep(){
             if(navigationStopped || currentNavigationIndex >= currentRouteSteps.length){
                 silenceDirections();
-                 // Optionally update UI for arrival
                 if (currentNavigationIndex >= currentRouteSteps.length && nextStepTextEl) {
                      nextStepTextEl.textContent = "You have arrived!";
                      if (nextStepBtn) nextStepBtn.textContent = 'Arrived';
@@ -395,53 +426,46 @@ function openCompass(destLatLng = null, destName = '') {
                 return;
             }
             highlightStep(currentNavigationIndex);
-            setNextStepPointer(currentNavigationIndex + 1); // Update preview for the *next* step
+            setNextStepPointer(currentNavigationIndex + 1); 
             
             const step=currentRouteSteps[currentNavigationIndex];
             const clean=stripHtml(step.instructions);
-            const txt = clean; // Speak only the instruction, not "Step X"
+            const txt = clean; 
             
-            if (txt) { // Only speak if there's text
+            if (txt) { 
                 currentSpeechUtterance=new SpeechSynthesisUtterance(txt);
                 const voices=speechSynthesis.getVoices();
                 const pref=selectedVoiceUri||voiceSelect?.value||'';
-                const voice=voices.find(v=>v.voiceURI===pref)||voices[0]; // Fallback to first voice
+                const voice=voices.find(v=>v.voiceURI===pref)||voices[0]; 
                 if(voice)currentSpeechUtterance.voice=voice;
                 currentSpeechUtterance.pitch=1;
-                currentSpeechUtterance.rate=1.1; // Slightly faster speech rate
+                currentSpeechUtterance.rate=1.1; 
                 currentSpeechUtterance.volume=1;
                 
                 currentSpeechUtterance.onend=()=>{
                     if(!navigationStopped){
                         currentNavigationIndex++;
-                        // Add a slight delay before speaking the next step
                         setTimeout(speakNextStep, 750); 
                     }
-                    // Reset button text only after speech ends
                     if(rb && rb.textContent==="Reading...") {
                         rb.textContent="🗣️ Read Directions"; 
-                        // Keep disabled until next step is spoken or stopped
                         if (!navigationStopped) rb.disabled = true; 
                     }
                 };
                 currentSpeechUtterance.onerror=(e)=>{
                     console.error('Speech synthesis error:',e);
-                    silenceDirections(); // Stop on error
+                    silenceDirections(); 
                 };
                 speechSynthesis.speak(currentSpeechUtterance);
-                
-                // Keep button disabled while speaking
                  if (rb) rb.disabled = true; 
             } else {
-                 // If no text for this step, move immediately to the next
                  if(!navigationStopped){
                         currentNavigationIndex++;
-                        setTimeout(speakNextStep, 100); // Very short delay
+                        setTimeout(speakNextStep, 100); 
                  }
             }
         }
         rb.onclick=readDirections;
         sb.onclick=silenceDirections;
-        // Travel mode change listener removed as it's not in the simplified HTML
     }
 }
