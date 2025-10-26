@@ -18,17 +18,17 @@ const THEMES = {
   retro90:  { /* Defined in theme.css */ },
   groove70: { /* Defined in theme.css */ },
 
-  // --- New Themes ---
+  // --- New Themes (UPDATED) ---
   neverland:{ '--background': '#f0e8d8', '--card': '#3a2e28', '--primary': '#d4a373', '--secondary': '#586f6b', '--text-dark': '#3a2e28', '--text-light': '#fdfaf6', '--accent': '#8a5a44', 
-              /* Compass vars defined in theme.css body rule */ },
+              '--compass-dial-border': 'rgba(212, 163, 115, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #3a2e28 40%, #2b211c 100%)', '--compass-marker-color': '#d4a373', '--compass-marker-shadow': '0 0 8px rgba(212, 163, 115, 0.6)', '--compass-arrow-color': '#fdfaf6', '--compass-arrow-shadow': 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.5))', '--compass-value': '#d4a373'},
   arcane:   { '--background': '#0a1128', '--card': '#122c34', '--primary': '#fec601', '--secondary': '#005f73', '--text-dark': '#e0fbfc', '--text-light': '#ffffff', '--accent': '#94d2bd', 
-              /* Compass vars defined in theme.css body rule */ },
+              '--compass-dial-border': 'rgba(254, 198, 1, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #122c34 40%, #0a1128 100%)', '--compass-marker-color': '#fec601', '--compass-marker-shadow': '0 0 10px rgba(254, 198, 1, 0.7)', '--compass-arrow-color': '#94d2bd', '--compass-arrow-shadow': 'drop-shadow(0 0 8px rgba(148, 210, 189, 0.6))', '--compass-value': '#fec601'},
   roblox:   { '--background': '#e1e1e1', '--card': '#a3a3a3', '--primary': '#da242a', '--secondary': '#00a2ff', '--text-dark': '#393939', '--text-light': '#ffffff', '--accent': '#ffcb00', 
-              /* Compass vars defined in theme.css body rule */ },
+              '--compass-dial-border': 'rgba(0, 162, 255, 0.3)', '--compass-dial-bg': 'radial-gradient(circle, #a3a3a3 40%, #888888 100%)', '--compass-marker-color': '#ffcb00', '--compass-marker-shadow': '0 0 10px rgba(255, 203, 0, 0.7)', '--compass-arrow-color': '#da242a', '--compass-arrow-shadow': 'drop-shadow(0 0 8px rgba(218, 36, 42, 0.6))', '--compass-value': '#ffcb00'},
   ramen:    { '--background': '#fff9e6', '--card': '#d44d5c', '--primary': '#ffc107', '--secondary': '#77bfa3', '--text-dark': '#4a2c22', '--text-light': '#ffffff', '--accent': '#f4a259', 
-              /* Compass vars defined in theme.css body rule */ },
+              '--compass-dial-border': 'rgba(255, 193, 7, 0.4)', '--compass-dial-bg': 'radial-gradient(circle, #d44d5c 40%, #b03a48 100%)', '--compass-marker-color': '#ffc107', '--compass-marker-shadow': '0 0 10px rgba(255, 193, 7, 0.7)', '--compass-arrow-color': '#ffffff', '--compass-arrow-shadow': 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.6))', '--compass-value': '#ffc107'},
   dog:      { '--background': '#f5f5f5', '--card': '#6d4c41', '--primary': '#ffb300', '--secondary': '#455a64', '--text-dark': '#3e2723', '--text-light': '#ffffff', '--accent': '#ef5350', 
-              /* Compass vars defined in theme.css body rule */ },
+              '--compass-dial-border': 'rgba(255, 179, 0, 0.4)', '--compass-dial-bg': 'radial-gradient(circle, #6d4c41 40%, #5d4037 100%)', '--compass-marker-color': '#ffb300', '--compass-marker-shadow': '0 0 10px rgba(255, 179, 0, 0.7)', '--compass-arrow-color': '#ef5350', '--compass-arrow-shadow': 'drop-shadow(0 0 8px rgba(239, 83, 80, 0.6))', '--compass-value': '#ffb300'},
 };
 let currentThemeKey = DEFAULT_THEME;
 
