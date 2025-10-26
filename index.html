@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#f8f7f2">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;900&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/main.css">
@@ -123,7 +123,7 @@
       <div id="detailsPrice"></div>
       <div id="detailsActions" class="action-grid">
         <div class="action-row primary">
-          <button id="guideBtn" class="action-pill primary">🧭 Radar Route</button>
+          <button id="guideBtn" class="action-pill primary">🧭 Guide Me</button>
           <button id="mapsBtn" class="action-pill outline">📍 Open in Maps</button>
         </div>
         <div class="action-row secondary">
@@ -153,10 +153,11 @@
         <div class="compass-face">
           
           <div id="compassArrowContainer">
-            <div id="compassArrow">⬆️</div>
+            <div id="compassNorthMarker">N</div>
+            <div id="compassArrow">⬆</div>
           </div>
           <div class="compass-readout">
-            <div class="readout-label">Bearing</div>
+            <div class="readout-label">Heading</div>
             <div class="readout-value" id="compassHeadingValue">---°</div>
             <div class="readout-label" style="margin-top:0.75rem;">Destination</div>
             <div class="readout-value" id="compassDestinationLabel">Set a place</div>
@@ -167,7 +168,7 @@
             <span>Route Directions</span>
             <div style="display:flex; gap:0.4rem;">
               <button id="toggleDirectionsPanel" type="button">Show directions</button>
-              </div>
+            </div>
           </div>
           <div id="directionsPanel">
             <div id="navigationButtons">
