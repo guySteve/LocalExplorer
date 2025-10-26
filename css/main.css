@@ -1129,3 +1129,13 @@ h1, h2, h3 {
       #detailsMap { height: 45%; }
       #detailsContent { height: 55%; }
     }
+
+/* Hide radar map and directions panel for simple compass */
+.compass-map-card {
+  display: none;
+}
+
+/* Optional: Center the compass face since the map is gone */
+.compass-main {
+  justify-content: center;
+}
