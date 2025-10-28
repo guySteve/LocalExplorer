@@ -338,17 +338,62 @@ function loadPlan() { /* Load and display plan items */
         const ratio = vCount / total; let badge = ratio === 1 ? '🎖️' : ratio >= 0.8 ? '🥇' : ratio >= 0.5 ? '🥈' : ratio >= 0.3 ? '🥉' : '🔰';
         summary.textContent = `Visited ${vCount} of ${total} places ${badge}`;
         list.forEach(item => { /* Create button for each item */
-            const btn = document.createElement('button'); btn.style.display = 'flex'; /* ... styling ... */ btn.style.alignItems = 'center'; btn.style.width = '100%';
+            const btn = document.createElement('button'); 
+            btn.style.cssText = 'display: flex; align-items: center; width: 100%; position: relative; transition: transform 0.2s ease, opacity 0.2s ease;';
+            btn.dataset.placeId = item.place_id;
+            
             const wrap = document.createElement('div'); wrap.className = 'results-item';
             const info = document.createElement('div'); info.className = 'results-info';
             const title = document.createElement('h4'); title.textContent = item.name; info.appendChild(title);
             const vSpan = document.createElement('span'); vSpan.className = 'rating'; vSpan.textContent = visited.includes(item.place_id) ? 'Visited' : 'Not visited'; info.appendChild(vSpan);
             wrap.appendChild(info); btn.appendChild(wrap);
+            
             // Visible 'Visited' button
             const vBtn = document.createElement('button'); vBtn.textContent = visited.includes(item.place_id) ? '✔️ Visited' : '◻️ Visit';
             vBtn.style.cssText = 'flex-shrink: 0; margin-left: 0.5rem; background: var(--card); color: var(--text-light); border: 1px solid var(--accent); border-radius: 8px; padding: 0.3rem 0.5rem; font-size: 0.8rem; cursor: pointer;';
             vBtn.onclick = (e) => { e.stopPropagation(); toggleVisited(item.place_id); loadPlan(); }; btn.appendChild(vBtn);
-            btn.onclick = () => { showDetails(item.place_id); closePlan(); }; content.appendChild(btn);
+            btn.onclick = () => { showDetails(item.place_id); closePlan(); }; 
+            
+            // Add swipe-to-remove functionality
+            let startX = 0, currentX = 0, isSwiping = false;
+            
+            btn.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isSwiping = true;
+                btn.style.transition = 'none';
+            }, { passive: true });
+            
+            btn.addEventListener('touchmove', (e) => {
+                if (!isSwiping) return;
+                currentX = e.touches[0].clientX;
+                const deltaX = currentX - startX;
+                if (deltaX < 0) { // Only allow left swipe
+                    btn.style.transform = `translateX(${deltaX}px)`;
+                    btn.style.opacity = Math.max(0.3, 1 + deltaX / 200);
+                }
+            }, { passive: true });
+            
+            btn.addEventListener('touchend', () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                const deltaX = currentX - startX;
+                btn.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                
+                if (deltaX < -100) { // Threshold for removal
+                    btn.style.transform = 'translateX(-100%)';
+                    btn.style.opacity = '0';
+                    setTimeout(() => {
+                        removeFromPlan(item.place_id);
+                        loadPlan();
+                    }, 300);
+                } else {
+                    btn.style.transform = 'translateX(0)';
+                    btn.style.opacity = '1';
+                }
+                currentX = 0;
+            }, { passive: true });
+            
+            content.appendChild(btn);
         });
     }
 
