@@ -67,6 +67,124 @@ async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ 
 let lastAlertsCheck = 0;
 const ALERTS_CACHE_MS = 60 * 60 * 1000; // 1 hour
 
+// --- What3Words Integration ---
+async function fetchWhat3Words(lat, lng) {
+  const apiKey = window.WHAT3WORDS_API_KEY || 'TKIBT03V';
+  if (!apiKey) {
+    console.warn('What3Words API key missing');
+    return null;
+  }
+
+  try {
+    const url = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${apiKey}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('What3Words API request failed:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    if (data.words) {
+      return `///${data.words}`;
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('Failed to fetch What3Words:', err);
+    return null;
+  }
+}
+
+// --- FourSquare Integration ---
+async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
+  const apiKey = window.FOURSQUARE_API_KEY || 'XQJYSPSBDRKOYXOXD1T0UWQX0OBO5HPLHSGDVMYDGQ3KOJ43';
+  if (!apiKey) {
+    console.warn('FourSquare API key missing');
+    return [];
+  }
+
+  try {
+    const params = new URLSearchParams({
+      ll: `${lat},${lng}`,
+      limit: limit.toString(),
+      radius: '5000' // 5km radius
+    });
+    
+    if (query) {
+      params.append('query', query);
+    }
+    
+    const url = `https://api.foursquare.com/v3/places/search?${params}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': apiKey,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('FourSquare API request failed:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (data.results && Array.isArray(data.results)) {
+      return data.results.map(place => ({
+        fsq_id: place.fsq_id,
+        name: place.name,
+        category: place.categories?.[0]?.name || 'Place',
+        address: place.location?.formatted_address || '',
+        distance: place.distance,
+        lat: place.geocodes?.main?.latitude,
+        lng: place.geocodes?.main?.longitude
+      }));
+    }
+    
+    return [];
+  } catch (err) {
+    console.error('Failed to fetch FourSquare data:', err);
+    return [];
+  }
+}
+
+async function getFourSquareDetails(fsqId) {
+  const apiKey = window.FOURSQUARE_API_KEY || 'XQJYSPSBDRKOYXOXD1T0UWQX0OBO5HPLHSGDVMYDGQ3KOJ43';
+  if (!apiKey || !fsqId) return null;
+
+  try {
+    const url = `https://api.foursquare.com/v3/places/${fsqId}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': apiKey,
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('FourSquare details request failed:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    return {
+      name: data.name,
+      description: data.description,
+      rating: data.rating,
+      price: data.price,
+      hours: data.hours,
+      website: data.website,
+      tel: data.tel,
+      photos: data.photos
+    };
+  } catch (err) {
+    console.error('Failed to fetch FourSquare details:', err);
+    return null;
+  }
+}
+
 async function fetchLocalAlerts(countryCode = 'US') {
   const apiKey = window.HOLIDAY_API_KEY || '6e53a0df-74ca-4513-9971-0d3bf189ca12';
   if (!apiKey) {
