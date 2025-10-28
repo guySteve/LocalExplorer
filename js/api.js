@@ -63,5 +63,124 @@ function renderWeather(data) { /* Update UI with weather data */ if (!data?.curr
 
 async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) return renderWeather(cachedWeather); showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
 
+// --- Local Alerts (HolidayAPI Integration) ---
+let lastAlertsCheck = 0;
+const ALERTS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+
+async function fetchLocalAlerts(countryCode = 'US') {
+  const apiKey = window.HOLIDAY_API_KEY || '6e53a0df-74ca-4513-9971-0d3bf189ca12';
+  if (!apiKey) {
+    console.warn('HolidayAPI key missing');
+    return [];
+  }
+
+  try {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    // Fetch holidays for current month
+    const url = `https://holidayapi.com/v1/holidays?key=${apiKey}&country=${countryCode}&year=${year}&month=${month}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('HolidayAPI request failed:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (data.status !== 200 || !data.holidays) {
+      console.warn('Invalid HolidayAPI response');
+      return [];
+    }
+
+    // Filter for upcoming holidays (next 7 days) that could disrupt travel
+    const today = now.getTime();
+    const weekFromNow = today + (7 * 24 * 60 * 60 * 1000);
+    
+    const upcomingAlerts = data.holidays.filter(holiday => {
+      const holidayDate = new Date(holiday.date).getTime();
+      return holidayDate >= today && holidayDate <= weekFromNow && holiday.public === true;
+    }).map(holiday => ({
+      title: holiday.name,
+      date: holiday.date,
+      description: `Public holiday - ${holiday.name}. Expect increased traffic and closures.`,
+      type: 'holiday'
+    }));
+
+    return upcomingAlerts;
+  } catch (err) {
+    console.error('Failed to fetch local alerts:', err);
+    return [];
+  }
+}
+
+function renderAlerts(alerts) {
+  const widget = $("localAlertsWidget");
+  const content = $("alertsContent");
+  
+  if (!widget || !content) return;
+  
+  if (!alerts || alerts.length === 0) {
+    widget.style.display = 'none';
+    return;
+  }
+  
+  widget.style.display = 'block';
+  content.innerHTML = '';
+  
+  alerts.forEach(alert => {
+    const item = document.createElement('div');
+    item.className = 'alert-item';
+    
+    const title = document.createElement('div');
+    title.className = 'alert-item-title';
+    title.textContent = alert.title;
+    item.appendChild(title);
+    
+    const desc = document.createElement('div');
+    desc.className = 'alert-item-desc';
+    desc.textContent = alert.description;
+    item.appendChild(desc);
+    
+    if (alert.date) {
+      const dateEl = document.createElement('div');
+      dateEl.className = 'alert-item-date';
+      dateEl.textContent = new Date(alert.date).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      item.appendChild(dateEl);
+    }
+    
+    content.appendChild(item);
+  });
+}
+
+async function updateLocalAlerts(countryCode = 'US', force = false) {
+  const now = Date.now();
+  
+  if (!force && (now - lastAlertsCheck) < ALERTS_CACHE_MS) {
+    return; // Use cache
+  }
+  
+  try {
+    const alerts = await fetchLocalAlerts(countryCode);
+    renderAlerts(alerts);
+    lastAlertsCheck = now;
+  } catch (err) {
+    console.error('Failed to update local alerts:', err);
+  }
+}
+
+function initAlertsControls() {
+  const refreshBtn = $("refreshAlertsBtn");
+  if (refreshBtn) {
+    refreshBtn.onclick = () => updateLocalAlerts('US', true);
+  }
+}
+
 function initWeatherControls() { /* Attach listeners for weather */ const refBtn = $("refreshWeatherBtn"); if (refBtn) refBtn.onclick = () => {if (currentPosition) updateWeather(currentPosition, { force: true });}; updateWeatherTitle(); const tglBtn = $("toggleWeatherBtn"), wWidget = $("weatherWidget"); if (tglBtn && wWidget) { const isMin = localStorage.getItem('weatherMinimized') === 'true'; wWidget.classList.toggle('weather-minimized', isMin); tglBtn.onclick = () => { const nowMin = wWidget.classList.toggle('weather-minimized'); localStorage.setItem('weatherMinimized', nowMin ? 'true' : 'false'); }; } }
 

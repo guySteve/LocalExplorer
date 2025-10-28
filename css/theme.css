@@ -68,11 +68,21 @@ body.theme-retro90 {
   font-family: 'Press Start 2P', 'Raleway', sans-serif;
   background-color: #1a0b2a;
   background-image:
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    radial-gradient(circle at top, #2c0c5d, #0b0315);
-  background-size: 4px 4px, 4px 4px, 100% 100%;
+    repeating-linear-gradient(0deg, rgba(255,0,255,0.03) 0px, transparent 2px, transparent 4px, rgba(0,255,255,0.03) 6px, transparent 8px, transparent 10px),
+    repeating-linear-gradient(90deg, rgba(255,255,0,0.02) 0px, transparent 2px, transparent 4px, rgba(255,0,255,0.02) 6px, transparent 8px, transparent 10px),
+    radial-gradient(ellipse at top left, #3d0f6d 0%, #1a0b2a 40%, #0b0315 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%;
   color: #fef9ff;
+  animation: retro90Shift 15s ease-in-out infinite;
+}
+
+@keyframes retro90Shift {
+  0%, 100% {
+    background-position: 0% 0%, 0% 0%, 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%, 100% 100%, 0% 0%;
+  }
 }
 
 body.theme-retro90 #appHeader,
@@ -80,45 +90,171 @@ body.theme-retro90 #locationDisplay,
 body.theme-retro90 #weatherWidget,
 body.theme-retro90 .filter-btn,
 body.theme-retro90 #primaryActions button {
-  border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.2);
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.45) inset, 0 12px 16px rgba(0,0,0,0.5);
+  border-radius: 4px;
+  border: 3px solid;
+  border-color: #ff5dad #845ef7 #00f5d4 #ffd23f;
+  box-shadow: 
+    0 0 0 2px rgba(0,0,0,0.8) inset,
+    0 0 20px rgba(255,93,173,0.3),
+    0 0 30px rgba(0,245,212,0.2),
+    0 12px 24px rgba(0,0,0,0.7);
+  animation: retro90BorderGlow 3s ease-in-out infinite;
+}
+
+@keyframes retro90BorderGlow {
+  0%, 100% {
+    border-color: #ff5dad #845ef7 #00f5d4 #ffd23f;
+    box-shadow: 
+      0 0 0 2px rgba(0,0,0,0.8) inset,
+      0 0 20px rgba(255,93,173,0.3),
+      0 0 30px rgba(0,245,212,0.2),
+      0 12px 24px rgba(0,0,0,0.7);
+  }
+  50% {
+    border-color: #00f5d4 #ffd23f #ff5dad #845ef7;
+    box-shadow: 
+      0 0 0 2px rgba(0,0,0,0.8) inset,
+      0 0 30px rgba(0,245,212,0.5),
+      0 0 40px rgba(255,93,173,0.3),
+      0 12px 24px rgba(0,0,0,0.7);
+  }
 }
 
 body.theme-retro90 button,
 body.theme-retro90 .filter-btn {
   font-family: 'Press Start 2P', 'Raleway', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.05rem;
+  letter-spacing: 0.08rem;
+  font-size: 0.7rem;
+  text-shadow: 
+    0 0 8px rgba(255,93,173,0.8),
+    0 0 16px rgba(0,245,212,0.5),
+    2px 2px 4px rgba(0,0,0,0.8);
 }
 
 body.theme-retro90 #weatherWidget {
-  background: linear-gradient(135deg, #2d0f5d, #ff5ddb);
+  background: linear-gradient(135deg, 
+    rgba(255,93,173,0.9) 0%, 
+    rgba(132,94,247,0.85) 35%, 
+    rgba(0,245,212,0.8) 70%,
+    rgba(255,210,63,0.85) 100%);
+  animation: retro90WeatherShift 5s linear infinite;
 }
 
-body.theme-retro90 #compassOverlay {
-  background: linear-gradient(120deg, #2d0f5d, #09031a);
-  border-color: rgba(255,255,255,0.35);
+@keyframes retro90WeatherShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+body.theme-retro90 #compassOverlay .compass-modal {
+  background: linear-gradient(135deg, #2d0f5d 0%, #1a0b2a 50%, #09031a 100%);
+  border: 3px solid;
+  border-color: #ff5dad #00f5d4 #ffd23f #845ef7;
+  box-shadow:
+    0 0 40px rgba(255,93,173,0.4),
+    0 0 60px rgba(0,245,212,0.3),
+    0 24px 48px rgba(0,0,0,0.8);
+}
+
+body.theme-retro90 .compass-ring-labels {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.9rem;
+}
+
+body.theme-retro90 h1, 
+body.theme-retro90 h2, 
+body.theme-retro90 h3 {
+  text-shadow: 
+    2px 2px 0 #845ef7,
+    4px 4px 0 #00f5d4,
+    6px 6px 16px rgba(0,0,0,0.8);
+  animation: retro90TextGlitch 0.8s ease-in-out infinite;
+}
+
+@keyframes retro90TextGlitch {
+  0%, 90%, 100% {
+    transform: translateX(0);
+  }
+  92% {
+    transform: translateX(-2px);
+  }
+  94% {
+    transform: translateX(2px);
+  }
+  96% {
+    transform: translateX(-1px);
+  }
 }
 
 body.theme-groove70 {
-  background-image: radial-gradient(circle at top, #ffe4b5, #ffcf99 40%, #f3b172 75%, #f28c61);
+  background-image: 
+    repeating-radial-gradient(circle at 20% 30%, transparent 0, rgba(255,180,100,0.1) 20px, transparent 40px),
+    repeating-radial-gradient(circle at 80% 70%, transparent 0, rgba(255,140,80,0.08) 25px, transparent 50px),
+    radial-gradient(ellipse at top, #ffe4b5 0%, #ffcf99 30%, #f3b172 60%, #f28c61 100%);
   color: #4b2c20;
 }
 
 body.theme-groove70 #appHeader {
-  border-bottom-color: #ff8a3c;
+  border-bottom: 5px groove #ff8a3c;
+  text-shadow: 2px 2px 0 rgba(255,138,60,0.5);
+}
+
+body.theme-groove70 h1 {
+  font-family: 'Press Start 2P', 'Poppins', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.15rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffd23f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(2px 2px 0 rgba(75,44,32,0.3));
 }
 
 body.theme-groove70 #weatherWidget {
-  background: linear-gradient(135deg, #f5a65b, #f67544);
-  color: #4b2c20;
+  background: linear-gradient(135deg, #f5a65b 0%, #f67544 100%);
+  color: #fff;
+  border: 4px ridge #f28c61;
+  box-shadow: 
+    inset 0 0 0 2px rgba(255,255,255,0.3),
+    0 8px 24px rgba(0,0,0,0.3);
 }
 
 body.theme-groove70 .filter-btn {
-  background: linear-gradient(120deg, #f6c143, #f6933a);
+  background: linear-gradient(135deg, #f6c143 0%, #f6933a 100%);
   color: #4b2c20;
-  border-color: rgba(75,44,32,0.2);
+  border: 3px outset #ff8a3c;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+  box-shadow: 
+    0 4px 0 0 rgba(188,95,52,0.8),
+    0 8px 16px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+
+body.theme-groove70 .filter-btn:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 0 0 0 rgba(188,95,52,0.8),
+    0 4px 8px rgba(0,0,0,0.3);
+}
+
+body.theme-groove70 #primaryActions button {
+  border: 4px groove #f67544;
+  background: linear-gradient(135deg, #ff9d6c 0%, #f76b2e 100%);
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.4), -1px -1px 0 rgba(0,0,0,0.2);
+  box-shadow: 
+    inset 0 2px 0 rgba(255,255,255,0.4),
+    0 6px 18px rgba(0,0,0,0.3);
+}
+
+body.theme-groove70 .modal-content {
+  border: 5px ridge #f67544;
+  box-shadow: 
+    0 0 0 3px #ffcf99,
+    0 12px 32px rgba(0,0,0,0.4);
 }
 
 body.theme-mojave {

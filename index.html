@@ -27,6 +27,14 @@
     <div id="manualInputContainer">
       <input type="text" id="manualInput" placeholder="Enter a location">
     </div>
+    <div id="localAlertsWidget" style="display:none;">
+      <div class="alert-header">
+        <span class="alert-icon">⚠️</span>
+        <span class="alert-title">Local Alerts</span>
+        <button id="refreshAlertsBtn" type="button" aria-label="Refresh alerts">↻</button>
+      </div>
+      <div id="alertsContent" class="alerts-list"></div>
+    </div>
     <div id="primaryActions">
       <button id="myListBtn">📋 My List</button>
       <button id="myPlanBtn">🗺️ My Plan</button>
