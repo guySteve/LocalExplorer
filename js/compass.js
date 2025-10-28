@@ -42,15 +42,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const wrapAngle = (angle) => (angle % 360 + 360) % 360;
 const shortestAngle = (from, to) => ((to - from + 540) % 360) - 180;
 
-const stripHtml = window.stripHtml ? window.stripHtml : (text => (text || '').replace(/<[^>]+>/g, '').trim());
-const toPlainLatLng = window.toPlainLatLng ? window.toPlainLatLng : (latLng => {
-      if (!latLng) return null;
-      if (typeof latLng.lat === 'function' && typeof latLng.lng === 'function') {
-        return { lat: latLng.lat(), lng: latLng.lng() };
-      }
-      if (typeof latLng.lat === 'number' && typeof latLng.lng === 'number') return latLng;
-      return null;
-});
+// Utility functions are defined in ui.js and available on window object
 
 function getIconForInstruction(instruction) {
       const lowerInstruction = instruction.toLowerCase();
@@ -149,7 +141,7 @@ function openCompass(destLatLng = null, destName = '') {
 
     // --- Setup Based on Destination ---
     if (destLatLng) {
-        const destPlain = toPlainLatLng(destLatLng);
+        const destPlain = window.toPlainLatLng(destLatLng);
         if (destPlain) {
             radarDestLatLng = new google.maps.LatLng(destPlain.lat, destPlain.lng);
             destinationReadout.textContent = destName || 'Loading...';
@@ -428,7 +420,7 @@ function openCompass(destLatLng = null, destName = '') {
                 nextStepBtn.textContent = 'Arrived';
                 return;
             }
-            const upcoming = stripHtml(currentRouteSteps[nextStepPointer].instructions) || 'Continue on course';
+            const upcoming = window.stripHtml(currentRouteSteps[nextStepPointer].instructions) || 'Continue on course';
             nextStepTextEl.textContent = upcoming;
             nextStepBtn.disabled = false;
             nextStepBtn.textContent = nextStepPointer === 0 ? 'Start route' : 'Next step';
@@ -498,7 +490,7 @@ function openCompass(destLatLng = null, destName = '') {
             setNextStepPointer(currentNavigationIndex + 1);
 
             const step = currentRouteSteps[currentNavigationIndex];
-            const instruction = stripHtml(step.instructions);
+            const instruction = window.stripHtml(step.instructions);
 
             if (instruction) {
                 currentSpeechUtterance = new SpeechSynthesisUtterance(instruction);
@@ -569,7 +561,7 @@ function openCompass(destLatLng = null, destName = '') {
                             const row = document.createElement('div');
                             row.dataset.index = i;
                             const icon = getIconForInstruction(st.instructions);
-                            const clean = stripHtml(st.instructions);
+                            const clean = window.stripHtml(st.instructions);
                             row.innerHTML = `<span class="direction-icon">${icon}</span> ${clean}`;
                             row.classList.add('future-step');
                             dl.appendChild(row);
