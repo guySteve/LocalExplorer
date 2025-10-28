@@ -95,6 +95,13 @@ const categories = {
     { name: 'Sports', value: 'sports' },
     { name: 'Comedy', value: 'comedy' },
     { name: 'Festivals', value: 'festival' }
+  ],
+  'FourSquare Discoveries': [
+    { name: 'Trending Now', useFourSquare: true, query: 'trending' },
+    { name: 'Coffee Shops', useFourSquare: true, query: 'coffee' },
+    { name: 'Breweries', useFourSquare: true, query: 'brewery' },
+    { name: 'Desserts', useFourSquare: true, query: 'dessert' },
+    { name: 'Nightlife', useFourSquare: true, query: 'nightlife' }
   ]
 };
 

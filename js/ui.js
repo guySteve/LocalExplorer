@@ -199,7 +199,8 @@ function getIconForCategory(cat) { /* Get emoji for category */
       switch (cat) {
         case 'Foodie Finds': return '🍽️'; case 'Iconic Sights': return '🏛️'; case 'Night Out': return '🌙';
         case 'Hidden Gems': return '💎'; case 'Pet Friendly': return '🐾'; case 'Utilities & Help': return '🛠️';
-        case 'Outdoor': return '🌲'; case 'Local Events': return '🎟️'; default: return '';
+        case 'Outdoor': return '🌲'; case 'Local Events': return '🎟️'; 
+        case 'FourSquare Discoveries': return '🔍'; default: return '';
       }
     }
 
