@@ -1170,20 +1170,7 @@ h1, h2, h3 {
   filter: drop-shadow(0 0 8px rgba(200,121,65,0.5)) drop-shadow(0 3px 12px rgba(0,0,0,0.5));
 }
 
-.compass-needle::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 40px solid rgba(138,90,68,0.6);
-  opacity: 0.85;
-  filter: drop-shadow(0 0 6px rgba(138,90,68,0.4));
-}
+/* Removed ::after to eliminate the second arrow */
 
 .compass-cap {
   width: 38px;
