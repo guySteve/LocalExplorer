@@ -648,7 +648,18 @@ async function fetchRecentBirdSightings(lat, lng) {
       const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
       const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
       
-      return `🐦 ${birdName} (${count}) spotted ${timeStr} nearby`;
+      // Calculate distance if location data is available
+      let distanceStr = '';
+      if (randomBird.lat && randomBird.lng && currentPosition) {
+        const distance = calculateDistance(lat, lng, randomBird.lat, randomBird.lng);
+        if (distance < 1) {
+          distanceStr = ` - ${(distance * 1000).toFixed(0)}m away`;
+        } else {
+          distanceStr = ` - ${distance.toFixed(1)}km away`;
+        }
+      }
+      
+      return `🐦 ${birdName} (${count}) spotted ${timeStr}${distanceStr}`;
     }
     
     return null;
@@ -656,6 +667,19 @@ async function fetchRecentBirdSightings(lat, lng) {
     console.error('Failed to fetch bird sightings:', err);
     return null;
   }
+}
+
+// Calculate distance between two coordinates in kilometers (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of Earth in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 async function updateBirdFact(pos, force = false) {
@@ -696,8 +720,70 @@ function displayBirdFact(fact) {
     
     factContainer = document.createElement('div');
     factContainer.id = 'birdFactContainer';
-    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark);';
+    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer;';
+    
+    // Add click handler to open bird reporting
+    factContainer.onclick = () => openBirdReportModal();
+    factContainer.title = 'Click to report a bird sighting';
+    
     weatherWidget.appendChild(factContainer);
+  }
+  
+  factContainer.textContent = fact;
+}
+
+// Bird Reporting Feature
+function openBirdReportModal() {
+  if (!currentPosition) {
+    alert('Location is required to report a bird sighting.');
+    return;
+  }
+  
+  const birdName = prompt('What bird did you see? (Enter the common name)');
+  if (!birdName || birdName.trim() === '') return;
+  
+  const countStr = prompt('How many did you see?', '1');
+  const count = parseInt(countStr) || 1;
+  
+  if (confirm(`Report sighting of ${count} ${birdName}?\n\nNote: This will be saved locally. To contribute to eBird network, visit ebird.org`)) {
+    saveBirdSighting({
+      bird: birdName.trim(),
+      count: count,
+      lat: currentPosition.lat,
+      lng: currentPosition.lng,
+      timestamp: new Date().toISOString(),
+      location: latestLocationLabel || `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`
+    });
+    
+    alert(`✅ Thank you! Your sighting of ${count} ${birdName} has been recorded.\n\nTo officially contribute to the eBird network, please also submit your observation at ebird.org`);
+  }
+}
+
+function saveBirdSighting(sighting) {
+  try {
+    const sightings = JSON.parse(localStorage.getItem('birdSightings') || '[]');
+    sightings.push(sighting);
+    
+    // Keep only last 100 sightings
+    if (sightings.length > 100) {
+      sightings.shift();
+    }
+    
+    localStorage.setItem('birdSightings', JSON.stringify(sightings));
+  } catch (err) {
+    console.error('Failed to save bird sighting:', err);
+  }
+}
+
+function getBirdSightings() {
+  try {
+    return JSON.parse(localStorage.getItem('birdSightings') || '[]');
+  } catch (err) {
+    console.error('Failed to retrieve bird sightings:', err);
+    return [];
+  }
+}
+
   }
   
   factContainer.textContent = fact;
