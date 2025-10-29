@@ -94,7 +94,11 @@ All pages served with comprehensive security headers:
 
    **CSP Analysis:**
    - ✅ Restricts content sources to trusted domains
-   - ⚠️ `unsafe-inline` and `unsafe-eval` allowed for scripts (required for Google Maps)
+   - ⚠️ **SECURITY CONSIDERATION**: `unsafe-inline` and `unsafe-eval` significantly weaken XSS protection
+     - Current Requirement: Google Maps JavaScript API requires these directives
+     - Security Impact: Allows execution of inline scripts and eval(), reducing XSS defense
+     - **Future Enhancement**: Explore nonce-based or hash-based CSP for improved security
+     - Alternative: Consider Google Maps Platform's newer APIs that may support stricter CSP
    - ✅ Connect-src allows API calls to Netlify Functions and trusted external APIs
    - ✅ Worker-src allows Service Worker for PWA functionality
 
@@ -183,9 +187,11 @@ node_modules/
 
 - ✅ Environment variables excluded
 - ✅ Local Netlify folder excluded
-- ⚠️ **NOTE**: `key.js` is both tracked AND in .gitignore
-  - Current state: Template file is committed
-  - Recommendation: Remove from tracking if contains real key: `git rm --cached key.js`
+- ⚠️ **NOTE**: `key.js` is listed in .gitignore but is currently tracked in git
+  - Current state: Template file with placeholder is committed
+  - Security: The committed version contains only a placeholder (`YOUR_GOOGLE_MAPS_API_KEY_HERE`)
+  - Best Practice: In production, set `window.MAPS_API_KEY` via Netlify environment variable injection
+  - Alternative: Keep as template for documentation, use different file for actual key
 
 ---
 
@@ -230,12 +236,15 @@ node_modules/
 ### High Priority:
 
 1. **Google Maps API Key** (⚠️ CRITICAL)
-   - Current: Placeholder in code
-   - Action Required: Replace `YOUR_GOOGLE_MAPS_API_KEY_HERE` with actual key
+   - Current: Placeholder in code (`YOUR_GOOGLE_MAPS_API_KEY_HERE`)
+   - **Recommended Approach**: Set via Netlify environment variable
+     - In Netlify UI, set `MAPS_API_KEY` environment variable
+     - The app checks `window.MAPS_API_KEY` which can be injected at build time
+     - Alternative: Replace placeholder directly (less secure, requires code changes)
    - Must configure restrictions in Google Cloud Console:
-     - HTTP referrer restrictions
-     - Domain whitelisting
-     - API scope restrictions
+     - HTTP referrer restrictions (domain whitelist)
+     - API scope restrictions (Maps JavaScript API + Places API only)
+     - Monitor usage to detect unauthorized access
 
 2. **Environment Variables** (✅ DOCUMENTED)
    - Ensure all 7 API keys set in Netlify environment variables
