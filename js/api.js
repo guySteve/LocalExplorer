@@ -3,7 +3,8 @@ async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
       const apiKey = window.TICKETMASTER_API_KEY || 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH'; // Use key or fallback
       if (!apiKey) return alert('Ticketmaster API key missing.');
       const classification = (item.value && item.value !== 'all') ? `&classificationName=${item.value}` : '';
-      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=50${classification}`;
+      // Reduced radius to 25 miles for local events
+      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=25&unit=miles${classification}`;
       try {
         const resp = await fetch(url); const data = await resp.json();
         const events = (data._embedded && data._embedded.events) || [];
@@ -15,7 +16,8 @@ async function showSurpriseEvents() {
       if (!currentPosition) return alert('Please provide location first.');
       const apiKey = window.TICKETMASTER_API_KEY || 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
       if (!apiKey) return alert('Ticketmaster API key missing.');
-      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=80&size=40`;
+      // Reduced radius to 40 miles for surprise events
+      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=40&unit=miles&size=40`;
       try {
         const resp = await fetch(url); const data = await resp.json();
         const events = (data._embedded && data._embedded.events) || [];
@@ -224,6 +226,64 @@ async function fetchWeatherData(pos) { /* Fetch from Open-Meteo */
   return r.json(); 
 }
 
+function getWeatherSaying(weatherCode, tempF, windMph) {
+  /* Generate personality-filled weather sayings */
+  const isHot = tempF > 85;
+  const isCold = tempF < 40;
+  const isWindy = windMph > 15;
+  
+  // Hot weather sayings
+  if (isHot) {
+    const hotSayings = [
+      "It's a scorcher out there! ☀️",
+      "Time to find some shade! 🌴",
+      "Ice cream weather! 🍦",
+      "Stay cool and hydrated! 💧"
+    ];
+    return hotSayings[Math.floor(Math.random() * hotSayings.length)];
+  }
+  
+  // Cold weather sayings
+  if (isCold) {
+    const coldSayings = [
+      "Bundle up, it's chilly! 🧣",
+      "Perfect hot cocoa weather! ☕",
+      "Winter vibes! ❄️",
+      "Don't forget your coat! 🧥"
+    ];
+    return coldSayings[Math.floor(Math.random() * coldSayings.length)];
+  }
+  
+  // Weather-specific sayings
+  if ([0, 1].includes(weatherCode)) {
+    return isWindy ? "Clear skies but hold onto your hat! 🎩" : "What a beautiful day! ✨";
+  }
+  if ([2, 3].includes(weatherCode)) {
+    return "A bit cloudy, but still great for exploring! ☁️";
+  }
+  if ([45, 48].includes(weatherCode)) {
+    return "Mysterious foggy vibes today! 🌫️";
+  }
+  if ([51, 53, 55, 61, 63, 65, 80, 82].includes(weatherCode)) {
+    return "Rain or shine, adventure awaits! ☔";
+  }
+  if ([71, 73, 75].includes(weatherCode)) {
+    return "Winter wonderland time! ⛄";
+  }
+  if ([95].includes(weatherCode)) {
+    return "Thunderous weather! Stay safe indoors! ⚡";
+  }
+  
+  // Default pleasant sayings
+  const defaultSayings = [
+    "Perfect day for an adventure! 🗺️",
+    "Get out there and explore! 🧭",
+    "The world is waiting for you! 🌍",
+    "Make the most of today! 🌟"
+  ];
+  return defaultSayings[Math.floor(Math.random() * defaultSayings.length)];
+}
+
 function renderWeather(data) { /* Update UI with weather data */ 
   if (!data?.current_weather) return setWeatherPlaceholder('Weather unavailable.'); 
   
@@ -245,7 +305,11 @@ function renderWeather(data) { /* Update UI with weather data */
   
   if (weatherElements.icon) weatherElements.icon.textContent = sum.icon; 
   if (weatherElements.temp) weatherElements.temp.textContent = `${tempF}°`; 
-  if (weatherElements.description) weatherElements.description.textContent = sum.text; 
+  
+  // Add weather saying
+  const weatherSaying = getWeatherSaying(c.weathercode, tempF, windMph);
+  if (weatherElements.description) weatherElements.description.textContent = `${sum.text} — ${weatherSaying}`; 
+  
   if (weatherElements.feels) weatherElements.feels.textContent = `Feels like ${feelsF}°`; 
   if (weatherElements.wind) weatherElements.wind.textContent = `Wind ${windMph} mph`; 
   if (weatherElements.range) weatherElements.range.textContent = `High ${maxF}° / Low ${minF}°`; 
@@ -400,7 +464,7 @@ async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
     const params = new URLSearchParams({
       ll: `${lat},${lng}`,
       limit: limit.toString(),
-      radius: '5000' // 5km radius
+      radius: '8046' // 5 miles radius in meters
     });
     
     if (query) {
@@ -625,7 +689,8 @@ async function fetchRecentBirdSightings(lat, lng) {
   }
 
   try {
-    const url = `https://api.ebird.org/v2/data/obs/geo/recent?lat=${lat}&lng=${lng}&dist=25&maxResults=5`;
+    // Use 10km (~6 miles) for local bird sightings
+    const url = `https://api.ebird.org/v2/data/obs/geo/recent?lat=${lat}&lng=${lng}&dist=10&maxResults=5`;
     const response = await fetch(url, {
       headers: {
         'X-eBirdApiToken': apiKey
@@ -652,10 +717,10 @@ async function fetchRecentBirdSightings(lat, lng) {
       let distanceStr = '';
       if (randomBird.lat && randomBird.lng && currentPosition) {
         const distance = calculateDistance(lat, lng, randomBird.lat, randomBird.lng);
-        if (distance < 1) {
-          distanceStr = ` - ${(distance * 1000).toFixed(0)}m away`;
+        if (distance < 0.1) {
+          distanceStr = ` - ${(distance * 5280).toFixed(0)}ft away`;
         } else {
-          distanceStr = ` - ${distance.toFixed(1)}km away`;
+          distanceStr = ` - ${distance.toFixed(1)} mi away`;
         }
       }
       
@@ -669,9 +734,9 @@ async function fetchRecentBirdSightings(lat, lng) {
   }
 }
 
-// Calculate distance between two coordinates in kilometers (Haversine formula)
+// Calculate distance between two coordinates in miles (Haversine formula)
 function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Radius of Earth in kilometers
+  const R = 3958.8; // Radius of Earth in miles
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 
@@ -720,20 +785,204 @@ function displayBirdFact(fact) {
     
     factContainer = document.createElement('div');
     factContainer.id = 'birdFactContainer';
-    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer;';
+    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(139, 195, 74, 0.15)); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; border: 1px solid rgba(76, 175, 80, 0.3); transition: all 0.2s ease;';
     
-    // Add click handler to open bird reporting
-    factContainer.onclick = () => openBirdReportModal();
-    factContainer.title = 'Click to report a bird sighting';
+    // Add hover effect styling
+    factContainer.onmouseenter = () => {
+      factContainer.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(139, 195, 74, 0.25))';
+      factContainer.style.transform = 'scale(1.02)';
+    };
+    factContainer.onmouseleave = () => {
+      factContainer.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(139, 195, 74, 0.15))';
+      factContainer.style.transform = 'scale(1)';
+    };
+    
+    // Add click handler to open bird watching interface
+    factContainer.onclick = () => openBirdWatchingModal();
+    factContainer.title = 'Click to open bird watching app';
     
     weatherWidget.appendChild(factContainer);
   }
   
-  factContainer.textContent = fact;
+  factContainer.textContent = fact + ' — Tap to explore 🔍';
 }
 
-// Bird Reporting Feature
-function openBirdReportModal() {
+// Bird Watching Interface
+function openBirdWatchingModal() {
+  if (!currentPosition) {
+    alert('Location is required to view bird sightings.');
+    return;
+  }
+  
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('birdWatchingModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'birdWatchingModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🐦 Bird Watching</h3>
+          <button class="close-btn" id="closeBirdWatching">×</button>
+        </div>
+        <div style="padding: 1rem;">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <button id="viewRecentBirdsBtn" style="flex: 1; padding: 0.75rem; background: var(--primary); color: var(--text-light); border: none; border-radius: var(--radius); cursor: pointer;">
+              Recent Sightings
+            </button>
+            <button id="reportBirdBtn" style="flex: 1; padding: 0.75rem; background: var(--secondary); color: var(--text-light); border: none; border-radius: var(--radius); cursor: pointer;">
+              Report Sighting
+            </button>
+            <button id="myBirdListBtn" style="flex: 1; padding: 0.75rem; background: var(--accent); color: var(--text-light); border: none; border-radius: var(--radius); cursor: pointer;">
+              My Sightings
+            </button>
+          </div>
+          <div id="birdWatchingContent" style="max-height: 400px; overflow-y: auto;"></div>
+          <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.8rem; text-align: center;">
+            <p style="margin: 0; color: var(--card);">🌐 Powered by eBird - The world's largest biodiversity network</p>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Add event listeners
+    document.getElementById('closeBirdWatching').onclick = () => {
+      closeOverlayElement(modal);
+    };
+    
+    document.getElementById('viewRecentBirdsBtn').onclick = () => loadRecentBirds();
+    document.getElementById('reportBirdBtn').onclick = () => openBirdReportModal();
+    document.getElementById('myBirdListBtn').onclick = () => loadMyBirdSightings();
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeOverlayElement(modal);
+    });
+    attachModalSwipe(modal, () => closeOverlayElement(modal));
+  }
+  
+  // Load recent birds by default
+  loadRecentBirds();
+  
+  modal.classList.add('active');
+  document.body.classList.add('modal-open');
+}
+
+async function loadRecentBirds() {
+  const content = document.getElementById('birdWatchingContent');
+  if (!content || !currentPosition) return;
+  
+  content.innerHTML = '<p style="text-align: center; color: var(--card);">Loading recent sightings...</p>';
+  
+  try {
+    const apiKey = window.EBIRD_API_KEY || 'h7b2pv30dr1t';
+    // Use 10km (~6 miles) for local bird sightings
+    const url = `https://api.ebird.org/v2/data/obs/geo/recent?lat=${currentPosition.lat}&lng=${currentPosition.lng}&dist=10&maxResults=50`;
+    const response = await fetch(url, {
+      headers: {
+        'X-eBirdApiToken': apiKey
+      }
+    });
+    
+    if (!response.ok) {
+      content.innerHTML = '<p style="text-align: center; color: var(--card);">Unable to load bird sightings.</p>';
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (!data || data.length === 0) {
+      content.innerHTML = '<p style="text-align: center; color: var(--card);">No recent bird sightings in this area.</p>';
+      return;
+    }
+    
+    content.innerHTML = '';
+    
+    // Group by species
+    const speciesMap = new Map();
+    data.forEach(bird => {
+      if (!speciesMap.has(bird.comName)) {
+        speciesMap.set(bird.comName, []);
+      }
+      speciesMap.get(bird.comName).push(bird);
+    });
+    
+    // Display each species
+    speciesMap.forEach((sightings, speciesName) => {
+      const card = document.createElement('div');
+      card.style.cssText = 'padding: 1rem; margin-bottom: 0.75rem; background: rgba(255,255,255,0.08); border-radius: 8px; border-left: 4px solid var(--accent);';
+      
+      const totalCount = sightings.reduce((sum, s) => sum + (s.howMany || 1), 0);
+      const mostRecent = sightings[0];
+      const date = new Date(mostRecent.obsDt);
+      const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+      
+      let distanceStr = '';
+      if (mostRecent.lat && mostRecent.lng) {
+        const distance = calculateDistance(currentPosition.lat, currentPosition.lng, mostRecent.lat, mostRecent.lng);
+        distanceStr = distance < 0.1 ? `${(distance * 5280).toFixed(0)}ft away` : `${distance.toFixed(1)} mi away`;
+      }
+      
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+          <h4 style="margin: 0; color: var(--text-dark); font-size: 1rem;">🐦 ${speciesName}</h4>
+          <span style="background: var(--primary); color: var(--text-light); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${totalCount}</span>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--card); line-height: 1.5;">
+          ${mostRecent.sciName ? `<div style="font-style: italic; opacity: 0.8;">${mostRecent.sciName}</div>` : ''}
+          <div>📍 ${mostRecent.locName || 'Unknown location'}</div>
+          <div>🕐 Spotted ${timeStr}${distanceStr ? ` • ${distanceStr}` : ''}</div>
+          ${sightings.length > 1 ? `<div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">+ ${sightings.length - 1} more sighting${sightings.length > 2 ? 's' : ''} nearby</div>` : ''}
+        </div>
+      `;
+      
+      content.appendChild(card);
+    });
+    
+  } catch (err) {
+    console.error('Failed to load bird sightings:', err);
+    content.innerHTML = '<p style="text-align: center; color: var(--card);">Error loading bird sightings.</p>';
+  }
+}
+
+function loadMyBirdSightings() {
+  const content = document.getElementById('birdWatchingContent');
+  if (!content) return;
+  
+  const sightings = getBirdSightings();
+  
+  if (!sightings || sightings.length === 0) {
+    content.innerHTML = '<p style="text-align: center; color: var(--card);">You haven\'t reported any sightings yet.</p>';
+    return;
+  }
+  
+  content.innerHTML = '';
+  
+  // Display in reverse chronological order
+  [...sightings].reverse().forEach(sighting => {
+    const card = document.createElement('div');
+    card.style.cssText = 'padding: 1rem; margin-bottom: 0.75rem; background: rgba(76, 175, 80, 0.15); border-radius: 8px; border-left: 4px solid rgba(76, 175, 80, 0.8);';
+    
+    const date = new Date(sighting.timestamp);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+        <h4 style="margin: 0; color: var(--text-dark); font-size: 1rem;">🐦 ${sighting.bird}</h4>
+        <span style="background: var(--secondary); color: var(--text-light); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${sighting.count}</span>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--card); line-height: 1.5;">
+        <div>📍 ${sighting.location}</div>
+        <div>🕐 ${dateStr} at ${timeStr}</div>
+      </div>
+    `;
+    
+    content.appendChild(card);
+  });
+}
   if (!currentPosition) {
     alert('Location is required to report a bird sighting.');
     return;
@@ -789,9 +1038,11 @@ async function searchBreweries(lat, lng, query = '') {
   try {
     let url;
     if (query) {
-      url = `https://api.openbrewerydb.org/v1/breweries/search?query=${encodeURIComponent(query)}&per_page=20`;
+      // Search by query but filter by distance after
+      url = `https://api.openbrewerydb.org/v1/breweries/search?query=${encodeURIComponent(query)}&per_page=50`;
     } else {
-      url = `https://api.openbrewerydb.org/v1/breweries?by_dist=${lat},${lng}&per_page=20`;
+      // Search by distance - using nearby breweries
+      url = `https://api.openbrewerydb.org/v1/breweries?by_dist=${lat},${lng}&per_page=50`;
     }
     
     const response = await fetch(url);
@@ -803,7 +1054,7 @@ async function searchBreweries(lat, lng, query = '') {
     
     const data = await response.json();
     
-    return data.map(brewery => ({
+    const breweries = data.map(brewery => ({
       id: brewery.id,
       name: brewery.name,
       brewery_type: brewery.brewery_type,
@@ -815,6 +1066,9 @@ async function searchBreweries(lat, lng, query = '') {
       distance: brewery.latitude && brewery.longitude ? 
         calculateDistance(lat, lng, parseFloat(brewery.latitude), parseFloat(brewery.longitude)) : null
     })).filter(b => b.lat && b.lng); // Only return breweries with coordinates
+    
+    // Filter to local breweries only (within 15 miles)
+    return breweries.filter(b => b.distance && b.distance <= 15).sort((a, b) => a.distance - b.distance);
   } catch (err) {
     console.error('Failed to fetch breweries:', err);
     return [];
@@ -915,7 +1169,7 @@ async function searchNationalParks(lat, lng, radius = 100) {
             images: park.images || []
           };
         })
-        .filter(park => park.distance < radius * 1000) // Convert km to meters
+        .filter(park => park.distance < radius) // radius already in miles
         .sort((a, b) => a.distance - b.distance);
     }
     
@@ -964,7 +1218,7 @@ async function getNPSParkEvents(parkCode) {
 
 // --- Marine Weather Detection ---
 function isNearOcean(lat, lng) {
-  // Simple coastline detection - check if within 50km of known coastal coordinates
+  // Simple coastline detection - check if within 30 miles of known coastal coordinates
   // This is a simplified approach. In production, you'd use a more sophisticated method
   // or a dedicated API
   
