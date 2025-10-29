@@ -164,15 +164,26 @@ function openCompass(destLatLng = null, destName = '') {
     overlay.classList.add('active'); 
     document.body.classList.add('modal-open');
 
-    // --- Animation Logic ---
+    // --- Animation Logic with 3D Gyro Effect ---
     const animateCompass = () => {
         if (!dial) { dialAnimationFrameId = null; return; }
 
         const headingStep = shortestAngle(ringHeadingVisual, ringHeadingTarget);
         ringHeadingVisual = wrapAngle(ringHeadingVisual + headingStep * HEADING_SMOOTH);
 
-        // Outer ring ONLY rotates for heading (NESW direction)
-        dial.style.transform = `rotateZ(${ringHeadingVisual}deg)`;
+        // Smooth pitch and roll transitions
+        pitchVisual += (pitchTarget - pitchVisual) * TILT_SMOOTH;
+        rollVisual += (rollTarget - rollVisual) * TILT_SMOOTH;
+
+        // Apply 3D transform: heading (Z-axis), pitch (X-axis), roll (Y-axis)
+        const transform = `
+            perspective(1000px)
+            rotateX(${pitchVisual}deg)
+            rotateY(${rollVisual}deg)
+            rotateZ(${ringHeadingVisual}deg)
+        `;
+        
+        dial.style.transform = transform;
         
         // Needle stays fixed pointing "up" (North relative to phone) - no rotation applied
 
@@ -185,9 +196,11 @@ function openCompass(destLatLng = null, destName = '') {
         }
     };
 
-    // --- Sensor Update Handler ---
+    // --- Sensor Update Handler with Pitch and Roll ---
     const handleOrientation = (event) => {
         let heading = null;
+        let beta = event.beta; // Pitch (front-to-back tilt) in degrees from -180 to 180
+        let gamma = event.gamma; // Roll (left-to-right tilt) in degrees from -90 to 90
 
         if (typeof event.webkitCompassHeading === 'number') {
             heading = normalizeHeading(event.webkitCompassHeading);
@@ -201,7 +214,17 @@ function openCompass(destLatLng = null, destName = '') {
 
         currentHeading = heading;
         ringHeadingTarget = wrapAngle(360 - currentHeading);
-        // Needle stays fixed - no target needed
+        
+        // Apply pitch and roll for 3D gyro effect
+        if (typeof beta === 'number' && !isNaN(beta)) {
+            // Clamp pitch to reasonable limits for visual effect
+            pitchTarget = clamp(beta * 0.5, -PITCH_LIMIT, PITCH_LIMIT);
+        }
+        
+        if (typeof gamma === 'number' && !isNaN(gamma)) {
+            // Clamp roll to reasonable limits for visual effect
+            rollTarget = clamp(gamma * 0.5, -ROLL_LIMIT, ROLL_LIMIT);
+        }
 
         orientationReady = true;
         updateSensorStatus();
