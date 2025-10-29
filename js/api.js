@@ -209,7 +209,20 @@ function renderSunInfo(data, weatherCode) {
   sunInfoContainer.style.display = 'block';
 }
 
-async function fetchWeatherData(pos) { /* Fetch from Open-Meteo */ const p = new URLSearchParams({ latitude: pos.lat.toFixed(4), longitude: pos.lng.toFixed(4), current_weather: 'true', hourly: 'apparent_temperature', daily: 'temperature_2m_max,temperature_2m_min,sunrise,sunset', timezone: 'auto' }); const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`); if (!r.ok) throw new Error('Weather fetch failed'); return r.json(); }
+async function fetchWeatherData(pos) { /* Fetch from Open-Meteo */ 
+  const p = new URLSearchParams({ 
+    latitude: pos.lat.toFixed(4), 
+    longitude: pos.lng.toFixed(4), 
+    current_weather: 'true', 
+    hourly: 'apparent_temperature', 
+    daily: 'temperature_2m_max,temperature_2m_min,sunrise,sunset,weathercode,precipitation_sum,windspeed_10m_max', 
+    timezone: 'auto',
+    forecast_days: 7
+  }); 
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`); 
+  if (!r.ok) throw new Error('Weather fetch failed'); 
+  return r.json(); 
+}
 
 function renderWeather(data) { /* Update UI with weather data */ 
   if (!data?.current_weather) return setWeatherPlaceholder('Weather unavailable.'); 
@@ -242,9 +255,104 @@ function renderWeather(data) { /* Update UI with weather data */
   renderSunInfo(data, c.weathercode);
   
   updateWeatherTitle(); 
+  
+  // Display historical weather facts if available
+  if (data.daily && currentPosition) {
+    displayHistoricalWeatherFacts(data.daily, c.temperature, c.weathercode === 61 || c.weathercode === 63 || c.weathercode === 65);
+  }
 }
 
 async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) { renderWeather(cachedWeather); updateBirdFact(pos); return; } showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); updateBirdFact(pos); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
+
+function displayHistoricalWeatherFacts(dailyData, currentTemp, isRaining) {
+  const factsContainer = document.getElementById('historicalWeatherFacts');
+  if (!factsContainer) return;
+  
+  // Simple historical comparison using available data
+  const temps = dailyData.temperature_2m_max || [];
+  if (temps.length < 7) {
+    factsContainer.style.display = 'none';
+    return;
+  }
+  
+  const currentTempF = Math.round(currentTemp * 9/5 + 32);
+  const avgTemp = temps.slice(0, 7).reduce((a, b) => a + b, 0) / 7;
+  const avgTempF = Math.round(avgTemp * 9/5 + 32);
+  
+  const facts = [];
+  
+  // Temperature comparison
+  if (currentTempF > avgTempF + 10) {
+    facts.push(`🔥 Warmer than usual - ${currentTempF}°F vs ${avgTempF}°F average`);
+  } else if (currentTempF < avgTempF - 10) {
+    facts.push(`❄️ Cooler than usual - ${currentTempF}°F vs ${avgTempF}°F average`);
+  }
+  
+  // Rain patterns
+  if (isRaining) {
+    facts.push(`💧 Rainy day ahead - stay dry!`);
+  }
+  
+  if (facts.length > 0) {
+    factsContainer.textContent = facts.join(' • ');
+    factsContainer.style.display = 'block';
+  } else {
+    factsContainer.style.display = 'none';
+  }
+}
+
+function showWeeklyForecast() {
+  if (!cachedWeather || !cachedWeather.daily) {
+    alert('No forecast data available. Please wait for weather to load.');
+    return;
+  }
+  
+  const modal = document.getElementById('forecastModal');
+  const content = document.getElementById('forecastContent');
+  
+  if (!modal || !content) return;
+  
+  content.innerHTML = '';
+  
+  const daily = cachedWeather.daily;
+  const days = Math.min(7, daily.time.length);
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(daily.time[i]);
+    const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' });
+    const maxTempF = Math.round(daily.temperature_2m_max[i] * 9/5 + 32);
+    const minTempF = Math.round(daily.temperature_2m_min[i] * 9/5 + 32);
+    const weatherCode = daily.weathercode?.[i] || 0;
+    const precip = daily.precipitation_sum?.[i] || 0;
+    const windSpeed = daily.windspeed_10m_max?.[i] || 0;
+    const windMph = Math.round(windSpeed / 1.609);
+    const summary = weatherCodeToSummary(weatherCode);
+    
+    const dayCard = document.createElement('div');
+    dayCard.className = 'forecast-day-card';
+    dayCard.innerHTML = `
+      <div class="forecast-day-name">${dayName}</div>
+      <div class="forecast-day-date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+      <div class="forecast-day-icon">${summary.icon}</div>
+      <div class="forecast-day-desc">${summary.text}</div>
+      <div class="forecast-day-temp">${maxTempF}° / ${minTempF}°</div>
+      ${precip > 0 ? `<div class="forecast-day-precip">💧 ${precip.toFixed(1)}mm</div>` : ''}
+      ${windMph > 10 ? `<div class="forecast-day-wind">💨 ${windMph} mph</div>` : ''}
+    `;
+    
+    content.appendChild(dayCard);
+  }
+  
+  modal.classList.add('active');
+  document.body.classList.add('modal-open');
+}
+
+function closeForecastModal() {
+  const modal = document.getElementById('forecastModal');
+  if (modal) {
+    closeOverlayElement(modal);
+  }
+}
 
 // --- Local Alerts (HolidayAPI Integration) ---
 let lastAlertsCheck = 0;
@@ -483,7 +591,26 @@ function initAlertsControls() {
   }
 }
 
-function initWeatherControls() { /* Attach listeners for weather */ const refBtn = $("refreshWeatherBtn"); if (refBtn) refBtn.onclick = () => {if (currentPosition) updateWeather(currentPosition, { force: true });}; updateWeatherTitle(); const tglBtn = $("toggleWeatherBtn"), wWidget = $("weatherWidget"); if (tglBtn && wWidget) { const isMin = localStorage.getItem('weatherMinimized') === 'true'; wWidget.classList.toggle('weather-minimized', isMin); tglBtn.onclick = () => { const nowMin = wWidget.classList.toggle('weather-minimized'); localStorage.setItem('weatherMinimized', nowMin ? 'true' : 'false'); }; } }
+function initWeatherControls() { 
+  /* Attach listeners for weather */ 
+  const refBtn = $("refreshWeatherBtn"); 
+  if (refBtn) refBtn.onclick = () => {if (currentPosition) updateWeather(currentPosition, { force: true });}; 
+  
+  const forecastBtn = $("forecastBtn");
+  if (forecastBtn) forecastBtn.onclick = showWeeklyForecast;
+  
+  updateWeatherTitle(); 
+  
+  const tglBtn = $("toggleWeatherBtn"), wWidget = $("weatherWidget"); 
+  if (tglBtn && wWidget) { 
+    const isMin = localStorage.getItem('weatherMinimized') === 'true'; 
+    wWidget.classList.toggle('weather-minimized', isMin); 
+    tglBtn.onclick = () => { 
+      const nowMin = wWidget.classList.toggle('weather-minimized'); 
+      localStorage.setItem('weatherMinimized', nowMin ? 'true' : 'false'); 
+    }; 
+  } 
+}
 
 // --- eBird Integration ---
 let lastBirdFactFetch = 0;

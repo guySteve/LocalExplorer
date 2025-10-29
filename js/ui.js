@@ -656,6 +656,15 @@ function initUiEvents() {
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) closeDonateModal(); });
     attachModalSwipe(donateModal, closeDonateModal);
   }
+  
+  const forecastModal = $("forecastModal");
+  const closeForecastBtn = $("closeForecastBtn");
+  if (closeForecastBtn) closeForecastBtn.onclick = closeForecastModal;
+  if (forecastModal) {
+    forecastModal.addEventListener('click', (e) => { if (e.target === forecastModal) closeForecastModal(); });
+    attachModalSwipe(forecastModal, closeForecastModal);
+  }
+  
   const openVenmoBtn = $("openVenmoBtn");
   const copyVenmoBtn = $("copyVenmoBtn");
   const venmoHandle = '@Stephen-Mohamed-1';
