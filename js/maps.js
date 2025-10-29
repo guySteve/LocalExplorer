@@ -134,8 +134,33 @@ function reverseGeocode(pos) { /* Get address from coords */
          onLocationError({ message: "Geocoder service not ready." }); 
          return;
       }
+      
+      // Check if we should perform geocoding based on distance
+      if (window.cacheAPI && !window.cacheAPI.geocode.shouldPerform(pos.lat, pos.lng)) {
+        console.log('Skipping geocode - position has not moved significantly');
+        return;
+      }
+      
+      // Check cache first
+      if (window.cacheAPI) {
+        const cachedResult = window.cacheAPI.geocode.get(pos.lat, pos.lng);
+        if (cachedResult) {
+          console.log('Using cached geocode result');
+          currentAddress = cachedResult.formatted_address;
+          displayLocation(cachedResult, pos);
+          updateWeather(pos);
+          return;
+        }
+      }
+      
       geocoder.geocode({ location: pos }, (results, status) => {
         if (status === 'OK' && results[0]) {
+          // Cache the result
+          if (window.cacheAPI) {
+            window.cacheAPI.geocode.set(pos.lat, pos.lng, results[0]);
+            window.cacheAPI.geocode.updatePosition(pos.lat, pos.lng);
+          }
+          
           currentAddress = results[0].formatted_address;
           displayLocation(results[0], pos);
           updateWeather(pos);
@@ -196,6 +221,30 @@ function performSearch(category, item) { /* Perform unified search across Google
       lastResultsTitle = item.name || category;
       appendNextResults = false;
       setLoadMoreState(null);
+      
+      // Check cache first
+      const cacheKey = {
+        lat: currentPosition.lat,
+        lng: currentPosition.lng,
+        keyword: item.keyword || item.name,
+        type: item.type
+      };
+      
+      if (window.cacheAPI) {
+        const cachedResults = window.cacheAPI.nearbySearch.get(
+          cacheKey.lat,
+          cacheKey.lng,
+          cacheKey.keyword,
+          cacheKey.type
+        );
+        
+        if (cachedResults) {
+          console.log('Using cached search results');
+          currentResults = cachedResults;
+          displayResults(lastResultsTitle, cachedResults);
+          return;
+        }
+      }
       
       // Prepare Google Places request
       const googleRequest = { 
@@ -268,6 +317,17 @@ function performSearch(category, item) { /* Perform unified search across Google
         
         // Sort by rating
         filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
+        
+        // Cache the results
+        if (window.cacheAPI && filtered.length > 0) {
+          window.cacheAPI.nearbySearch.set(
+            cacheKey.lat,
+            cacheKey.lng,
+            cacheKey.keyword,
+            cacheKey.type,
+            filtered
+          );
+        }
         
         if (appendNextResults) {
           currentResults = currentResults.concat(filtered);
@@ -477,8 +537,75 @@ function showDetails(placeId, provider = null) { /* Show place details sheet */
         return;
       }
       
+      // Check cache first
+      if (window.cacheAPI) {
+        const cachedDetails = window.cacheAPI.placeDetails.get(placeId);
+        if (cachedDetails) {
+          console.log('Using cached place details');
+          // Use cached data to populate UI
+          const place = cachedDetails;
+          currentPlaceDetails = place;
+          const loc = place.geometry.location;
+          
+          prepareStreetViewPreview(loc);
+          
+          $("detailsName").textContent = place.name || 'No Name';
+          let stars = ''; if (place.rating) { const full = Math.floor(place.rating), half = (place.rating - full) >= 0.5; stars = '★'.repeat(full) + (half ? '½' : '') + ` (${place.rating.toFixed(1)})`; }
+          $("detailsRating").innerHTML = `<span class="stars">${stars}</span>`;
+          $("detailsPrice").textContent = place.price_level ? '$'.repeat(place.price_level) : '';
+          $("detailsPhone").textContent = place.formatted_phone_number || '';
+          $("detailsAddress").textContent = place.formatted_address || '';
+          
+          // Fetch What3Words address
+          const what3wordsDiv = $("detailsWhat3Words");
+          const what3wordsText = $("detailsWhat3WordsText");
+          if (what3wordsDiv && what3wordsText && loc) {
+            what3wordsDiv.style.display = 'block';
+            what3wordsText.textContent = 'Loading...';
+            fetchWhat3Words(loc.lat(), loc.lng()).then(w3w => {
+              if (w3w) {
+                what3wordsText.textContent = w3w;
+                what3wordsText.style.fontWeight = '600';
+                what3wordsText.style.color = 'var(--accent)';
+              } else {
+                what3wordsDiv.style.display = 'none';
+              }
+            }).catch(() => {
+              what3wordsDiv.style.display = 'none';
+            });
+          }
+          
+          updateSaveButtonState(place.place_id); updatePlanButtonState(place.place_id);
+          $("mapsBtn").onclick = () => window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`, '_blank');
+          $("websiteBtn").style.display = place.website ? 'inline-flex' : 'none';
+          $("websiteBtn").onclick = () => { if (place.website) window.open(place.website, '_blank'); };
+          $("shareBtn").onclick = () => { if (navigator.share) navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(console.error); else { if (window.showToast) window.showToast('Sharing not supported on this device.'); } };
+          
+          $("guideBtn").onclick = () => {
+            if (window.launchCompass) window.launchCompass(loc, place.name);
+            else if (window.openCompass) window.openCompass(loc, place.name);
+            else {
+              if (window.showToast) {
+                window.showToast('Compass is still loading. Please try again in a moment.');
+              } else {
+                alert('Compass is still loading. Please try again in a moment.');
+              }
+            }
+          };
+          
+          populateReviews(place.reviews || []); populateHours(place.opening_hours);
+          $("detailsSheet").classList.add('active'); document.body.classList.add('modal-open');
+          return;
+        }
+      }
+      
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          // Cache the details
+          if (window.cacheAPI) {
+            window.cacheAPI.placeDetails.set(placeId, place);
+          }
+          
           currentPlaceDetails = place; const loc = place.geometry.location;
           
           prepareStreetViewPreview(loc);
