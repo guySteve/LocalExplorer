@@ -95,13 +95,6 @@ const categories = {
     { name: 'Sports', value: 'sports' },
     { name: 'Comedy', value: 'comedy' },
     { name: 'Festivals', value: 'festival' }
-  ],
-  'FourSquare Discoveries': [
-    { name: 'Trending Now', useFourSquare: true, query: 'trending' },
-    { name: 'Coffee Shops', useFourSquare: true, query: 'coffee' },
-    { name: 'Breweries', useFourSquare: true, query: 'brewery' },
-    { name: 'Desserts', useFourSquare: true, query: 'dessert' },
-    { name: 'Nightlife', useFourSquare: true, query: 'nightlife' }
   ]
 };
 
@@ -306,4 +299,123 @@ function toggleVisited(id) {
   if (visited.has(id)) visited.delete(id);
   else visited.add(id);
   saveVisitedPlan([...visited]);
+}
+
+// Unified data model for search results from multiple providers
+function normalizePlaceData(place, provider) {
+  if (!place) return null;
+  
+  const isGoogle = provider === 'google';
+  const isFoursquare = provider === 'foursquare';
+  
+  // Extract ID
+  const id = isGoogle ? place.place_id : (isFoursquare ? place.fsq_id : place.id);
+  if (!id) return null;
+  
+  // Extract name
+  const name = (place.name || '').trim() || 'Unnamed place';
+  
+  // Extract location
+  let location = null;
+  if (isGoogle && place.geometry?.location) {
+    location = {
+      lat: typeof place.geometry.location.lat === 'function' ? place.geometry.location.lat() : place.geometry.location.lat,
+      lng: typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng
+    };
+  } else if (isFoursquare) {
+    location = {
+      lat: place.lat || place.geocodes?.main?.latitude,
+      lng: place.lng || place.geocodes?.main?.longitude
+    };
+  }
+  
+  // Extract address
+  const address = place.formatted_address || place.vicinity || place.address || place.location?.formatted_address || '';
+  
+  // Extract rating
+  const rating = typeof place.rating === 'number' ? place.rating : null;
+  
+  // Extract categories/types
+  const categories = Array.isArray(place.types) ? place.types : 
+                     Array.isArray(place.categories) ? place.categories.map(c => c.name || c) : [];
+  
+  return {
+    id: id,
+    provider: provider,
+    name: name,
+    address: address,
+    location: location,
+    rating: rating,
+    user_ratings_total: place.user_ratings_total || null,
+    categories: categories,
+    distance: place.distance || null,
+    icon: place.icon || '',
+    // Keep original data for details lookup
+    _original: place
+  };
+}
+
+// De-duplicate merged results from multiple providers
+function deduplicatePlaces(places) {
+  if (!places || !Array.isArray(places) || places.length === 0) return [];
+  
+  const seen = new Map();
+  const duplicates = new Set();
+  
+  // First pass: identify potential duplicates by name and proximity
+  places.forEach((place, index) => {
+    if (!place || !place.name || !place.location) return;
+    
+    const nameKey = place.name.toLowerCase().trim().replace(/[^\w\s]/g, '');
+    
+    if (!seen.has(nameKey)) {
+      seen.set(nameKey, []);
+    }
+    seen.get(nameKey).push({ place, index });
+  });
+  
+  // Second pass: check proximity for places with same/similar names
+  seen.forEach((group) => {
+    if (group.length <= 1) return;
+    
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const place1 = group[i].place;
+        const place2 = group[j].place;
+        
+        if (!place1.location || !place2.location) continue;
+        
+        // Calculate distance in meters
+        const distance = calculateDistance(
+          place1.location.lat, place1.location.lng,
+          place2.location.lat, place2.location.lng
+        );
+        
+        // If within 100 meters, consider duplicate
+        if (distance < 100) {
+          // Prefer Google over Foursquare, or the one with more data
+          const keepPlace1 = place1.provider === 'google' || 
+                            (place1.rating && !place2.rating) ||
+                            (place1.user_ratings_total || 0) > (place2.user_ratings_total || 0);
+          
+          duplicates.add(keepPlace1 ? group[j].index : group[i].index);
+        }
+      }
+    }
+  });
+  
+  // Return filtered array
+  return places.filter((_, index) => !duplicates.has(index));
+}
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 }

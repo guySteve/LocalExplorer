@@ -200,7 +200,7 @@ function getIconForCategory(cat) { /* Get emoji for category */
         case 'Foodie Finds': return '🍽️'; case 'Iconic Sights': return '🏛️'; case 'Night Out': return '🌙';
         case 'Hidden Gems': return '💎'; case 'Pet Friendly': return '🐾'; case 'Utilities & Help': return '🛠️';
         case 'Outdoor': return '🌲'; case 'Local Events': return '🎟️'; 
-        case 'FourSquare Discoveries': return '🔍'; default: return '';
+        default: return '';
       }
     }
 
@@ -247,7 +247,7 @@ function displayEventResults(events, subCategory) { /* Display Ticketmaster resu
         $("resultsModal").classList.add('active'); document.body.classList.add('modal-open');
     }
 
-function displayResults(title, results, opts = {}) { /* Display Google Places results (text-only) */
+function displayResults(title, results, opts = {}) { /* Display unified results from Google and Foursquare */
       const { append = false } = opts;
       const list = $("resultsList");
       if (!append) {
@@ -260,19 +260,55 @@ function displayResults(title, results, opts = {}) { /* Display Google Places re
         setLoadMoreState(null);
       }
       results.forEach(place => {
-        const btn = document.createElement('button'); btn.onclick = () => showDetails(place.place_id);
-        const wrap = document.createElement('div'); wrap.className = 'results-item';
-        const info = document.createElement('div'); info.className = 'results-info';
-        const titleEl = document.createElement('h4'); titleEl.textContent = place.name; info.appendChild(titleEl);
-        const rating = document.createElement('span'); rating.className = 'rating';
-        rating.textContent = place.rating ? `⭐${place.rating.toFixed(1)} (${place.user_ratings_total || 0})` : 'No rating'; info.appendChild(rating);
-        if (planIds.includes(place.place_id)) {
-          const visit = document.createElement('span'); visit.className = 'rating'; visit.style.marginLeft = '0.3rem';
-          visit.textContent = visitedIds.includes(place.place_id) ? '✅' : '🧭'; info.appendChild(visit);
+        // Support both old and new format
+        const placeId = place.id || place.place_id;
+        const placeName = place.name;
+        const placeProvider = place.provider || 'google';
+        const placeRating = place.rating;
+        const placeReviews = place.user_ratings_total;
+        
+        const btn = document.createElement('button'); 
+        btn.onclick = () => showDetails(placeId, placeProvider);
+        
+        const wrap = document.createElement('div'); 
+        wrap.className = 'results-item';
+        
+        const info = document.createElement('div'); 
+        info.className = 'results-info';
+        
+        const titleEl = document.createElement('h4'); 
+        titleEl.textContent = placeName; 
+        
+        // Add provider indicator
+        if (placeProvider === 'foursquare') {
+          const providerBadge = document.createElement('span');
+          providerBadge.textContent = ' F';
+          providerBadge.style.cssText = 'font-size:0.65rem; background:var(--accent); color:var(--text-light); padding:0.15rem 0.35rem; border-radius:4px; margin-left:0.3rem; font-weight:600;';
+          providerBadge.title = 'Foursquare';
+          titleEl.appendChild(providerBadge);
         }
-        wrap.appendChild(info); btn.appendChild(wrap); list.appendChild(btn);
+        
+        info.appendChild(titleEl);
+        
+        const rating = document.createElement('span'); 
+        rating.className = 'rating';
+        rating.textContent = placeRating ? `⭐${placeRating.toFixed(1)}${placeReviews ? ` (${placeReviews})` : ''}` : 'No rating'; 
+        info.appendChild(rating);
+        
+        if (planIds.includes(placeId)) {
+          const visit = document.createElement('span'); 
+          visit.className = 'rating'; 
+          visit.style.marginLeft = '0.3rem';
+          visit.textContent = visitedIds.includes(placeId) ? '✅' : '🧭'; 
+          info.appendChild(visit);
+        }
+        
+        wrap.appendChild(info); 
+        btn.appendChild(wrap); 
+        list.appendChild(btn);
       });
-      $("resultsModal").classList.add('active'); document.body.classList.add('modal-open');
+      $("resultsModal").classList.add('active'); 
+      document.body.classList.add('modal-open');
     }
 
 function setLoadMoreState(pagination) {

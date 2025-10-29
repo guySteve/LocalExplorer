@@ -168,101 +168,315 @@ function displayLocation(result, pos) { /* Update UI with location */
         updateWeatherTitle();
     }
 
-function performSearch(category, item) { /* Perform Google Places search */
-      if (!currentPosition) return alert('Please provide a location first.');
+function performSearch(category, item) { /* Perform unified search across Google Places and Foursquare */
+      if (!currentPosition) {
+        if (window.showToast) {
+          window.showToast('Please provide a location first.');
+        } else {
+          alert('Please provide a location first.');
+        }
+        return;
+      }
       if (category === 'Local Events') return searchLocalEvents(item); // Handle events separately
       
-      // Handle FourSquare searches
-      if (item.useFourSquare) {
-        return searchFourSquareNearby(currentPosition.lat, currentPosition.lng, item.query || '', 20)
-          .then(results => {
-            if (results && results.length > 0) {
-              // Convert FourSquare results to a format compatible with displayResults
-              const convertedResults = results.map(place => ({
-                name: place.name,
-                place_id: place.fsq_id, // Use FourSquare ID
-                rating: null, // FourSquare API v3 doesn't include ratings in search
-                user_ratings_total: null,
-                vicinity: place.address,
-                formatted_address: place.address,
-                geometry: place.lat && place.lng ? {
-                  location: {
-                    lat: () => place.lat,
-                    lng: () => place.lng
-                  }
-                } : null,
-                _isFourSquare: true // Flag to identify FourSquare results
-              }));
-              
-              lastResultsTitle = item.name || category;
-              currentResults = convertedResults;
-              displayResults(lastResultsTitle, convertedResults);
-            } else {
-              alert('No results found.');
-            }
-          })
-          .catch(err => {
-            console.error('FourSquare search failed:', err);
-            alert('Search failed. Please try again.');
-          });
+      // Handle legacy FourSquare-only searches (will be deprecated)
+      if (item.useFourSquare && item.fourSquareOnly) {
+        return searchFourSquareOnly(item);
       }
       
       if (!hasMapSupport() || !placesService) {
-        alert('Map services are not available. Please try again later.');
+        if (window.showToast) {
+          window.showToast('Map services are not available. Please try again later.');
+        } else {
+          alert('Map services are not available. Please try again later.');
+        }
         return;
       }
-      
-      const request = { 
-        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), 
-        radius: item.radius || 7000, 
-        type: item.type || undefined, 
-        keyword: item.keyword || item.name, // Use keyword or name
-        rankBy: item.rankBy || google.maps.places.RankBy.PROMINENCE 
-      };
       
       lastResultsTitle = item.name || category;
       appendNextResults = false;
       setLoadMoreState(null);
       
-      placesService.nearbySearch(request, (results, status, pagination) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          const minRating = item.minRating ?? 4.2;
-          const minReviews = item.minReviews ?? 20;
-
-          // 1. Filter by rating
-          let filtered = item.ignoreRating ? results : results.filter(p => (p.rating || 0) >= minRating && (p.user_ratings_total || 0) >= minReviews);
-
-          // 2. Filter by primary type
-          if (item.primaryTypeOnly && item.type) {
-            filtered = filtered.filter(p => p.types && p.types.includes(item.type));
-          }
-          
-          if (!filtered.length && !item.primaryTypeOnly) {
-             filtered = results.slice(0, 8);
-          }
-
-          filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
-          
-          if (appendNextResults) {
-            currentResults = currentResults.concat(filtered); displayResults(lastResultsTitle, filtered, { append: true });
-          } else {
-            currentResults = filtered; displayResults(lastResultsTitle, filtered);
-          }
-          appendNextResults = false;
-          setLoadMoreState(pagination);
+      // Prepare Google Places request
+      const googleRequest = { 
+        location: new google.maps.LatLng(currentPosition.lat, currentPosition.lng), 
+        radius: item.radius || 7000, 
+        type: item.type || undefined, 
+        keyword: item.keyword || item.name,
+        rankBy: item.rankBy || google.maps.places.RankBy.PROMINENCE 
+      };
+      
+      // Execute both API calls in parallel
+      Promise.all([
+        // Google Places search
+        new Promise((resolve) => {
+          placesService.nearbySearch(googleRequest, (results, status, pagination) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+              resolve({ results, pagination, provider: 'google' });
+            } else {
+              if (window.logError) {
+                window.logError(new Error(status), 'performSearch:google', null);
+              }
+              resolve({ results: [], pagination: null, provider: 'google' });
+            }
+          });
+        }),
+        // Foursquare search
+        searchFourSquareNearby(
+          currentPosition.lat, 
+          currentPosition.lng, 
+          item.keyword || item.name, 
+          20
+        ).then(results => ({ results, provider: 'foursquare' }))
+         .catch(err => {
+           if (window.logError) {
+             window.logError(err, 'performSearch:foursquare', null);
+           }
+           return { results: [], provider: 'foursquare' };
+         })
+      ]).then(([googleData, foursquareData]) => {
+        // Normalize results from both providers
+        const googleNormalized = googleData.results.map(p => normalizePlaceData(p, 'google')).filter(Boolean);
+        const foursquareNormalized = foursquareData.results.map(p => normalizePlaceData(p, 'foursquare')).filter(Boolean);
+        
+        // Merge results
+        let merged = [...googleNormalized, ...foursquareNormalized];
+        
+        // De-duplicate
+        merged = deduplicatePlaces(merged);
+        
+        // Apply rating filters (primarily for Google results)
+        const minRating = item.minRating ?? 4.2;
+        const minReviews = item.minReviews ?? 20;
+        
+        let filtered = item.ignoreRating ? merged : merged.filter(p => 
+          !p.rating || // Include Foursquare results without ratings
+          ((p.rating || 0) >= minRating && (p.user_ratings_total || 0) >= minReviews)
+        );
+        
+        // Filter by primary type (only for Google results)
+        if (item.primaryTypeOnly && item.type) {
+          filtered = filtered.filter(p => 
+            p.provider === 'foursquare' || // Include all Foursquare results
+            (p.categories && p.categories.includes(item.type))
+          );
+        }
+        
+        if (!filtered.length && !item.primaryTypeOnly) {
+          filtered = merged.slice(0, 8);
+        }
+        
+        // Sort by rating
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
+        
+        if (appendNextResults) {
+          currentResults = currentResults.concat(filtered);
+          displayResults(lastResultsTitle, filtered, { append: true });
         } else {
-          if (!appendNextResults) alert('No results found.');
-          appendNextResults = false;
-          setLoadMoreState(null);
+          currentResults = filtered;
+          displayResults(lastResultsTitle, filtered);
+        }
+        
+        appendNextResults = false;
+        setLoadMoreState(googleData.pagination); // Only Google supports pagination
+        
+        if (filtered.length === 0) {
+          if (window.showToast) {
+            window.showToast('No results found.');
+          } else {
+            alert('No results found.');
+          }
         }
       });
     }
 
-function showDetails(placeId) { /* Show place details sheet */
-      if (!hasMapSupport() || !placesService) {
-        alert('Map services are not available. Please try again later.');
+// Legacy function for Foursquare-only searches
+function searchFourSquareOnly(item) {
+  return searchFourSquareNearby(currentPosition.lat, currentPosition.lng, item.query || '', 20)
+    .then(results => {
+      if (results && results.length > 0) {
+        const convertedResults = results.map(place => ({
+          name: place.name,
+          place_id: place.fsq_id,
+          rating: null,
+          user_ratings_total: null,
+          vicinity: place.address,
+          formatted_address: place.address,
+          geometry: place.lat && place.lng ? {
+            location: {
+              lat: () => place.lat,
+              lng: () => place.lng
+            }
+          } : null,
+          _isFourSquare: true
+        }));
+        
+        lastResultsTitle = item.name || 'FourSquare Results';
+        currentResults = convertedResults;
+        displayResults(lastResultsTitle, convertedResults);
+      } else {
+        if (window.showToast) {
+          window.showToast('No results found.');
+        } else {
+          alert('No results found.');
+        }
+      }
+    })
+    .catch(err => {
+      if (window.logError) {
+        window.logError(err, 'searchFourSquareOnly', 'Search failed. Please try again.');
+      } else {
+        console.error('FourSquare search failed:', err);
+        alert('Search failed. Please try again.');
+      }
+    });
+}
+        }
+      });
+    }
+
+function showDetails(placeId, provider = null) { /* Show place details sheet */
+      // Auto-detect provider if not specified
+      if (!provider) {
+        // Check if it's a Foursquare ID (typically alphanumeric without special characters)
+        // Google place IDs typically contain special characters
+        const result = currentResults.find(r => r.id === placeId || r.place_id === placeId);
+        provider = result?.provider || 'google';
+      }
+      
+      if (provider === 'foursquare') {
+        // Fetch Foursquare details
+        getFourSquareDetails(placeId).then(details => {
+          if (!details) {
+            if (window.showToast) {
+              window.showToast('Unable to load place details.');
+            }
+            return;
+          }
+          
+          // Find the original result for location data
+          const originalResult = currentResults.find(r => r.id === placeId);
+          const loc = originalResult?.location;
+          
+          currentPlaceDetails = {
+            place_id: placeId,
+            name: details.name,
+            formatted_address: originalResult?.address || '',
+            website: details.website,
+            formatted_phone_number: details.tel,
+            rating: details.rating,
+            price_level: details.price,
+            geometry: loc ? { location: { lat: () => loc.lat, lng: () => loc.lng } } : null,
+            _provider: 'foursquare'
+          };
+          
+          const locForPreview = loc ? { lat: () => loc.lat, lng: () => loc.lng } : null;
+          prepareStreetViewPreview(locForPreview);
+          
+          $("detailsName").textContent = details.name || 'No Name';
+          
+          let stars = '';
+          if (details.rating) {
+            const full = Math.floor(details.rating);
+            const half = (details.rating - full) >= 0.5;
+            stars = '★'.repeat(full) + (half ? '½' : '') + ` (${details.rating.toFixed(1)})`;
+          }
+          $("detailsRating").innerHTML = `<span class="stars">${stars}</span> <span style="font-size:0.7rem; opacity:0.8;">via Foursquare</span>`;
+          
+          $("detailsPrice").textContent = details.price ? '$'.repeat(details.price) : '';
+          $("detailsPhone").textContent = details.tel || '';
+          $("detailsAddress").textContent = originalResult?.address || '';
+          
+          // Fetch What3Words if location available
+          const what3wordsDiv = $("detailsWhat3Words");
+          const what3wordsText = $("detailsWhat3WordsText");
+          if (what3wordsDiv && what3wordsText && loc) {
+            what3wordsDiv.style.display = 'block';
+            what3wordsText.textContent = 'Loading...';
+            fetchWhat3Words(loc.lat, loc.lng).then(w3w => {
+              if (w3w) {
+                what3wordsText.textContent = w3w;
+                what3wordsText.style.fontWeight = '600';
+                what3wordsText.style.color = 'var(--accent)';
+              } else {
+                what3wordsDiv.style.display = 'none';
+              }
+            }).catch(() => {
+              what3wordsDiv.style.display = 'none';
+            });
+          }
+          
+          updateSaveButtonState(placeId);
+          updatePlanButtonState(placeId);
+          
+          const mapUrl = loc ? 
+            `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}` : 
+            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(details.name)}`;
+          $("mapsBtn").onclick = () => window.open(mapUrl, '_blank');
+          
+          $("websiteBtn").style.display = details.website ? 'inline-flex' : 'none';
+          $("websiteBtn").onclick = () => { if (details.website) window.open(details.website, '_blank'); };
+          
+          $("shareBtn").onclick = () => {
+            if (navigator.share) {
+              navigator.share({
+                title: details.name,
+                text: originalResult?.address || '',
+                url: mapUrl
+              }).catch(console.error);
+            } else {
+              if (window.showToast) {
+                window.showToast('Sharing not supported on this device.');
+              }
+            }
+          };
+          
+          $("guideBtn").onclick = () => {
+            if (locForPreview) {
+              if (window.launchCompass) window.launchCompass(locForPreview, details.name);
+              else if (window.openCompass) window.openCompass(locForPreview, details.name);
+              else {
+                if (window.showToast) {
+                  window.showToast('Compass is still loading. Please try again in a moment.');
+                }
+              }
+            } else {
+              if (window.showToast) {
+                window.showToast('Location data not available for navigation.');
+              }
+            }
+          };
+          
+          // Foursquare doesn't provide reviews in the same format
+          populateReviews([]);
+          
+          // Handle hours if available
+          if (details.hours) {
+            populateHours({ weekday_text: details.hours });
+          } else {
+            populateHours(null);
+          }
+          
+          $("detailsSheet").classList.add('active');
+          document.body.classList.add('modal-open');
+        }).catch(err => {
+          if (window.logError) {
+            window.logError(err, 'showDetails:foursquare', 'Unable to load place details.');
+          }
+        });
         return;
       }
+      
+      // Google Places details
+      if (!hasMapSupport() || !placesService) {
+        if (window.showToast) {
+          window.showToast('Map services are not available. Please try again later.');
+        } else {
+          alert('Map services are not available. Please try again later.');
+        }
+        return;
+      }
+      
       placesService.getDetails({ placeId: placeId, fields: ['name','formatted_address','formatted_phone_number','rating','reviews','price_level','geometry','website','url','opening_hours','place_id'] }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           currentPlaceDetails = place; const loc = place.geometry.location;
@@ -299,18 +513,29 @@ function showDetails(placeId) { /* Show place details sheet */
           $("mapsBtn").onclick = () => window.open(place.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`, '_blank');
           $("websiteBtn").style.display = place.website ? 'inline-flex' : 'none';
           $("websiteBtn").onclick = () => { if (place.website) window.open(place.website, '_blank'); };
-          $("shareBtn").onclick = () => { if (navigator.share) navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(console.error); else alert('Sharing not supported.'); };
+          $("shareBtn").onclick = () => { if (navigator.share) navigator.share({ title: place.name, text: place.formatted_address, url: place.url || window.location.href }).catch(console.error); else { if (window.showToast) window.showToast('Sharing not supported on this device.'); } };
           
           // --- UPDATED: Pass place.name to openCompass ---
           $("guideBtn").onclick = () => {
           if (window.launchCompass) window.launchCompass(loc, place.name);
           else if (window.openCompass) window.openCompass(loc, place.name);
-          else alert('Compass is still loading. Please try again in a moment.');
+          else {
+            if (window.showToast) {
+              window.showToast('Compass is still loading. Please try again in a moment.');
+            } else {
+              alert('Compass is still loading. Please try again in a moment.');
+            }
+          }
         };
           
           populateReviews(place.reviews || []); populateHours(place.opening_hours);
           $("detailsSheet").classList.add('active'); document.body.classList.add('modal-open');
-        } else console.error("Place details request failed:", status);
+        } else {
+          if (window.logError) {
+            window.logError(new Error(status), 'showDetails:google', 'Unable to load place details.');
+          }
+          console.error("Place details request failed:", status);
+        }
       });
     }
 
