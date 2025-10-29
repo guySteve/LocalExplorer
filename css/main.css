@@ -355,7 +355,6 @@ h1, h2, h3 {
       font-size: 0.8rem;
       font-style: italic;
       opacity: 0.85;
-      opacity: 0.9;
     }
     .filters {
       display: grid;

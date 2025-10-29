@@ -201,7 +201,7 @@ function renderSunInfo(data, weatherCode) {
   
   // Format the countdown
   const formattedTime = formatTimeRemaining(hoursRemaining, minsRemaining);
-  const emoji = eventType === 'sunset' ? '🌅' : '🌄';
+  const emoji = eventType === 'sunset' ? '🌇' : '🌅';
   
   // Update UI
   sunCountdown.textContent = `${emoji} ${formattedTime} till ${nextEvent}`;
