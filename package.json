@@ -1,0 +1,22 @@
+{
+  "name": "local-explorer",
+  "version": "1.0.0",
+  "description": "A Progressive Web App for discovering local attractions, events, and activities",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build step required'",
+    "deploy": "netlify deploy --prod"
+  },
+  "keywords": [
+    "pwa",
+    "local",
+    "explorer",
+    "travel",
+    "events"
+  ],
+  "author": "guySteve",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
