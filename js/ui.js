@@ -9,23 +9,70 @@ window.launchCompass = window.launchCompass || launchCompass;
 
 function $(id) { return document.getElementById(id); }
 
-const weatherElements = {
-  widget: $("weatherWidget"),
-  title: $("weatherTitle"),
-  updated: $("weatherUpdated"),
-  icon: $("weatherIcon"),
-  temp: $("weatherTemp"),
-  description: $("weatherDescription"),
-  feels: $("weatherFeels"),
-  wind: $("weatherWind"),
-  range: $("weatherRange")
-};
-const voiceSelect = $("voiceSelect");
-const compassLabels = {
-  location: $("compassLocationLabel"),
-  destination: $("compassDestinationLabel"),
-  heading: $("compassHeadingValue")
-};
+// Lazy-initialized to ensure DOM is ready
+let _weatherElementsCache = null;
+function getWeatherElements() {
+  if (!_weatherElementsCache) {
+    _weatherElementsCache = {
+      widget: $("weatherWidget"),
+      title: $("weatherTitle"),
+      updated: $("weatherUpdated"),
+      icon: $("weatherIcon"),
+      temp: $("weatherTemp"),
+      description: $("weatherDescription"),
+      feels: $("weatherFeels"),
+      wind: $("weatherWind"),
+      range: $("weatherRange")
+    };
+  }
+  return _weatherElementsCache;
+}
+// For backward compatibility - create a proxy that lazily initializes
+const weatherElements = new Proxy({}, {
+  get(target, prop) {
+    return getWeatherElements()[prop];
+  }
+});
+
+function getVoiceSelect() {
+  return $("voiceSelect");
+}
+const voiceSelect = new Proxy({}, {
+  get(target, prop) {
+    const el = getVoiceSelect();
+    if (el && prop in el) {
+      const value = el[prop];
+      return typeof value === 'function' ? value.bind(el) : value;
+    }
+    return undefined;
+  },
+  set(target, prop, value) {
+    const el = getVoiceSelect();
+    if (el) {
+      el[prop] = value;
+      return true;
+    }
+    return false;
+  }
+});
+
+let _compassLabelsCache = null;
+function getCompassLabels() {
+  if (!_compassLabelsCache) {
+    _compassLabelsCache = {
+      location: $("compassLocationLabel"),
+      destination: $("compassDestinationLabel"),
+      heading: $("compassHeadingValue")
+    };
+  }
+  return _compassLabelsCache;
+}
+// For backward compatibility
+const compassLabels = new Proxy({}, {
+  get(target, prop) {
+    return getCompassLabels()[prop];
+  }
+});
 const THEME_CLASS_MAP = {
   naval: 'theme-naval',
   sunset: 'theme-sunset',
