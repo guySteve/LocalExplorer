@@ -77,6 +77,10 @@ function openCompass(destLatLng = null, destName = '') {
     const statusDot = statusContainer?.querySelector('.status-dot') || null;
     const statusText = $("compassStatusText");
     const sensorBtn = $("compassSensorBtn");
+    const toggleRouteMapBtn = $("toggleRouteMapBtn");
+    const routeMapContainer = $("compassRouteMap");
+    let routeMapInstance = null;
+    let routeRenderer = null;
     let resetStepUi = () => {};
     let orientationReady = false;
     let geolocationReady = false;
@@ -150,16 +154,97 @@ function openCompass(destLatLng = null, destName = '') {
             if (directionsCard) directionsCard.style.display = 'block';
             if (readDirectionsBtn) readDirectionsBtn.disabled = true;
             if (silenceBtn) silenceBtn.disabled = true;
+            
+            // Show route map button for navigation mode
+            if (toggleRouteMapBtn) {
+                toggleRouteMapBtn.style.display = 'inline-block';
+                toggleRouteMapBtn.onclick = () => toggleRouteMap();
+            }
         } else {
             // Invalid destination passed
             destinationReadout.textContent = 'Invalid Destination';
             if (directionsCard) directionsCard.style.display = 'none';
+            if (toggleRouteMapBtn) toggleRouteMapBtn.style.display = 'none';
         }
     } else {
         // No destination - Simple Compass Mode
         destinationReadout.textContent = 'Pointing North';
         if (directionsCard) directionsCard.style.display = 'none';
+        if (toggleRouteMapBtn) toggleRouteMapBtn.style.display = 'none';
     }
+    
+    // Toggle route map view
+    const toggleRouteMap = () => {
+        if (!routeMapContainer || !radarDestLatLng) return;
+        
+        const isVisible = routeMapContainer.style.display !== 'none';
+        
+        if (isVisible) {
+            // Hide map
+            routeMapContainer.style.display = 'none';
+            if (toggleRouteMapBtn) toggleRouteMapBtn.textContent = '🗺️ Route Map';
+        } else {
+            // Show and initialize map
+            routeMapContainer.style.display = 'block';
+            if (toggleRouteMapBtn) toggleRouteMapBtn.textContent = '🧭 Compass';
+            
+            if (!routeMapInstance && currentPosition && typeof google !== 'undefined') {
+                // Initialize map
+                routeMapInstance = new google.maps.Map(routeMapContainer, {
+                    center: currentPosition,
+                    zoom: 13,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
+                    streetViewControl: false,
+                    styles: [
+                        { elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
+                        { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
+                        { elementType: 'labels.text.stroke', stylers: [{ color: '#1a3646' }] },
+                        { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+                        { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+                        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] }
+                    ]
+                });
+                
+                // Add markers for start and destination
+                new google.maps.Marker({
+                    position: currentPosition,
+                    map: routeMapInstance,
+                    label: 'A',
+                    title: 'Your Location'
+                });
+                
+                new google.maps.Marker({
+                    position: radarDestLatLng,
+                    map: routeMapInstance,
+                    label: 'B',
+                    title: destName || 'Destination'
+                });
+                
+                // Setup directions renderer
+                if (!routeRenderer) {
+                    routeRenderer = new google.maps.DirectionsRenderer({
+                        map: routeMapInstance,
+                        suppressMarkers: false,
+                        polylineOptions: {
+                            strokeColor: '#c87941',
+                            strokeWeight: 4,
+                            strokeOpacity: 0.8
+                        }
+                    });
+                }
+            } else if (routeMapInstance) {
+                // Re-center map
+                google.maps.event.trigger(routeMapInstance, 'resize');
+                if (currentPosition) {
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.extend(currentPosition);
+                    if (radarDestLatLng) bounds.extend(radarDestLatLng);
+                    routeMapInstance.fitBounds(bounds);
+                }
+            }
+        }
+    };
 
     overlay.classList.add('active'); 
     document.body.classList.add('modal-open');
@@ -630,6 +715,11 @@ function openCompass(destLatLng = null, destName = '') {
                             nextStepBtn.textContent = 'Start route';
                         }
                         setNextStepPointer(0);
+                        
+                        // Render route on map if available
+                        if (routeRenderer && r) {
+                            routeRenderer.setDirections(r);
+                        }
                     } else {
                         dl.textContent = `Route error: ${s}`;
                         currentRouteSteps = [];
