@@ -391,9 +391,6 @@ function searchFourSquareOnly(item) {
       }
     });
 }
-        }
-      });
-    }
 
 function showDetails(placeId, provider = null) { /* Show place details sheet */
       // Auto-detect provider if not specified
@@ -686,6 +683,7 @@ function initDetailsSheetInteractions() {
         maxOffset: 320
       });
     }
+window.initDetailsSheetInteractions = initDetailsSheetInteractions;
 
 
 
