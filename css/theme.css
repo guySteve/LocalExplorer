@@ -279,13 +279,43 @@ body.theme-psychedelic60 {
   color: var(--text-dark);
 }
 
+body.theme-psychedelic60 #locationDisplay {
+  color: #2b1b3d;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+body.theme-psychedelic60 .rating,
+body.theme-psychedelic60 #weatherDescription {
+  color: #2b1b3d;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+
 body.theme-arcade80 {
   background-color: #0a0a0a;
   background-image:
     repeating-linear-gradient(0deg, rgba(255,0,255,0.05) 0px, transparent 2px, transparent 4px, rgba(0,255,255,0.05) 6px),
     repeating-linear-gradient(90deg, rgba(255,255,0,0.03) 0px, transparent 2px);
-  color: var(--text-dark);
+  color: #00ffff;
   font-family: 'Press Start 2P', monospace;
+}
+
+body.theme-arcade80 #locationDisplay,
+body.theme-arcade80 .rating,
+body.theme-arcade80 #weatherDescription {
+  color: #00ffff;
+  text-shadow: 0 0 8px rgba(0,255,255,0.8);
+}
+
+body.theme-bbq {
+  background-image: radial-gradient(140% 120% at 50% -10%, #5d4037 0%, #3e2723 60%, #1b0000 100%);
+  color: #fff3e0;
+}
+
+body.theme-bbq #locationDisplay,
+body.theme-bbq .rating,
+body.theme-bbq #weatherDescription {
+  color: #fff3e0;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 
 body.theme-y2k00 {
@@ -300,11 +330,6 @@ body.theme-metro10 {
 /* New Food Themes */
 body.theme-sushi {
   background-image: linear-gradient(180deg, #f5f5f5 0%, #eeeeee 100%);
-}
-
-body.theme-bbq {
-  background-image: radial-gradient(140% 120% at 50% -10%, #5d4037 0%, #3e2723 60%, #1b0000 100%);
-  color: var(--text-dark);
 }
 
 body.theme-cafe {

@@ -1,10 +1,12 @@
-// --- NEW COMPASS LOGIC (Simplified & Corrected) ---
+// --- NEW COMPASS LOGIC (Simplified & Corrected with Gyroscope Support) ---
 
 let compassWatchId = null;
 let orientationListener = null;
 let orientationEventType = null; // To store the type of event listener used
+let motionListener = null; // For gyroscope data
 let dialAnimationFrameId = null;
 let currentHeading = 0; // The direction the device is facing (0-360)
+let hasGyroscope = false; // Track if gyroscope is available
 
 let ringHeadingVisual = 0;
 let ringHeadingTarget = 0;
@@ -113,6 +115,10 @@ function openCompass(destLatLng = null, destName = '') {
         orientationListener = null;
         orientationEventType = null;
     }
+    if (motionListener) {
+        window.removeEventListener('devicemotion', motionListener, true);
+        motionListener = null;
+    }
     if (compassWatchId) {
         navigator.geolocation.clearWatch(compassWatchId);
         compassWatchId = null;
@@ -204,6 +210,20 @@ function openCompass(destLatLng = null, destName = '') {
         requestCompassAnimation();
     };
 
+    // --- Gyroscope/Motion Handler for enhanced stability ---
+    const handleMotion = (event) => {
+        if (!event.rotationRate) return;
+        
+        // rotationRate provides angular velocity in degrees per second
+        const { alpha, beta, gamma } = event.rotationRate;
+        
+        if (alpha !== null && !isNaN(alpha)) {
+            // Alpha is rotation around Z-axis (yaw/heading)
+            // This can help stabilize compass readings
+            hasGyroscope = true;
+        }
+    };
+
     // --- Request Permissions and Start Listener ---
     const startOrientationListener = () => {
         if (orientationListener) return; // Already listening
@@ -257,7 +277,35 @@ function openCompass(destLatLng = null, destName = '') {
         }
     };
 
+    // --- Start Gyroscope Listener ---
+    const startMotionListener = () => {
+        if (motionListener) return; // Already listening
+        
+        if (typeof DeviceMotionEvent !== 'undefined') {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                // iOS 13+ requires explicit permission
+                DeviceMotionEvent.requestPermission().then(permissionState => {
+                    if (permissionState === 'granted') {
+                        motionListener = handleMotion;
+                        window.addEventListener('devicemotion', motionListener, true);
+                        console.log('Gyroscope listener registered');
+                    } else {
+                        console.warn('DeviceMotion permission denied.');
+                    }
+                }).catch(error => {
+                    console.error('Error requesting DeviceMotion permission:', error);
+                });
+            } else {
+                // Non-iOS 13+ or browsers without the permission API
+                motionListener = handleMotion;
+                window.addEventListener('devicemotion', motionListener, true);
+                console.log('Gyroscope listener registered');
+            }
+        }
+    };
+
     startOrientationListener(); // Attempt to start listening
+    startMotionListener(); // Attempt to start gyroscope listening
 
     // --- Geolocation Watch (primarily for directions, can provide heading fallback) ---
     let routeFetched = false;
@@ -330,6 +378,7 @@ function openCompass(destLatLng = null, destName = '') {
     if (sensorBtn) {
         sensorBtn.onclick = () => {
             startOrientationListener();
+            startMotionListener(); // Also start gyroscope
             if (!compassWatchId) {
                 startGeoWatch();
             }
@@ -348,6 +397,10 @@ function openCompass(destLatLng = null, destName = '') {
                 window.removeEventListener(orientationEventType, orientationListener, true);
                 orientationListener = null;
                 orientationEventType = null;
+            }
+            if (motionListener) {
+                window.removeEventListener('devicemotion', motionListener, true);
+                motionListener = null;
             }
             if (compassWatchId) {
                 navigator.geolocation.clearWatch(compassWatchId);
