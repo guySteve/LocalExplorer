@@ -784,11 +784,6 @@ function getBirdSightings() {
   }
 }
 
-  }
-  
-  factContainer.textContent = fact;
-}
-
 // --- Brewery Search Integration ---
 async function searchBreweries(lat, lng, query = '') {
   try {
