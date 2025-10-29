@@ -50,6 +50,7 @@
         <span id="weatherUpdated">Waiting for location...</span>
       </div>
       <button id="refreshWeatherBtn" type="button" aria-label="Refresh weather">↻</button>
+      <button id="forecastBtn" type="button" aria-label="View weekly forecast" title="Weekly forecast">📅</button>
       <button id="toggleWeatherBtn" type="button" aria-label="Toggle weather details" class="weather-toggle-btn">⚓</button>
     </div>
     <div id="weatherContent">
@@ -68,6 +69,7 @@
           <div id="sunCountdown">--</div>
           <div id="sunMessage">--</div>
         </div>
+        <div id="historicalWeatherFacts" style="display:none; margin-top:0.5rem; padding:0.5rem; background:rgba(200,121,65,0.15); border-radius:8px; font-size:0.85rem;"></div>
       </div>
     </div>
     </div>
@@ -135,6 +137,15 @@
       <div class="setting-group">
         <button id="resetSettingsBtn" class="settings-secondary" type="button">Reset to defaults</button>
       </div>
+    </div>
+  </div>
+  <div id="forecastModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Weekly Forecast</h3>
+        <button class="close-btn" id="closeForecastBtn">×</button>
+      </div>
+      <div id="forecastContent" class="forecast-grid"></div>
     </div>
   </div>
   <div id="hiddenMap"></div> <div id="subMenuModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="subMenuTitle">Categories</h3><button class="close-btn" id="closeSubMenu">×</button></div><div class="subMenuList" id="subMenuList"></div></div></div>
