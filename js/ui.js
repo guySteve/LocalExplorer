@@ -41,7 +41,15 @@ const THEME_CLASS_MAP = {
   playful: 'theme-playful',
   retro90: 'theme-retro90',
   groove70: 'theme-groove70',
-  mojave: 'theme-mojave'
+  mojave: 'theme-mojave',
+  atomic50: 'theme-atomic50',
+  psychedelic60: 'theme-psychedelic60',
+  arcade80: 'theme-arcade80',
+  y2k00: 'theme-y2k00',
+  metro10: 'theme-metro10',
+  sushi: 'theme-sushi',
+  bbq: 'theme-bbq',
+  cafe: 'theme-cafe'
 };
 
 function sampleFromArray(list, count = 5) {

@@ -6,7 +6,10 @@
   --text-dark: #1a2b44;
   --text-light: #ffffff;
   --accent: #8a5a44;
-  --radius: 12px;
+  --radius: var(--button-radius, 12px);
+  --button-radius: 12px;
+  --font-primary: 'Poppins', sans-serif;
+  --font-secondary: 'Raleway', sans-serif;
 }
 
 body.theme-naval {
@@ -264,4 +267,46 @@ body.theme-mojave {
 body.theme-mojave #weatherWidget {
   background: linear-gradient(135deg, rgba(244,162,89,0.95), rgba(188,95,52,0.85));
   color: #fffaf5;
+}
+
+/* New Decade Themes */
+body.theme-atomic50 {
+  background-image: linear-gradient(180deg, #e8f5f0 0%, #d0ebe3 100%);
+}
+
+body.theme-psychedelic60 {
+  background-image: radial-gradient(140% 130% at 50% -20%, #ff9d3d 0%, #ffd93d 40%, #6bcf7f 80%, #6b5fff 100%);
+  color: var(--text-dark);
+}
+
+body.theme-arcade80 {
+  background-color: #0a0a0a;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,0,255,0.05) 0px, transparent 2px, transparent 4px, rgba(0,255,255,0.05) 6px),
+    repeating-linear-gradient(90deg, rgba(255,255,0,0.03) 0px, transparent 2px);
+  color: var(--text-dark);
+  font-family: 'Press Start 2P', monospace;
+}
+
+body.theme-y2k00 {
+  background-image: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
+}
+
+body.theme-metro10 {
+  background-color: #ffffff;
+  background-image: none;
+}
+
+/* New Food Themes */
+body.theme-sushi {
+  background-image: linear-gradient(180deg, #f5f5f5 0%, #eeeeee 100%);
+}
+
+body.theme-bbq {
+  background-image: radial-gradient(140% 120% at 50% -10%, #5d4037 0%, #3e2723 60%, #1b0000 100%);
+  color: var(--text-dark);
+}
+
+body.theme-cafe {
+  background-image: linear-gradient(180deg, #fff8e1 0%, #ffecb3 50%, #ffe082 100%);
 }
