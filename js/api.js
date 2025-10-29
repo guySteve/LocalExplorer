@@ -1,12 +1,19 @@
 async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
       if (!currentPosition) return alert('Please provide a location first.');
-      const apiKey = window.TICKETMASTER_API_KEY || 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH'; // Use key or fallback
-      if (!apiKey) return alert('Ticketmaster API key missing.');
-      const classification = (item.value && item.value !== 'all') ? `&classificationName=${item.value}` : '';
+      const classification = (item.value && item.value !== 'all') ? item.value : '';
       // Reduced radius to 25 miles for local events
-      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=25&unit=miles${classification}`;
+      const params = new URLSearchParams({
+        latlong: `${currentPosition.lat},${currentPosition.lng}`,
+        radius: '25',
+        unit: 'miles'
+      });
+      if (classification) {
+        params.append('classificationName', classification);
+      }
+      const url = `${window.NETLIFY_FUNCTIONS_BASE}/ticketmaster?${params}`;
       try {
-        const resp = await fetch(url); const data = await resp.json();
+        const resp = await fetch(url); 
+        const data = await resp.json();
         const events = (data._embedded && data._embedded.events) || [];
         displayEventResults(events, item.name); // Display events in results modal
       } catch (err) { console.error(err); alert('Unable to fetch events.'); }
@@ -14,12 +21,17 @@ async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
 
 async function showSurpriseEvents() {
       if (!currentPosition) return alert('Please provide location first.');
-      const apiKey = window.TICKETMASTER_API_KEY || 'XmzfrRHZilGDGfD63SmdamF288GZ3FxH';
-      if (!apiKey) return alert('Ticketmaster API key missing.');
       // Reduced radius to 40 miles for surprise events
-      const url = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${apiKey}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=40&unit=miles&size=40`;
+      const params = new URLSearchParams({
+        latlong: `${currentPosition.lat},${currentPosition.lng}`,
+        radius: '40',
+        unit: 'miles',
+        size: '40'
+      });
+      const url = `${window.NETLIFY_FUNCTIONS_BASE}/ticketmaster?${params}`;
       try {
-        const resp = await fetch(url); const data = await resp.json();
+        const resp = await fetch(url); 
+        const data = await resp.json();
         const events = (data._embedded && data._embedded.events) || [];
         const picks = sampleFromArray(events, Math.min(6, events.length));
         if (!picks.length) return alert('No events found for Surprise Me.');
@@ -424,14 +436,8 @@ const ALERTS_CACHE_MS = 60 * 60 * 1000; // 1 hour
 
 // --- What3Words Integration ---
 async function fetchWhat3Words(lat, lng) {
-  const apiKey = window.WHAT3WORDS_API_KEY || 'TKIBT03V';
-  if (!apiKey) {
-    console.warn('What3Words API key missing');
-    return null;
-  }
-
   try {
-    const url = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${apiKey}`;
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/what3words?lat=${lat}&lng=${lng}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -454,14 +460,9 @@ async function fetchWhat3Words(lat, lng) {
 
 // --- FourSquare Integration ---
 async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
-  const apiKey = window.FOURSQUARE_API_KEY || 'XQJYSPSBDRKOYXOXD1T0UWQX0OBO5HPLHSGDVMYDGQ3KOJ43';
-  if (!apiKey) {
-    console.warn('FourSquare API key missing');
-    return [];
-  }
-
   try {
     const params = new URLSearchParams({
+      endpoint: 'places/search',
       ll: `${lat},${lng}`,
       limit: limit.toString(),
       radius: '8046' // 5 miles radius in meters
@@ -471,13 +472,8 @@ async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
       params.append('query', query);
     }
     
-    const url = `https://api.foursquare.com/v3/places/search?${params}`;
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': apiKey,
-        'Accept': 'application/json'
-      }
-    });
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/foursquare?${params}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       console.error('FourSquare API request failed:', response.status);
@@ -506,17 +502,15 @@ async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
 }
 
 async function getFourSquareDetails(fsqId) {
-  const apiKey = window.FOURSQUARE_API_KEY || 'XQJYSPSBDRKOYXOXD1T0UWQX0OBO5HPLHSGDVMYDGQ3KOJ43';
-  if (!apiKey || !fsqId) return null;
+  if (!fsqId) return null;
 
   try {
-    const url = `https://api.foursquare.com/v3/places/${fsqId}`;
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': apiKey,
-        'Accept': 'application/json'
-      }
+    const params = new URLSearchParams({
+      endpoint: `places/${fsqId}`
     });
+    
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/foursquare?${params}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       console.error('FourSquare details request failed:', response.status);
@@ -541,19 +535,19 @@ async function getFourSquareDetails(fsqId) {
 }
 
 async function fetchLocalAlerts(countryCode = 'US') {
-  const apiKey = window.HOLIDAY_API_KEY || '6e53a0df-74ca-4513-9971-0d3bf189ca12';
-  if (!apiKey) {
-    console.warn('HolidayAPI key missing');
-    return [];
-  }
-
   try {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     
     // Fetch holidays for current month
-    const url = `https://holidayapi.com/v1/holidays?key=${apiKey}&country=${countryCode}&year=${year}&month=${month}`;
+    const params = new URLSearchParams({
+      country: countryCode,
+      year: year.toString(),
+      month: month
+    });
+    
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/holiday?${params}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -682,20 +676,17 @@ const BIRD_FACT_CACHE_MS = 30 * 60 * 1000; // 30 minutes
 let cachedBirdFact = null;
 
 async function fetchRecentBirdSightings(lat, lng) {
-  const apiKey = window.EBIRD_API_KEY || 'h7b2pv30dr1t';
-  if (!apiKey) {
-    console.warn('eBird API key missing');
-    return null;
-  }
-
   try {
     // Use 10km (~6 miles) for local bird sightings
-    const url = `https://api.ebird.org/v2/data/obs/geo/recent?lat=${lat}&lng=${lng}&dist=10&maxResults=5`;
-    const response = await fetch(url, {
-      headers: {
-        'X-eBirdApiToken': apiKey
-      }
+    const params = new URLSearchParams({
+      lat: lat.toString(),
+      lng: lng.toString(),
+      dist: '10',
+      maxResults: '5'
     });
+    
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       console.error('eBird API request failed:', response.status);
@@ -876,14 +867,15 @@ async function loadRecentBirds() {
   content.innerHTML = '<p style="text-align: center; color: var(--card);">Loading recent sightings...</p>';
   
   try {
-    const apiKey = window.EBIRD_API_KEY || 'h7b2pv30dr1t';
-    // Use 10km (~6 miles) for local bird sightings
-    const url = `https://api.ebird.org/v2/data/obs/geo/recent?lat=${currentPosition.lat}&lng=${currentPosition.lng}&dist=10&maxResults=50`;
-    const response = await fetch(url, {
-      headers: {
-        'X-eBirdApiToken': apiKey
-      }
+    const params = new URLSearchParams({
+      lat: currentPosition.lat.toString(),
+      lng: currentPosition.lng.toString(),
+      dist: '10',
+      maxResults: '50'
     });
+    
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       content.innerHTML = '<p style="text-align: center; color: var(--card);">Unable to load bird sightings.</p>';
@@ -1080,19 +1072,16 @@ async function searchBreweries(lat, lng, query = '') {
 
 // --- Recreation.gov Integration ---
 async function searchRecreationAreas(lat, lng, radius = 50) {
-  const apiKey = window.RECREATION_GOV_API_KEY || 'd40a1208-c6a3-405c-8e53-bd1815fb39c7';
-  if (!apiKey) {
-    console.warn('Recreation.gov API key missing');
-    return [];
-  }
-
   try {
-    const url = `https://ridb.recreation.gov/api/v1/facilities?latitude=${lat}&longitude=${lng}&radius=${radius}&limit=20`;
-    const response = await fetch(url, {
-      headers: {
-        'apikey': apiKey
-      }
+    const params = new URLSearchParams({
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+      radius: radius.toString(),
+      limit: '20'
     });
+
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/recreation?${params}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       console.error('Recreation.gov API request failed:', response.status);
@@ -1127,14 +1116,13 @@ async function searchRecreationAreas(lat, lng, radius = 50) {
 
 // --- National Park Service Integration ---
 async function searchNationalParks(lat, lng, radius = 100) {
-  const apiKey = window.NPS_API_KEY || 'IVyLNL0apimJEjLpx0c78KFtCco2Ka8zlLGY5eMO';
-  if (!apiKey) {
-    console.warn('National Park Service API key missing');
-    return [];
-  }
-
   try {
-    const url = `https://developer.nps.gov/api/v1/parks?limit=10&api_key=${apiKey}`;
+    const params = new URLSearchParams({
+      endpoint: 'parks',
+      limit: '10'
+    });
+
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/nps?${params}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -1184,11 +1172,15 @@ async function searchNationalParks(lat, lng, radius = 100) {
 }
 
 async function getNPSParkEvents(parkCode) {
-  const apiKey = window.NPS_API_KEY || 'IVyLNL0apimJEjLpx0c78KFtCco2Ka8zlLGY5eMO';
-  if (!apiKey || !parkCode) return [];
+  if (!parkCode) return [];
 
   try {
-    const url = `https://developer.nps.gov/api/v1/events?parkCode=${parkCode}&api_key=${apiKey}`;
+    const params = new URLSearchParams({
+      endpoint: 'events',
+      parkCode: parkCode
+    });
+
+    const url = `${window.NETLIFY_FUNCTIONS_BASE}/nps?${params}`;
     const response = await fetch(url);
     
     if (!response.ok) {
