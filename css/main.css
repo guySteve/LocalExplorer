@@ -1339,7 +1339,7 @@ h1, h2, h3 {
 }
 
 @media (hover: none) and (pointer: coarse) {
-  /* Touch device optimizations */
+  /* Touch device optimizations - disable hover effects on touch-only devices */
   .action-pill:hover {
     transform: none;
     background: rgba(255,255,255,0.08);
@@ -1358,10 +1358,34 @@ h1, h2, h3 {
     background: rgba(255,255,255,0.05);
     transform: none;
   }
+  
+  .close-btn:hover {
+    transform: none;
+  }
+  
+  .sheet-close:hover {
+    transform: none;
+  }
+  
+  #closeCompassBtn:hover {
+    transform: none;
+    background: rgba(200,121,65,0.2);
+  }
+  
+  #compassSensorBtn:hover {
+    transform: none;
+    background: linear-gradient(180deg, rgba(200,121,65,0.15), rgba(138,90,68,0.25));
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border-color: rgba(200,121,65,0.4);
+  }
+  
+  .accordion:hover {
+    background: var(--secondary);
+  }
 }
 
 #directionsPanel.open {
-  max-height: 800px;
+  max-height: min(800px, 85vh);
   opacity: 1;
   pointer-events: auto;
 }
@@ -1470,7 +1494,7 @@ h1, h2, h3 {
 }
 
 #directionsList {
-  max-height: 320px;
+  max-height: min(320px, 40vh);
   overflow-y: auto;
   font-size: 0.9rem;
   line-height: 1.45;
@@ -1535,11 +1559,11 @@ h1, h2, h3 {
   }
   
   #directionsList {
-    max-height: 280px;
+    max-height: min(280px, 35vh);
   }
   
   #directionsPanel.open {
-    max-height: 700px;
+    max-height: min(700px, 80vh);
   }
 }
 #hiddenMap {
