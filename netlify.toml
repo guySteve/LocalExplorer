@@ -3,7 +3,74 @@
   publish = "."
   functions = "netlify/functions"
 
+# Environment variables configuration
+# Set these in Netlify UI: Site settings → Environment variables
+# Required API keys (all are server-side only except MAPS_API_KEY):
+# - TICKETMASTER_API_KEY
+# - HOLIDAY_API_KEY
+# - WHAT3WORDS_API_KEY
+# - FOURSQUARE_API_KEY
+# - EBIRD_API_KEY
+# - RECREATION_GOV_API_KEY
+# - NPS_API_KEY
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(self), camera=(), microphone=(), payment=()"
+    # Content Security Policy - Allow Google Maps, fonts, and external APIs
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https: blob:;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://maps.googleapis.com https://open-meteo.com https://*.openbrewerydb.org /.netlify/functions/*;
+      frame-src 'self' https://www.google.com;
+      worker-src 'self' blob:;
+    """
+
+# Cache control for static assets
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type = "application/manifest+json"
+
+# SPA fallback - redirect all non-file requests to index.html
+# Force = false ensures this doesn't override functions or existing files
 [[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
+  from = "/*"
+  to = "/index.html"
   status = 200
+  force = false
