@@ -8,8 +8,6 @@ let currentHeading = 0; // The direction the device is facing (0-360)
 
 let ringHeadingVisual = 0;
 let ringHeadingTarget = 0;
-let needleHeadingVisual = 0;
-let needleHeadingTarget = 0;
 let pitchVisual = 0;
 let pitchTarget = 0;
 let rollVisual = 0;
@@ -18,7 +16,6 @@ let rollTarget = 0;
 const PITCH_LIMIT = 55;
 const ROLL_LIMIT = 45;
 const HEADING_SMOOTH = 0.12;
-const NEEDLE_SMOOTH = 0.18;
 const TILT_SMOOTH = 0.15;
 
 // --- Navigation Related (Only used if destination is provided) ---
@@ -126,11 +123,10 @@ function openCompass(destLatLng = null, destName = '') {
     }
     currentHeading = 0;
     ringHeadingVisual = ringHeadingTarget = 0;
-    needleHeadingVisual = needleHeadingTarget = 0;
     pitchVisual = pitchTarget = 0;
     rollVisual = rollTarget = 0;
     if (dial) dial.style.transform = 'rotateZ(0deg)';
-    if (needleEl) needleEl.style.transform = 'rotate(0deg)';
+    if (needleEl) needleEl.style.transform = 'rotate(0deg)'; // Keep needle pointing up
     headingReadout.textContent = '---\u00B0';
     populateVoices(); 
     navigationStopped = true; 
@@ -169,16 +165,10 @@ function openCompass(destLatLng = null, destName = '') {
         const headingStep = shortestAngle(ringHeadingVisual, ringHeadingTarget);
         ringHeadingVisual = wrapAngle(ringHeadingVisual + headingStep * HEADING_SMOOTH);
 
-        const needleStep = shortestAngle(needleHeadingVisual, needleHeadingTarget);
-        needleHeadingVisual = wrapAngle(needleHeadingVisual + needleStep * NEEDLE_SMOOTH);
-
-        // Outer ring ONLY rotates for heading (NESW direction) - no pitch/roll
+        // Outer ring ONLY rotates for heading (NESW direction)
         dial.style.transform = `rotateZ(${ringHeadingVisual}deg)`;
         
-        // Needle rotates independently to show device orientation
-        if (needleEl) {
-            needleEl.style.transform = `rotate(${needleHeadingVisual}deg)`;
-        }
+        // Needle stays fixed pointing "up" (North relative to phone) - no rotation applied
 
         dialAnimationFrameId = requestAnimationFrame(animateCompass);
     };
@@ -205,7 +195,7 @@ function openCompass(destLatLng = null, destName = '') {
 
         currentHeading = heading;
         ringHeadingTarget = wrapAngle(360 - currentHeading);
-        needleHeadingTarget = wrapAngle(currentHeading);
+        // Needle stays fixed - no target needed
 
         orientationReady = true;
         updateSensorStatus();
@@ -303,7 +293,7 @@ function openCompass(destLatLng = null, destName = '') {
                     if (geoHeading !== null) {
                         currentHeading = geoHeading;
                         ringHeadingTarget = wrapAngle(360 - currentHeading);
-                        needleHeadingTarget = wrapAngle(currentHeading);
+                        // Needle stays fixed - no target needed
                         pitchTarget = 0;
                         rollTarget = 0;
                         headingReadout.textContent = `${String(Math.round(currentHeading)).padStart(3, '0')}\u00B0`;
@@ -368,11 +358,10 @@ function openCompass(destLatLng = null, destName = '') {
                 dialAnimationFrameId = null;
             }
             ringHeadingTarget = ringHeadingVisual = 0;
-            needleHeadingTarget = needleHeadingVisual = 0;
             pitchTarget = pitchVisual = 0;
             rollTarget = rollVisual = 0;
             if (dial) dial.style.transform = 'rotateZ(0deg)';
-            if (needleEl) needleEl.style.transform = 'rotate(0deg)';
+            if (needleEl) needleEl.style.transform = 'rotate(0deg)'; // Keep needle pointing up
             headingReadout.textContent = '---\u00B0';
             if (radarDestLatLng) silenceDirections(); // Stop speech if navigating
         };

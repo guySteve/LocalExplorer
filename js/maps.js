@@ -40,7 +40,11 @@ function activateStreetViewPeek() {
           btn.textContent = '👁️ Street View';
         }
         if (status !== google.maps.StreetViewStatus.OK) {
-          alert('Street View is not available for this location.');
+          if (window.showToast) {
+            window.showToast('Street View is not available for this location.');
+          } else {
+            alert('Street View is not available for this location.');
+          }
           return;
         }
         const panoOpts = data?.location
