@@ -105,6 +105,16 @@ const categories = {
     { name: 'Sports', value: 'sports' },
     { name: 'Comedy', value: 'comedy' },
     { name: 'Festivals', value: 'festival' }
+  ],
+  'Breweries': [
+    { name: 'Nearby Breweries', search: 'breweries' },
+    { name: 'Micro Breweries', search: 'micro' },
+    { name: 'Brew Pubs', search: 'brewpub' }
+  ],
+  'Recreation': [
+    { name: 'Campgrounds', search: 'campground' },
+    { name: 'Recreation Areas', search: 'recreation' },
+    { name: 'National Parks', search: 'national_park' }
   ]
 };
 
