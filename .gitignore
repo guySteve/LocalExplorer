@@ -1,0 +1,22 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Netlify
+.netlify
+netlify/functions/node_modules
+
+# API Keys (sensitive)
+key.js
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
