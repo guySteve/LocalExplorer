@@ -983,6 +983,9 @@ function loadMyBirdSightings() {
     content.appendChild(card);
   });
 }
+
+// Bird Reporting Feature
+function openBirdReportModal() {
   if (!currentPosition) {
     alert('Location is required to report a bird sighting.');
     return;
