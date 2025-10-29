@@ -846,11 +846,11 @@ h1, h2, h3 {
 }
 
 .compass-modal {
-  background: radial-gradient(130% 150% at 50% -20%, rgba(24,46,84,0.95) 0%, #0c1830 55%, #050b18 100%);
+  background: linear-gradient(135deg, #1a2b44 0%, #0f1e33 100%);
   color: var(--text-light);
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 22px 45px rgba(0,0,0,0.55);
+  border-radius: 20px;
+  border: 2px solid rgba(200,121,65,0.3);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   padding: 1.35rem 1.4rem 1.6rem;
   display: flex;
   flex-direction: column;
@@ -873,9 +873,10 @@ h1, h2, h3 {
 
 .compass-title {
   text-transform: uppercase;
-  letter-spacing: 0.28rem;
-  font-size: 0.78rem;
-  color: rgba(255,255,255,0.68);
+  letter-spacing: 0.15rem;
+  font-size: 0.85rem;
+  color: rgba(200,121,65,0.9);
+  font-weight: 600;
 }
 
 .compass-subtitle {
@@ -890,28 +891,29 @@ h1, h2, h3 {
 }
 
 #compassSensorBtn {
-  border: 1px solid rgba(255,255,255,0.18);
-  background: linear-gradient(180deg, rgba(39,70,120,0.75), rgba(20,36,64,0.95));
-  color: #f7f9ff;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
+  border: 2px solid rgba(200,121,65,0.4);
+  background: linear-gradient(180deg, rgba(200,121,65,0.15), rgba(138,90,68,0.25));
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.04rem;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 #compassSensorBtn:hover {
   transform: translateY(-1px);
-  background: linear-gradient(180deg, rgba(52,94,164,0.85), rgba(22,40,72,0.98));
-  box-shadow: 0 12px 22px rgba(0,0,0,0.4);
+  background: linear-gradient(180deg, rgba(200,121,65,0.25), rgba(138,90,68,0.35));
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  border-color: rgba(200,121,65,0.6);
 }
 
 #closeCompassBtn {
   border: none;
-  background: rgba(255,255,255,0.12);
+  background: rgba(200,121,65,0.2);
   color: #fff;
   width: 36px;
   height: 36px;
@@ -919,12 +921,11 @@ h1, h2, h3 {
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.15);
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 #closeCompassBtn:hover {
-  background: rgba(255,255,255,0.22);
+  background: rgba(200,121,65,0.35);
   transform: scale(1.05);
 }
 
@@ -956,54 +957,36 @@ h1, h2, h3 {
   will-change: transform;
   transform: rotateZ(0deg);
   background:
-    radial-gradient(closest-side, transparent 74%, rgba(100,220,255,0.25) 75%, transparent 76%),
-    radial-gradient(closest-side, transparent 68%, rgba(217,154,61,0.3) 69%, transparent 71%),
+    radial-gradient(closest-side, transparent 74%, rgba(200,121,65,0.2) 75%, transparent 76%),
+    radial-gradient(closest-side, transparent 68%, rgba(138,90,68,0.25) 69%, transparent 71%),
     conic-gradient(from 0deg, 
-      rgba(100,220,255,0.15) 0deg 1deg,
+      rgba(200,121,65,0.12) 0deg 1deg,
       transparent 1deg 44deg,
-      rgba(100,220,255,0.08) 44deg 46deg,
+      rgba(200,121,65,0.08) 44deg 46deg,
       transparent 46deg 89deg,
-      rgba(255,220,100,0.2) 89deg 91deg,
+      rgba(200,121,65,0.15) 89deg 91deg,
       transparent 91deg 134deg,
-      rgba(100,220,255,0.08) 134deg 136deg,
+      rgba(200,121,65,0.08) 134deg 136deg,
       transparent 136deg 179deg,
-      rgba(100,220,255,0.15) 179deg 181deg,
+      rgba(200,121,65,0.12) 179deg 181deg,
       transparent 181deg 224deg,
-      rgba(100,220,255,0.08) 224deg 226deg,
+      rgba(200,121,65,0.08) 224deg 226deg,
       transparent 226deg 269deg,
-      rgba(255,220,100,0.2) 269deg 271deg,
+      rgba(200,121,65,0.15) 269deg 271deg,
       transparent 271deg 314deg,
-      rgba(100,220,255,0.08) 314deg 316deg,
+      rgba(200,121,65,0.08) 314deg 316deg,
       transparent 316deg 360deg
     ),
-    radial-gradient(closest-side, rgba(15,25,40,0.98) 65%, rgba(8,15,28,1) 100%);
-  border: 3px solid rgba(100,220,255,0.25);
+    radial-gradient(closest-side, rgba(26,43,68,0.98) 65%, rgba(15,30,51,1) 100%);
+  border: 3px solid rgba(200,121,65,0.3);
   box-shadow: 
-    inset 0 0 0 1px rgba(100,220,255,0.15),
-    inset 0 0 60px rgba(0,0,0,0.7),
-    0 0 40px rgba(100,220,255,0.18),
-    0 8px 32px rgba(0,0,0,0.6);
+    inset 0 0 0 1px rgba(200,121,65,0.15),
+    inset 0 0 40px rgba(0,0,0,0.6),
+    0 0 25px rgba(200,121,65,0.15),
+    0 8px 24px rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: compassGlow 4s ease-in-out infinite;
-}
-
-@keyframes compassGlow {
-  0%, 100% {
-    box-shadow: 
-      inset 0 0 0 1px rgba(100,220,255,0.15),
-      inset 0 0 60px rgba(0,0,0,0.7),
-      0 0 40px rgba(100,220,255,0.18),
-      0 8px 32px rgba(0,0,0,0.6);
-  }
-  50% {
-    box-shadow: 
-      inset 0 0 0 1px rgba(100,220,255,0.25),
-      inset 0 0 60px rgba(0,0,0,0.7),
-      0 0 50px rgba(100,220,255,0.28),
-      0 8px 32px rgba(0,0,0,0.6);
-  }
 }
 
 .compass-ring-marks {
@@ -1013,27 +996,27 @@ h1, h2, h3 {
   pointer-events: none;
   background: conic-gradient(from 0deg,
       transparent 0deg 7deg,
-      rgba(100,220,255,0.4) 7deg 8deg,
+      rgba(200,121,65,0.35) 7deg 8deg,
       transparent 8deg 9deg,
-      rgba(100,220,255,0.2) 9deg 10deg,
+      rgba(200,121,65,0.18) 9deg 10deg,
       transparent 10deg 87deg,
-      rgba(100,220,255,0.4) 87deg 88deg,
+      rgba(200,121,65,0.35) 87deg 88deg,
       transparent 88deg 89deg,
-      rgba(100,220,255,0.4) 89deg 91deg,
+      rgba(200,121,65,0.35) 89deg 91deg,
       transparent 91deg 92deg,
-      rgba(100,220,255,0.2) 92deg 93deg,
+      rgba(200,121,65,0.18) 92deg 93deg,
       transparent 93deg 177deg,
-      rgba(100,220,255,0.4) 177deg 178deg,
+      rgba(200,121,65,0.35) 177deg 178deg,
       transparent 178deg 179deg,
-      rgba(100,220,255,0.4) 179deg 181deg,
+      rgba(200,121,65,0.35) 179deg 181deg,
       transparent 181deg 182deg,
-      rgba(100,220,255,0.2) 182deg 183deg,
+      rgba(200,121,65,0.18) 182deg 183deg,
       transparent 183deg 267deg,
-      rgba(100,220,255,0.4) 267deg 268deg,
+      rgba(200,121,65,0.35) 267deg 268deg,
       transparent 268deg 269deg,
-      rgba(100,220,255,0.4) 269deg 271deg,
+      rgba(200,121,65,0.35) 269deg 271deg,
       transparent 271deg 272deg,
-      rgba(100,220,255,0.2) 272deg 273deg,
+      rgba(200,121,65,0.18) 272deg 273deg,
       transparent 273deg 360deg);
 }
 
@@ -1042,46 +1025,43 @@ h1, h2, h3 {
   inset: 0;
   display: grid;
   place-items: center;
-  font-weight: 900;
-  letter-spacing: 0.22rem;
-  font-family: 'Press Start 2P', monospace;
+  font-weight: 700;
+  letter-spacing: 0.1rem;
+  font-family: 'Poppins', sans-serif;
 }
 
 .compass-ring-labels span {
   position: absolute;
-  font-size: 1.15rem;
-  color: rgba(100,220,255,0.95);
+  font-size: 1.2rem;
+  color: rgba(200,121,65,0.95);
   text-shadow: 
-    0 0 8px rgba(100,220,255,0.8),
-    0 0 16px rgba(100,220,255,0.4),
-    0 4px 12px rgba(0,0,0,0.6);
-  filter: drop-shadow(0 0 4px rgba(100,220,255,0.6));
+    0 0 6px rgba(200,121,65,0.5),
+    0 2px 8px rgba(0,0,0,0.5);
 }
 
 .compass-ring-labels .north {
   top: 3%;
-  color: rgba(255,220,100,1);
+  color: rgba(255,230,180,1);
   text-shadow: 
-    0 0 12px rgba(255,220,100,0.9),
-    0 0 24px rgba(255,220,100,0.5),
-    0 4px 12px rgba(0,0,0,0.6);
-  filter: drop-shadow(0 0 6px rgba(255,220,100,0.8));
-  font-size: 1.3rem;
+    0 0 8px rgba(255,230,180,0.6),
+    0 2px 8px rgba(0,0,0,0.5);
+  font-size: 1.35rem;
+  font-weight: 800;
 }
 
 .compass-ring-labels .east { 
   right: 4%; 
-  font-size: 1.05rem;
+  font-size: 1.1rem;
 }
 
 .compass-ring-labels .south { 
   bottom: 3%; 
-  font-size: 1.05rem;
+  font-size: 1.1rem;
 }
 
 .compass-ring-labels .west { 
   left: 4%; 
-  font-size: 1.05rem;
+  font-size: 1.1rem;
 }
 
 .compass-inner {
@@ -1089,12 +1069,12 @@ h1, h2, h3 {
   inset: 18%;
   border-radius: 50%;
   background: 
-    radial-gradient(circle at 45% 35%, rgba(25,45,70,0.95) 0%, rgba(10,20,35,0.98) 60%, rgba(5,10,20,1) 100%);
-  border: 2px solid rgba(100,220,255,0.2);
+    radial-gradient(circle at 45% 35%, rgba(35,55,85,0.95) 0%, rgba(20,35,55,0.98) 60%, rgba(15,25,40,1) 100%);
+  border: 2px solid rgba(200,121,65,0.25);
   box-shadow: 
-    inset 0 0 25px rgba(0,0,0,0.8),
-    inset 0 0 0 1px rgba(100,220,255,0.1),
-    0 0 20px rgba(0,0,0,0.5);
+    inset 0 0 20px rgba(0,0,0,0.7),
+    inset 0 0 0 1px rgba(200,121,65,0.12),
+    0 0 15px rgba(0,0,0,0.4);
   display: grid;
   place-items: center;
   overflow: visible;
@@ -1107,21 +1087,21 @@ h1, h2, h3 {
   transform-origin: 50% 50%;
   will-change: transform;
   transform: rotate(0deg);
-  filter: drop-shadow(0 0 8px rgba(255,220,100,0.6));
+  filter: drop-shadow(0 0 6px rgba(200,121,65,0.5));
 }
 
 .compass-needle::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: -60px;
+  top: -55px;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-bottom: 60px solid rgba(255,220,100,1);
-  filter: drop-shadow(0 0 12px rgba(255,220,100,0.8)) drop-shadow(0 4px 16px rgba(0,0,0,0.6));
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 55px solid rgba(200,121,65,1);
+  filter: drop-shadow(0 0 8px rgba(200,121,65,0.5)) drop-shadow(0 3px 12px rgba(0,0,0,0.5));
 }
 
 .compass-needle::after {
@@ -1132,11 +1112,11 @@ h1, h2, h3 {
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-bottom: 45px solid rgba(100,220,255,0.5);
-  opacity: 0.9;
-  filter: drop-shadow(0 0 8px rgba(100,220,255,0.4));
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 40px solid rgba(138,90,68,0.6);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px rgba(138,90,68,0.4));
 }
 
 .compass-cap {
@@ -1144,13 +1124,13 @@ h1, h2, h3 {
   height: 38px;
   border-radius: 50%;
   background: 
-    radial-gradient(circle at 32% 32%, rgba(255,240,200,0.95) 0%, rgba(220,180,100,1) 40%, rgba(180,130,60,1) 100%);
-  border: 3px solid rgba(120,80,30,1);
+    radial-gradient(circle at 32% 32%, rgba(230,200,170,0.95) 0%, rgba(200,121,65,1) 40%, rgba(138,90,68,1) 100%);
+  border: 3px solid rgba(100,70,50,1);
   box-shadow: 
     inset 0 3px 10px rgba(0,0,0,0.5),
-    inset 0 0 0 1px rgba(255,220,150,0.3),
-    0 0 15px rgba(255,220,100,0.4),
-    0 4px 12px rgba(0,0,0,0.6);
+    inset 0 0 0 1px rgba(230,200,170,0.3),
+    0 0 12px rgba(200,121,65,0.3),
+    0 4px 12px rgba(0,0,0,0.5);
   z-index: 10;
   position: relative;
 }

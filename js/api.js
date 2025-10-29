@@ -244,7 +244,7 @@ function renderWeather(data) { /* Update UI with weather data */
   updateWeatherTitle(); 
 }
 
-async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) return renderWeather(cachedWeather); showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
+async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) { renderWeather(cachedWeather); updateBirdFact(pos); return; } showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); updateBirdFact(pos); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
 
 // --- Local Alerts (HolidayAPI Integration) ---
 let lastAlertsCheck = 0;
@@ -484,4 +484,402 @@ function initAlertsControls() {
 }
 
 function initWeatherControls() { /* Attach listeners for weather */ const refBtn = $("refreshWeatherBtn"); if (refBtn) refBtn.onclick = () => {if (currentPosition) updateWeather(currentPosition, { force: true });}; updateWeatherTitle(); const tglBtn = $("toggleWeatherBtn"), wWidget = $("weatherWidget"); if (tglBtn && wWidget) { const isMin = localStorage.getItem('weatherMinimized') === 'true'; wWidget.classList.toggle('weather-minimized', isMin); tglBtn.onclick = () => { const nowMin = wWidget.classList.toggle('weather-minimized'); localStorage.setItem('weatherMinimized', nowMin ? 'true' : 'false'); }; } }
+
+// --- eBird Integration ---
+let lastBirdFactFetch = 0;
+const BIRD_FACT_CACHE_MS = 30 * 60 * 1000; // 30 minutes
+let cachedBirdFact = null;
+
+async function fetchRecentBirdSightings(lat, lng) {
+  const apiKey = window.EBIRD_API_KEY || 'h7b2pv30dr1t';
+  if (!apiKey) {
+    console.warn('eBird API key missing');
+    return null;
+  }
+
+  try {
+    const url = `https://api.ebird.org/v2/data/obs/geo/recent?lat=${lat}&lng=${lng}&dist=25&maxResults=5`;
+    const response = await fetch(url, {
+      headers: {
+        'X-eBirdApiToken': apiKey
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('eBird API request failed:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      // Pick a random bird from the recent sightings
+      const randomBird = data[Math.floor(Math.random() * data.length)];
+      const birdName = randomBird.comName;
+      const count = randomBird.howMany || 1;
+      const date = new Date(randomBird.obsDt);
+      const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+      
+      return `🐦 ${birdName} (${count}) spotted ${timeStr} nearby`;
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('Failed to fetch bird sightings:', err);
+    return null;
+  }
+}
+
+async function updateBirdFact(pos, force = false) {
+  const now = Date.now();
+  const birdFactEnabled = localStorage.getItem('birdFactsEnabled') !== 'false';
+  
+  if (!birdFactEnabled) {
+    return;
+  }
+  
+  if (!force && cachedBirdFact && (now - lastBirdFactFetch) < BIRD_FACT_CACHE_MS) {
+    displayBirdFact(cachedBirdFact);
+    return;
+  }
+  
+  if (!pos) return;
+  
+  try {
+    const fact = await fetchRecentBirdSightings(pos.lat, pos.lng);
+    if (fact) {
+      cachedBirdFact = fact;
+      lastBirdFactFetch = now;
+      displayBirdFact(fact);
+    }
+  } catch (err) {
+    console.error('Failed to update bird fact:', err);
+  }
+}
+
+function displayBirdFact(fact) {
+  if (!fact) return;
+  
+  let factContainer = document.getElementById('birdFactContainer');
+  if (!factContainer) {
+    // Create container if it doesn't exist
+    const weatherWidget = document.getElementById('weatherWidget');
+    if (!weatherWidget) return;
+    
+    factContainer = document.createElement('div');
+    factContainer.id = 'birdFactContainer';
+    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark);';
+    weatherWidget.appendChild(factContainer);
+  }
+  
+  factContainer.textContent = fact;
+}
+
+// --- Brewery Search Integration ---
+async function searchBreweries(lat, lng, query = '') {
+  try {
+    let url;
+    if (query) {
+      url = `https://api.openbrewerydb.org/v1/breweries/search?query=${encodeURIComponent(query)}&per_page=20`;
+    } else {
+      url = `https://api.openbrewerydb.org/v1/breweries?by_dist=${lat},${lng}&per_page=20`;
+    }
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Brewery API request failed:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    return data.map(brewery => ({
+      id: brewery.id,
+      name: brewery.name,
+      brewery_type: brewery.brewery_type,
+      address: `${brewery.street || ''} ${brewery.city || ''}, ${brewery.state || ''}`.trim(),
+      phone: brewery.phone,
+      website: brewery.website_url,
+      lat: parseFloat(brewery.latitude),
+      lng: parseFloat(brewery.longitude),
+      distance: brewery.latitude && brewery.longitude ? 
+        calculateDistance(lat, lng, parseFloat(brewery.latitude), parseFloat(brewery.longitude)) : null
+    })).filter(b => b.lat && b.lng); // Only return breweries with coordinates
+  } catch (err) {
+    console.error('Failed to fetch breweries:', err);
+    return [];
+  }
+}
+
+// --- Recreation.gov Integration ---
+async function searchRecreationAreas(lat, lng, radius = 50) {
+  const apiKey = window.RECREATION_GOV_API_KEY || 'd40a1208-c6a3-405c-8e53-bd1815fb39c7';
+  if (!apiKey) {
+    console.warn('Recreation.gov API key missing');
+    return [];
+  }
+
+  try {
+    const url = `https://ridb.recreation.gov/api/v1/facilities?latitude=${lat}&longitude=${lng}&radius=${radius}&limit=20`;
+    const response = await fetch(url, {
+      headers: {
+        'apikey': apiKey
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('Recreation.gov API request failed:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (data.RECDATA && Array.isArray(data.RECDATA)) {
+      return data.RECDATA.map(facility => ({
+        id: facility.FacilityID,
+        name: facility.FacilityName,
+        description: facility.FacilityDescription,
+        address: facility.FacilityAddress1 || '',
+        city: facility.FacilityCity || '',
+        state: facility.FacilityState || '',
+        lat: parseFloat(facility.FacilityLatitude),
+        lng: parseFloat(facility.FacilityLongitude),
+        phone: facility.FacilityPhone,
+        email: facility.FacilityEmail,
+        reservationUrl: facility.FacilityReservationURL,
+        activities: facility.ACTIVITY || []
+      }));
+    }
+    
+    return [];
+  } catch (err) {
+    console.error('Failed to fetch recreation areas:', err);
+    return [];
+  }
+}
+
+// --- National Park Service Integration ---
+async function searchNationalParks(lat, lng, radius = 100) {
+  const apiKey = window.NPS_API_KEY || 'IVyLNL0apimJEjLpx0c78KFtCco2Ka8zlLGY5eMO';
+  if (!apiKey) {
+    console.warn('National Park Service API key missing');
+    return [];
+  }
+
+  try {
+    const url = `https://developer.nps.gov/api/v1/parks?limit=10&api_key=${apiKey}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('NPS API request failed:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (data.data && Array.isArray(data.data)) {
+      // Filter by distance if coordinates are available
+      return data.data
+        .filter(park => park.latitude && park.longitude)
+        .map(park => {
+          const parkLat = parseFloat(park.latitude);
+          const parkLng = parseFloat(park.longitude);
+          const distance = calculateDistance(lat, lng, parkLat, parkLng);
+          
+          return {
+            id: park.id,
+            parkCode: park.parkCode,
+            name: park.fullName,
+            description: park.description,
+            designation: park.designation,
+            lat: parkLat,
+            lng: parkLng,
+            distance: distance,
+            url: park.url,
+            activities: park.activities || [],
+            topics: park.topics || [],
+            states: park.states,
+            directionsInfo: park.directionsInfo,
+            directionsUrl: park.directionsUrl,
+            weatherInfo: park.weatherInfo,
+            images: park.images || []
+          };
+        })
+        .filter(park => park.distance < radius * 1000) // Convert km to meters
+        .sort((a, b) => a.distance - b.distance);
+    }
+    
+    return [];
+  } catch (err) {
+    console.error('Failed to fetch national parks:', err);
+    return [];
+  }
+}
+
+async function getNPSParkEvents(parkCode) {
+  const apiKey = window.NPS_API_KEY || 'IVyLNL0apimJEjLpx0c78KFtCco2Ka8zlLGY5eMO';
+  if (!apiKey || !parkCode) return [];
+
+  try {
+    const url = `https://developer.nps.gov/api/v1/events?parkCode=${parkCode}&api_key=${apiKey}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('NPS Events API request failed:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (data.data && Array.isArray(data.data)) {
+      return data.data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        dateStart: event.datestart,
+        dateEnd: event.dateend,
+        times: event.times || [],
+        category: event.category,
+        tags: event.tags || []
+      }));
+    }
+    
+    return [];
+  } catch (err) {
+    console.error('Failed to fetch NPS events:', err);
+    return [];
+  }
+}
+
+// --- Marine Weather Detection ---
+function isNearOcean(lat, lng) {
+  // Simple coastline detection - check if within 50km of known coastal coordinates
+  // This is a simplified approach. In production, you'd use a more sophisticated method
+  // or a dedicated API
+  
+  // For now, we'll use a basic heuristic:
+  // Check if the location is in a coastal state/region
+  // This could be enhanced with actual distance-to-coast calculations
+  
+  return false; // Placeholder - would need proper implementation
+}
+
+async function fetchMarineWeather(lat, lng) {
+  try {
+    const params = new URLSearchParams({
+      latitude: lat.toFixed(4),
+      longitude: lng.toFixed(4),
+      current: 'wave_height,wave_direction,wave_period',
+      hourly: 'wave_height,wave_direction,wave_period',
+      timezone: 'auto'
+    });
+    
+    const response = await fetch(`https://marine-api.open-meteo.com/v1/marine?${params}`);
+    
+    if (!response.ok) {
+      console.error('Marine weather API request failed:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Failed to fetch marine weather:', err);
+    return null;
+  }
+}
+
+// --- Historical Weather Data ---
+async function fetchHistoricalWeather(lat, lng) {
+  try {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setFullYear(startDate.getFullYear() - 10); // Get 10 years of history
+    
+    const params = new URLSearchParams({
+      latitude: lat.toFixed(4),
+      longitude: lng.toFixed(4),
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: today.toISOString().split('T')[0],
+      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum',
+      timezone: 'auto'
+    });
+    
+    const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`);
+    
+    if (!response.ok) {
+      console.error('Historical weather API request failed:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Failed to fetch historical weather:', err);
+    return null;
+  }
+}
+
+function analyzeHistoricalWeather(historicalData, currentTemp, currentPrecip) {
+  if (!historicalData || !historicalData.daily) return null;
+  
+  const today = new Date();
+  const monthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  // Filter data for same date in previous years
+  const sameDateData = [];
+  historicalData.daily.time.forEach((dateStr, index) => {
+    if (dateStr.includes(monthDay)) {
+      sameDateData.push({
+        year: dateStr.split('-')[0],
+        maxTemp: historicalData.daily.temperature_2m_max[index],
+        minTemp: historicalData.daily.temperature_2m_min[index],
+        precip: historicalData.daily.precipitation_sum[index]
+      });
+    }
+  });
+  
+  if (sameDateData.length === 0) return null;
+  
+  const facts = [];
+  
+  // Temperature analysis
+  const maxTemps = sameDateData.map(d => d.maxTemp).filter(t => t !== null);
+  if (maxTemps.length > 0) {
+    const historicalMax = Math.max(...maxTemps);
+    const historicalMin = Math.min(...maxTemps);
+    const currentTempF = Math.round(currentTemp * 9/5 + 32);
+    const historicalMaxF = Math.round(historicalMax * 9/5 + 32);
+    const historicalMinF = Math.round(historicalMin * 9/5 + 32);
+    
+    if (currentTempF >= historicalMaxF - 2) {
+      facts.push(`🔥 ${currentTempF}°F today - tied for the hottest ${monthDay} on record!`);
+    } else if (currentTempF <= historicalMinF + 2) {
+      facts.push(`❄️ ${currentTempF}°F today - one of the coldest ${monthDay} days!`);
+    }
+  }
+  
+  // Precipitation analysis
+  const precipData = sameDateData.filter(d => d.precip && d.precip > 0);
+  if (currentPrecip && currentPrecip > 0) {
+    if (precipData.length > 0) {
+      const lastRainYear = precipData[precipData.length - 1].year;
+      const yearsAgo = today.getFullYear() - parseInt(lastRainYear);
+      if (yearsAgo > 1) {
+        facts.push(`💧 Rain today - last time it rained on ${monthDay} was ${yearsAgo} years ago!`);
+      }
+    }
+  } else if (precipData.length > 0) {
+    const recentRain = precipData[precipData.length - 1];
+    const yearsAgo = today.getFullYear() - parseInt(recentRain.year);
+    if (yearsAgo >= 1) {
+      facts.push(`☀️ Dry today - it rained on ${monthDay} ${yearsAgo} year${yearsAgo > 1 ? 's' : ''} ago`);
+    }
+  }
+  
+  return facts.length > 0 ? facts : null;
+}
 

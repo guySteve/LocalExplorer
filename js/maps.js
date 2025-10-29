@@ -203,6 +203,8 @@ function performSearch(category, item) { /* Perform unified search across Google
         return;
       }
       if (category === 'Local Events') return searchLocalEvents(item); // Handle events separately
+      if (category === 'Breweries') return searchBreweriesHandler(item); // Handle breweries
+      if (category === 'Recreation') return searchRecreationHandler(item); // Handle recreation
       
       // Handle legacy FourSquare-only searches (will be deprecated)
       if (item.useFourSquare && item.fourSquareOnly) {
@@ -709,4 +711,213 @@ function populateWhat3WordsAddress(loc) {
   }).catch(() => {
     what3wordsDiv.style.display = 'none';
   });
+}
+
+// --- Brewery Search Handler ---
+async function searchBreweriesHandler(item) {
+  if (!currentPosition) return alert('Please provide a location first.');
+  
+  const list = $("resultsList");
+  const resultsModal = $("resultsModal");
+  
+  $("resultsTitle").textContent = `${item.name} Results`;
+  list.innerHTML = '<p style="text-align:center; color: var(--card);">Searching breweries...</p>';
+  resultsModal.classList.add('active');
+  document.body.classList.add('modal-open');
+  
+  try {
+    const query = item.search === 'breweries' ? '' : item.search;
+    const breweries = await searchBreweries(currentPosition.lat, currentPosition.lng, query);
+    
+    list.innerHTML = '';
+    
+    if (breweries.length === 0) {
+      list.innerHTML = '<p style="text-align:center; color: var(--card);">No breweries found nearby.</p>';
+      return;
+    }
+    
+    breweries.forEach(brewery => {
+      const btn = document.createElement('button');
+      btn.onclick = () => showBreweryDetails(brewery);
+      
+      const wrap = document.createElement('div');
+      wrap.className = 'results-item';
+      
+      const info = document.createElement('div');
+      info.className = 'results-info';
+      
+      const title = document.createElement('h4');
+      title.textContent = brewery.name;
+      info.appendChild(title);
+      
+      const type = document.createElement('span');
+      type.className = 'rating';
+      type.textContent = brewery.brewery_type.replace('_', ' ');
+      info.appendChild(type);
+      
+      if (brewery.distance) {
+        const dist = document.createElement('span');
+        dist.className = 'rating';
+        dist.textContent = `${(brewery.distance / 1000).toFixed(1)} km away`;
+        info.appendChild(dist);
+      }
+      
+      wrap.appendChild(info);
+      btn.appendChild(wrap);
+      list.appendChild(btn);
+    });
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = '<p style="text-align:center; color: var(--card);">Unable to fetch breweries.</p>';
+  }
+}
+
+function showBreweryDetails(brewery) {
+  // Open details in a simple format
+  const detailsSheet = $("detailsSheet");
+  const detailsName = $("detailsName");
+  const detailsAddress = $("detailsAddress");
+  const detailsPhone = $("detailsPhone");
+  const websiteBtn = $("websiteBtn");
+  
+  if (detailsName) detailsName.textContent = brewery.name;
+  if (detailsAddress) detailsAddress.textContent = brewery.address;
+  if (detailsPhone) {
+    detailsPhone.textContent = brewery.phone || 'No phone available';
+    detailsPhone.style.display = 'block';
+  }
+  
+  if (websiteBtn) {
+    if (brewery.website) {
+      websiteBtn.style.display = 'inline-block';
+      websiteBtn.onclick = () => window.open(brewery.website, '_blank');
+    } else {
+      websiteBtn.style.display = 'none';
+    }
+  }
+  
+  // Hide unused elements
+  const detailsRating = $("detailsRating");
+  const detailsPrice = $("detailsPrice");
+  if (detailsRating) detailsRating.style.display = 'none';
+  if (detailsPrice) detailsPrice.style.display = 'none';
+  
+  detailsSheet.classList.add('active');
+  document.body.classList.add('modal-open');
+}
+
+// --- Recreation Search Handler ---
+async function searchRecreationHandler(item) {
+  if (!currentPosition) return alert('Please provide a location first.');
+  
+  const list = $("resultsList");
+  const resultsModal = $("resultsModal");
+  
+  $("resultsTitle").textContent = `${item.name} Results`;
+  list.innerHTML = '<p style="text-align:center; color: var(--card);">Searching recreation areas...</p>';
+  resultsModal.classList.add('active');
+  document.body.classList.add('modal-open');
+  
+  try {
+    let results = [];
+    
+    if (item.search === 'national_park') {
+      results = await searchNationalParks(currentPosition.lat, currentPosition.lng);
+    } else {
+      results = await searchRecreationAreas(currentPosition.lat, currentPosition.lng);
+    }
+    
+    list.innerHTML = '';
+    
+    if (results.length === 0) {
+      list.innerHTML = '<p style="text-align:center; color: var(--card);">No results found nearby.</p>';
+      return;
+    }
+    
+    results.forEach(place => {
+      const btn = document.createElement('button');
+      btn.onclick = () => showRecreationDetails(place, item.search === 'national_park');
+      
+      const wrap = document.createElement('div');
+      wrap.className = 'results-item';
+      
+      const info = document.createElement('div');
+      info.className = 'results-info';
+      
+      const title = document.createElement('h4');
+      title.textContent = place.name;
+      info.appendChild(title);
+      
+      if (place.designation || place.city) {
+        const type = document.createElement('span');
+        type.className = 'rating';
+        type.textContent = place.designation || place.city;
+        info.appendChild(type);
+      }
+      
+      if (place.distance) {
+        const dist = document.createElement('span');
+        dist.className = 'rating';
+        dist.textContent = `${(place.distance / 1000).toFixed(1)} km away`;
+        info.appendChild(dist);
+      }
+      
+      wrap.appendChild(info);
+      btn.appendChild(wrap);
+      list.appendChild(btn);
+    });
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = '<p style="text-align:center; color: var(--card);">Unable to fetch recreation areas.</p>';
+  }
+}
+
+function showRecreationDetails(place, isNationalPark) {
+  const detailsSheet = $("detailsSheet");
+  const detailsName = $("detailsName");
+  const detailsAddress = $("detailsAddress");
+  const detailsPhone = $("detailsPhone");
+  const websiteBtn = $("websiteBtn");
+  const detailsDescription = $("detailsDescription");
+  
+  if (detailsName) detailsName.textContent = place.name;
+  
+  if (detailsAddress) {
+    if (isNationalPark) {
+      detailsAddress.textContent = place.states || place.address;
+    } else {
+      detailsAddress.textContent = `${place.address} ${place.city}, ${place.state}`;
+    }
+    detailsAddress.style.display = 'block';
+  }
+  
+  if (detailsPhone) {
+    detailsPhone.textContent = place.phone || 'No phone available';
+    detailsPhone.style.display = place.phone ? 'block' : 'none';
+  }
+  
+  if (websiteBtn) {
+    const url = place.url || place.reservationUrl;
+    if (url) {
+      websiteBtn.style.display = 'inline-block';
+      websiteBtn.onclick = () => window.open(url, '_blank');
+    } else {
+      websiteBtn.style.display = 'none';
+    }
+  }
+  
+  // Show description if available
+  if (detailsDescription && place.description) {
+    detailsDescription.textContent = place.description.substring(0, 300) + '...';
+    detailsDescription.style.display = 'block';
+  }
+  
+  // Hide unused elements
+  const detailsRating = $("detailsRating");
+  const detailsPrice = $("detailsPrice");
+  if (detailsRating) detailsRating.style.display = 'none';
+  if (detailsPrice) detailsPrice.style.display = 'none';
+  
+  detailsSheet.classList.add('active');
+  document.body.classList.add('modal-open');
 }
