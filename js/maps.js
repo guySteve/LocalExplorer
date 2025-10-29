@@ -178,7 +178,7 @@ function reverseGeocode(pos) { /* Get address from coords */
       });
     }
 
-function displayLocation(result, pos) { /* Update UI with location */
+async function displayLocation(result, pos) { /* Update UI with location */
         let city = '', state = '';
         if (result.address_components) {
             result.address_components.forEach(comp => {
@@ -188,9 +188,38 @@ function displayLocation(result, pos) { /* Update UI with location */
         }
         let locStr = city && state ? `${city}, ${state}` : city || state || currentAddress;
         latestLocationLabel = locStr.replace(/[<>]/g, ''); // Sanitize
-        $("locationDisplay").innerHTML = `${locStr}<br><span style="font-size:0.75rem; opacity:0.8;">${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}</span>`;
+        
+        // Create location display with coordinates
+        const coordsStr = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+        let displayHTML = `${locStr}<br><span style="font-size:0.75rem; opacity:0.8;">${coordsStr}</span>`;
+        
+        // Add What3Words placeholder
+        displayHTML += `<br><span id="mainPageWhat3Words" style="font-size:0.75rem; opacity:0.7; color: var(--accent);">Loading what3words...</span>`;
+        
+        $("locationDisplay").innerHTML = displayHTML;
         if (compassLabels.location) compassLabels.location.textContent = locStr ? `Near ${locStr}` : 'Awaiting course';
         updateWeatherTitle();
+        
+        // Fetch and display What3Words
+        try {
+            const w3w = await fetchWhat3Words(pos.lat, pos.lng);
+            const w3wElement = document.getElementById('mainPageWhat3Words');
+            if (w3wElement) {
+                if (w3w) {
+                    w3wElement.textContent = `📍 ${w3w}`;
+                    w3wElement.style.fontWeight = '600';
+                    w3wElement.style.opacity = '0.9';
+                } else {
+                    w3wElement.style.display = 'none';
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load What3Words:', err);
+            const w3wElement = document.getElementById('mainPageWhat3Words');
+            if (w3wElement) {
+                w3wElement.style.display = 'none';
+            }
+        }
     }
 
 function performSearch(category, item) { /* Perform unified search across Google Places and Foursquare */
@@ -758,7 +787,7 @@ async function searchBreweriesHandler(item) {
       if (brewery.distance) {
         const dist = document.createElement('span');
         dist.className = 'rating';
-        dist.textContent = `${(brewery.distance / 1000).toFixed(1)} km away`;
+        dist.textContent = `${brewery.distance.toFixed(1)} mi away`;
         info.appendChild(dist);
       }
       
@@ -858,7 +887,7 @@ async function searchRecreationHandler(item) {
       if (place.distance) {
         const dist = document.createElement('span');
         dist.className = 'rating';
-        dist.textContent = `${(place.distance / 1000).toFixed(1)} km away`;
+        dist.textContent = `${place.distance.toFixed(1)} mi away`;
         info.appendChild(dist);
       }
       

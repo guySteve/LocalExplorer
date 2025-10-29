@@ -286,7 +286,20 @@ function displayEventResults(events, subCategory) { /* Display Ticketmaster resu
         const list = $("resultsList"); list.innerHTML = '';
         $("resultsTitle").textContent = `${subCategory} Events`;
         setLoadMoreState(null);
-        if (events.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--card);">No events found nearby.</p>'; }
+        
+        // Add "Powered by Ticketmaster" attribution at the top
+        const attribution = document.createElement('div');
+        attribution.style.cssText = 'text-align: center; padding: 0.5rem; color: var(--card); font-size: 0.75rem; opacity: 0.8;';
+        attribution.textContent = '⚡ Powered by Ticketmaster';
+        list.appendChild(attribution);
+        
+        if (events.length === 0) { 
+          const noResults = document.createElement('p');
+          noResults.style.cssText = 'text-align:center; color: var(--card);';
+          noResults.textContent = 'No events found nearby.';
+          list.appendChild(noResults);
+        }
+        
         events.forEach(event => {
             const btn = document.createElement('button'); btn.onclick = () => { if (event.url) window.open(event.url, '_blank'); };
             const wrap = document.createElement('div'); wrap.className = 'results-item';
@@ -298,8 +311,40 @@ function displayEventResults(events, subCategory) { /* Display Ticketmaster resu
             // Info
             const info = document.createElement('div'); info.className = 'results-info';
             const title = document.createElement('h4'); title.textContent = event.name; info.appendChild(title);
-            // Add Date/Time
-            if (event.dates && event.dates.start) { const d = event.dates.start.localDate || '', t = event.dates.start.localTime || ''; const span = document.createElement('span'); span.className = 'rating'; span.textContent = d + (t ? ` ${t}` : ''); info.appendChild(span); }
+            
+            // Add Date/Time with better formatting
+            if (event.dates && event.dates.start) { 
+              const dateStr = event.dates.start.localDate || '';
+              const timeStr = event.dates.start.localTime || '';
+              
+              if (dateStr) {
+                const eventDate = new Date(dateStr + (timeStr ? 'T' + timeStr : ''));
+                const now = new Date();
+                const daysUntil = Math.floor((eventDate - now) / (1000 * 60 * 60 * 24));
+                
+                let dateDisplay = '';
+                if (daysUntil === 0) {
+                  dateDisplay = '📅 Today';
+                } else if (daysUntil === 1) {
+                  dateDisplay = '📅 Tomorrow';
+                } else if (daysUntil > 1 && daysUntil < 7) {
+                  dateDisplay = `📅 In ${daysUntil} days`;
+                } else {
+                  dateDisplay = `📅 ${eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                }
+                
+                if (timeStr) {
+                  const timeFormatted = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                  dateDisplay += ` at ${timeFormatted}`;
+                }
+                
+                const span = document.createElement('span'); 
+                span.className = 'rating'; 
+                span.textContent = dateDisplay;
+                info.appendChild(span);
+              }
+            }
+            
             // Add Venue
             if (event._embedded?.venues?.[0]) { const v = event._embedded.venues[0]; const city = v.city?.name || ''; const state = v.state?.name || v.state?.stateCode || ''; const loc = city && state ? `${city}, ${state}` : city || state; const span = document.createElement('span'); span.className = 'rating'; span.textContent = v.name + (loc ? ` — ${loc}` : ''); info.appendChild(span); }
             wrap.appendChild(info); btn.appendChild(wrap); list.appendChild(btn);
