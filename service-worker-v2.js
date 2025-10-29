@@ -87,11 +87,19 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Allowed external domains for caching
+  const allowedOrigins = [
+    'maps.googleapis.com',
+    'maps.gstatic.com',
+    'fonts.googleapis.com',
+    'fonts.gstatic.com',
+    'open-meteo.com'
+  ];
+
   // Skip cross-origin requests that aren't from allowed domains
+  // Use exact hostname matching to prevent bypass attacks
   if (url.origin !== location.origin && 
-      !url.hostname.includes('googleapis.com') &&
-      !url.hostname.includes('gstatic.com') &&
-      !url.hostname.includes('open-meteo.com')) {
+      !allowedOrigins.includes(url.hostname)) {
     return;
   }
 
