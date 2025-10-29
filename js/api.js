@@ -52,14 +52,197 @@ function showWeatherLoading(msg) {
 
 function weatherCodeToSummary(code) { /* Translates weather code to icon/text */ const map = { 0: { icon: '☀️', text: 'Clear' }, 1: { icon: '🌤️', text: 'Mostly clear' }, 2: { icon: '⛅', text: 'Partly cloudy' }, 3: { icon: '☁️', text: 'Overcast' }, 45: { icon: '🌫️', text: 'Fog' }, 48: { icon: '🌫️', text: 'Icy fog' }, 51: { icon: '🌦️', text: 'Light drizzle' }, 53: { icon: '🌦️', text: 'Drizzle' }, 55: { icon: '🌧️', text: 'Heavy drizzle' }, 61: { icon: '🌦️', text: 'Light rain' }, 63: { icon: '🌧️', text: 'Rain' }, 65: { icon: '🌧️', text: 'Heavy rain' }, 71: { icon: '🌨️', text: 'Light snow' }, 73: { icon: '🌨️', text: 'Snow' }, 75: { icon: '❄️', text: 'Heavy snow' }, 80: { icon: '🌦️', text: 'Showers' }, 82: { icon: '⛈️', text: 'Heavy showers' }, 95: { icon: '⛈️', text: 'Thunderstorm' } }; return map[code] || { icon: '🌤️', text: 'Mixed' }; }
 
-async function fetchWeatherData(pos) { /* Fetch from Open-Meteo */ const p = new URLSearchParams({ latitude: pos.lat.toFixed(4), longitude: pos.lng.toFixed(4), current_weather: 'true', hourly: 'apparent_temperature', daily: 'temperature_2m_max,temperature_2m_min', timezone: 'auto' }); const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`); if (!r.ok) throw new Error('Weather fetch failed'); return r.json(); }
+function formatTimeRemaining(hours, minutes) {
+  /* Format time remaining in a readable way */
+  if (hours > 24) {
+    return `${Math.round(hours / 24)} days`;
+  } else if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+  } else if (minutes > 0) {
+    return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+  } else {
+    return 'moments';
+  }
+}
 
-function renderWeather(data) { /* Update UI with weather data */ if (!data?.current_weather) return setWeatherPlaceholder('Weather unavailable.'); const c = data.current_weather, sum = weatherCodeToSummary(c.weathercode), tempF = Math.round(c.temperature * 9/5 + 32); let feelsF = tempF; if (Array.isArray(data.hourly?.time) && Array.isArray(data.hourly?.apparent_temperature)) { // Check if apparent_temperature exists
-    const index = data.hourly.time.indexOf(c.time);
-    if (index >= 0 && index < data.hourly.apparent_temperature.length) { // Check index bounds
-         feelsF = Math.round(data.hourly.apparent_temperature[index] * 9/5 + 32); 
+function getContextualSunMessage(type, timeRemaining, weatherCode, isClear) {
+  /* Generate creative contextual messages based on time of day and weather */
+  const hours = Math.floor(timeRemaining / 60);
+  const isNight = type === 'sunrise';
+  
+  // Clear night/day specific messages
+  if (isClear) {
+    if (type === 'sunset') {
+      if (hours === 0) return '🌅 The golden hour is upon us!';
+      if (hours < 1) return '🌇 Sunset vibes incoming...';
+      if (hours < 2) return '☀️ Catch those last rays!';
+      if (hours < 3) return '🌤️ Day is winding down...';
+      if (hours < 6) return '☀️ Plenty of daylight left!';
+      return '☀️ Enjoy the sunshine!';
+    } else {
+      if (hours === 0) return '🌄 Dawn is breaking!';
+      if (hours < 1) return '🌌 Night is ending soon...';
+      if (hours < 2) return '⭐ Good night for now...';
+      if (hours < 3) return '🌙 Sweet dreams under clear skies!';
+      if (hours < 6) return '✨ Stargazing weather!';
+      return '🌠 Clear night ahead!';
     }
-} const maxF = Math.round((data.daily?.temperature_2m_max?.[0] ?? c.temperature) * 9/5 + 32), minF = Math.round((data.daily?.temperature_2m_min?.[0] ?? c.temperature) * 9/5 + 32), windMph = Math.round((c.windspeed || 0) / 1.609); if (weatherElements.icon) weatherElements.icon.textContent = sum.icon; if (weatherElements.temp) weatherElements.temp.textContent = `${tempF}°`; if (weatherElements.description) weatherElements.description.textContent = sum.text; if (weatherElements.feels) weatherElements.feels.textContent = `Feels like ${feelsF}°`; if (weatherElements.wind) weatherElements.wind.textContent = `Wind ${windMph} mph`; if (weatherElements.range) weatherElements.range.textContent = `High ${maxF}° / Low ${minF}°`; if (weatherElements.updated) weatherElements.updated.textContent = `Updated ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`; updateWeatherTitle(); }
+  }
+  
+  // Weather-specific messages
+  const isRainy = [51, 53, 55, 61, 63, 65, 80, 82].includes(weatherCode);
+  const isSnowy = [71, 73, 75].includes(weatherCode);
+  const isStormy = [95].includes(weatherCode);
+  const isCloudy = [2, 3].includes(weatherCode);
+  const isFoggy = [45, 48].includes(weatherCode);
+  
+  if (type === 'sunset') {
+    if (isStormy) {
+      if (hours < 2) return '⛈️ Storm sunset drama incoming!';
+      return '⚡ Stormy skies till sunset...';
+    }
+    if (isRainy) {
+      if (hours < 2) return '🌧️ Rainy sunset vibes...';
+      return '💧 Wet evening ahead...';
+    }
+    if (isSnowy) {
+      if (hours < 2) return '❄️ Snowy dusk approaching...';
+      return '🌨️ Winter wonderland till sunset...';
+    }
+    if (isCloudy) {
+      if (hours < 2) return '☁️ Cloudy sunset coming...';
+      return '⛅ Overcast evening ahead...';
+    }
+    if (isFoggy) {
+      if (hours < 2) return '🌫️ Misty sunset vibes...';
+      return '🌁 Foggy evening ahead...';
+    }
+    return '🌆 Sunset approaching...';
+  } else {
+    if (isStormy) {
+      if (hours < 2) return '⛈️ Stormy night ending...';
+      return '⚡ Thunder through the night...';
+    }
+    if (isRainy) {
+      if (hours < 2) return '🌧️ Rainy night, sunrise soon...';
+      return '💧 Wet night ahead...';
+    }
+    if (isSnowy) {
+      if (hours < 2) return '❄️ Snowy dawn approaching...';
+      return '🌨️ Snow through the night...';
+    }
+    if (isCloudy) {
+      if (hours < 2) return '☁️ Cloudy dawn coming...';
+      return '⛅ Overcast night...';
+    }
+    if (isFoggy) {
+      if (hours < 2) return '🌫️ Misty morning ahead...';
+      return '🌁 Foggy night...';
+    }
+    return '🌃 Good night!';
+  }
+}
+
+function renderSunInfo(data, weatherCode) {
+  /* Render sunrise/sunset countdown with contextual messages */
+  const sunInfoContainer = document.getElementById('weatherSunInfo');
+  const sunCountdown = document.getElementById('sunCountdown');
+  const sunMessage = document.getElementById('sunMessage');
+  
+  if (!sunInfoContainer || !sunCountdown || !sunMessage) return;
+  
+  // Check if we have sunrise/sunset data
+  if (!data.daily?.sunrise?.[0] || !data.daily?.sunset?.[0]) {
+    sunInfoContainer.style.display = 'none';
+    return;
+  }
+  
+  const now = new Date();
+  const sunrise = new Date(data.daily.sunrise[0]);
+  const sunset = new Date(data.daily.sunset[0]);
+  
+  // Determine if we're before or after sunrise/sunset
+  const isDay = now >= sunrise && now < sunset;
+  const isClear = [0, 1].includes(weatherCode); // Clear or mostly clear
+  
+  let nextEvent, nextEventTime, eventType;
+  
+  if (isDay) {
+    // During day, show countdown to sunset
+    nextEvent = 'sunset';
+    nextEventTime = sunset;
+    eventType = 'sunset';
+  } else {
+    // During night, show countdown to sunrise
+    // Check if sunrise is today or tomorrow
+    if (now < sunrise) {
+      nextEvent = 'sunrise';
+      nextEventTime = sunrise;
+    } else {
+      // Sunrise already passed, use tomorrow's sunrise
+      const tomorrowSunrise = new Date(data.daily.sunrise[1] || sunrise);
+      if (data.daily.sunrise[1]) {
+        nextEvent = 'sunrise';
+        nextEventTime = tomorrowSunrise;
+      } else {
+        // Fallback: add 24 hours
+        nextEvent = 'sunrise';
+        nextEventTime = new Date(sunrise.getTime() + 24 * 60 * 60 * 1000);
+      }
+    }
+    eventType = 'sunrise';
+  }
+  
+  // Calculate time remaining
+  const timeRemaining = Math.max(0, nextEventTime - now);
+  const minutesRemaining = Math.floor(timeRemaining / (1000 * 60));
+  const hoursRemaining = Math.floor(minutesRemaining / 60);
+  const minsRemaining = minutesRemaining % 60;
+  
+  // Format the countdown
+  const formattedTime = formatTimeRemaining(hoursRemaining, minsRemaining);
+  const emoji = eventType === 'sunset' ? '🌅' : '🌄';
+  
+  // Update UI
+  sunCountdown.textContent = `${emoji} ${formattedTime} till ${nextEvent}`;
+  sunMessage.textContent = getContextualSunMessage(eventType, minutesRemaining, weatherCode, isClear);
+  sunInfoContainer.style.display = 'block';
+}
+
+async function fetchWeatherData(pos) { /* Fetch from Open-Meteo */ const p = new URLSearchParams({ latitude: pos.lat.toFixed(4), longitude: pos.lng.toFixed(4), current_weather: 'true', hourly: 'apparent_temperature', daily: 'temperature_2m_max,temperature_2m_min,sunrise,sunset', timezone: 'auto' }); const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`); if (!r.ok) throw new Error('Weather fetch failed'); return r.json(); }
+
+function renderWeather(data) { /* Update UI with weather data */ 
+  if (!data?.current_weather) return setWeatherPlaceholder('Weather unavailable.'); 
+  
+  const c = data.current_weather, 
+        sum = weatherCodeToSummary(c.weathercode), 
+        tempF = Math.round(c.temperature * 9/5 + 32); 
+  
+  let feelsF = tempF; 
+  if (Array.isArray(data.hourly?.time) && Array.isArray(data.hourly?.apparent_temperature)) {
+    const index = data.hourly.time.indexOf(c.time);
+    if (index >= 0 && index < data.hourly.apparent_temperature.length) {
+      feelsF = Math.round(data.hourly.apparent_temperature[index] * 9/5 + 32); 
+    }
+  } 
+  
+  const maxF = Math.round((data.daily?.temperature_2m_max?.[0] ?? c.temperature) * 9/5 + 32), 
+        minF = Math.round((data.daily?.temperature_2m_min?.[0] ?? c.temperature) * 9/5 + 32), 
+        windMph = Math.round((c.windspeed || 0) / 1.609); 
+  
+  if (weatherElements.icon) weatherElements.icon.textContent = sum.icon; 
+  if (weatherElements.temp) weatherElements.temp.textContent = `${tempF}°`; 
+  if (weatherElements.description) weatherElements.description.textContent = sum.text; 
+  if (weatherElements.feels) weatherElements.feels.textContent = `Feels like ${feelsF}°`; 
+  if (weatherElements.wind) weatherElements.wind.textContent = `Wind ${windMph} mph`; 
+  if (weatherElements.range) weatherElements.range.textContent = `High ${maxF}° / Low ${minF}°`; 
+  if (weatherElements.updated) weatherElements.updated.textContent = `Updated ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`; 
+  
+  // Render sunrise/sunset info
+  renderSunInfo(data, c.weathercode);
+  
+  updateWeatherTitle(); 
+}
 
 async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) return renderWeather(cachedWeather); showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
 
