@@ -34,8 +34,12 @@ const weatherElements = new Proxy({}, {
   }
 });
 
+let _voiceSelectCache = null;
 function getVoiceSelect() {
-  return $("voiceSelect");
+  if (!_voiceSelectCache) {
+    _voiceSelectCache = $("voiceSelect");
+  }
+  return _voiceSelectCache;
 }
 const voiceSelect = new Proxy({}, {
   get(target, prop) {
