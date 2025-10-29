@@ -688,3 +688,27 @@ function initDetailsSheetInteractions() {
     }
 
 
+
+// Helper function to populate What3Words address
+function populateWhat3WordsAddress(loc) {
+  const what3wordsDiv = $("detailsWhat3Words");
+  const what3wordsText = $("detailsWhat3WordsText");
+  if (!what3wordsDiv || !what3wordsText || !loc) return;
+  
+  const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+  const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+  
+  what3wordsDiv.style.display = 'block';
+  what3wordsText.textContent = 'Loading...';
+  fetchWhat3Words(lat, lng).then(w3w => {
+    if (w3w) {
+      what3wordsText.textContent = w3w;
+      what3wordsText.style.fontWeight = '600';
+      what3wordsText.style.color = 'var(--accent)';
+    } else {
+      what3wordsDiv.style.display = 'none';
+    }
+  }).catch(() => {
+    what3wordsDiv.style.display = 'none';
+  });
+}
