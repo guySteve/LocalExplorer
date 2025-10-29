@@ -4,7 +4,7 @@
 
 // For local development, you can set your Google Maps API key here
 // (Google Maps must be loaded client-side)
-window.MAPS_API_KEY = window.MAPS_API_KEY || '';
+window.MAPS_API_KEY = window.MAPS_API_KEY || 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
 
 // All other API keys are now secured via Netlify Functions
 // The frontend will make requests to these serverless endpoints:
