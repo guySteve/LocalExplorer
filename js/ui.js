@@ -1,8 +1,22 @@
 function launchCompass(dest = null, label = '') {
+  // Lazy load compass module on first use
   if (typeof window.openCompass === 'function') {
     window.openCompass(dest, label);
+  } else if (!window.compassLoading) {
+    window.compassLoading = true;
+    alert('Loading compass module...');
+    // In a real implementation, this would dynamically import the compass module
+    // For now, we rely on the deferred script loading
+    setTimeout(() => {
+      if (typeof window.openCompass === 'function') {
+        window.openCompass(dest, label);
+      } else {
+        alert('Compass is still loading. Please try again in a moment.');
+      }
+      window.compassLoading = false;
+    }, 500);
   } else {
-    alert('Compass is still loading. Please try again in a moment.');
+    alert('Compass is loading. Please wait...');
   }
 }
 window.launchCompass = window.launchCompass || launchCompass;
