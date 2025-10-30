@@ -1,6 +1,22 @@
+// Cache for event searches
+let eventSearchCache = new Map();
+const EVENT_SEARCH_CACHE_MS = 30 * 60 * 1000; // 30 minutes cache
+
 async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
       if (!currentPosition) return alert('Please provide a location first.');
       const classification = (item.value && item.value !== 'all') ? item.value : '';
+      
+      // Create cache key
+      const cacheKey = `${currentPosition.lat.toFixed(2)},${currentPosition.lng.toFixed(2)},${classification}`;
+      
+      // Check cache first
+      const cached = eventSearchCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < EVENT_SEARCH_CACHE_MS)) {
+        console.log('Using cached event results');
+        displayEventResults(cached.events, item.name);
+        return;
+      }
+      
       // Reduced radius to 25 miles for local events
       const params = new URLSearchParams({
         latlong: `${currentPosition.lat},${currentPosition.lng}`,
@@ -15,12 +31,39 @@ async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
         const resp = await fetch(url); 
         const data = await resp.json();
         const events = (data._embedded && data._embedded.events) || [];
+        
+        // Cache the results
+        eventSearchCache.set(cacheKey, {
+          events: events,
+          timestamp: Date.now()
+        });
+        
+        // Limit cache size to 20 entries
+        if (eventSearchCache.size > 20) {
+          const firstKey = eventSearchCache.keys().next().value;
+          eventSearchCache.delete(firstKey);
+        }
+        
         displayEventResults(events, item.name); // Display events in results modal
       } catch (err) { console.error(err); alert('Unable to fetch events.'); }
     }
 
 async function showSurpriseEvents() {
       if (!currentPosition) return alert('Please provide location first.');
+      
+      // Create cache key
+      const cacheKey = `surprise,${currentPosition.lat.toFixed(2)},${currentPosition.lng.toFixed(2)}`;
+      
+      // Check cache first
+      const cached = eventSearchCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < EVENT_SEARCH_CACHE_MS)) {
+        console.log('Using cached surprise events');
+        const picks = sampleFromArray(cached.events, Math.min(6, cached.events.length));
+        if (!picks.length) return alert('No events found for Surprise Me.');
+        displayEventResults(picks, 'Surprise Mix');
+        return;
+      }
+      
       // Reduced radius to 40 miles for surprise events
       const params = new URLSearchParams({
         latlong: `${currentPosition.lat},${currentPosition.lng}`,
@@ -33,6 +76,19 @@ async function showSurpriseEvents() {
         const resp = await fetch(url); 
         const data = await resp.json();
         const events = (data._embedded && data._embedded.events) || [];
+        
+        // Cache the results
+        eventSearchCache.set(cacheKey, {
+          events: events,
+          timestamp: Date.now()
+        });
+        
+        // Limit cache size to 20 entries
+        if (eventSearchCache.size > 20) {
+          const firstKey = eventSearchCache.keys().next().value;
+          eventSearchCache.delete(firstKey);
+        }
+        
         const picks = sampleFromArray(events, Math.min(6, events.length));
         if (!picks.length) return alert('No events found for Surprise Me.');
         displayEventResults(picks, 'Surprise Mix');
@@ -1166,8 +1222,22 @@ async function searchBreweries(lat, lng, query = '') {
 }
 
 // --- Recreation.gov Integration ---
+// Cache for recreation area searches
+let recreationCache = new Map();
+const RECREATION_CACHE_MS = 60 * 60 * 1000; // 1 hour cache
+
 async function searchRecreationAreas(lat, lng, radius = 50) {
   try {
+    // Create cache key
+    const cacheKey = `${lat.toFixed(2)},${lng.toFixed(2)},${radius}`;
+    
+    // Check cache first
+    const cached = recreationCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < RECREATION_CACHE_MS)) {
+      console.log('Using cached recreation areas');
+      return cached.value;
+    }
+    
     const params = new URLSearchParams({
       latitude: lat.toString(),
       longitude: lng.toString(),
@@ -1185,8 +1255,9 @@ async function searchRecreationAreas(lat, lng, radius = 50) {
     
     const data = await response.json();
     
+    let results = [];
     if (data.RECDATA && Array.isArray(data.RECDATA)) {
-      return data.RECDATA.map(facility => ({
+      results = data.RECDATA.map(facility => ({
         id: facility.FacilityID,
         name: facility.FacilityName,
         description: facility.FacilityDescription,
@@ -1202,7 +1273,19 @@ async function searchRecreationAreas(lat, lng, radius = 50) {
       }));
     }
     
-    return [];
+    // Cache the results
+    recreationCache.set(cacheKey, {
+      value: results,
+      timestamp: Date.now()
+    });
+    
+    // Limit cache size to 20 entries
+    if (recreationCache.size > 20) {
+      const firstKey = recreationCache.keys().next().value;
+      recreationCache.delete(firstKey);
+    }
+    
+    return results;
   } catch (err) {
     console.error('Failed to fetch recreation areas:', err);
     return [];
@@ -1210,8 +1293,23 @@ async function searchRecreationAreas(lat, lng, radius = 50) {
 }
 
 // --- National Park Service Integration ---
+// Cache for NPS searches
+let npsCache = new Map();
+let npsEventsCache = new Map();
+const NPS_CACHE_MS = 60 * 60 * 1000; // 1 hour cache
+
 async function searchNationalParks(lat, lng, radius = 100) {
   try {
+    // Create cache key
+    const cacheKey = `${lat.toFixed(2)},${lng.toFixed(2)},${radius}`;
+    
+    // Check cache first
+    const cached = npsCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < NPS_CACHE_MS)) {
+      console.log('Using cached national parks');
+      return cached.value;
+    }
+    
     const params = new URLSearchParams({
       endpoint: 'parks',
       limit: '10'
@@ -1227,9 +1325,10 @@ async function searchNationalParks(lat, lng, radius = 100) {
     
     const data = await response.json();
     
+    let results = [];
     if (data.data && Array.isArray(data.data)) {
       // Filter by distance if coordinates are available
-      return data.data
+      results = data.data
         .filter(park => park.latitude && park.longitude)
         .map(park => {
           const parkLat = parseFloat(park.latitude);
@@ -1259,7 +1358,19 @@ async function searchNationalParks(lat, lng, radius = 100) {
         .sort((a, b) => a.distance - b.distance);
     }
     
-    return [];
+    // Cache the results
+    npsCache.set(cacheKey, {
+      value: results,
+      timestamp: Date.now()
+    });
+    
+    // Limit cache size to 20 entries
+    if (npsCache.size > 20) {
+      const firstKey = npsCache.keys().next().value;
+      npsCache.delete(firstKey);
+    }
+    
+    return results;
   } catch (err) {
     console.error('Failed to fetch national parks:', err);
     return [];
@@ -1270,6 +1381,13 @@ async function getNPSParkEvents(parkCode) {
   if (!parkCode) return [];
 
   try {
+    // Check cache first
+    const cached = npsEventsCache.get(parkCode);
+    if (cached && (Date.now() - cached.timestamp < NPS_CACHE_MS)) {
+      console.log('Using cached NPS events');
+      return cached.value;
+    }
+    
     const params = new URLSearchParams({
       endpoint: 'events',
       parkCode: parkCode
@@ -1285,8 +1403,9 @@ async function getNPSParkEvents(parkCode) {
     
     const data = await response.json();
     
+    let results = [];
     if (data.data && Array.isArray(data.data)) {
-      return data.data.map(event => ({
+      results = data.data.map(event => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -1295,6 +1414,28 @@ async function getNPSParkEvents(parkCode) {
         dateEnd: event.dateend,
         times: event.times || [],
         category: event.category,
+        tags: event.tags || []
+      }));
+    }
+    
+    // Cache the results
+    npsEventsCache.set(parkCode, {
+      value: results,
+      timestamp: Date.now()
+    });
+    
+    // Limit cache size to 50 entries
+    if (npsEventsCache.size > 50) {
+      const firstKey = npsEventsCache.keys().next().value;
+      npsEventsCache.delete(firstKey);
+    }
+    
+    return results;
+  } catch (err) {
+    console.error('Failed to fetch NPS events:', err);
+    return [];
+  }
+}
         tags: event.tags || []
       }));
     }
