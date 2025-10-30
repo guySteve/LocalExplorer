@@ -15,7 +15,7 @@ try {
   // Check if file exists before reading
   if (!fs.existsSync(keyFilePath)) {
     console.warn(`Warning: ${keyFilePath} not found. Skipping environment injection.`);
-    process.exit(0);
+    return;
   }
   
   let content = fs.readFileSync(keyFilePath, 'utf8');
@@ -34,9 +34,6 @@ try {
   } else {
     console.warn('MAPS_API_KEY environment variable not found - API key will not be available');
   }
-  
-  // Exit successfully
-  process.exit(0);
 } catch (error) {
   // Log error but don't fail the build
   console.error('Error during environment injection:', error.message);
