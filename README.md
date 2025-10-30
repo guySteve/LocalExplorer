@@ -11,6 +11,12 @@ A Progressive Web App for discovering local attractions, events, and activities.
 - 🤖 **[GitHub Actions Setup](GITHUB_ACTIONS_DEPLOY.md)** - Automated deployments on every push
 - ⚡ **Quick Start**: Click the button above, add API keys, and you're live!
 
+**Before deploying**, verify your setup:
+```bash
+npm run check-deploy
+```
+Or run: `./check-deploy-ready.sh`
+
 ## ✨ Features
 
 - 🎫 **Local Events** - Discover concerts, sports, and entertainment (Ticketmaster)
