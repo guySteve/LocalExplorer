@@ -15,8 +15,9 @@
 // For Netlify deployment, set MAPS_API_KEY in environment variables and it will be
 // available at window.MAPS_API_KEY when the site is built.
 
-// For local development, you can set your Google Maps API key here
-window.MAPS_API_KEY = window.MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
+// The Maps API key is injected during build from Netlify environment variables
+// It is set by the netlify/inject-env.js script during deployment
+// window.MAPS_API_KEY will be set during build process
 
 // All other API keys are secured via Netlify Functions
 // The frontend will make requests to these serverless endpoints:

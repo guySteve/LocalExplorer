@@ -15,12 +15,13 @@ let content = fs.readFileSync(keyFilePath, 'utf8');
 // Inject MAPS_API_KEY if available
 if (process.env.MAPS_API_KEY) {
   console.log('Injecting MAPS_API_KEY into client code...');
+  // Find the comment line and add the API key assignment after it
   content = content.replace(
-    /window\.MAPS_API_KEY = window\.MAPS_API_KEY \|\| 'YOUR_GOOGLE_MAPS_API_KEY_HERE';/,
-    `window.MAPS_API_KEY = '${process.env.MAPS_API_KEY}';`
+    /(\/\/ window\.MAPS_API_KEY will be set during build process)/,
+    `$1\nwindow.MAPS_API_KEY = '${process.env.MAPS_API_KEY}';`
   );
   fs.writeFileSync(keyFilePath, content);
   console.log('MAPS_API_KEY injected successfully');
 } else {
-  console.warn('MAPS_API_KEY environment variable not found - using placeholder');
+  console.warn('MAPS_API_KEY environment variable not found - API key will not be available');
 }
