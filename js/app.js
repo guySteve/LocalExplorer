@@ -165,7 +165,7 @@ function injectMapsScript() {
       }
       
       console.log("Injecting Google Maps script...");
-      const mapsKey = window.MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
+      const mapsKey = window.MAPS_API_KEY || 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
       
       if (!mapsKey || mapsKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
            console.warn("Maps API Key is missing or using placeholder!");
