@@ -64,13 +64,26 @@ function activateStreetViewPeek() {
     }
 
 function onLocationSuccess(position) { /* Geolocation success */
-      if (!hasMapSupport()) {
-          window.__pendingGeolocationPosition = position;
-          return;
-      }
       const manual = $("manualInputContainer");
       if (manual) manual.style.display = 'none';
       currentPosition = { lat: position.coords.latitude, lng: position.coords.longitude };
+      
+      console.log('Location obtained:', currentPosition);
+      
+      if (!hasMapSupport()) {
+          console.log('Maps not ready, storing position and updating weather/birds anyway');
+          window.__pendingGeolocationPosition = position;
+          
+          // Update weather and birds even without Maps API
+          const coordsLabel = `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`;
+          $("locationDisplay").innerHTML = `<span style="font-size:0.85rem;">${coordsLabel}</span><br><span style="font-size:0.7rem; opacity:0.7;">Maps services loading...</span>`;
+          if (compassLabels.location) compassLabels.location.textContent = coordsLabel;
+          latestLocationLabel = ''; 
+          updateWeatherTitle(); 
+          updateWeather(currentPosition);
+          return;
+      }
+      
       try {
           reverseGeocode(currentPosition); // Get address from coordinates
       } catch (err) {

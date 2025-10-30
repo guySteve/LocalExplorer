@@ -35,7 +35,7 @@
 //    - Uncomment the line below and add your key
 //    - WARNING: Never commit API keys to git!
 //
-// window.MAPS_API_KEY = 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
+window.MAPS_API_KEY = 'AIzaSyB9PMHJVDip9WvIQVywmRjcdhqiQPrtXiY';
 
 // The Maps API key is injected during build from Netlify environment variables
 // It is set by the netlify/inject-env.js script during deployment
