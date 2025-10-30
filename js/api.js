@@ -118,11 +118,6 @@ async function showSurpriseEvents() {
         alert('Unable to fetch surprise events.');
       }
     }
-      } catch (err) {
-        console.error(err);
-        alert('Unable to fetch surprise events.');
-      }
-    }
 
 // --- UPDATED: Removed Location from Weather Title ---
 function updateWeatherTitle() { 
@@ -560,28 +555,6 @@ async function fetchWhat3Words(lat, lng) {
     return null;
   }
 }
-      const result = `///${data.words}`;
-      // Cache the result
-      what3wordsCache.set(cacheKey, {
-        value: result,
-        timestamp: Date.now()
-      });
-      
-      // Limit cache size to 100 entries
-      if (what3wordsCache.size > 100) {
-        const firstKey = what3wordsCache.keys().next().value;
-        what3wordsCache.delete(firstKey);
-      }
-      
-      return result;
-    }
-    
-    return null;
-  } catch (err) {
-    console.error('Failed to fetch What3Words:', err);
-    return null;
-  }
-}
 
 // --- FourSquare Integration ---
 // Cache for Foursquare search results
@@ -700,43 +673,25 @@ async function getFourSquareDetails(fsqId) {
     return null;
   }
 }
-      tel: data.tel,
-      photos: data.photos
-    };
-    
-    // Cache the details
-    foursquareDetailsCache.set(fsqId, {
-      value: details,
-      timestamp: Date.now()
-    });
-    
-    // Limit cache size to 100 entries
-    if (foursquareDetailsCache.size > 100) {
-      const firstKey = foursquareDetailsCache.keys().next().value;
-      foursquareDetailsCache.delete(firstKey);
-    }
-    
-    return details;
-  } catch (err) {
-    console.error('Failed to fetch FourSquare details:', err);
-    return null;
-  }
-}
 
 async function fetchLocalAlerts(countryCode = 'US') {
+  // NOTE: HolidayAPI free tier only supports previous year data
+  // Showing outdated holiday information appears unprofessional and may confuse users
+  // This feature is disabled until a paid API tier is available or an alternative is implemented
+  // To re-enable: uncomment the code below and ensure HOLIDAY_API_KEY provides current year data
+  
+  console.log('Local holiday alerts are currently disabled due to API limitations');
+  return [];
+  
+  /* Original implementation - disabled due to free tier limitations
   try {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     
-    // NOTE: HolidayAPI free tier only supports previous year data
-    // For future dates, we'll use last year's data as reference for recurring holidays
-    // This is a limitation of the free tier
-    const queryYear = year - 1; // Use previous year for free tier
-    
     const params = new URLSearchParams({
       country: countryCode,
-      year: queryYear.toString(),
+      year: year.toString(),
       month: month
     });
     
@@ -755,30 +710,19 @@ async function fetchLocalAlerts(countryCode = 'US') {
       return [];
     }
 
-    // Map last year's holidays to this year for reference
-    // Filter for holidays that would occur in the next 7 days
     const today = now.getTime();
     const weekFromNow = today + (7 * 24 * 60 * 60 * 1000);
     
     const upcomingAlerts = data.holidays
-      .map(holiday => {
-        // Adjust the year to current year
-        const holidayDate = new Date(holiday.date);
-        holidayDate.setFullYear(year);
-        return {
-          ...holiday,
-          date: holidayDate.toISOString().split('T')[0],
-          adjustedDate: holidayDate
-        };
-      })
       .filter(holiday => {
-        const holidayTime = holiday.adjustedDate.getTime();
+        const holidayDate = new Date(holiday.date);
+        const holidayTime = holidayDate.getTime();
         return holidayTime >= today && holidayTime <= weekFromNow && holiday.public === true;
       })
       .map(holiday => ({
         title: holiday.name,
         date: holiday.date,
-        description: `${holiday.name} (recurring holiday - dates may vary)`,
+        description: holiday.name,
         type: 'holiday'
       }));
 
@@ -787,6 +731,7 @@ async function fetchLocalAlerts(countryCode = 'US') {
     console.error('Failed to fetch local alerts:', err);
     return [];
   }
+  */
 }
 
 function renderAlerts(alerts) {
