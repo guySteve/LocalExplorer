@@ -1104,9 +1104,8 @@ h1, h2, h3 {
   justify-content: center;
 }
 
-/* 3D-aware triangular pointer at top of ring */
-.compass-ring::before {
-  content: '';
+/* Fixed compass arrow pointing North - stays stationary */
+.compass-arrow {
   position: absolute;
   top: 2%;
   left: 50%;
@@ -1117,7 +1116,8 @@ h1, h2, h3 {
   border-right: 14px solid transparent;
   border-top: 60px solid rgba(200,121,65,1);
   filter: drop-shadow(0 0 8px rgba(200,121,65,0.6)) drop-shadow(0 3px 12px rgba(0,0,0,0.5));
-  z-index: 5;
+  z-index: 15;
+  pointer-events: none;
 }
 
 .compass-ring-marks {

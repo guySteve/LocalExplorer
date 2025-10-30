@@ -36,6 +36,10 @@
       <button id="myPlanBtn">🗺️ My Plan</button>
       <button id="compassBtn">🧭 Compass</button>
     </div>
+    <div id="unifiedSearchContainer" style="width:100%; margin:0; padding:0;">
+      <input type="search" id="unifiedSearchInput" placeholder="🔍 Search all sources (places, events, parks...)" aria-label="Search all sources">
+      <button id="unifiedSearchBtn" type="button" aria-label="Search">Search</button>
+    </div>
     <div id="weatherWidget" aria-live="polite">
     <div id="weatherHeader">
       <div id="weatherLabels">
@@ -65,10 +69,6 @@
         <div id="historicalWeatherFacts" style="display:none; margin-top:0.5rem; padding:0.5rem; background:rgba(200,121,65,0.15); border-radius:8px; font-size:0.85rem;"></div>
       </div>
     </div>
-    </div>
-    <div id="unifiedSearchContainer" style="width:100%; margin:0; padding:0;">
-      <input type="search" id="unifiedSearchInput" placeholder="🔍 Search all sources (places, events, parks...)" aria-label="Search all sources">
-      <button id="unifiedSearchBtn" type="button" aria-label="Search">Search</button>
     </div>
     <div class="filters" id="filterGrid"></div>
     <div class="support-cta">
@@ -215,6 +215,7 @@
               </div>
               <div class="compass-cap"></div>
             </div>
+            <div class="compass-arrow"></div>
           </div>
           <!-- Route Map Container -->
           <div id="compassRouteMap" style="display:none; width:100%; height:300px; border-radius:8px; margin-top:1rem; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>
