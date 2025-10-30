@@ -27,8 +27,6 @@ function initApp() {
           // Initialize ALL UI components that do not depend on Maps
           populateFilterButtons(); 
           initWeatherControls();
-          initAlertsControls(); // Initialize alerts
-          updateLocalAlerts('US'); // Fetch initial alerts
           initSettingsPanel(); 
           setupAccordions(); 
           initUiEvents(); // Bind button handlers etc.

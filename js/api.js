@@ -508,8 +508,7 @@ function closeForecastModal() {
 }
 
 // --- Local Alerts (HolidayAPI Integration) ---
-let lastAlertsCheck = 0;
-const ALERTS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+
 
 // --- What3Words Integration ---
 // Cache for What3Words results
@@ -674,137 +673,7 @@ async function getFourSquareDetails(fsqId) {
   }
 }
 
-async function fetchLocalAlerts(countryCode = 'US') {
-  // NOTE: HolidayAPI free tier only supports previous year data
-  // Showing outdated holiday information appears unprofessional and may confuse users
-  // This feature is disabled until a paid API tier is available or an alternative is implemented
-  // 
-  // To re-enable:
-  // 1. Upgrade to HolidayAPI paid plan or find alternative API with current year data
-  // 2. Uncomment the code below
-  // 3. Test with current year parameter to ensure data accuracy
-  // 4. Verify dates shown match actual calendar year
-  // 5. Consider adding a "Last updated" timestamp to build user trust
-  
-  console.info('Local holiday alerts feature disabled due to API data limitations');
-  return [];
-  
-  /* Original implementation - disabled due to free tier limitations
-  try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    
-    const params = new URLSearchParams({
-      country: countryCode,
-      year: year.toString(),
-      month: month
-    });
-    
-    const url = `${window.NETLIFY_FUNCTIONS_BASE}/holiday?${params}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      console.error('HolidayAPI request failed:', response.status);
-      return [];
-    }
-    
-    const data = await response.json();
-    
-    if (data.status !== 200 || !data.holidays) {
-      console.warn('Invalid HolidayAPI response or no holidays available');
-      return [];
-    }
 
-    const today = now.getTime();
-    const weekFromNow = today + (7 * 24 * 60 * 60 * 1000);
-    
-    const upcomingAlerts = data.holidays
-      .filter(holiday => {
-        const holidayDate = new Date(holiday.date);
-        const holidayTime = holidayDate.getTime();
-        return holidayTime >= today && holidayTime <= weekFromNow && holiday.public === true;
-      })
-      .map(holiday => ({
-        title: holiday.name,
-        date: holiday.date,
-        description: holiday.name,
-        type: 'holiday'
-      }));
-
-    return upcomingAlerts;
-  } catch (err) {
-    console.error('Failed to fetch local alerts:', err);
-    return [];
-  }
-  */
-}
-
-function renderAlerts(alerts) {
-  const widget = $("localAlertsWidget");
-  const content = $("alertsContent");
-  
-  if (!widget || !content) return;
-  
-  if (!alerts || alerts.length === 0) {
-    widget.style.display = 'none';
-    return;
-  }
-  
-  widget.style.display = 'block';
-  content.innerHTML = '';
-  
-  alerts.forEach(alert => {
-    const item = document.createElement('div');
-    item.className = 'alert-item';
-    
-    const title = document.createElement('div');
-    title.className = 'alert-item-title';
-    title.textContent = alert.title;
-    item.appendChild(title);
-    
-    const desc = document.createElement('div');
-    desc.className = 'alert-item-desc';
-    desc.textContent = alert.description;
-    item.appendChild(desc);
-    
-    if (alert.date) {
-      const dateEl = document.createElement('div');
-      dateEl.className = 'alert-item-date';
-      dateEl.textContent = new Date(alert.date).toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-      item.appendChild(dateEl);
-    }
-    
-    content.appendChild(item);
-  });
-}
-
-async function updateLocalAlerts(countryCode = 'US', force = false) {
-  const now = Date.now();
-  
-  if (!force && (now - lastAlertsCheck) < ALERTS_CACHE_MS) {
-    return; // Use cache
-  }
-  
-  try {
-    const alerts = await fetchLocalAlerts(countryCode);
-    renderAlerts(alerts);
-    lastAlertsCheck = now;
-  } catch (err) {
-    console.error('Failed to update local alerts:', err);
-  }
-}
-
-function initAlertsControls() {
-  const refreshBtn = $("refreshAlertsBtn");
-  if (refreshBtn) {
-    refreshBtn.onclick = () => updateLocalAlerts('US', true);
-  }
-}
 
 function initWeatherControls() { 
   /* Attach listeners for weather */ 
