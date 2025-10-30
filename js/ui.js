@@ -598,6 +598,22 @@ function initUiEvents() {
   if (uiEventsBound) return;
   uiEventsBound = true;
 
+  // Unified Search handlers
+  const unifiedSearchBtn = $("unifiedSearchBtn");
+  const unifiedSearchInput = $("unifiedSearchInput");
+  if (unifiedSearchBtn && unifiedSearchInput) {
+    unifiedSearchBtn.onclick = () => {
+      const query = unifiedSearchInput.value;
+      performUnifiedSearch(query);
+    };
+    unifiedSearchInput.onkeypress = (e) => {
+      if (e.key === 'Enter') {
+        const query = unifiedSearchInput.value;
+        performUnifiedSearch(query);
+      }
+    };
+  }
+
   // NEW: Main page compass button listener
   const compassBtn = $("compassBtn");
   if (compassBtn) {
