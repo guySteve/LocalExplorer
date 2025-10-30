@@ -678,9 +678,15 @@ async function fetchLocalAlerts(countryCode = 'US') {
   // NOTE: HolidayAPI free tier only supports previous year data
   // Showing outdated holiday information appears unprofessional and may confuse users
   // This feature is disabled until a paid API tier is available or an alternative is implemented
-  // To re-enable: uncomment the code below and ensure HOLIDAY_API_KEY provides current year data
+  // 
+  // To re-enable:
+  // 1. Upgrade to HolidayAPI paid plan or find alternative API with current year data
+  // 2. Uncomment the code below
+  // 3. Test with current year parameter to ensure data accuracy
+  // 4. Verify dates shown match actual calendar year
+  // 5. Consider adding a "Last updated" timestamp to build user trust
   
-  console.log('Local holiday alerts are currently disabled due to API limitations');
+  console.info('Local holiday alerts feature disabled due to API data limitations');
   return [];
   
   /* Original implementation - disabled due to free tier limitations
