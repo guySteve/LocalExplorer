@@ -61,7 +61,6 @@ function getIconForInstruction(instruction) {
 function openCompass(destLatLng = null, destName = '') {
     const overlay = $("compassOverlay"); 
     const dial = $("compassArrowContainer");
-    const needleEl = overlay?.querySelector('.compass-needle') || null;
     const headingReadout = $("compassHeadingValue");
     const destinationReadout = $("compassDestinationLabel");
     const directionsCard = $("compassDirectionsCard");
@@ -136,7 +135,6 @@ function openCompass(destLatLng = null, destName = '') {
     pitchVisual = pitchTarget = 0;
     rollVisual = rollTarget = 0;
     if (dial) dial.style.transform = 'rotateZ(0deg)';
-    if (needleEl) needleEl.style.transform = 'rotate(0deg)'; // Keep needle pointing up
     headingReadout.textContent = '---\u00B0';
     populateVoices(); 
     navigationStopped = true; 
@@ -522,7 +520,6 @@ function openCompass(destLatLng = null, destName = '') {
             pitchTarget = pitchVisual = 0;
             rollTarget = rollVisual = 0;
             if (dial) dial.style.transform = 'rotateZ(0deg)';
-            if (needleEl) needleEl.style.transform = 'rotate(0deg)'; // Keep needle pointing up
             headingReadout.textContent = '---\u00B0';
             if (radarDestLatLng) silenceDirections(); // Stop speech if navigating
         };
