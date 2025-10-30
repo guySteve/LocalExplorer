@@ -2,6 +2,16 @@
 
 This guide will walk you through deploying LocalExplorer to Netlify in just a few minutes.
 
+## ✅ Pre-Deployment Check
+
+Before deploying, verify your repository is ready:
+
+```bash
+npm run check-deploy
+```
+
+This will check for all required files and configurations. ✓ All green? You're ready to deploy!
+
 ## 📋 Prerequisites
 
 - A GitHub account with this repository

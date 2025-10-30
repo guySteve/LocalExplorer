@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "netlify dev",
     "build": "echo 'Static site - no build step required'",
-    "deploy": "netlify deploy --prod"
+    "deploy": "netlify deploy --prod",
+    "check-deploy": "bash check-deploy-ready.sh"
   },
   "keywords": [
     "pwa",
