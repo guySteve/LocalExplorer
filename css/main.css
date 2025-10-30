@@ -1103,7 +1103,7 @@ h1, h2, h3 {
   justify-content: center;
 }
 
-/* Fixed compass arrow pointing North - stays stationary */
+/* Fixed compass arrow pointing North - positioned to appear stationary relative to the viewport */
 .compass-arrow {
   position: absolute;
   top: 2%;
