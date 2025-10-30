@@ -102,9 +102,9 @@ function bindGlobalHandlers() {
 
 function initMapServices() {
       if (mapsReady) return;
-      if (typeof google === 'undefined' || !google.maps) {
+      if (typeof google === 'undefined' || !google.maps || !google.maps.Map) {
           console.warn("Google Maps API not available yet. Retrying initMapServices shortly.");
-          setTimeout(initMapServices, 50);
+          setTimeout(initMapServices, 100);
           return;
       }
       try {
@@ -202,7 +202,7 @@ function injectMapsScript() {
       }
 
       const mapsScript = document.createElement('script');
-      mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
+      mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap&loading=async`;
       mapsScript.async = true;
       mapsScript.defer = true;
       mapsScript.dataset.role = 'maps-api';
