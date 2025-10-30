@@ -33,6 +33,228 @@ function isCacheValid(cached, maxAge) {
 let eventSearchCache = new Map();
 const EVENT_SEARCH_CACHE_MS = 30 * 60 * 1000; // 30 minutes cache
 
+// ===== Unified Search Feature =====
+
+/**
+ * Perform a unified search across multiple API sources
+ * @param {string} query - Search query from user
+ * @returns {Promise<void>}
+ */
+async function performUnifiedSearch(query) {
+  if (!query || query.trim().length === 0) {
+    alert('Please enter a search term.');
+    return;
+  }
+  
+  if (!currentPosition) {
+    alert('Please enable location services to search.');
+    return;
+  }
+  
+  const searchTerm = query.trim();
+  console.log(`Performing unified search for: "${searchTerm}"`);
+  
+  // Show loading state
+  const resultsModal = $("resultsModal");
+  const resultsList = $("resultsList");
+  const resultsTitle = $("resultsTitle");
+  
+  if (!resultsModal || !resultsList || !resultsTitle) {
+    console.error('Results modal elements not found');
+    return;
+  }
+  
+  resultsTitle.textContent = `Searching for "${searchTerm}"...`;
+  resultsList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--card);">🔍 Searching all sources...</div>';
+  resultsModal.classList.add('active');
+  document.body.classList.add('modal-open');
+  
+  // Prepare parallel API calls
+  const apiCalls = [];
+  const results = {
+    foursquare: [],
+    nps: [],
+    recreation: [],
+    ticketmaster: []
+  };
+  
+  // Foursquare Search
+  apiCalls.push(
+    fetch(`${window.NETLIFY_FUNCTIONS_BASE}/foursquare?query=${encodeURIComponent(searchTerm)}&ll=${currentPosition.lat},${currentPosition.lng}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.results && Array.isArray(data.results)) {
+          results.foursquare = data.results.map(place => normalizePlaceData(place, 'foursquare'));
+        }
+      })
+      .catch(err => console.warn('Foursquare search failed:', err))
+  );
+  
+  // National Park Service Search
+  apiCalls.push(
+    fetch(`${window.NETLIFY_FUNCTIONS_BASE}/nps?query=${encodeURIComponent(searchTerm)}&lat=${currentPosition.lat}&lng=${currentPosition.lng}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.data && Array.isArray(data.data)) {
+          results.nps = data.data.map(place => ({
+            id: place.id,
+            provider: 'nps',
+            name: place.fullName || place.name,
+            address: place.addresses?.[0]?.line1 || '',
+            location: place.latitude && place.longitude ? {
+              lat: parseFloat(place.latitude),
+              lng: parseFloat(place.longitude)
+            } : null,
+            rating: null,
+            categories: ['National Park Service'],
+            _original: place
+          }));
+        }
+      })
+      .catch(err => console.warn('NPS search failed:', err))
+  );
+  
+  // Recreation.gov Search
+  apiCalls.push(
+    fetch(`${window.NETLIFY_FUNCTIONS_BASE}/recreation?query=${encodeURIComponent(searchTerm)}&lat=${currentPosition.lat}&lng=${currentPosition.lng}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.RECDATA && Array.isArray(data.RECDATA)) {
+          results.recreation = data.RECDATA.map(place => ({
+            id: place.RecAreaID || place.FacilityID,
+            provider: 'recreation',
+            name: place.RecAreaName || place.FacilityName,
+            address: place.RecAreaDescription || '',
+            location: place.RecAreaLatitude && place.RecAreaLongitude ? {
+              lat: parseFloat(place.RecAreaLatitude),
+              lng: parseFloat(place.RecAreaLongitude)
+            } : null,
+            rating: null,
+            categories: ['Recreation Area'],
+            _original: place
+          }));
+        }
+      })
+      .catch(err => console.warn('Recreation.gov search failed:', err))
+  );
+  
+  // Ticketmaster Events Search
+  apiCalls.push(
+    fetch(`${window.NETLIFY_FUNCTIONS_BASE}/ticketmaster?keyword=${encodeURIComponent(searchTerm)}&latlong=${currentPosition.lat},${currentPosition.lng}&radius=25&unit=miles`)
+      .then(res => res.json())
+      .then(data => {
+        if (data._embedded && data._embedded.events) {
+          results.ticketmaster = data._embedded.events.map(event => ({
+            id: event.id,
+            provider: 'ticketmaster',
+            name: event.name,
+            address: event._embedded?.venues?.[0]?.address?.line1 || '',
+            location: event._embedded?.venues?.[0]?.location ? {
+              lat: parseFloat(event._embedded.venues[0].location.latitude),
+              lng: parseFloat(event._embedded.venues[0].location.longitude)
+            } : null,
+            rating: null,
+            categories: ['Event'],
+            date: event.dates?.start?.localDate,
+            _original: event
+          }));
+        }
+      })
+      .catch(err => console.warn('Ticketmaster search failed:', err))
+  );
+  
+  // Wait for all API calls to complete
+  await Promise.allSettled(apiCalls);
+  
+  // Merge all results
+  const allResults = [
+    ...results.foursquare,
+    ...results.nps,
+    ...results.recreation,
+    ...results.ticketmaster
+  ].filter(item => item && item.name && item.location);
+  
+  // Deduplicate results
+  const deduplicatedResults = deduplicatePlaces(allResults);
+  
+  // Sort by distance if we have locations
+  if (currentPosition) {
+    deduplicatedResults.forEach(place => {
+      if (place.location) {
+        place.distance = calculateDistance(
+          currentPosition.lat,
+          currentPosition.lng,
+          place.location.lat,
+          place.location.lng
+        );
+      }
+    });
+    deduplicatedResults.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+  }
+  
+  // Update current results for the app
+  currentResults = deduplicatedResults;
+  lastResultsTitle = `Results for "${searchTerm}"`;
+  
+  // Display results
+  resultsTitle.textContent = `${deduplicatedResults.length} results for "${searchTerm}"`;
+  
+  if (deduplicatedResults.length === 0) {
+    resultsList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--card);">No results found. Try a different search term.</div>';
+  } else {
+    displayUnifiedResults(deduplicatedResults);
+  }
+}
+
+/**
+ * Display unified search results in the results modal
+ * @param {Array} results - Array of normalized place objects
+ */
+function displayUnifiedResults(results) {
+  const resultsList = $("resultsList");
+  if (!resultsList) return;
+  
+  resultsList.innerHTML = '';
+  
+  results.forEach((place, index) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.style.cursor = 'pointer';
+    
+    const providerBadge = place.provider ? `<span style="background:var(--accent); color:var(--text-light); padding:0.2rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:600; text-transform:uppercase;">${place.provider}</span>` : '';
+    
+    const distanceText = place.distance ? `${(place.distance / 1000).toFixed(1)} km away` : '';
+    
+    const categoryText = place.categories && place.categories.length > 0 
+      ? place.categories.slice(0, 2).join(', ') 
+      : '';
+    
+    const dateText = place.date ? `<div style="color:var(--primary); font-weight:600;">📅 ${new Date(place.date).toLocaleDateString()}</div>` : '';
+    
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.5rem;">
+        <h4 style="margin:0; color:var(--card); font-size:1.05rem;">${place.name}</h4>
+        ${providerBadge}
+      </div>
+      ${dateText}
+      ${place.address ? `<p style="margin:0.25rem 0; color:var(--card); opacity:0.8; font-size:0.9rem;">${place.address}</p>` : ''}
+      ${categoryText ? `<p style="margin:0.25rem 0; color:var(--accent); font-size:0.85rem;">${categoryText}</p>` : ''}
+      ${distanceText ? `<p style="margin:0.25rem 0; color:var(--primary); font-size:0.85rem; font-weight:600;">${distanceText}</p>` : ''}
+    `;
+    
+    card.onclick = () => {
+      // For events, open the event URL; for places, show place details
+      if (place.provider === 'ticketmaster' && place._original && place._original.url) {
+        window.open(place._original.url, '_blank');
+      } else if (place.id) {
+        showDetails(place.id, place.provider);
+      }
+    };
+    
+    resultsList.appendChild(card);
+  });
+}
+
 async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
       if (!currentPosition) return alert('Please provide a location first.');
       const classification = (item.value && item.value !== 'all') ? item.value : '';
