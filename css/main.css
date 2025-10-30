@@ -1749,6 +1749,10 @@ h1, h2, h3 {
 }
 
 /* Collection Modal Tabs */
+.collection-tab {
+  border-bottom: 3px solid transparent;
+}
+
 .collection-tab:hover {
   background: rgba(200,121,65,0.1);
 }
@@ -1756,4 +1760,5 @@ h1, h2, h3 {
 .collection-tab.active {
   font-weight: 700;
   color: var(--primary);
+  border-bottom: 3px solid var(--primary);
 }

@@ -608,7 +608,8 @@ function closeDonateModal() { closeOverlayElement($("donateModal")); }
 
 function initSettingsPanel() { /* Setup settings modal listeners */ const panel = $("settingsPanel"), openBtn = $("settingsBtn"), closeBtn = $("closeSettingsBtn"), themeSel = $("themeSelect"), ambToggle = $("ambientModeToggle"), birdToggle = $("birdFactsToggle"), resetBtn = $("resetSettingsBtn"); const open = () => { panel?.classList.add('active'); document.body.classList.add('modal-open'); }; const close = () => { closeOverlayElement(panel); }; if (openBtn) openBtn.onclick = open; if (closeBtn) closeBtn.onclick = close; if (panel) { panel.onclick = (e) => { if (e.target === panel) close(); }; attachModalSwipe(panel, close); } document.onkeydown = (e) => { if (e.key === 'Escape' && panel?.classList.contains('active')) close(); }; if (themeSel) { themeSel.value = currentThemeKey; themeSel.onchange = (e) => setTheme(e.target.value || DEFAULT_THEME); } const storedAmb = localStorage.getItem('ambientModeEnabled') === 'true'; if (ambToggle) { ambToggle.checked = storedAmb; ambToggle.onchange = () => localStorage.setItem('ambientModeEnabled', ambToggle.checked ? 'true' : 'false'); } const storedBirdFacts = localStorage.getItem('birdFactsEnabled') !== 'false'; if (birdToggle) { birdToggle.checked = storedBirdFacts; birdToggle.onchange = () => { localStorage.setItem('birdFactsEnabled', birdToggle.checked ? 'true' : 'false'); if (birdToggle.checked && currentPosition) { updateBirdFact(currentPosition, true); } else { const container = document.getElementById('birdFactContainer'); if (container) container.remove(); } }; } if (resetBtn) resetBtn.onclick = () => { setTheme(DEFAULT_THEME); if (themeSel) themeSel.value = DEFAULT_THEME; selectedVoiceUri = ''; localStorage.removeItem('selectedVoiceUri'); populateVoices(); if (voiceSelect) voiceSelect.dispatchEvent(new Event('change')); if (ambToggle) { ambToggle.checked = false; localStorage.setItem('ambientModeEnabled', 'false'); } if (birdToggle) { birdToggle.checked = true; localStorage.setItem('birdFactsEnabled', 'true'); } if ($("weatherWidget")) { $("weatherWidget").classList.remove('weather-minimized'); localStorage.removeItem('weatherMinimized'); } updateWeatherTitle(); }; }
 
-function checkSharedPlan() { /* Check URL for ?plan=... */ try { const params = new URLSearchParams(window.location.search); if (params.has('plan')) { const payload = params.get('plan'); if (!payload) return; const decoded = decodeURIComponent(atob(payload)); const data = JSON.parse(decoded); if (Array.isArray(data?.items) && data.items.length) { savePlan(data.items); saveVisitedPlan([]); setTimeout(() => { loadPlan(); const modal = $("myCollectionModal"); if (modal) { const planTab = $("planTab"); const listTab = $("listTab"); const planView = $("planView"); const listView = $("listView"); if (planTab && listTab && planView && listView) { planTab.classList.add('active'); listTab.classList.remove('active'); planTab.style.borderBottom = '3px solid var(--primary)'; listTab.style.borderBottom = '3px solid transparent'; planView.style.display = 'block'; listView.style.display = 'none'; } modal.classList.add('active'); document.body.classList.add('modal-open'); } }, 500); } } } catch (e) { console.warn('Failed to decode shared plan', e); } }
+function checkSharedPlan() { /* Check URL for ?plan=... */ try { const params = new URLSearchParams(window.location.search); if (params.has('plan')) { const payload = params.get('plan'); if (!payload) return; const decoded = decodeURIComponent(atob(payload)); const data = JSON.parse(decoded); if (Array.isArray(data?.items) && data.items.length) { savePlan(data.items); saveVisitedPlan([]); setTimeout(() => { const modal = $("myCollectionModal"); if (modal) { // Switch to plan view using CSS classes
+ const planTab = $("planTab"); const listTab = $("listTab"); const planView = $("planView"); const listView = $("listView"); if (planTab && listTab && planView && listView) { planTab.classList.add('active'); listTab.classList.remove('active'); planView.style.display = 'block'; listView.style.display = 'none'; } loadPlan(); modal.classList.add('active'); document.body.classList.add('modal-open'); } }, 500); } } } catch (e) { console.warn('Failed to decode shared plan', e); } }
 
 let uiEventsBound = false;
 function initUiEvents() {
@@ -700,8 +701,6 @@ function initUiEvents() {
     if (!listTab || !planTab || !listView || !planView) return;
     listTab.classList.add('active');
     planTab.classList.remove('active');
-    listTab.style.borderBottom = '3px solid var(--primary)';
-    planTab.style.borderBottom = '3px solid transparent';
     listView.style.display = 'block';
     planView.style.display = 'none';
     loadMyList();
@@ -711,8 +710,6 @@ function initUiEvents() {
     if (!listTab || !planTab || !listView || !planView) return;
     planTab.classList.add('active');
     listTab.classList.remove('active');
-    planTab.style.borderBottom = '3px solid var(--primary)';
-    listTab.style.borderBottom = '3px solid transparent';
     planView.style.display = 'block';
     listView.style.display = 'none';
     loadPlan();
