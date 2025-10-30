@@ -2,6 +2,15 @@
 
 A Progressive Web App for discovering local attractions, events, and activities. Built with vanilla JavaScript and designed for adventure seekers who want to explore their surroundings.
 
+## 🚀 Quick Deploy to Netlify
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/guySteve/LocalExplorer)
+
+**Ready to deploy?** Choose your method:
+- 🎯 **[One-Click Deploy Guide](NETLIFY_DEPLOY.md)** - Full deployment instructions (Recommended)
+- 🤖 **[GitHub Actions Setup](GITHUB_ACTIONS_DEPLOY.md)** - Automated deployments on every push
+- ⚡ **Quick Start**: Click the button above, add API keys, and you're live!
+
 ## ✨ Features
 
 - 🎫 **Local Events** - Discover concerts, sports, and entertainment (Ticketmaster)
@@ -20,43 +29,40 @@ A Progressive Web App for discovering local attractions, events, and activities.
 
 **All API keys are secured!** This app uses Netlify serverless functions to protect API keys from exposure. API keys are stored as environment variables and never exposed to the client.
 
-### 🚀 Getting Started
+## 🚀 Deployment Options
 
-#### Prerequisites
+Choose the deployment method that works best for you:
 
-- A Netlify account (free tier works great!)
-- API keys for the services you want to use (see below)
+### Option 1: One-Click Deploy (Easiest)
+1. Click the **Deploy to Netlify** button at the top
+2. Connect your GitHub account
+3. Add API keys in Netlify dashboard
+4. Done! 🎉
 
-#### Deployment to Netlify
+📖 **[Complete Deployment Guide](NETLIFY_DEPLOY.md)**
 
-1. **Fork or Clone this repository**
+### Option 2: Automated Deployments with GitHub Actions
+Set up once, then deployments happen automatically on every push:
+1. Create a Netlify site
+2. Add GitHub Secrets (NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID)
+3. Push to main branch - GitHub Actions deploys automatically!
 
-2. **Connect to Netlify**
-   - Go to [Netlify](https://app.netlify.com)
-   - Click "Add new site" → "Import an existing project"
-   - Connect your GitHub repository
+📖 **[GitHub Actions Setup Guide](GITHUB_ACTIONS_DEPLOY.md)**
 
-3. **Set Environment Variables**
-   
-   Go to: Site settings → Environment variables
-   
-   Add these environment variables with your API keys:
-   
-   ```
-   MAPS_API_KEY=your_google_maps_key
-   TICKETMASTER_API_KEY=your_ticketmaster_key
-   HOLIDAY_API_KEY=your_holiday_api_key
-   WHAT3WORDS_API_KEY=your_what3words_key
-   FOURSQUARE_API_KEY=your_foursquare_key
-   EBIRD_API_KEY=your_ebird_key
-   RECREATION_GOV_API_KEY=your_recreation_key
-   NPS_API_KEY=your_nps_key
-   ```
+### Option 3: Manual Deployment via CLI
+For developers who prefer command-line tools:
+```bash
+npm install -g netlify-cli
+netlify login
+netlify init
+netlify deploy --prod
+```
 
-4. **Deploy**
-   - Click "Deploy site"
-   - Wait for deployment to complete
-   - Your app is live! 🎉
+📖 **[CLI Deployment Instructions](NETLIFY_DEPLOY.md#method-3-deploy-via-netlify-cli)**
+
+---
+
+## 🔑 Required API Keys
 
 #### Obtaining API Keys
 
@@ -76,9 +82,12 @@ A Progressive Web App for discovering local attractions, events, and activities.
 ### 📖 Documentation
 
 - **[ACTION_REQUIRED.md](ACTION_REQUIRED.md)** - ⭐ Start here! Immediate setup steps
+- **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - ⭐ Complete Netlify deployment guide
+- **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 Automated deployment setup
 - **[QUICK_START.md](QUICK_START.md)** - Quick reference guide
 - **[SECURITY_SETUP.md](SECURITY_SETUP.md)** - Detailed security setup
-- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Deployment checklist
+- **[ACTION_REQUIRED.md](ACTION_REQUIRED.md)** - Post-deployment actions
 
 ## 💻 Local Development
 
