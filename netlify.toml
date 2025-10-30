@@ -30,7 +30,7 @@
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: https: blob:;
       font-src 'self' https://fonts.gstatic.com;
-      connect-src 'self' https://maps.googleapis.com https://open-meteo.com https://*.openbrewerydb.org /.netlify/functions/*;
+      connect-src 'self' https://maps.googleapis.com https://maps.gstatic.com https://fonts.googleapis.com https://fonts.gstatic.com https://open-meteo.com https://*.openbrewerydb.org https://*.netlify.app/.netlify/functions/*;
       frame-src 'self' https://www.google.com;
       worker-src 'self' blob:;
     """
