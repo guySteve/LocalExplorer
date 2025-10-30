@@ -66,7 +66,8 @@ This document outlines how to test the fixes for weather, birds, and list/plan i
 
 1. **Open the app** with location enabled
 2. **Check for bird message** below weather widget
-   - Should see: `🐦 Bird sightings unavailable. To enable: Add EBIRD_API_KEY to your environment variables. Get a free key at ebird.org/api/keygen`
+   - Should see a message about bird sightings being unavailable
+   - Should mention EBIRD_API_KEY and link to ebird.org/api/keygen
    - Background should be orange/yellow (warning color)
    - Should NOT be clickable
 
@@ -125,7 +126,7 @@ This document outlines how to test the fixes for weather, birds, and list/plan i
 
 2. **Open shared plan**:
    - Open the share URL in a new browser tab/window
-   - Wait 500ms for page to load
+   - Wait for the page to fully load
 
 3. **Verify shared plan loads**:
    - Collection modal should open automatically
@@ -142,7 +143,7 @@ This document outlines how to test the fixes for weather, birds, and list/plan i
 ### Weather Not Showing
 - **Check**: Is location access granted?
 - **Check**: Browser console for errors
-- **Check**: Is MAPS_API_KEY configured? (needed for location services)
+- **Check**: Network tab for failed Open-Meteo API requests
 
 ### Birds Not Showing
 - **Check**: Is location access granted?
