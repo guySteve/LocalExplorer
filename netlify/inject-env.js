@@ -16,9 +16,10 @@ let content = fs.readFileSync(keyFilePath, 'utf8');
 if (process.env.MAPS_API_KEY) {
   console.log('Injecting MAPS_API_KEY into client code...');
   // Find the comment line and add the API key assignment after it
+  // Using JSON.stringify to safely escape special characters
   content = content.replace(
     /(\/\/ window\.MAPS_API_KEY will be set during build process)/,
-    `$1\nwindow.MAPS_API_KEY = '${process.env.MAPS_API_KEY}';`
+    `$1\nwindow.MAPS_API_KEY = ${JSON.stringify(process.env.MAPS_API_KEY)};`
   );
   fs.writeFileSync(keyFilePath, content);
   console.log('MAPS_API_KEY injected successfully');
