@@ -1,3 +1,34 @@
+// ===== API Caching Utilities =====
+
+/**
+ * Helper function to evict oldest cache entry when size limit is reached
+ */
+function evictOldestCacheEntry(cache, maxSize) {
+  if (cache.size > maxSize) {
+    const firstKey = cache.keys().next().value;
+    cache.delete(firstKey);
+  }
+}
+
+/**
+ * Helper function to generate standardized cache keys
+ */
+function generateLocationCacheKey(lat, lng, ...params) {
+  // Round to 2 decimal places (~1.1km precision) for general location-based caching
+  const latKey = lat.toFixed(2);
+  const lngKey = lng.toFixed(2);
+  return [latKey, lngKey, ...params].join(',');
+}
+
+/**
+ * Helper function to check if cached data is still valid
+ */
+function isCacheValid(cached, maxAge) {
+  return cached && (Date.now() - cached.timestamp < maxAge);
+}
+
+// ===== API Caches =====
+
 // Cache for event searches
 let eventSearchCache = new Map();
 const EVENT_SEARCH_CACHE_MS = 30 * 60 * 1000; // 30 minutes cache
@@ -7,11 +38,11 @@ async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
       const classification = (item.value && item.value !== 'all') ? item.value : '';
       
       // Create cache key
-      const cacheKey = `${currentPosition.lat.toFixed(2)},${currentPosition.lng.toFixed(2)},${classification}`;
+      const cacheKey = generateLocationCacheKey(currentPosition.lat, currentPosition.lng, classification);
       
       // Check cache first
       const cached = eventSearchCache.get(cacheKey);
-      if (cached && (Date.now() - cached.timestamp < EVENT_SEARCH_CACHE_MS)) {
+      if (isCacheValid(cached, EVENT_SEARCH_CACHE_MS)) {
         console.log('Using cached event results');
         displayEventResults(cached.events, item.name);
         return;
@@ -37,12 +68,7 @@ async function searchLocalEvents(item) { /* Fetch events from Ticketmaster */
           events: events,
           timestamp: Date.now()
         });
-        
-        // Limit cache size to 20 entries
-        if (eventSearchCache.size > 20) {
-          const firstKey = eventSearchCache.keys().next().value;
-          eventSearchCache.delete(firstKey);
-        }
+        evictOldestCacheEntry(eventSearchCache, 20);
         
         displayEventResults(events, item.name); // Display events in results modal
       } catch (err) { console.error(err); alert('Unable to fetch events.'); }
@@ -52,11 +78,11 @@ async function showSurpriseEvents() {
       if (!currentPosition) return alert('Please provide location first.');
       
       // Create cache key
-      const cacheKey = `surprise,${currentPosition.lat.toFixed(2)},${currentPosition.lng.toFixed(2)}`;
+      const cacheKey = generateLocationCacheKey(currentPosition.lat, currentPosition.lng, 'surprise');
       
       // Check cache first
       const cached = eventSearchCache.get(cacheKey);
-      if (cached && (Date.now() - cached.timestamp < EVENT_SEARCH_CACHE_MS)) {
+      if (isCacheValid(cached, EVENT_SEARCH_CACHE_MS)) {
         console.log('Using cached surprise events');
         const picks = sampleFromArray(cached.events, Math.min(6, cached.events.length));
         if (!picks.length) return alert('No events found for Surprise Me.');
@@ -82,16 +108,16 @@ async function showSurpriseEvents() {
           events: events,
           timestamp: Date.now()
         });
-        
-        // Limit cache size to 20 entries
-        if (eventSearchCache.size > 20) {
-          const firstKey = eventSearchCache.keys().next().value;
-          eventSearchCache.delete(firstKey);
-        }
+        evictOldestCacheEntry(eventSearchCache, 20);
         
         const picks = sampleFromArray(events, Math.min(6, events.length));
         if (!picks.length) return alert('No events found for Surprise Me.');
         displayEventResults(picks, 'Surprise Mix');
+      } catch (err) {
+        console.error(err);
+        alert('Unable to fetch surprise events.');
+      }
+    }
       } catch (err) {
         console.error(err);
         alert('Unable to fetch surprise events.');
@@ -497,12 +523,12 @@ const WHAT3WORDS_CACHE_MS = 60 * 60 * 1000; // 1 hour cache
 
 async function fetchWhat3Words(lat, lng) {
   try {
-    // Create cache key (round to 4 decimals for ~11m precision)
+    // Create cache key (round to 4 decimals for ~11m precision - more precise for W3W)
     const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
     
     // Check cache first
     const cached = what3wordsCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < WHAT3WORDS_CACHE_MS)) {
+    if (isCacheValid(cached, WHAT3WORDS_CACHE_MS)) {
       return cached.value;
     }
     
@@ -517,6 +543,23 @@ async function fetchWhat3Words(lat, lng) {
     const data = await response.json();
     
     if (data.words) {
+      const result = `///${data.words}`;
+      // Cache the result
+      what3wordsCache.set(cacheKey, {
+        value: result,
+        timestamp: Date.now()
+      });
+      evictOldestCacheEntry(what3wordsCache, 100);
+      
+      return result;
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('Failed to fetch What3Words:', err);
+    return null;
+  }
+}
       const result = `///${data.words}`;
       // Cache the result
       what3wordsCache.set(cacheKey, {
@@ -549,12 +592,12 @@ const FOURSQUARE_DETAILS_CACHE_MS = 60 * 60 * 1000; // 1 hour
 
 async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
   try {
-    // Create cache key
-    const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)},${query},${limit}`;
+    // Create cache key (using 3 decimal precision for ~110m)
+    const cacheKey = generateLocationCacheKey(lat, lng, query, limit.toString());
     
     // Check cache first
     const cached = foursquareSearchCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < FOURSQUARE_SEARCH_CACHE_MS)) {
+    if (isCacheValid(cached, FOURSQUARE_SEARCH_CACHE_MS)) {
       console.log('Using cached Foursquare search results');
       return cached.value;
     }
@@ -600,12 +643,7 @@ async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
       value: results,
       timestamp: Date.now()
     });
-    
-    // Limit cache size to 50 entries
-    if (foursquareSearchCache.size > 50) {
-      const firstKey = foursquareSearchCache.keys().next().value;
-      foursquareSearchCache.delete(firstKey);
-    }
+    evictOldestCacheEntry(foursquareSearchCache, 50);
     
     return results;
   } catch (err) {
@@ -620,7 +658,7 @@ async function getFourSquareDetails(fsqId) {
   try {
     // Check cache first
     const cached = foursquareDetailsCache.get(fsqId);
-    if (cached && (Date.now() - cached.timestamp < FOURSQUARE_DETAILS_CACHE_MS)) {
+    if (isCacheValid(cached, FOURSQUARE_DETAILS_CACHE_MS)) {
       console.log('Using cached Foursquare details');
       return cached.value;
     }
@@ -645,6 +683,23 @@ async function getFourSquareDetails(fsqId) {
       price: data.price,
       hours: data.hours,
       website: data.website,
+      tel: data.tel,
+      photos: data.photos
+    };
+    
+    // Cache the details
+    foursquareDetailsCache.set(fsqId, {
+      value: details,
+      timestamp: Date.now()
+    });
+    evictOldestCacheEntry(foursquareDetailsCache, 100);
+    
+    return details;
+  } catch (err) {
+    console.error('Failed to fetch FourSquare details:', err);
+    return null;
+  }
+}
       tel: data.tel,
       photos: data.photos
     };
@@ -1229,11 +1284,11 @@ const RECREATION_CACHE_MS = 60 * 60 * 1000; // 1 hour cache
 async function searchRecreationAreas(lat, lng, radius = 50) {
   try {
     // Create cache key
-    const cacheKey = `${lat.toFixed(2)},${lng.toFixed(2)},${radius}`;
+    const cacheKey = generateLocationCacheKey(lat, lng, radius.toString());
     
     // Check cache first
     const cached = recreationCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < RECREATION_CACHE_MS)) {
+    if (isCacheValid(cached, RECREATION_CACHE_MS)) {
       console.log('Using cached recreation areas');
       return cached.value;
     }
@@ -1278,12 +1333,7 @@ async function searchRecreationAreas(lat, lng, radius = 50) {
       value: results,
       timestamp: Date.now()
     });
-    
-    // Limit cache size to 20 entries
-    if (recreationCache.size > 20) {
-      const firstKey = recreationCache.keys().next().value;
-      recreationCache.delete(firstKey);
-    }
+    evictOldestCacheEntry(recreationCache, 20);
     
     return results;
   } catch (err) {
@@ -1301,11 +1351,11 @@ const NPS_CACHE_MS = 60 * 60 * 1000; // 1 hour cache
 async function searchNationalParks(lat, lng, radius = 100) {
   try {
     // Create cache key
-    const cacheKey = `${lat.toFixed(2)},${lng.toFixed(2)},${radius}`;
+    const cacheKey = generateLocationCacheKey(lat, lng, radius.toString());
     
     // Check cache first
     const cached = npsCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < NPS_CACHE_MS)) {
+    if (isCacheValid(cached, NPS_CACHE_MS)) {
       console.log('Using cached national parks');
       return cached.value;
     }
@@ -1363,12 +1413,7 @@ async function searchNationalParks(lat, lng, radius = 100) {
       value: results,
       timestamp: Date.now()
     });
-    
-    // Limit cache size to 20 entries
-    if (npsCache.size > 20) {
-      const firstKey = npsCache.keys().next().value;
-      npsCache.delete(firstKey);
-    }
+    evictOldestCacheEntry(npsCache, 20);
     
     return results;
   } catch (err) {
@@ -1383,7 +1428,7 @@ async function getNPSParkEvents(parkCode) {
   try {
     // Check cache first
     const cached = npsEventsCache.get(parkCode);
-    if (cached && (Date.now() - cached.timestamp < NPS_CACHE_MS)) {
+    if (isCacheValid(cached, NPS_CACHE_MS)) {
       console.log('Using cached NPS events');
       return cached.value;
     }
@@ -1423,24 +1468,9 @@ async function getNPSParkEvents(parkCode) {
       value: results,
       timestamp: Date.now()
     });
-    
-    // Limit cache size to 50 entries
-    if (npsEventsCache.size > 50) {
-      const firstKey = npsEventsCache.keys().next().value;
-      npsEventsCache.delete(firstKey);
-    }
+    evictOldestCacheEntry(npsEventsCache, 50);
     
     return results;
-  } catch (err) {
-    console.error('Failed to fetch NPS events:', err);
-    return [];
-  }
-}
-        tags: event.tags || []
-      }));
-    }
-    
-    return [];
   } catch (err) {
     console.error('Failed to fetch NPS events:', err);
     return [];
