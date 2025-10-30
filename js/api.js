@@ -435,8 +435,21 @@ let lastAlertsCheck = 0;
 const ALERTS_CACHE_MS = 60 * 60 * 1000; // 1 hour
 
 // --- What3Words Integration ---
+// Cache for What3Words results
+let what3wordsCache = new Map();
+const WHAT3WORDS_CACHE_MS = 60 * 60 * 1000; // 1 hour cache
+
 async function fetchWhat3Words(lat, lng) {
   try {
+    // Create cache key (round to 4 decimals for ~11m precision)
+    const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    
+    // Check cache first
+    const cached = what3wordsCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < WHAT3WORDS_CACHE_MS)) {
+      return cached.value;
+    }
+    
     const url = `${window.NETLIFY_FUNCTIONS_BASE}/what3words?lat=${lat}&lng=${lng}`;
     const response = await fetch(url);
     
@@ -448,7 +461,20 @@ async function fetchWhat3Words(lat, lng) {
     const data = await response.json();
     
     if (data.words) {
-      return `///${data.words}`;
+      const result = `///${data.words}`;
+      // Cache the result
+      what3wordsCache.set(cacheKey, {
+        value: result,
+        timestamp: Date.now()
+      });
+      
+      // Limit cache size to 100 entries
+      if (what3wordsCache.size > 100) {
+        const firstKey = what3wordsCache.keys().next().value;
+        what3wordsCache.delete(firstKey);
+      }
+      
+      return result;
     }
     
     return null;
@@ -459,8 +485,24 @@ async function fetchWhat3Words(lat, lng) {
 }
 
 // --- FourSquare Integration ---
+// Cache for Foursquare search results
+let foursquareSearchCache = new Map();
+let foursquareDetailsCache = new Map();
+const FOURSQUARE_SEARCH_CACHE_MS = 15 * 60 * 1000; // 15 minutes
+const FOURSQUARE_DETAILS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+
 async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
   try {
+    // Create cache key
+    const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)},${query},${limit}`;
+    
+    // Check cache first
+    const cached = foursquareSearchCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < FOURSQUARE_SEARCH_CACHE_MS)) {
+      console.log('Using cached Foursquare search results');
+      return cached.value;
+    }
+    
     const params = new URLSearchParams({
       endpoint: 'places/search',
       ll: `${lat},${lng}`,
@@ -482,19 +524,34 @@ async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
     
     const data = await response.json();
     
+    const results = [];
     if (data.results && Array.isArray(data.results)) {
-      return data.results.map(place => ({
-        fsq_id: place.fsq_id,
-        name: place.name,
-        category: place.categories?.[0]?.name || 'Place',
-        address: place.location?.formatted_address || '',
-        distance: place.distance,
-        lat: place.geocodes?.main?.latitude,
-        lng: place.geocodes?.main?.longitude
-      }));
+      data.results.forEach(place => {
+        results.push({
+          fsq_id: place.fsq_id,
+          name: place.name,
+          category: place.categories?.[0]?.name || 'Place',
+          address: place.location?.formatted_address || '',
+          distance: place.distance,
+          lat: place.geocodes?.main?.latitude,
+          lng: place.geocodes?.main?.longitude
+        });
+      });
     }
     
-    return [];
+    // Cache the results
+    foursquareSearchCache.set(cacheKey, {
+      value: results,
+      timestamp: Date.now()
+    });
+    
+    // Limit cache size to 50 entries
+    if (foursquareSearchCache.size > 50) {
+      const firstKey = foursquareSearchCache.keys().next().value;
+      foursquareSearchCache.delete(firstKey);
+    }
+    
+    return results;
   } catch (err) {
     console.error('Failed to fetch FourSquare data:', err);
     return [];
@@ -505,6 +562,13 @@ async function getFourSquareDetails(fsqId) {
   if (!fsqId) return null;
 
   try {
+    // Check cache first
+    const cached = foursquareDetailsCache.get(fsqId);
+    if (cached && (Date.now() - cached.timestamp < FOURSQUARE_DETAILS_CACHE_MS)) {
+      console.log('Using cached Foursquare details');
+      return cached.value;
+    }
+    
     const params = new URLSearchParams({
       endpoint: `places/${fsqId}`
     });
@@ -518,7 +582,7 @@ async function getFourSquareDetails(fsqId) {
     }
     
     const data = await response.json();
-    return {
+    const details = {
       name: data.name,
       description: data.description,
       rating: data.rating,
@@ -528,6 +592,20 @@ async function getFourSquareDetails(fsqId) {
       tel: data.tel,
       photos: data.photos
     };
+    
+    // Cache the details
+    foursquareDetailsCache.set(fsqId, {
+      value: details,
+      timestamp: Date.now()
+    });
+    
+    // Limit cache size to 100 entries
+    if (foursquareDetailsCache.size > 100) {
+      const firstKey = foursquareDetailsCache.keys().next().value;
+      foursquareDetailsCache.delete(firstKey);
+    }
+    
+    return details;
   } catch (err) {
     console.error('Failed to fetch FourSquare details:', err);
     return null;
@@ -540,10 +618,14 @@ async function fetchLocalAlerts(countryCode = 'US') {
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     
-    // Fetch holidays for current month
+    // NOTE: HolidayAPI free tier only supports previous year data
+    // For future dates, we'll use last year's data as reference for recurring holidays
+    // This is a limitation of the free tier
+    const queryYear = year - 1; // Use previous year for free tier
+    
     const params = new URLSearchParams({
       country: countryCode,
-      year: year.toString(),
+      year: queryYear.toString(),
       month: month
     });
     
@@ -558,23 +640,36 @@ async function fetchLocalAlerts(countryCode = 'US') {
     const data = await response.json();
     
     if (data.status !== 200 || !data.holidays) {
-      console.warn('Invalid HolidayAPI response');
+      console.warn('Invalid HolidayAPI response or no holidays available');
       return [];
     }
 
-    // Filter for upcoming holidays (next 7 days) that could disrupt travel
+    // Map last year's holidays to this year for reference
+    // Filter for holidays that would occur in the next 7 days
     const today = now.getTime();
     const weekFromNow = today + (7 * 24 * 60 * 60 * 1000);
     
-    const upcomingAlerts = data.holidays.filter(holiday => {
-      const holidayDate = new Date(holiday.date).getTime();
-      return holidayDate >= today && holidayDate <= weekFromNow && holiday.public === true;
-    }).map(holiday => ({
-      title: holiday.name,
-      date: holiday.date,
-      description: `Public holiday - ${holiday.name}. Expect increased traffic and closures.`,
-      type: 'holiday'
-    }));
+    const upcomingAlerts = data.holidays
+      .map(holiday => {
+        // Adjust the year to current year
+        const holidayDate = new Date(holiday.date);
+        holidayDate.setFullYear(year);
+        return {
+          ...holiday,
+          date: holidayDate.toISOString().split('T')[0],
+          adjustedDate: holidayDate
+        };
+      })
+      .filter(holiday => {
+        const holidayTime = holiday.adjustedDate.getTime();
+        return holidayTime >= today && holidayTime <= weekFromNow && holiday.public === true;
+      })
+      .map(holiday => ({
+        title: holiday.name,
+        date: holiday.date,
+        description: `${holiday.name} (recurring holiday - dates may vary)`,
+        type: 'holiday'
+      }));
 
     return upcomingAlerts;
   } catch (err) {

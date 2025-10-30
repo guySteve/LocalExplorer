@@ -1,5 +1,5 @@
 [build]
-  command = "echo 'No build command needed'"
+  command = "node netlify/inject-env.js || echo 'Env injection skipped'"
   publish = "."
   functions = "netlify/functions"
 
