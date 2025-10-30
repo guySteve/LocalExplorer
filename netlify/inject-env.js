@@ -18,7 +18,7 @@ if (process.env.MAPS_API_KEY) {
   // Find the comment line and add the API key assignment after it
   // Using JSON.stringify to safely escape special characters
   content = content.replace(
-    /(\/\/ window\.MAPS_API_KEY will be set during build process)/,
+    /(\/\/ window\.MAPS_API_KEY will be set during build process)(?:\nwindow\.MAPS_API_KEY\s*=\s*.*?;)?/,
     `$1\nwindow.MAPS_API_KEY = ${JSON.stringify(process.env.MAPS_API_KEY)};`
   );
   fs.writeFileSync(keyFilePath, content);
