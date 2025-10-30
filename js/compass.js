@@ -258,7 +258,8 @@ function openCompass(destLatLng = null, destName = '') {
         pitchVisual += (pitchTarget - pitchVisual) * TILT_SMOOTH;
         rollVisual += (rollTarget - rollVisual) * TILT_SMOOTH;
 
-        // Apply 3D transform: heading (Z-axis), pitch (X-axis), roll (Y-axis)
+        // Apply transform: Ring rotates based on heading
+        // Include subtle 3D tilt effects for visual feedback
         const transform = `
             perspective(1000px)
             rotateX(${pitchVisual}deg)
@@ -268,7 +269,7 @@ function openCompass(destLatLng = null, destName = '') {
         
         dial.style.transform = transform;
         
-        // Needle stays fixed pointing "up" (North relative to phone) - no rotation applied
+        // Arrow stays fixed pointing North - it's now a separate element outside the dial
 
         dialAnimationFrameId = requestAnimationFrame(animateCompass);
     };
