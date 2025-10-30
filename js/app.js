@@ -167,14 +167,16 @@ function injectMapsScript() {
       }
       
       console.log("Injecting Google Maps script...");
-      // Use environment variable or fallback key
-      const fallbackKey = 'YOUR_FALLBACK_API_KEY'; // Replace with your actual fallback key if needed
-      const mapsKey = window.MAPS_API_KEY || fallbackKey;
+      const mapsKey = window.MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
       
-      if (mapsKey === 'YOUR_FALLBACK_API_KEY' || !mapsKey) {
-           console.warn("Maps API Key is missing or using fallback!");
-           // Optionally: Display a message to the user or disable map features
-           // alert("Map features require an API key and may not function correctly.");
+      if (!mapsKey || mapsKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+           console.warn("Maps API Key is missing or using placeholder!");
+           const locationDisplay = $("locationDisplay");
+           if (locationDisplay) {
+               locationDisplay.textContent = "Maps API key not configured. Please set MAPS_API_KEY.";
+           }
+           // Still allow manual input
+           return;
       }
 
       const mapsScript = document.createElement('script');
