@@ -72,18 +72,19 @@ netlify deploy --prod
 
 #### Obtaining API Keys
 
-| Service | Get Key | Free Tier | Required |
-|---------|---------|-----------|----------|
-| Google Maps | [Get Key](https://developers.google.com/maps/documentation/javascript/get-api-key) | Yes | Yes |
-| Ticketmaster | [Get Key](https://developer.ticketmaster.com/) | Yes | Optional |
-| What3Words | [Get Key](https://accounts.what3words.com/register) | Yes | Optional |
-| Foursquare | [Get Key](https://foursquare.com/developers/) | Yes | Optional |
-| eBird | [Get Key](https://ebird.org/api/keygen) | Yes | Optional |
-| Recreation.gov | [Get Key](https://ridb.recreation.gov/) | Yes | Optional |
-| NPS | [Get Key](https://www.nps.gov/subjects/developer/get-started.htm) | Yes | Optional |
-| HolidayAPI | [Get Key](https://holidayapi.com/) | Limited | Optional |
+| Service | Get Key | Free Tier | Required | Notes |
+|---------|---------|-----------|----------|-------|
+| Google Maps | [Get Key](https://developers.google.com/maps/documentation/javascript/get-api-key) | Yes | Yes | Required for maps and location |
+| **Weather (Open-Meteo)** | **No Key Needed** | **100% Free** | **No** | **Weather works automatically - no API key required!** |
+| Ticketmaster | [Get Key](https://developer.ticketmaster.com/) | Yes | Optional | For event listings |
+| What3Words | [Get Key](https://accounts.what3words.com/register) | Yes | Optional | For precise location addressing |
+| Foursquare | [Get Key](https://foursquare.com/developers/) | Yes | Optional | For place discovery |
+| eBird | [Get Key](https://ebird.org/api/keygen) | Yes | Optional | For bird sighting features |
+| Recreation.gov | [Get Key](https://ridb.recreation.gov/) | Yes | Optional | For recreation areas |
+| NPS | [Get Key](https://www.nps.gov/subjects/developer/get-started.htm) | Yes | Optional | For national parks |
+| HolidayAPI | [Get Key](https://holidayapi.com/) | Limited | Optional | For holiday information |
 
-**Note**: The app will work with just Google Maps, but other features require their respective API keys.
+**Note**: The app will work with just Google Maps! Weather is built-in and FREE (no key required). Other features require their respective API keys.
 
 ### 📖 Documentation
 
