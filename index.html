@@ -32,8 +32,7 @@
       <input type="text" id="manualInput" placeholder="Enter a location">
     </div>
     <div id="primaryActions">
-      <button id="myListBtn">📋 My List</button>
-      <button id="myPlanBtn">🗺️ My Plan</button>
+      <button id="myCollectionBtn">📋 My Collection</button>
       <button id="compassBtn">🧭 Compass</button>
     </div>
     <div id="unifiedSearchContainer" style="width:100%; margin:0; padding:0;">
@@ -147,8 +146,30 @@
   </div>
   <div id="hiddenMap"></div> <div id="subMenuModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="subMenuTitle">Categories</h3><button class="close-btn" id="closeSubMenu">×</button></div><div class="subMenuList" id="subMenuList"></div></div></div>
   <div id="resultsModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="resultsTitle">Results</h3><button class="close-btn" id="closeResults">×</button></div><div class="results-list" id="resultsList"></div><button id="loadMoreResultsBtn" class="load-more-btn" type="button">Keep scanning</button></div></div>
-  <div id="myListModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My List</h3><button class="close-btn" id="closeMyList">×</button></div><div class="results-list" id="myListContent"></div><div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div></div></div>
-  <div id="planModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>My Plan</h3><button class="close-btn" id="closePlan">×</button></div><div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div><div class="results-list" id="planContent"></div><div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty.</div><div style="margin-top:0.5rem; display:flex; gap:0.5rem;"><button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button></div></div></div>
+  <div id="myCollectionModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>My Collection</h3>
+        <button class="close-btn" id="closeMyCollection">×</button>
+      </div>
+      <div class="collection-tabs" style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:2px solid rgba(200,121,65,0.2);">
+        <button id="listTab" class="collection-tab active" style="flex:1; padding:0.75rem; border:none; background:transparent; color:var(--card); font-weight:600; cursor:pointer; border-bottom:3px solid var(--primary); transition:all 0.2s;">📋 My List</button>
+        <button id="planTab" class="collection-tab" style="flex:1; padding:0.75rem; border:none; background:transparent; color:var(--card); font-weight:600; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s;">🗺️ My Plan</button>
+      </div>
+      <div id="listView" class="collection-view">
+        <div class="results-list" id="myListContent"></div>
+        <div class="empty-state" id="myListEmpty" style="display:none;">Your saved places will appear here.</div>
+      </div>
+      <div id="planView" class="collection-view" style="display:none;">
+        <div id="planSummary" style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--card);"></div>
+        <div class="results-list" id="planContent"></div>
+        <div class="empty-state" id="planEmpty" style="display:none;">Your plan is empty.</div>
+        <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+          <button id="sharePlanBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Share Plan</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="donateModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Support Local Explorer</h3><button class="close-btn" id="closeDonate">×</button></div><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem;">If you enjoy using Local Explorer, consider supporting development. Donations help keep this sailor’s app afloat!</p><p style="color: var(--card); font-size: 0.9rem; margin-bottom: 1rem; text-align:center;">Venmo: <strong>@Stephen-Mohamed-1</strong></p><div style="display:flex; gap:0.5rem;"><button id="openVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--primary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Open Venmo</button><button id="copyVenmoBtn" style="flex:1; border:none; border-radius:var(--radius); background-color:var(--secondary); color:var(--text-light); padding:0.5rem; font-size:0.9rem;">Copy Handle</button></div></div></div>
 
   <div id="errorToast" class="error-toast" style="display:none;"></div>
