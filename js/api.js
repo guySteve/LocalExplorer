@@ -637,7 +637,36 @@ function renderWeather(data) { /* Update UI with weather data */
   }
 }
 
-async function updateWeather(pos, opts = {}) { /* Update weather, uses cache */ if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`, now = Date.now(); if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) { renderWeather(cachedWeather); updateBirdFact(pos); return; } showWeatherLoading('Updating forecast...'); try { const data = await fetchWeatherData(pos); cachedWeather = data; lastWeatherCoords = key; lastWeatherFetch = now; renderWeather(data); updateBirdFact(pos); } catch (err) { console.error('Weather update failed', err); setWeatherPlaceholder('Unable to retrieve weather.'); } }
+async function updateWeather(pos, opts = {}) { 
+  /* Update weather, uses cache */ 
+  if (!pos) return setWeatherPlaceholder('Provide location for forecast.'); 
+  
+  const key = `${pos.lat.toFixed(3)}|${pos.lng.toFixed(3)}`;
+  const now = Date.now(); 
+  
+  if (!opts.force && cachedWeather && lastWeatherCoords === key && (now - lastWeatherFetch) < WEATHER_CACHE_MS) { 
+    console.log('✅ Weather: Using cached data (Open-Meteo - FREE, no API key needed)');
+    renderWeather(cachedWeather); 
+    updateBirdFact(pos); 
+    return; 
+  } 
+  
+  showWeatherLoading('Updating forecast...'); 
+  
+  try { 
+    console.log('🌤️ Weather: Fetching from Open-Meteo (FREE, no API key needed)...');
+    const data = await fetchWeatherData(pos); 
+    cachedWeather = data; 
+    lastWeatherCoords = key; 
+    lastWeatherFetch = now; 
+    console.log('✅ Weather: Successfully loaded!');
+    renderWeather(data); 
+    updateBirdFact(pos); 
+  } catch (err) { 
+    console.error('❌ Weather: Update failed', err); 
+    setWeatherPlaceholder('Unable to retrieve weather.'); 
+  } 
+}
 
 function displayHistoricalWeatherFacts(dailyData, currentTemp, isRaining) {
   const factsContainer = document.getElementById('historicalWeatherFacts');
@@ -938,6 +967,15 @@ async function fetchRecentBirdSightings(lat, lng) {
     
     if (!response.ok) {
       console.error('eBird API request failed:', response.status);
+      
+      // Check if it's an API key configuration error
+      if (response.status === 500) {
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.error && errorData.error.includes('API key not configured')) {
+          console.warn('eBird API key not configured. Bird sightings feature disabled.');
+          return 'configure-key';
+        }
+      }
       return null;
     }
     
@@ -1003,7 +1041,10 @@ async function updateBirdFact(pos, force = false) {
   
   try {
     const fact = await fetchRecentBirdSightings(pos.lat, pos.lng);
-    if (fact) {
+    if (fact === 'configure-key') {
+      // Show a helpful message when API key is not configured
+      displayBirdFact('🐦 Bird sightings unavailable. To enable: Add EBIRD_API_KEY to your environment variables. Get a free key at ebird.org/api/keygen');
+    } else if (fact) {
       cachedBirdFact = fact;
       lastBirdFactFetch = now;
       displayBirdFact(fact);
@@ -1016,6 +1057,8 @@ async function updateBirdFact(pos, force = false) {
 function displayBirdFact(fact) {
   if (!fact) return;
   
+  const isConfigMessage = fact.includes('unavailable') || fact.includes('EBIRD_API_KEY');
+  
   let factContainer = document.getElementById('birdFactContainer');
   if (!factContainer) {
     // Create container if it doesn't exist
@@ -1024,7 +1067,25 @@ function displayBirdFact(fact) {
     
     factContainer = document.createElement('div');
     factContainer.id = 'birdFactContainer';
-    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(139, 195, 74, 0.15)); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; border: 1px solid rgba(76, 175, 80, 0.3); transition: all 0.2s ease;';
+    factContainer.style.cssText = 'margin-top: 0.5rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(139, 195, 74, 0.15)); border-radius: 8px; font-size: 0.85rem; color: var(--text-dark); border: 1px solid rgba(76, 175, 80, 0.3); transition: all 0.2s ease;';
+    
+    weatherWidget.appendChild(factContainer);
+  }
+  
+  // Update styling based on message type
+  if (isConfigMessage) {
+    factContainer.style.cursor = 'default';
+    factContainer.style.background = 'linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 193, 7, 0.15))';
+    factContainer.style.borderColor = 'rgba(255, 152, 0, 0.3)';
+    factContainer.onclick = null;
+    factContainer.onmouseenter = null;
+    factContainer.onmouseleave = null;
+    factContainer.title = '';
+    factContainer.textContent = fact;
+  } else {
+    factContainer.style.cursor = 'pointer';
+    factContainer.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(139, 195, 74, 0.15))';
+    factContainer.style.borderColor = 'rgba(76, 175, 80, 0.3)';
     
     // Add hover effect styling
     factContainer.onmouseenter = () => {
@@ -1039,11 +1100,8 @@ function displayBirdFact(fact) {
     // Add click handler to open bird watching interface
     factContainer.onclick = () => openBirdWatchingModal();
     factContainer.title = 'Click to open bird watching app';
-    
-    weatherWidget.appendChild(factContainer);
+    factContainer.textContent = fact + ' — Tap to explore 🔍';
   }
-  
-  factContainer.textContent = fact + ' — Tap to explore 🔍';
 }
 
 // Bird Watching Interface
