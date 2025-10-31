@@ -43,6 +43,16 @@ exports.handler = async (event, context) => {
     const url = `https://holidayapi.com/v1/holidays?key=${apiKey}&country=${country}&year=${year}&month=${month}`;
     
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('HolidayAPI request failed:', response.status, response.statusText);
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ error: `HolidayAPI error: ${response.statusText}` })
+      };
+    }
+    
     const data = await response.json();
 
     return {
