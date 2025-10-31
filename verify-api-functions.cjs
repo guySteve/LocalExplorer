@@ -10,6 +10,11 @@
 const fs = require('fs');
 const path = require('path');
 
+// Configuration constants
+const EXPECTED_HISTORICAL_YEARS = 1; // Expected years of historical data to fetch
+const MAX_REASONABLE_YEARS = 5; // Maximum reasonable years before warning
+const EXCESSIVE_YEARS = 10; // Years that would be considered excessive
+
 console.log('🔍 Verifying API Functions...\n');
 
 const functionsDir = path.join(__dirname, 'netlify', 'functions');
@@ -142,13 +147,19 @@ if (fs.existsSync(apiJsPath)) {
         });
       }
       
-      // Check date range (should be 1 year as per requirement)
-      if (functionContent.includes('setFullYear(startDate.getFullYear() - 1)')) {
-        console.log('  ✅ Date range set to 1 year (last year only): PASSED');
-      } else if (/setFullYear\(startDate\.getFullYear\(\)\s*-\s*[2-5]\)/.test(functionContent)) {
-        console.log('  ⚠️  Date range is more than 1 year - should be 1 year only');
-      } else if (functionContent.includes('setFullYear(startDate.getFullYear() - 10)')) {
-        console.log('  ⚠️  Large date range (10 years) - should be 1 year only');
+      // Check date range (should match expected years)
+      // Checks for: setFullYear(startDate.getFullYear() - HISTORICAL_YEARS_TO_FETCH)
+      const yearsPattern = /setFullYear\(startDate\.getFullYear\(\)\s*-\s*(\w+)\)/;
+      const match = functionContent.match(yearsPattern);
+      
+      if (match && match[1] === 'HISTORICAL_YEARS_TO_FETCH') {
+        console.log(`  ✅ Date range uses named constant HISTORICAL_YEARS_TO_FETCH: PASSED`);
+      } else if (functionContent.includes(`setFullYear(startDate.getFullYear() - ${EXPECTED_HISTORICAL_YEARS})`)) {
+        console.log(`  ✅ Date range set to ${EXPECTED_HISTORICAL_YEARS} year (last year only): PASSED`);
+      } else if (new RegExp(`setFullYear\\(startDate\\.getFullYear\\(\\)\\s*-\\s*[2-${MAX_REASONABLE_YEARS}]\\)`).test(functionContent)) {
+        console.log(`  ⚠️  Date range is more than ${EXPECTED_HISTORICAL_YEARS} year - should be ${EXPECTED_HISTORICAL_YEARS} year only`);
+      } else if (functionContent.includes(`setFullYear(startDate.getFullYear() - ${EXCESSIVE_YEARS})`)) {
+        console.log(`  ⚠️  Large date range (${EXCESSIVE_YEARS} years) - should be ${EXPECTED_HISTORICAL_YEARS} year only`);
       }
       
     }
