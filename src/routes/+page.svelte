@@ -17,7 +17,8 @@
 	let locationDisplay = 'Determining your location…';
 	let showSettings = false;
 	let showMyCollection = false;
-	let showCompass = false;
+	// Note: showCompass state reserved for future CompassModal.svelte implementation
+	// let showCompass = false;
 	
 	onMount(() => {
 		// Initialize app
@@ -52,7 +53,6 @@
 	
 	<PrimaryActions 
 		on:openCollection={() => showMyCollection = true}
-		on:openCompass={() => showCompass = true}
 	/>
 	
 	<UnifiedSearch />
