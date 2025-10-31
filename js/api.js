@@ -1671,7 +1671,7 @@ async function fetchHistoricalWeather(lat, lng) {
   try {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setFullYear(startDate.getFullYear() - 5); // Get 5 years of history (reduced from 10 to avoid API issues)
+    startDate.setFullYear(startDate.getFullYear() - 1); // Get last year's history only
     
     // Ensure we don't request data from the future
     const endDate = new Date(today);

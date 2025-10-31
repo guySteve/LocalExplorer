@@ -142,13 +142,13 @@ if (fs.existsSync(apiJsPath)) {
         });
       }
       
-      // Check date range (should be reasonable, not too large)
-      if (functionContent.includes('setFullYear(startDate.getFullYear() - 5)') || 
-          functionContent.includes('setFullYear(startDate.getFullYear() - 3)') ||
-          /setFullYear\(startDate\.getFullYear\(\)\s*-\s*[1-5]\)/.test(functionContent)) {
-        console.log('  ✅ Reasonable date range (5 years or less): PASSED');
+      // Check date range (should be 1 year as per requirement)
+      if (functionContent.includes('setFullYear(startDate.getFullYear() - 1)')) {
+        console.log('  ✅ Date range set to 1 year (last year only): PASSED');
+      } else if (/setFullYear\(startDate\.getFullYear\(\)\s*-\s*[2-5]\)/.test(functionContent)) {
+        console.log('  ⚠️  Date range is more than 1 year - should be 1 year only');
       } else if (functionContent.includes('setFullYear(startDate.getFullYear() - 10)')) {
-        console.log('  ⚠️  Large date range (10 years) - may cause issues');
+        console.log('  ⚠️  Large date range (10 years) - should be 1 year only');
       }
       
     }
