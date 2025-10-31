@@ -32,7 +32,7 @@
 //    - Run: npm run dev
 //    
 //    FOR MANUAL CONFIGURATION (Not Recommended):
-//    - Uncomment the line below and add your key
+//    - Uncomment the line below and replace with your actual Google Maps API key
 //    - WARNING: Never commit API keys to git!
 //
 // window.MAPS_API_KEY = 'YOUR_KEY';
