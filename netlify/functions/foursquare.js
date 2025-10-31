@@ -50,6 +50,15 @@ exports.handler = async (event, context) => {
       }
     });
     
+    if (!response.ok) {
+      console.error('Foursquare API request failed:', response.status, response.statusText);
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ error: `Foursquare API error: ${response.statusText}` })
+      };
+    }
+    
     const data = await response.json();
 
     return {
