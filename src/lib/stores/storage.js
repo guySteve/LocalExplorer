@@ -19,8 +19,8 @@ function getStorage() {
   if (!browser) return null;
   try {
     if (typeof localStorage !== 'undefined') return localStorage;
-  } catch (_) {
-    /* ignored */
+  } catch (error) {
+    console.warn('localStorage not available:', error);
   }
   return null;
 }
