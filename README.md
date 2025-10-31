@@ -88,14 +88,8 @@ netlify deploy --prod
 
 ### 📖 Documentation
 
-- **[NETLIFY_SETUP_COMPLETE.md](NETLIFY_SETUP_COMPLETE.md)** - 🎉 Complete setup summary
 - **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - ⭐ Complete Netlify deployment guide
 - **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 Automated deployment setup
-- **[DEPLOY_QUICK_REF.md](DEPLOY_QUICK_REF.md)** - ⚡ Quick reference card
-- **[ACTION_REQUIRED.md](ACTION_REQUIRED.md)** - Post-deployment actions
-- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Deployment checklist
-- **[QUICK_START.md](QUICK_START.md)** - Quick reference guide
-- **[SECURITY_SETUP.md](SECURITY_SETUP.md)** - Detailed security setup
 
 ## 💻 Local Development
 
@@ -207,7 +201,7 @@ MIT License - feel free to use this project for personal or commercial purposes.
 ## 🐛 Issues
 
 If you encounter any issues, please:
-1. Check the [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for troubleshooting
+1. Check the [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for troubleshooting
 2. Review Netlify function logs
 3. Open an issue on GitHub with details
 
