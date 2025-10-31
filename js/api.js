@@ -1671,7 +1671,8 @@ async function fetchHistoricalWeather(lat, lng) {
   try {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setFullYear(startDate.getFullYear() - 1); // Get last year's history only
+    const HISTORICAL_YEARS_TO_FETCH = 1; // Fetch only last year's data for performance
+    startDate.setFullYear(startDate.getFullYear() - HISTORICAL_YEARS_TO_FETCH);
     
     // Ensure we don't request data from the future
     const endDate = new Date(today);
@@ -1690,12 +1691,13 @@ async function fetchHistoricalWeather(lat, lng) {
     
     if (!response.ok) {
       console.error('Historical weather API request failed:', response.status, response.statusText);
-      // Try to get error details
+      // Try to get error details from the response body
       try {
         const errorData = await response.json();
         console.error('Historical weather API error details:', errorData);
       } catch (e) {
-        // Ignore JSON parse errors for error response
+        // Error response may not be valid JSON (e.g., HTML error pages)
+        // Safe to ignore parse errors here as we already logged the status
       }
       return null;
     }
