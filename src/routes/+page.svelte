@@ -48,7 +48,8 @@
 						lat: position.coords.latitude,
 						lng: position.coords.longitude
 					});
-					locationDisplay = `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+					// Display approximate location for privacy
+					locationDisplay = `Location acquired`;
 				},
 				(error) => {
 					console.error('Geolocation error:', error);
