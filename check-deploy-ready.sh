@@ -103,7 +103,7 @@ fi
 
 # Check for documentation
 echo "Checking for documentation:"
-DOCS=("NETLIFY_DEPLOY.md" "GITHUB_ACTIONS_DEPLOY.md" "README.md" "DEPLOYMENT_CHECKLIST.md")
+DOCS=("NETLIFY_DEPLOY.md" "GITHUB_ACTIONS_DEPLOY.md" "README.md")
 for doc in "${DOCS[@]}"; do
     echo -n "  - $doc... "
     if [ -f "$doc" ]; then

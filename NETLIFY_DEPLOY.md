@@ -289,9 +289,7 @@ Once deployed, your users can:
 
 ## 💬 Need Help?
 
-- 📖 Check [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for detailed checklist
-- 📝 See [QUICK_START.md](QUICK_START.md) for quick reference
-- 🔒 Review [SECURITY_SETUP.md](SECURITY_SETUP.md) for security details
+- 🤖 See [GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md) for automated deployment
 - 🐛 [Open an issue](https://github.com/guySteve/LocalExplorer/issues) on GitHub
 
 ---
