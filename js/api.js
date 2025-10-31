@@ -27,6 +27,26 @@ function isCacheValid(cached, maxAge) {
   return cached && (Date.now() - cached.timestamp < maxAge);
 }
 
+/**
+ * Helper function to safely parse JSON responses
+ * Checks content-type before parsing to avoid errors when HTML is returned
+ * @param {Response} response - Fetch API response object
+ * @returns {Promise<any>} Parsed JSON data or null if not JSON
+ */
+async function safeParseJSON(response) {
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    console.warn('Response is not JSON, content-type:', contentType);
+    return null;
+  }
+  try {
+    return await response.json();
+  } catch (err) {
+    console.error('Failed to parse JSON response:', err);
+    return null;
+  }
+}
+
 // ===== API Caches =====
 
 // Cache for event searches
@@ -785,7 +805,10 @@ async function fetchWhat3Words(lat, lng) {
       return null;
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return null;
+    }
     
     if (data.words) {
       const result = `///${data.words}`;
@@ -844,7 +867,10 @@ async function searchFourSquareNearby(lat, lng, query = '', limit = 20) {
       return [];
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return [];
+    }
     
     const results = [];
     if (data.results && Array.isArray(data.results)) {
@@ -898,7 +924,10 @@ async function getFourSquareDetails(fsqId) {
       return null;
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return null;
+    }
     const details = {
       name: data.name,
       description: data.description,
@@ -970,8 +999,8 @@ async function fetchRecentBirdSightings(lat, lng) {
       
       // Check if it's an API key configuration error
       if (response.status === 500) {
-        const errorData = await response.json().catch(() => ({}));
-        if (errorData.error && errorData.error.includes('API key not configured')) {
+        const errorData = await safeParseJSON(response);
+        if (errorData && errorData.error && errorData.error.includes('API key not configured')) {
           console.warn('eBird API key not configured. Bird sightings feature disabled.');
           return 'configure-key';
         }
@@ -979,7 +1008,10 @@ async function fetchRecentBirdSightings(lat, lng) {
       return null;
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return null;
+    }
     
     if (data && data.length > 0) {
       // Pick a random bird from the recent sightings
@@ -1188,7 +1220,11 @@ async function loadRecentBirds() {
       return;
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      content.innerHTML = '<p style="text-align: center; color: var(--card);">Unable to load bird sightings.</p>';
+      return;
+    }
     
     if (!data || data.length === 0) {
       content.innerHTML = '<p style="text-align: center; color: var(--card);">No recent bird sightings in this area.</p>';
@@ -1353,7 +1389,10 @@ async function searchBreweries(lat, lng, query = '') {
       return [];
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return [];
+    }
     
     const breweries = data.map(brewery => ({
       id: brewery.id,
@@ -1408,7 +1447,10 @@ async function searchRecreationAreas(lat, lng, radius = 50) {
       return [];
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return [];
+    }
     
     let results = [];
     if (data.RECDATA && Array.isArray(data.RECDATA)) {
@@ -1473,7 +1515,10 @@ async function searchNationalParks(lat, lng, radius = 100) {
       return [];
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return [];
+    }
     
     let results = [];
     if (data.data && Array.isArray(data.data)) {
@@ -1546,7 +1591,10 @@ async function getNPSParkEvents(parkCode) {
       return [];
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
+    if (!data) {
+      return [];
+    }
     
     let results = [];
     if (data.data && Array.isArray(data.data)) {
@@ -1607,7 +1655,7 @@ async function fetchMarineWeather(lat, lng) {
       return null;
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
     return data;
   } catch (err) {
     console.error('Failed to fetch marine weather:', err);
@@ -1638,7 +1686,7 @@ async function fetchHistoricalWeather(lat, lng) {
       return null;
     }
     
-    const data = await response.json();
+    const data = await safeParseJSON(response);
     return data;
   } catch (err) {
     console.error('Failed to fetch historical weather:', err);
