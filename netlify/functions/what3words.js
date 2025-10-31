@@ -43,6 +43,16 @@ exports.handler = async (event, context) => {
     const url = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${apiKey}`;
     
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('What3Words API request failed:', response.status, response.statusText);
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ error: `What3Words API error: ${response.statusText}` })
+      };
+    }
+    
     const data = await response.json();
 
     return {

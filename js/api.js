@@ -1671,13 +1671,17 @@ async function fetchHistoricalWeather(lat, lng) {
   try {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setFullYear(startDate.getFullYear() - 10); // Get 10 years of history
+    startDate.setFullYear(startDate.getFullYear() - 5); // Get 5 years of history (reduced from 10 to avoid API issues)
+    
+    // Ensure we don't request data from the future
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() - 1); // Request up to yesterday to avoid incomplete data
     
     const params = new URLSearchParams({
       latitude: lat.toFixed(4),
       longitude: lng.toFixed(4),
       start_date: startDate.toISOString().split('T')[0],
-      end_date: today.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0],
       daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum',
       timezone: 'auto'
     });
@@ -1685,7 +1689,14 @@ async function fetchHistoricalWeather(lat, lng) {
     const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`);
     
     if (!response.ok) {
-      console.error('Historical weather API request failed:', response.status);
+      console.error('Historical weather API request failed:', response.status, response.statusText);
+      // Try to get error details
+      try {
+        const errorData = await response.json();
+        console.error('Historical weather API error details:', errorData);
+      } catch (e) {
+        // Ignore JSON parse errors for error response
+      }
       return null;
     }
     
