@@ -201,7 +201,7 @@ MIT License - feel free to use this project for personal or commercial purposes.
 ## 🐛 Issues
 
 If you encounter any issues, please:
-1. Check the [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for troubleshooting
+1. Check [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for deployment troubleshooting and Netlify configuration help
 2. Review Netlify function logs
 3. Open an issue on GitHub with details
 
