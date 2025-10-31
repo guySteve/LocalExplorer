@@ -1656,6 +1656,9 @@ async function fetchMarineWeather(lat, lng) {
     }
     
     const data = await safeParseJSON(response);
+    if (!data) {
+      return null;
+    }
     return data;
   } catch (err) {
     console.error('Failed to fetch marine weather:', err);
@@ -1687,6 +1690,9 @@ async function fetchHistoricalWeather(lat, lng) {
     }
     
     const data = await safeParseJSON(response);
+    if (!data) {
+      return null;
+    }
     return data;
   } catch (err) {
     console.error('Failed to fetch historical weather:', err);
