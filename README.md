@@ -1,6 +1,6 @@
 # 🗺️ LocalExplorer
 
-A Progressive Web App for discovering local attractions, events, and activities. Built with **SvelteKit** and designed for adventure seekers who want to explore their surroundings.
+A Progressive Web App for discovering local attractions, events, and activities. Built with **SvelteKit** and designed for **adventure seekers** who want to explore their surroundings.
 
 > **🎉 NEW**: Recently migrated to SvelteKit for better performance and developer experience! See [SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md) for details.
 
