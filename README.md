@@ -1,6 +1,8 @@
 # 🗺️ LocalExplorer
 
-A Progressive Web App for discovering local attractions, events, and activities. Built with vanilla JavaScript and designed for adventure seekers who want to explore their surroundings.
+A Progressive Web App for discovering local attractions, events, and activities. Built with **SvelteKit** and designed for adventure seekers who want to explore their surroundings.
+
+> **🎉 NEW**: Recently migrated to SvelteKit for better performance and developer experience! See [SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md) for details.
 
 ## 🚀 Quick Deploy to Netlify
 
@@ -93,16 +95,11 @@ netlify deploy --prod
 
 ## 💻 Local Development
 
-To run the app locally with Netlify Functions:
-
 ```bash
-# Install Netlify CLI globally
-npm install -g netlify-cli
-
 # Install dependencies
 npm install
 
-# Create local environment file
+# Create local environment file (for API keys)
 cp .env.example .env
 
 # Edit .env and add your API keys
@@ -112,12 +109,24 @@ nano .env  # or use your preferred editor
 npm run dev
 ```
 
-The app will be available at `http://localhost:8888` with Netlify Functions running locally.
+The app will be available at `http://localhost:5173` with hot module replacement.
+
+### Build for Production
+
+```bash
+# Build the app
+npm run build
+
+# Preview production build
+npm run preview
+```
 
 ## 🏗️ Architecture
 
 ### Frontend
-- Vanilla JavaScript (no framework dependencies)
+- **SvelteKit** - Modern framework with SSR capabilities
+- **Svelte** - Reactive component framework
+- **Vite** - Lightning-fast build tool
 - Progressive Web App (PWA) with service worker
 - Responsive design with CSS Grid and Flexbox
 - Google Maps JavaScript API integration
@@ -132,23 +141,33 @@ The app will be available at `http://localhost:8888` with Netlify Functions runn
 
 ```
 LocalExplorer/
+├── src/
+│   ├── routes/              # SvelteKit pages
+│   │   ├── +layout.svelte   # App layout
+│   │   └── +page.svelte     # Homepage
+│   ├── lib/
+│   │   ├── stores/          # Svelte stores
+│   │   │   ├── appState.js  # App state
+│   │   │   └── storage.js   # Storage utilities
+│   │   └── components/      # Svelte components
+│   └── app.html             # HTML template
 ├── netlify/
-│   └── functions/          # Serverless functions
-│       ├── ticketmaster.js # Events API
-│       ├── what3words.js   # Location API
-│       ├── foursquare.js   # Places API
-│       ├── ebird.js        # Bird data API
-│       ├── holiday.js      # Holiday API
-│       ├── recreation.js   # Recreation API
-│       └── nps.js          # National Parks API
-├── js/
-│   ├── api.js              # API integration layer
-│   ├── app.js              # Main app logic
-│   ├── maps.js             # Google Maps integration
-│   ├── ui.js               # UI components
-│   └── ...                 # Other modules
-├── css/                    # Stylesheets
-├── index.html              # Main HTML
+│   └── functions/           # Serverless functions
+│       ├── ticketmaster.js  # Events API
+│       ├── what3words.js    # Location API
+│       ├── foursquare.js    # Places API
+│       ├── ebird.js         # Bird data API
+│       ├── holiday.js       # Holiday API
+│       ├── recreation.js    # Recreation API
+│       └── nps.js           # National Parks API
+├── static/                  # Static assets
+│   ├── css/                 # Stylesheets
+│   ├── icon-*.png           # PWA icons
+│   └── manifest.json        # PWA manifest
+├── build/                   # Production build (generated)
+├── svelte.config.js         # SvelteKit config
+├── vite.config.js           # Vite config with PWA
+└── netlify.toml             # Netlify config
 ├── manifest.json           # PWA manifest
 └── netlify.toml            # Netlify config
 ```
@@ -183,6 +202,19 @@ The app includes 20+ themes:
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### For Developers
+
+If you're new to SvelteKit, check out:
+- [SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md) - Migration guide and architecture
+- [SvelteKit Docs](https://kit.svelte.dev/docs) - Official documentation
+- [Svelte Tutorial](https://svelte.dev/tutorial) - Interactive tutorial
+
+## 📚 Documentation
+
+- **[SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md)** - 📘 SvelteKit migration guide
+- **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - 🚀 Netlify deployment instructions
+- **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 CI/CD setup
 
 ## 📄 License
 
