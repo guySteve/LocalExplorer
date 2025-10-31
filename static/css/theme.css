@@ -1592,3 +1592,268 @@ body.theme-arcade80 .filter-btn:focus-visible {
     border-width: 4px;
   }
 }
+
+/* ============================================
+   ENHANCED THEME ANIMATIONS & POLISH
+   ============================================ */
+
+/* Smooth theme transitions */
+:root {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Global animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary);
+  }
+}
+
+/* Modal entrance/exit animations */
+.modal {
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.closing {
+  animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Button hover enhancements */
+button, .btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button::after, .btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button:active::after, .btn:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Card hover effects */
+.result-card, .filter-btn, .sub-menu-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.result-card:hover, .filter-btn:hover, .sub-menu-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Staggered list animations */
+.results-list > * {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.results-list > *:nth-child(1) { animation-delay: 0.05s; }
+.results-list > *:nth-child(2) { animation-delay: 0.1s; }
+.results-list > *:nth-child(3) { animation-delay: 0.15s; }
+.results-list > *:nth-child(4) { animation-delay: 0.2s; }
+.results-list > *:nth-child(5) { animation-delay: 0.25s; }
+
+/* Theme-specific enhancements */
+body.theme-neon button:hover,
+body.theme-highseas button:hover,
+body.theme-arcade80 button:hover {
+  animation: glow 2s ease-in-out infinite;
+}
+
+body.theme-playful .filter-btn,
+body.theme-retro90 .filter-btn {
+  animation: float 3s ease-in-out infinite;
+}
+
+body.theme-arcade80 * {
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-psychedelic60 button {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Loading states */
+.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Focus states with accessibility */
+*:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  transition: outline-offset 0.2s ease;
+}
+
+button:focus-visible {
+  outline-offset: 5px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced backdrop blur for modals */
+.modal {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Weather widget enhancements */
+#weatherWidget {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#weatherWidget:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+#weatherIcon {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Filter grid entrance animation */
+.filters {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Support CTA pulse */
+.support-cta {
+  animation: pulse 4s ease-in-out infinite;
+}
+
+/* Responsive animations - reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark theme text glow effects */
+body.theme-neon h1,
+body.theme-neon h2,
+body.theme-neon h3,
+body.theme-highseas h1,
+body.theme-highseas h2,
+body.theme-highseas h3 {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Gradient text for special themes */
+body.theme-sunset h1,
+body.theme-aurora h1,
+body.theme-voyager h1 {
+  background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
