@@ -16,6 +16,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+.svelte-kit/
 
 # OS files
 .DS_Store

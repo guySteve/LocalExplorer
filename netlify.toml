@@ -1,6 +1,6 @@
 [build]
-  command = "node netlify/inject-env.js || echo 'Env injection skipped'"
-  publish = "."
+  command = "npm run build"
+  publish = "build"
   functions = "netlify/functions"
 
 # Environment variables configuration
@@ -67,10 +67,3 @@
     Cache-Control = "public, max-age=86400"
     Content-Type = "application/manifest+json"
 
-# SPA fallback - redirect all non-file requests to index.html
-# Force = false ensures this doesn't override functions or existing files
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
