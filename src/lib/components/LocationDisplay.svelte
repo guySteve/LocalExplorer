@@ -1,6 +1,4 @@
 <script>
-	import { currentPosition } from '$lib/stores/appState';
-	
 	export let locationDisplay = 'Determining your location…';
 </script>
 

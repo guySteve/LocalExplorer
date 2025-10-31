@@ -1,14 +1,5 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
-	
-	const dispatch = createEventDispatcher();
-	
-	let showForecast = false;
-	
-	function toggleForecast() {
-		showForecast = !showForecast;
-		dispatch('toggleForecast', { show: showForecast });
-	}
+	// Component for displaying weather widget
 </script>
 
 <div id="weatherWidget" aria-live="polite">
@@ -18,7 +9,7 @@
 			<span id="weatherUpdated">Waiting for location...</span>
 		</div>
 		<button id="refreshWeatherBtn" type="button" aria-label="Refresh weather">↻</button>
-		<button id="forecastBtn" type="button" aria-label="View weekly forecast" title="Weekly forecast" on:click={toggleForecast}>📅</button>
+		<button id="forecastBtn" type="button" aria-label="View weekly forecast" title="Weekly forecast">📅</button>
 	</div>
 	<div id="weatherContent">
 		<div id="weatherPrimary">
