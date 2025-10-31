@@ -1,9 +1,9 @@
 <script>
 	import { onMount } from 'svelte';
 	
-	// Import CSS
+	// Import CSS - Theme variables and app-wide styles
 	import '/css/theme.css';
-	import '/css/main.css';
+	import '../app.css';
 	
 	let { children } = $props();
 </script>
