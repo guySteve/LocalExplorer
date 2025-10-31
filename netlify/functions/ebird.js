@@ -55,6 +55,15 @@ exports.handler = async (event, context) => {
       }
     });
     
+    if (!response.ok) {
+      console.error('eBird API request failed:', response.status, response.statusText);
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ error: `eBird API error: ${response.statusText}` })
+      };
+    }
+    
     const data = await response.json();
 
     return {

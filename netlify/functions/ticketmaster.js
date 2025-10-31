@@ -46,6 +46,16 @@ exports.handler = async (event, context) => {
     const url = `https://app.ticketmaster.com/discovery/v2/events.json?${queryString}`;
     
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Ticketmaster API request failed:', response.status, response.statusText);
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ error: `Ticketmaster API error: ${response.statusText}` })
+      };
+    }
+    
     const data = await response.json();
 
     return {
