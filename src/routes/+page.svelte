@@ -17,6 +17,9 @@
 	import ResultsModal from '$lib/components/ResultsModal.svelte';
 	import DonateModal from '$lib/components/DonateModal.svelte';
 	import ForecastModal from '$lib/components/ForecastModal.svelte';
+	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
+	import Compass from '$lib/components/Compass.svelte';
+	import NearbyNow from '$lib/components/NearbyNow.svelte';
 	
 	// Modal visibility state
 	let locationDisplay = 'Determining your location…';
@@ -26,6 +29,8 @@
 	let showResults = false;
 	let showDonate = false;
 	let showForecast = false;
+	let showDetails = false;
+	let showCompass = false;
 	
 	// Modal data
 	let subMenuTitle = '';
@@ -33,40 +38,13 @@
 	let resultsTitle = 'Results';
 	let searchResults = [];
 	let forecastData = [];
+	let selectedPlace = null;
+	let compassDestination = null;
+	let compassDestinationName = '';
 	
 	onMount(() => {
 		// Initialize app
 		console.log('LocalExplorer SvelteKit initialized');
-		
-		// Request geolocation
-		if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(
-				(position) => {
-					currentPosition.set({
-						lat: position.coords.latitude,
-						lng: position.coords.longitude
-					});
-					// Display approximate location for privacy
-					locationDisplay = `Location acquired`;
-				},
-				(error) => {
-					console.error('Geolocation error:', error);
-					locationDisplay = 'Location access denied';
-				}
-			);
-		} else {
-			locationDisplay = 'Geolocation not supported';
-		}
-		
-		// Load Google Maps API if not already loaded
-		if (!window.google) {
-			const script = document.createElement('script');
-			const apiKey = window.GOOGLE_MAPS_API_KEY || '';
-			script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-			script.async = true;
-			script.defer = true;
-			document.head.appendChild(script);
-		}
 	});
 	
 	function handleOpenSubMenu(event) {
@@ -106,13 +84,49 @@
 	
 	function handlePlaceSelect(place) {
 		console.log('Place selected:', place);
-		// TODO: Implement DetailsSheet modal
-		alert(`Details for ${place.name} - To be implemented`);
+		selectedPlace = place;
+		showDetails = true;
+		showResults = false;
 	}
 	
 	function handleOpenForecast(event) {
 		forecastData = event.detail || [];
 		showForecast = true;
+	}
+	
+	function handleStartNavigation(event) {
+		console.log('Starting navigation:', event.detail);
+		const { location, name } = event.detail;
+		
+		compassDestination = location;
+		compassDestinationName = name;
+		showDetails = false;
+		showCompass = true;
+	}
+	
+	function handleCloseDetails() {
+		showDetails = false;
+		selectedPlace = null;
+	}
+	
+	function handleCloseCompass() {
+		showCompass = false;
+		compassDestination = null;
+		compassDestinationName = '';
+	}
+	
+	function handleOpenBirdWatching() {
+		// Trigger the "Watch Birds" submenu
+		handleOpenSubMenu({
+			detail: {
+				title: 'Bird Watching',
+				items: [
+					{ label: 'Recent Sightings', value: 'bird-sightings' },
+					{ label: 'Rare Species Alert', value: 'rare-birds' },
+					{ label: 'Birding Hotspots', value: 'bird-hotspots' }
+				]
+			}
+		});
 	}
 </script>
 
@@ -128,6 +142,8 @@
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
 	<WeatherWidget on:openForecast={handleOpenForecast} />
+	
+	<NearbyNow on:openBirdWatching={handleOpenBirdWatching} />
 	
 	<FilterGrid on:openSubMenu={handleOpenSubMenu} />
 	
@@ -174,6 +190,22 @@
 		on:close={() => showForecast = false}
 	/>
 {/if}
+
+<!-- NEW: Details Sheet -->
+<DetailsSheet 
+	place={selectedPlace}
+	visible={showDetails}
+	on:close={handleCloseDetails}
+	on:startNavigation={handleStartNavigation}
+/>
+
+<!-- NEW: Compass -->
+<Compass 
+	destination={compassDestination}
+	destinationName={compassDestinationName}
+	visible={showCompass}
+	on:close={handleCloseCompass}
+/>
 
 <style>
 	/* Page-specific styles if needed */

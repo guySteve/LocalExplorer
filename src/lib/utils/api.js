@@ -8,7 +8,78 @@ export const NETLIFY_FUNCTIONS_BASE = browser
   ? (window.location.hostname === 'localhost' ? 'http://localhost:8888/.netlify/functions' : '/.netlify/functions')
   : '';
 
-// Calculate distance between two coordinates (Haversine formula)
+// ===== CACHING UTILITIES =====
+
+/**
+ * Helper function to evict oldest cache entry when size limit is reached
+ */
+function evictOldestCacheEntry(cache, maxSize) {
+  if (cache.size > maxSize) {
+    const firstKey = cache.keys().next().value;
+    cache.delete(firstKey);
+  }
+}
+
+/**
+ * Helper function to generate standardized cache keys
+ */
+function generateLocationCacheKey(lat, lng, ...params) {
+  // Round to 2 decimal places (~1.1km precision) for general location-based caching
+  const latKey = lat.toFixed(2);
+  const lngKey = lng.toFixed(2);
+  return [latKey, lngKey, ...params].join(',');
+}
+
+/**
+ * Helper function to check if cached data is still valid
+ */
+function isCacheValid(cached, maxAge) {
+  return cached && (Date.now() - cached.timestamp < maxAge);
+}
+
+/**
+ * Helper function to safely parse JSON responses
+ */
+async function safeParseJSON(response) {
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    console.warn('Response is not JSON, content-type:', contentType);
+    return null;
+  }
+  try {
+    return await response.json();
+  } catch (err) {
+    console.error('Failed to parse JSON response:', err);
+    return null;
+  }
+}
+
+// Initialize caches
+const nearbySearchCache = new Map();
+const placeDetailsCache = new Map();
+const eventSearchCache = new Map();
+const what3wordsCache = new Map();
+const foursquareSearchCache = new Map();
+const foursquareDetailsCache = new Map();
+const recreationCache = new Map();
+const npsCache = new Map();
+const npsEventsCache = new Map();
+
+const NEARBY_SEARCH_CACHE_MS = 15 * 60 * 1000; // 15 minutes
+const PLACE_DETAILS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+const EVENT_SEARCH_CACHE_MS = 30 * 60 * 1000; // 30 minutes
+const WHAT3WORDS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+const FOURSQUARE_SEARCH_CACHE_MS = 15 * 60 * 1000; // 15 minutes
+const FOURSQUARE_DETAILS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+const RECREATION_CACHE_MS = 60 * 60 * 1000; // 1 hour
+const NPS_CACHE_MS = 60 * 60 * 1000; // 1 hour
+
+// ===== DISTANCE CALCULATIONS =====
+
+/**
+ * Calculate distance between two coordinates (Haversine formula)
+ * Returns distance in meters
+ */
 export function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3; // Earth radius in meters
   const φ1 = lat1 * Math.PI / 180;
@@ -22,6 +93,14 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c; // Distance in meters
+}
+
+/**
+ * Calculate distance in miles
+ */
+export function calculateDistanceMiles(lat1, lon1, lat2, lon2) {
+  const meters = calculateDistance(lat1, lon1, lat2, lon2);
+  return meters / 1609.34; // Convert to miles
 }
 
 // Normalize place data from different providers

@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentPosition, cachedWeather, lastWeatherFetch, WEATHER_CACHE_MS } from '$lib/stores/appState';
-	import { fetchWeather, fetchForecast } from '$lib/utils/api';
+	import { fetchWeatherData, weatherCodeToSummary, fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -9,18 +9,7 @@
 	let loading = false;
 	let lastUpdated = '';
 	let expanded = false;
-	
-	const weatherIcons = {
-		'Clear': '☀️',
-		'Clouds': '☁️',
-		'Rain': '🌧️',
-		'Drizzle': '🌦️',
-		'Thunderstorm': '⛈️',
-		'Snow': '❄️',
-		'Mist': '🌫️',
-		'Fog': '🌫️',
-		'Haze': '🌫️'
-	};
+	let birdFact = '';
 	
 	onMount(() => {
 		// Auto-fetch weather when position is available
@@ -49,17 +38,36 @@
 		
 		loading = true;
 		try {
-			const data = await fetchWeather(pos.lat, pos.lng);
+			const data = await fetchWeatherData(pos.lat, pos.lng);
 			if (data) {
 				weatherData = data;
 				cachedWeather.set(data);
 				lastWeatherFetch.set(Date.now());
 				updateLastUpdated();
+				
+				// Also fetch bird facts
+				loadBirdFact();
 			}
 		} catch (error) {
 			console.error('Weather fetch failed:', error);
 		} finally {
 			loading = false;
+		}
+	}
+	
+	async function loadBirdFact() {
+		const pos = $currentPosition;
+		if (!pos) return;
+		
+		try {
+			const fact = await fetchRecentBirdSightings(pos.lat, pos.lng);
+			if (fact && fact !== 'configure-key') {
+				birdFact = fact;
+			} else if (fact === 'configure-key') {
+				birdFact = '🐦 Bird sightings unavailable. Add EBIRD_API_KEY to enable.';
+			}
+		} catch (err) {
+			console.error('Bird fact failed:', err);
 		}
 	}
 	
@@ -70,25 +78,9 @@
 	}
 	
 	async function handleOpenForecast() {
-		const pos = $currentPosition;
-		if (!pos) {
-			alert('Location not available');
-			return;
-		}
-		
-		try {
-			const data = await fetchForecast(pos.lat, pos.lng);
-			if (data && data.list) {
-				const forecast = data.list.map(day => ({
-					date: new Date(day.dt * 1000).toISOString(),
-					condition: day.weather[0].main,
-					tempHigh: day.temp.max,
-					tempLow: day.temp.min
-				}));
-				dispatch('openForecast', forecast);
-			}
-		} catch (error) {
-			console.error('Forecast fetch failed:', error);
+		if (weatherData && weatherData.daily) {
+			dispatch('openForecast', weatherData.daily);
+		} else {
 			alert('Forecast not available');
 		}
 	}
@@ -98,13 +90,49 @@
 		lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 	}
 	
-	function getWeatherIcon(condition) {
-		return weatherIcons[condition] || '🌤️';
-	}
-	
 	function toggleDetails() {
 		expanded = !expanded;
 	}
+	
+	// Computed values
+	let weatherIcon = $derived(
+		weatherData ? weatherCodeToSummary(weatherData.current_weather.weathercode).icon : '🌤️'
+	);
+	
+	let weatherDescription = $derived(
+		weatherData ? weatherCodeToSummary(weatherData.current_weather.weathercode).text : 'Loading...'
+	);
+	
+	let tempF = $derived(
+		weatherData ? Math.round(weatherData.current_weather.temperature * 9/5 + 32) : null
+	);
+	
+	let feelsF = $derived(() => {
+		if (!weatherData || !weatherData.hourly) return tempF;
+		
+		const hourlyData = weatherData.hourly;
+		if (Array.isArray(hourlyData.time) && Array.isArray(hourlyData.apparent_temperature)) {
+			const index = hourlyData.time.indexOf(weatherData.current_weather.time);
+			if (index >= 0 && index < hourlyData.apparent_temperature.length) {
+				return Math.round(hourlyData.apparent_temperature[index] * 9/5 + 32);
+			}
+		}
+		return tempF;
+	});
+	
+	let highF = $derived(
+		weatherData && weatherData.daily ? 
+		Math.round(weatherData.daily.temperature_2m_max[0] * 9/5 + 32) : null
+	);
+	
+	let lowF = $derived(
+		weatherData && weatherData.daily ? 
+		Math.round(weatherData.daily.temperature_2m_min[0] * 9/5 + 32) : null
+	);
+	
+	let windMph = $derived(
+		weatherData ? Math.round(weatherData.current_weather.windspeed / 1.609) : null
+	);
 </script>
 
 <div id="weatherWidget" aria-live="polite" class:expanded>
@@ -125,7 +153,7 @@
 			id="refreshWeatherBtn" 
 			type="button" 
 			aria-label="Refresh weather"
-			on:click={handleRefresh}
+			onclick={handleRefresh}
 			disabled={loading}
 		>
 			↻
@@ -135,7 +163,7 @@
 			type="button" 
 			aria-label="View weekly forecast" 
 			title="Weekly forecast"
-			on:click={handleOpenForecast}
+			onclick={handleOpenForecast}
 		>
 			📅
 		</button>
@@ -144,7 +172,7 @@
 			type="button" 
 			aria-label="Toggle weather details"
 			class="weather-toggle-btn"
-			on:click={toggleDetails}
+			onclick={toggleDetails}
 		>
 			{expanded ? '▼' : '▶'}
 		</button>
@@ -153,27 +181,45 @@
 	<div id="weatherContent">
 		<div id="weatherPrimary">
 			<span id="weatherIcon">
-				{weatherData ? getWeatherIcon(weatherData.weather[0].main) : '--'}
+				{weatherIcon}
 			</span>
 			<span id="weatherTemp">
-				{weatherData ? Math.round(weatherData.main.temp) + '°' : '--°'}
+				{tempF !== null ? `${tempF}°` : '--°'}
 			</span>
 		</div>
 		
 		{#if expanded && weatherData}
 			<div id="weatherDetails">
-				<div id="weatherDescription">{weatherData.weather[0].description}</div>
+				<div id="weatherDescription">{weatherDescription}</div>
 				<div id="weatherMeta">
 					<span id="weatherFeels">
-						Feels like {Math.round(weatherData.main.feels_like)}°
+						Feels like {feelsF !== null ? `${feelsF}°` : '--°'}
 					</span>
 					<span id="weatherWind">
-						Wind {Math.round(weatherData.wind.speed)} mph
+						Wind {windMph !== null ? `${windMph} mph` : '--'}
 					</span>
 				</div>
 				<div id="weatherRange">
-					High {Math.round(weatherData.main.temp_max)}° / Low {Math.round(weatherData.main.temp_min)}°
+					{#if highF !== null && lowF !== null}
+						High {highF}° / Low {lowF}°
+					{:else}
+						Loading forecast...
+					{/if}
 				</div>
+				
+				{#if birdFact}
+					<div id="birdFactContainer" style="
+						margin-top: 0.75rem; 
+						padding: 0.75rem; 
+						background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(139, 195, 74, 0.15)); 
+						border-radius: 8px; 
+						font-size: 0.85rem; 
+						color: var(--card); 
+						border: 1px solid rgba(76, 175, 80, 0.3);
+					">
+						{birdFact}
+					</div>
+				{/if}
 			</div>
 		{:else if !weatherData}
 			<div id="weatherDetails">

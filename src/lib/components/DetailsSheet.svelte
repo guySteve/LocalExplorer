@@ -1,0 +1,393 @@
+<script>
+	import { createEventDispatcher } from 'svelte';
+	import { browser } from '$app/environment';
+	import { fetchWhat3Words } from '$lib/utils/api-extended';
+	import { currentPosition } from '$lib/stores/appState';
+	import { get } from 'svelte/store';
+	
+	const dispatch = createEventDispatcher();
+	
+	// Props
+	let { place = null, visible = false } = $props();
+	
+	let what3words = '';
+	let streetViewActive = false;
+	let loading = true;
+	
+	// Reactive: Fetch What3Words when place changes
+	$effect(() => {
+		if (place && place.location) {
+			loading = false;
+			loadWhat3Words();
+		} else {
+			loading = true;
+		}
+	});
+	
+	async function loadWhat3Words() {
+		if (!place || !place.location) return;
+		
+		try {
+			const w3w = await fetchWhat3Words(place.location.lat, place.location.lng);
+			what3words = w3w || '';
+		} catch (err) {
+			console.error('Failed to load What3Words:', err);
+			what3words = '';
+		}
+	}
+	
+	function close() {
+		visible = false;
+		streetViewActive = false;
+		dispatch('close');
+	}
+	
+	function openMaps() {
+		if (!place || !place.location) return;
+		
+		const url = place._original?.url || 
+			`https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}`;
+		
+		window.open(url, '_blank');
+	}
+	
+	function openWebsite() {
+		if (!place || !place._original?.website) return;
+		window.open(place._original.website, '_blank');
+	}
+	
+	function sharePlace() {
+		if (!place) return;
+		
+		const mapUrl = place._original?.url || 
+			`https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}`;
+		
+		if (navigator.share) {
+			navigator.share({
+				title: place.name,
+				text: place.address || '',
+				url: mapUrl
+			}).catch(console.error);
+		} else {
+			alert('Sharing not supported on this device.');
+		}
+	}
+	
+	function savePlace() {
+		if (!place) return;
+		
+		try {
+			const collection = JSON.parse(localStorage.getItem('myCollection') || '[]');
+			
+			// Check if already saved
+			const exists = collection.find(p => p.id === place.id);
+			if (exists) {
+				alert(`${place.name} is already in your collection!`);
+				return;
+			}
+			
+			collection.push({
+				id: place.id,
+				name: place.name,
+				address: place.address,
+				location: place.location,
+				provider: place.provider,
+				savedAt: new Date().toISOString()
+			});
+			
+			localStorage.setItem('myCollection', JSON.stringify(collection));
+			alert(`✅ ${place.name} added to your collection!`);
+		} catch (err) {
+			console.error('Failed to save place:', err);
+			alert('Failed to save place. Please try again.');
+		}
+	}
+	
+	function startNavigation() {
+		if (!place || !place.location) return;
+		
+		dispatch('startNavigation', {
+			location: place.location,
+			name: place.name
+		});
+	}
+	
+	function formatRating(rating, provider) {
+		if (!rating) return '';
+		
+		const full = Math.floor(rating);
+		const half = (rating - full) >= 0.5;
+		const stars = '★'.repeat(full) + (half ? '½' : '');
+		
+		return `<span class="stars">${stars}</span> <span style="font-size:0.85rem; opacity:0.8;">(${rating.toFixed(1)})</span>`;
+	}
+	
+	function formatProviderBadge(provider) {
+		const badges = {
+			google: { text: 'Google', color: '#4285f4' },
+			foursquare: { text: 'Foursquare', color: '#f94877' },
+			nps: { text: 'National Park Service', color: '#2e7d32' },
+			recreation: { text: 'Recreation.gov', color: '#1976d2' },
+			ticketmaster: { text: 'Ticketmaster', color: '#026cdf' }
+		};
+		
+		const badge = badges[provider] || { text: provider, color: '#757575' };
+		return `<span style="background: ${badge.color}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${badge.text}</span>`;
+	}
+</script>
+
+{#if visible && place}
+<div class="details-sheet-overlay" class:active={visible} onclick={close} role="button" tabindex="0">
+	<div class="details-sheet" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+		<!-- Header -->
+		<div class="details-header">
+			<div>
+				<h2 class="details-name">{place.name}</h2>
+				{#if place.provider}
+					<div style="margin-top: 0.5rem;">
+						{@html formatProviderBadge(place.provider)}
+					</div>
+				{/if}
+			</div>
+			<button class="close-btn" onclick={close} aria-label="Close details">×</button>
+		</div>
+		
+		<!-- Content -->
+		<div class="details-content">
+			<!-- Rating -->
+			{#if place.rating}
+				<div class="details-row">
+					<span class="details-label">Rating:</span>
+					<div>{@html formatRating(place.rating, place.provider)}</div>
+				</div>
+			{/if}
+			
+			<!-- Address -->
+			{#if place.address}
+				<div class="details-row">
+					<span class="details-label">📍 Address:</span>
+					<span>{place.address}</span>
+				</div>
+			{/if}
+			
+			<!-- What3Words -->
+			{#if what3words}
+				<div class="details-row">
+					<span class="details-label">🔷 What3Words:</span>
+					<span style="font-weight: 600; color: var(--accent);">{what3words}</span>
+				</div>
+			{/if}
+			
+			<!-- Phone -->
+			{#if place._original?.formatted_phone_number || place._original?.tel}
+				<div class="details-row">
+					<span class="details-label">📞 Phone:</span>
+					<a href="tel:{place._original.formatted_phone_number || place._original.tel}" 
+					   style="color: var(--primary); text-decoration: none;">
+						{place._original.formatted_phone_number || place._original.tel}
+					</a>
+				</div>
+			{/if}
+			
+			<!-- Description (for NPS/Recreation) -->
+			{#if place._original?.description}
+				<div class="details-row" style="flex-direction: column; align-items: flex-start;">
+					<span class="details-label">ℹ️ About:</span>
+					<p style="margin: 0.5rem 0 0; line-height: 1.6; opacity: 0.9;">
+						{place._original.description.substring(0, 300)}{place._original.description.length > 300 ? '...' : ''}
+					</p>
+				</div>
+			{/if}
+			
+			<!-- Categories -->
+			{#if place.categories && place.categories.length > 0}
+				<div class="details-row">
+					<span class="details-label">🏷️ Categories:</span>
+					<div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+						{#each place.categories.slice(0, 3) as category}
+							<span style="background: rgba(var(--accent-rgb, 138, 90, 68), 0.2); 
+										 padding: 0.25rem 0.5rem; 
+										 border-radius: 4px; 
+										 font-size: 0.85rem;">
+								{category}
+							</span>
+						{/each}
+					</div>
+				</div>
+			{/if}
+		</div>
+		
+		<!-- Action Buttons -->
+		<div class="details-actions">
+			<button class="action-btn primary" onclick={startNavigation}>
+				🧭 Guide Me
+			</button>
+			<button class="action-btn" onclick={openMaps}>
+				🗺️ Maps
+			</button>
+			{#if place._original?.website}
+				<button class="action-btn" onclick={openWebsite}>
+					🌐 Website
+				</button>
+			{/if}
+			<button class="action-btn" onclick={savePlace}>
+				💾 Save
+			</button>
+			<button class="action-btn" onclick={sharePlace}>
+				📤 Share
+			</button>
+		</div>
+	</div>
+</div>
+{/if}
+
+<style>
+	.details-sheet-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: none;
+		z-index: 1000;
+		align-items: flex-end;
+	}
+	
+	.details-sheet-overlay.active {
+		display: flex;
+	}
+	
+	.details-sheet {
+		background: var(--background);
+		width: 100%;
+		max-height: 85vh;
+		border-radius: 20px 20px 0 0;
+		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+		display: flex;
+		flex-direction: column;
+		animation: slideUp 0.3s ease-out;
+	}
+	
+	@keyframes slideUp {
+		from {
+			transform: translateY(100%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
+	
+	.details-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		padding: 1.5rem;
+		border-bottom: 1px solid rgba(var(--card-rgb, 26, 43, 68), 0.1);
+	}
+	
+	.details-name {
+		margin: 0;
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--card);
+	}
+	
+	.close-btn {
+		background: none;
+		border: none;
+		font-size: 2rem;
+		color: var(--card);
+		cursor: pointer;
+		padding: 0;
+		line-height: 1;
+		opacity: 0.7;
+		transition: opacity 0.2s;
+	}
+	
+	.close-btn:hover {
+		opacity: 1;
+	}
+	
+	.details-content {
+		padding: 1rem 1.5rem;
+		overflow-y: auto;
+		flex: 1;
+	}
+	
+	.details-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid rgba(var(--card-rgb, 26, 43, 68), 0.05);
+		color: var(--card);
+	}
+	
+	.details-row:last-child {
+		border-bottom: none;
+	}
+	
+	.details-label {
+		font-weight: 600;
+		min-width: 120px;
+		opacity: 0.8;
+	}
+	
+	.details-actions {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+		gap: 0.75rem;
+		padding: 1.5rem;
+		border-top: 1px solid rgba(var(--card-rgb, 26, 43, 68), 0.1);
+	}
+	
+	.action-btn {
+		padding: 0.75rem 1rem;
+		border: 2px solid var(--card);
+		background: transparent;
+		color: var(--card);
+		border-radius: var(--button-radius, 12px);
+		font-weight: 600;
+		font-size: 0.9rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		font-family: var(--font-primary);
+	}
+	
+	.action-btn:hover {
+		background: var(--card);
+		color: var(--text-light);
+		transform: translateY(-2px);
+	}
+	
+	.action-btn.primary {
+		background: var(--primary);
+		border-color: var(--primary);
+		color: var(--text-light);
+	}
+	
+	.action-btn.primary:hover {
+		background: var(--secondary);
+		border-color: var(--secondary);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(var(--primary-rgb, 200, 121, 65), 0.3);
+	}
+	
+	.stars {
+		color: #ffd700;
+		font-size: 1.1rem;
+		letter-spacing: 2px;
+	}
+	
+	@media (max-width: 768px) {
+		.details-actions {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		
+		.action-btn {
+			font-size: 0.85rem;
+			padding: 0.65rem 0.85rem;
+		}
+	}
+</style>
