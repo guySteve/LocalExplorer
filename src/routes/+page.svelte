@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { currentPosition, currentResults } from '$lib/stores/appState';
+	import { currentPosition, currentResults, latestLocationLabel } from '$lib/stores/appState';
 	import { searchGooglePlaces } from '$lib/utils/api';
 	
 	// Import components
@@ -22,7 +22,6 @@
 	import NearbyNow from '$lib/components/NearbyNow.svelte';
 	
 	// Modal visibility state
-	let locationDisplay = 'Determining your location…';
 	let showSettings = false;
 	let showMyCollection = false;
 	let showSubMenu = false;
@@ -133,11 +132,12 @@
 <Header on:openSettings={() => showSettings = true} />
 
 <main class="appShell">
-	<LocationDisplay {locationDisplay} />
+	<LocationDisplay locationDisplay={$latestLocationLabel || 'Determining your location…'} />
 	
 	<PrimaryActions 
-		on:openCollection={() => showMyCollection = true}
-	/>
+    on:openCollection={() => showMyCollection = true}
+    on:openCompass={() => showCompass = true}
+/>
 	
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
