@@ -230,12 +230,28 @@ MIT License - feel free to use this project for personal or commercial purposes.
 - Events from [Ticketmaster](https://www.ticketmaster.com/)
 - Places from [Foursquare](https://foursquare.com/)
 
+## 🔧 Recent Updates
+
+### API Functionality Improvements
+All API functions have been updated with improved error handling:
+- ✅ **Proper error handling** for all API responses
+- ✅ **Historical Weather** now shows last year's data for better performance
+- ✅ **eBird, Ticketmaster, What3Words** and all other APIs now gracefully handle errors
+- 📖 See [API_FIXES.md](API_FIXES.md) for detailed information
+
+To verify API functionality, run:
+```bash
+node verify-api-functions.cjs
+```
+
 ## 🐛 Issues
 
 If you encounter any issues, please:
 1. Check [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for deployment troubleshooting and Netlify configuration help
 2. Review Netlify function logs
-3. Open an issue on GitHub with details
+3. Run `node verify-api-functions.cjs` to verify API function integrity
+4. See [API_FIXES.md](API_FIXES.md) for API-specific troubleshooting
+5. Open an issue on GitHub with details
 
 ## 📞 Support
 
