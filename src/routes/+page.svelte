@@ -2,6 +2,12 @@
 	import { onMount } from 'svelte';
 	import { currentPosition, currentResults, latestLocationLabel } from '$lib/stores/appState';
 	import { searchGooglePlaces } from '$lib/utils/api';
+	import { 
+		searchLocalEvents, 
+		searchBreweries, 
+		searchNationalParks, 
+		searchRecreationAreas
+	} from '$lib/utils/api-extended';
 	
 	// Import components
 	import Header from '$lib/components/Header.svelte';
@@ -55,13 +61,43 @@
 	async function handleSubMenuSelect(item) {
 		showSubMenu = false;
 		
+		if (!$currentPosition) {
+			alert('Location not available. Please enable location services.');
+			return;
+		}
+		
+		const { lat, lng } = $currentPosition;
+		let results = [];
+		
 		try {
-			// Search Google Places for this category
-			const results = await searchGooglePlaces(
-				item.type,
-				item.keyword,
-				item.primaryTypeOnly
-			);
+			// Detect category type and route to appropriate API
+			if (item.value) {
+				// Local Events (Ticketmaster)
+				const classification = item.value === 'all' ? '' : item.value;
+				const events = await searchLocalEvents(lat, lng, classification);
+				results = transformEventsToStandardFormat(events);
+			} else if (item.search) {
+				// Breweries or Recreation
+				if (item.search === 'national_park') {
+					const parks = await searchNationalParks(lat, lng);
+					results = transformParksToStandardFormat(parks);
+				} else if (item.search === 'recreation' || item.search === 'campground') {
+					const recreation = await searchRecreationAreas(lat, lng);
+					results = transformRecreationToStandardFormat(recreation, item.search);
+				} else {
+					// Breweries
+					const query = item.search === 'breweries' ? '' : item.search;
+					const breweries = await searchBreweries(lat, lng, query);
+					results = transformBreweriesToStandardFormat(breweries);
+				}
+			} else {
+				// Standard Google Places search
+				results = await searchGooglePlaces(
+					item.type,
+					item.keyword,
+					item.primaryTypeOnly
+				);
+			}
 			
 			resultsTitle = `${item.name} near you`;
 			searchResults = results;
@@ -71,6 +107,70 @@
 			console.error('Search failed:', error);
 			alert('Search failed. Please try again.');
 		}
+	}
+	
+	// Transform functions to standardize results for ResultsModal
+	function transformEventsToStandardFormat(events) {
+		return events.map(event => ({
+			id: event.id || event.name,
+			name: event.name,
+			address: event._embedded?.venues?.[0]?.address?.line1 || event._embedded?.venues?.[0]?.name || '',
+			url: event.url,
+			provider: 'Ticketmaster',
+			lat: parseFloat(event._embedded?.venues?.[0]?.location?.latitude),
+			lng: parseFloat(event._embedded?.venues?.[0]?.location?.longitude),
+			image: event.images?.[0]?.url
+		})).filter(e => e.lat && e.lng);
+	}
+
+	function transformBreweriesToStandardFormat(breweries) {
+		return breweries.map(brewery => ({
+			id: brewery.id,
+			name: brewery.name,
+			address: brewery.address,
+			categories: [brewery.brewery_type],
+			url: brewery.website,
+			provider: 'OpenBreweryDB',
+			lat: brewery.lat,
+			lng: brewery.lng,
+			distance: brewery.distance ? brewery.distance * 1609.34 : null // miles to meters
+		}));
+	}
+
+	function transformParksToStandardFormat(parks) {
+		return parks.map(park => ({
+			id: park.id,
+			name: park.name,
+			address: park.states,
+			categories: [park.designation],
+			url: park.url,
+			provider: 'NPS',
+			lat: park.lat,
+			lng: park.lng,
+			distance: park.distance ? park.distance * 1609.34 : null, // miles to meters
+			image: park.images?.[0]?.url
+		}));
+	}
+
+	function transformRecreationToStandardFormat(facilities, searchType) {
+		let filtered = facilities;
+		if (searchType === 'campground') {
+			filtered = facilities.filter(f => 
+				f.name.toLowerCase().includes('campground') || 
+				f.name.toLowerCase().includes('camp')
+			);
+		}
+		
+		return filtered.map(facility => ({
+			id: facility.id,
+			name: facility.name,
+			address: `${facility.city}, ${facility.state}`,
+			categories: ['Recreation Area'],
+			url: facility.reservationUrl,
+			provider: 'Recreation.gov',
+			lat: facility.lat,
+			lng: facility.lng
+		})).filter(f => f.lat && f.lng);
 	}
 	
 	function handleSearchResults(event) {
@@ -120,9 +220,9 @@
 			detail: {
 				title: 'Bird Watching',
 				items: [
-					{ label: 'Recent Sightings', value: 'bird-sightings' },
-					{ label: 'Rare Species Alert', value: 'rare-birds' },
-					{ label: 'Birding Hotspots', value: 'bird-hotspots' }
+					{ name: 'Recent Sightings', value: 'bird-sightings' },
+					{ name: 'Rare Species Alert', value: 'rare-birds' },
+					{ name: 'Birding Hotspots', value: 'bird-hotspots' }
 				]
 			}
 		});
