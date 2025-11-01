@@ -26,7 +26,6 @@
 	import ForecastModal from '$lib/components/ForecastModal.svelte';
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
 	import Compass from '$lib/components/Compass.svelte';
-	import NearbyNow from '$lib/components/NearbyNow.svelte';
 	
 	// Modal visibility state
 	let showSettings = false;
@@ -223,20 +222,6 @@
 		compassDestination = null;
 		compassDestinationName = '';
 	}
-	
-	function handleOpenBirdWatching() {
-		// Trigger the "Watch Birds" submenu
-		handleOpenSubMenu({
-			detail: {
-				title: 'Bird Watching',
-				items: [
-					{ name: 'Recent Sightings', value: 'bird-sightings' },
-					{ name: 'Rare Species Alert', value: 'rare-birds' },
-					{ name: 'Birding Hotspots', value: 'bird-hotspots' }
-				]
-			}
-		});
-	}
 </script>
 
 <Header on:openSettings={() => showSettings = true} />
@@ -252,8 +237,6 @@
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
 	<WeatherWidget on:openForecast={handleOpenForecast} />
-	
-	<NearbyNow on:openBirdWatching={handleOpenBirdWatching} />
 	
 	<FilterGrid on:openSubMenu={handleOpenSubMenu} />
 	

@@ -31,7 +31,11 @@ export default defineConfig({
 				]
 			},
 			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+				// SvelteKit-specific configuration
+				globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
+				// Don't try to precache index.html since SvelteKit handles routing differently
+				navigateFallback: null,
+				navigateFallbackDenylist: [/^\/api/, /^\/_app/, /^\/\.netlify/],
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -69,6 +73,18 @@ export default defineConfig({
 							expiration: {
 								maxEntries: 50,
 								maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
+							}
+						}
+					},
+					{
+						// Cache page routes for offline access
+						urlPattern: ({ request }) => request.mode === 'navigate',
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pages-cache',
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60 * 24 // 1 day
 							}
 						}
 					}

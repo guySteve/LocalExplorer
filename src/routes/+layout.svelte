@@ -77,21 +77,27 @@
 		}
 		
 		console.log('Injecting Google Maps script...');
+		
+		// Set up the global callback before adding the script
+		window.initMap = function() {
+			console.log('Maps API callback triggered');
+			// Add a small delay to ensure all Maps API components are fully loaded
+			setTimeout(() => {
+				if (typeof window.google !== 'undefined' && window.google.maps && window.google.maps.Map) {
+					console.log('Maps API fully loaded, initializing services.');
+					initMapServices();
+				} else {
+					console.warn('Maps API not fully loaded yet, retrying...');
+					setTimeout(window.initMap, 100);
+				}
+			}, 50);
+		};
+		
 		const mapsScript = document.createElement('script');
 		mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap&loading=async`;
 		mapsScript.async = true;
 		mapsScript.defer = true;
 		mapsScript.dataset.role = 'maps-api';
-		
-		// Set up the callback
-		window.initMap = initMapServices;
-		
-		mapsScript.addEventListener('load', () => {
-			if (!mapsReady && typeof window.google !== 'undefined' && window.google.maps) {
-				console.log('Maps script loaded, initializing services.');
-				initMapServices();
-			}
-		});
 		
 		mapsScript.onerror = () => {
 			console.error('Failed to load Google Maps script!');
@@ -103,9 +109,15 @@
 	
 	function initMapServices() {
 		if (mapsInitialized) return;
-		if (typeof window.google === 'undefined' || !window.google.maps) {
-			console.warn('Google Maps API not available yet. Retrying...');
-			setTimeout(initMapServices, 100);
+		
+		// More robust check for Maps API availability
+		if (typeof window.google === 'undefined' || 
+			!window.google.maps || 
+			!window.google.maps.Map || 
+			!window.google.maps.places ||
+			!window.google.maps.Geocoder) {
+			console.warn('Google Maps API not fully available yet. Retrying...');
+			setTimeout(initMapServices, 200);
 			return;
 		}
 		
@@ -117,6 +129,13 @@
 				hiddenMap.id = 'hiddenMap';
 				hiddenMap.style.display = 'none';
 				document.body.appendChild(hiddenMap);
+			}
+			
+			// Test that the constructor is actually available
+			if (typeof window.google.maps.Map !== 'function') {
+				console.error('google.maps.Map is not a constructor');
+				setTimeout(initMapServices, 200);
+				return;
 			}
 			
 			const map = new window.google.maps.Map(hiddenMap, { 
@@ -134,6 +153,8 @@
 			requestGeolocation();
 		} catch (error) {
 			console.error('Error during Maps service initialization:', error);
+			// Retry after a delay
+			setTimeout(initMapServices, 500);
 		}
 	}
 	

@@ -309,10 +309,22 @@ export async function fetchWhat3Words(lat, lng) {
 
 export async function searchLocalEvents(lat, lng, classification = '') {
   try {
+    // Get the current date and calculate date range for next 30 days only
+    const today = new Date();
+    const endDate = new Date();
+    endDate.setDate(today.getDate() + 30); // Only look 30 days ahead
+    
+    const startDateStr = today.toISOString().split('T')[0] + 'T00:00:00Z';
+    const endDateStr = endDate.toISOString().split('T')[0] + 'T23:59:59Z';
+    
     const params = new URLSearchParams({
       latlong: `${lat},${lng}`,
-      radius: '25',
-      unit: 'miles'
+      radius: '10', // Reduced from 25 to 10 miles for truly local events
+      unit: 'miles',
+      startDateTime: startDateStr,
+      endDateTime: endDateStr,
+      sort: 'date,asc', // Sort by date to get soonest events first
+      size: '50' // Get more events so we can filter better
     });
     
     if (classification) {
@@ -327,7 +339,47 @@ export async function searchLocalEvents(lat, lng, classification = '') {
     }
     
     const data = await response.json();
-    return (data._embedded && data._embedded.events) || [];
+    const events = (data._embedded && data._embedded.events) || [];
+    
+    // Additional filtering for truly local events
+    const now = Date.now();
+    const oneWeekFromNow = now + (7 * 24 * 60 * 60 * 1000); // 1 week in milliseconds
+    
+    return events.filter(event => {
+      // Filter out events too far in the future (more than 1 week)
+      if (event.dates && event.dates.start && event.dates.start.dateTime) {
+        const eventDate = new Date(event.dates.start.dateTime).getTime();
+        if (eventDate > oneWeekFromNow) {
+          return false;
+        }
+      }
+      
+      // Filter out events that are too far away if we have venue coordinates
+      if (event._embedded?.venues?.[0]) {
+        const venue = event._embedded.venues[0];
+        if (venue.location?.latitude && venue.location?.longitude) {
+          const venueLat = parseFloat(venue.location.latitude);
+          const venueLng = parseFloat(venue.location.longitude);
+          
+          // Calculate distance in miles
+          const R = 3959; // Earth's radius in miles
+          const dLat = (venueLat - lat) * Math.PI / 180;
+          const dLng = (venueLng - lng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                   Math.cos(lat * Math.PI / 180) * Math.cos(venueLat * Math.PI / 180) *
+                   Math.sin(dLng/2) * Math.sin(dLng/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distance = R * c;
+          
+          // Only include events within 8 miles
+          if (distance > 8) {
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    });
   } catch (err) {
     console.error('Failed to fetch events:', err);
     return [];
