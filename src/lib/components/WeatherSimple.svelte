@@ -104,20 +104,6 @@
 		return parseOpenMeteoData(data);
 	}
 
-	async function fetchBirdSightings(lat, lng) {
-		try {
-			const fact = await fetchRecentBirdSightings(lat, lng);
-			if (fact && fact !== 'configure-key') {
-				birdFact = fact;
-			} else if (fact === 'configure-key') {
-				birdFact = '🐦 Bird sightings unavailable. Add EBIRD_API_KEY to enable.';
-			}
-		} catch (err) {
-			console.error('Bird fetch error:', err);
-			// Silently fail for bird sightings
-		}
-	}
-
 	async function toggleHistory() {
 		showHistory = !showHistory;
 		if (showHistory && historicalData.length === 0 && $currentPosition) {
