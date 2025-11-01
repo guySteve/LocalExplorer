@@ -188,9 +188,15 @@ export async function performUnifiedSearch(query) {
   // Foursquare Search
   apiCalls.push(
     fetch(`${NETLIFY_FUNCTIONS_BASE}/foursquare?query=${encodeURIComponent(searchTerm)}&ll=${position.lat},${position.lng}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Foursquare API returned error:', res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.results && Array.isArray(data.results)) {
+        if (data && data.results && Array.isArray(data.results)) {
           results.foursquare = data.results.map(place => normalizePlaceData(place, 'foursquare'));
         }
       })
@@ -200,9 +206,15 @@ export async function performUnifiedSearch(query) {
   // NPS Search
   apiCalls.push(
     fetch(`${NETLIFY_FUNCTIONS_BASE}/nps?query=${encodeURIComponent(searchTerm)}&lat=${position.lat}&lng=${position.lng}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('NPS API returned error:', res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.data && Array.isArray(data.data)) {
+        if (data && data.data && Array.isArray(data.data)) {
           results.nps = data.data.map(place => ({
             id: place.id,
             provider: 'nps',
@@ -224,9 +236,15 @@ export async function performUnifiedSearch(query) {
   // Recreation.gov Search
   apiCalls.push(
     fetch(`${NETLIFY_FUNCTIONS_BASE}/recreation?query=${encodeURIComponent(searchTerm)}&lat=${position.lat}&lng=${position.lng}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Recreation.gov API returned error:', res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.RECDATA && Array.isArray(data.RECDATA)) {
+        if (data && data.RECDATA && Array.isArray(data.RECDATA)) {
           results.recreation = data.RECDATA.map(place => ({
             id: place.RecAreaID || place.FacilityID,
             provider: 'recreation',
@@ -248,9 +266,15 @@ export async function performUnifiedSearch(query) {
   // Ticketmaster Search
   apiCalls.push(
     fetch(`${NETLIFY_FUNCTIONS_BASE}/ticketmaster?keyword=${encodeURIComponent(searchTerm)}&latlong=${position.lat},${position.lng}&radius=25&unit=miles`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Ticketmaster API returned error:', res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data._embedded && data._embedded.events) {
+        if (data && data._embedded && data._embedded.events) {
           results.ticketmaster = data._embedded.events.map(event => ({
             id: event.id,
             provider: 'ticketmaster',
