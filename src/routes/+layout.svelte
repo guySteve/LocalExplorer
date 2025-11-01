@@ -4,7 +4,6 @@
 	import { currentPosition, currentAddress, latestLocationLabel } from '$lib/stores/appState';
 	
 	// Import CSS - Theme variables and app-wide styles
-	import '/css/theme.css';
 	import '../app.css';
 	
 	let { children } = $props();

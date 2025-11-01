@@ -5,17 +5,21 @@
  * This runs during the Netlify build process to replace placeholders with actual API keys
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 try {
-  // Read the key.js file
-  const keyFilePath = path.join(__dirname, '..', 'key.js');
+  // Read the key.js file from the build output directory
+  const keyFilePath = path.join(__dirname, '..', 'build', 'key.js');
   
   // Check if file exists before reading
   if (!fs.existsSync(keyFilePath)) {
     console.warn(`Warning: ${keyFilePath} not found. Skipping environment injection.`);
-    return;
+    process.exit(0);
   }
   
   let content = fs.readFileSync(keyFilePath, 'utf8');
