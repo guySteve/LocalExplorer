@@ -6,11 +6,6 @@
 	function handleCollectionClick() {
 		dispatch('openCollection');
 	}
-	
-	// Compass functionality reserved for future implementation
-	// function handleCompassClick() {
-	// 	dispatch('openCompass');
-	// }
 </script>
 
 <div id="primaryActions">

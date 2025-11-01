@@ -4,12 +4,18 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	function handleBackdropClick(e) {
+		if (e.target === e.currentTarget) {
+			dispatch('close');
+		}
+	}
+	
 	function handleClose() {
 		dispatch('close');
 	}
 </script>
 
-<div id="myCollectionModal" class="modal" style="display: block;" role="dialog" aria-modal="true">
+<div id="myCollectionModal" class="modal" style="display: block;" on:click={handleBackdropClick} role="dialog" aria-modal="true">
 	<div class="modal-content" on:click|stopPropagation>
 		<div class="modal-header">
 			<h3>My Collection</h3>

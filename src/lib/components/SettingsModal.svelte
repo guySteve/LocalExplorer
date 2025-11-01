@@ -5,6 +5,12 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	function handleBackdropClick(e) {
+		if (e.target === e.currentTarget) {
+			dispatch('close');
+		}
+	}
+	
 	// Theme selection
 	const themes = [
 		{ value: 'naval', label: 'Polished Sailor' },
@@ -129,7 +135,7 @@
 	}
 </script>
 
-<div id="settingsPanel" class="modal" style="display: block;" role="dialog" aria-modal="true">
+<div id="settingsPanel" class="modal" style="display: block;" on:click={handleBackdropClick} role="dialog" aria-modal="true">
 	<div class="modal-content" on:click|stopPropagation>
 		<div class="modal-header">
 			<h3>Settings</h3>

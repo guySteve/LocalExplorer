@@ -52,31 +52,21 @@
 		error = null;
 
 		try {
-			// Use Open-Meteo (free, no API key needed)
-			const params = new URLSearchParams({
-				latitude: lat.toFixed(4),
-				longitude: lng.toFixed(4),
-				current_weather: 'true',
-				hourly: 'temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_probability,weathercode',
-				daily: 'weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
-				temperature_unit: 'fahrenheit',
-				timezone: 'auto',
-				forecast_days: '7'
-			});
+			// Fetch weather and bird data in parallel
+			const weatherPromise = fetchOpenMeteoData(lat, lng);
+			const birdPromise = showBirds ? fetchRecentBirdSightings(lat, lng) : Promise.resolve(null);
 
-			const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-			
-			if (!response.ok) {
-				throw new Error('Weather service unavailable');
+			const [weatherData, birdResponse] = await Promise.all([weatherPromise, birdPromise]);
+
+			if (weatherData) {
+				weather = weatherData;
+				lastFetch = Date.now();
 			}
-
-			const data = await response.json();
-			weather = parseOpenMeteoData(data);
-			lastFetch = Date.now();
-
-			// Fetch bird sightings if enabled
-			if (showBirds) {
-				fetchBirdSightings(lat, lng);
+			
+			if (birdResponse && birdResponse !== 'configure-key') {
+				birdFact = birdResponse;
+			} else if (birdResponse === 'configure-key') {
+				birdFact = '🐦 Bird sightings unavailable. Add EBIRD_API_KEY to enable.';
 			}
 			
 			// Fetch historical data only if not cached
@@ -89,6 +79,29 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	async function fetchOpenMeteoData(lat, lng) {
+		// Use Open-Meteo (free, no API key needed)
+		const params = new URLSearchParams({
+			latitude: lat.toFixed(4),
+			longitude: lng.toFixed(4),
+			current_weather: 'true',
+			hourly: 'temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_probability,weathercode',
+			daily: 'weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+			temperature_unit: 'fahrenheit',
+			timezone: 'auto',
+			forecast_days: '7'
+		});
+
+		const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+		
+		if (!response.ok) {
+			throw new Error('Weather service unavailable');
+		}
+
+		const data = await response.json();
+		return parseOpenMeteoData(data);
 	}
 
 	async function fetchBirdSightings(lat, lng) {
