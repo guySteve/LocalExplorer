@@ -20,8 +20,8 @@
 	}
 </script>
 
-<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }}>
-	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }}>
+<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true">
+	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} on:click|stopPropagation>
 		<div class="modal-header">
 			<h3>Support Local Explorer</h3>
 			<button class="close-btn" on:click={() => dispatch('close')}>×</button>
@@ -38,10 +38,10 @@
 			</p>
 			
 			<div class="donate-actions">
-				<button class="donate-btn primary" on:click={openVenmo}>
+				<button class="donate-btn primary" on:click={openVenmo} type="button">
 					Open Venmo
 				</button>
-				<button class="donate-btn secondary" on:click={copyVenmoHandle}>
+				<button class="donate-btn secondary" on:click={copyVenmoHandle} type="button">
 					Copy Handle
 				</button>
 			</div>
