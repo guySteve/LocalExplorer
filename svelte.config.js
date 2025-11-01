@@ -17,7 +17,7 @@ const config = {
 			split: false
 		}),
 		serviceWorker: {
-			register: false // We'll register manually for better PWA control
+			register: false // Using Vite PWA plugin registration instead
 		}
 	}
 };

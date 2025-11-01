@@ -16,11 +16,19 @@
 		// Initialize Google Maps API
 		initGoogleMaps();
 		
-		// Register service worker for PWA/offline support
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.register('/service-worker-v2.js')
-				.then(registration => console.log('ServiceWorker registration successful:', registration.scope))
-				.catch(err => console.warn('ServiceWorker registration failed:', err));
+		// Register service worker for PWA (only in production)
+		if (browser && 'serviceWorker' in navigator) {
+			// Check if we're in production (service worker files exist)
+			navigator.serviceWorker.register('/sw.js', { scope: '/' })
+				.then(registration => {
+					console.log('ServiceWorker registration successful:', registration.scope);
+				})
+				.catch(err => {
+					// Don't log errors in development where SW files don't exist
+					if (window.location.hostname !== 'localhost') {
+						console.warn('ServiceWorker registration failed:', err);
+					}
+				});
 		}
 		
 		// Handle back button for modals

@@ -1,3 +1,2 @@
-# Netlify Functions - allow API functions to pass through
-# The SvelteKit adapter will add its own catch-all rule after this
-/.netlify/functions/:splat  /.netlify/functions/:splat  200
+# Netlify Functions are automatically handled by @sveltejs/adapter-netlify
+# No manual redirects needed for /.netlify/functions/*
