@@ -17,15 +17,15 @@
 
 	const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 
-	// Load bird settings from localStorage
-	if (browser) {
-		const savedBirdSetting = localStorage.getItem('showBirdSightings');
-		if (savedBirdSetting !== null) {
-			showBirds = savedBirdSetting === 'true';
-		}
-	}
-
 	onMount(() => {
+		// Load bird settings from localStorage
+		if (browser) {
+			const savedBirdSetting = localStorage.getItem('showBirdSightings');
+			if (savedBirdSetting !== null) {
+				showBirds = savedBirdSetting === 'true';
+			}
+		}
+
 		const unsubscribe = currentPosition.subscribe((pos) => {
 			if (pos && !loading && Date.now() - lastFetch > CACHE_TIME) {
 				fetchWeather(pos.lat, pos.lng);
@@ -101,7 +101,7 @@
 			const endDate = new Date();
 			endDate.setDate(endDate.getDate() - 1);
 			const startDate = new Date(endDate);
-			startDate.setFullYear(startDate.getFullYear() - 1);
+			startDate.setDate(startDate.getDate() - 30); // Only fetch 30 days
 
 			const params = new URLSearchParams({
 				latitude: lat.toFixed(4),
@@ -160,15 +160,12 @@
 		const daily = data.daily || {};
 		if (!daily.time) return [];
 
-		// Get last 30 days
-		const length = Math.min(30, daily.time.length);
-		const start = Math.max(0, daily.time.length - length);
-		
-		return daily.time.slice(start).map((date, i) => ({
+		// Return all available days (should be 30)
+		return daily.time.map((date, i) => ({
 			date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-			high: Math.round(daily.temperature_2m_max[start + i]),
-			low: Math.round(daily.temperature_2m_min[start + i]),
-			icon: getWeatherIcon(daily.weathercode[start + i])
+			high: Math.round(daily.temperature_2m_max[i]),
+			low: Math.round(daily.temperature_2m_min[i]),
+			icon: getWeatherIcon(daily.weathercode[i])
 		}));
 	}
 
