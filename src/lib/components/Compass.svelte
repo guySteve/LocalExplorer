@@ -772,7 +772,7 @@
 		font-weight: 600;
 		font-size: 0.9rem;
 		cursor: pointer;
-		transition: all 0.2s, transform 0.2s, box-shadow 0.2s;
+		transition: all 0.2s;
 		font-family: var(--font-primary);
 	}
 	
