@@ -39,16 +39,17 @@
 	let voiceEnabled = true;
 	let availableVoices = [];
 	let selectedVoice = '';
+	let voicesChangedHandler = null;
 
 	onMount(() => {
 		// Load bird sightings setting
 		if (browser) {
 			const savedBirdSetting = localStorage.getItem('showBirdSightings');
-			showBirdSightings = savedBirdSetting !== 'false';
+			showBirdSightings = savedBirdSetting === null ? true : savedBirdSetting !== 'false';
 
 			// Load voice enabled setting
 			const savedVoiceSetting = localStorage.getItem('voiceEnabled');
-			voiceEnabled = savedVoiceSetting !== 'false';
+			voiceEnabled = savedVoiceSetting === null ? true : savedVoiceSetting !== 'false';
 
 			// Load available voices
 			loadVoices();
@@ -58,6 +59,13 @@
 				selectedVoice = uri;
 			});
 		}
+
+		// Cleanup on unmount
+		return () => {
+			if (browser && window.speechSynthesis && voicesChangedHandler) {
+				window.speechSynthesis.removeEventListener('voiceschanged', voicesChangedHandler);
+			}
+		};
 	});
 
 	function loadVoices() {
@@ -70,7 +78,8 @@
 		getVoices();
 		
 		if (window.speechSynthesis.onvoiceschanged !== undefined) {
-			window.speechSynthesis.onvoiceschanged = getVoices;
+			voicesChangedHandler = getVoices;
+			window.speechSynthesis.addEventListener('voiceschanged', voicesChangedHandler);
 		}
 	}
 
