@@ -1,6 +1,6 @@
 // Extended API utilities for LocalExplorer - Weather, eBird, Breweries, What3Words, etc.
 import { browser } from '$app/environment';
-import { NETLIFY_FUNCTIONS_BASE, calculateDistance, calculateDistanceMiles } from './api.js';
+import { NETLIFY_FUNCTIONS_BASE, calculateDistance, calculateDistanceMiles, MILES_TO_METERS } from './api.js';
 
 // ===== CACHING =====
 const weatherCache = new Map();
@@ -179,7 +179,11 @@ export async function searchBirdSightings(lat, lng, type = 'recent') {
     // Filter based on search type
     let filteredData = data;
     if (type === 'rare') {
-      // Consider birds with low observation counts as "rare" (observed <= 2 times)
+      // NOTE: This is a simplified rarity filter based on observation frequency within
+      // the current API response dataset, not actual species rarity. For more accurate
+      // rarity detection, eBird's frequency data or documented rarity classifications
+      // would be needed. This approach works as a basic filter to highlight less
+      // commonly seen birds in the recent sightings.
       const birdCounts = {};
       data.forEach(bird => {
         birdCounts[bird.comName] = (birdCounts[bird.comName] || 0) + 1;
@@ -195,7 +199,7 @@ export async function searchBirdSightings(lat, lng, type = 'recent') {
       
       let distance = null;
       if (bird.lat && bird.lng) {
-        distance = calculateDistanceMiles(lat, lng, bird.lat, bird.lng) * 1609.34; // miles to meters
+        distance = calculateDistanceMiles(lat, lng, bird.lat, bird.lng) * MILES_TO_METERS;
       }
       
       return {

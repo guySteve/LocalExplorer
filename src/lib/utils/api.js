@@ -76,6 +76,9 @@ const NPS_CACHE_MS = 60 * 60 * 1000; // 1 hour
 
 // ===== DISTANCE CALCULATIONS =====
 
+// Conversion constant
+export const MILES_TO_METERS = 1609.34;
+
 /**
  * Calculate distance between two coordinates (Haversine formula)
  * Returns distance in meters
@@ -100,7 +103,7 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
  */
 export function calculateDistanceMiles(lat1, lon1, lat2, lon2) {
   const meters = calculateDistance(lat1, lon1, lat2, lon2);
-  return meters / 1609.34; // Convert to miles
+  return meters / MILES_TO_METERS; // Convert to miles
 }
 
 // Normalize place data from different providers
