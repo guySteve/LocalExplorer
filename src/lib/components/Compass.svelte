@@ -52,10 +52,9 @@
 	
 	function init() {
 		console.log('Compass: Initializing...');
+		requestSensorPermissions(); // Automatically request permissions on open
 		startGeolocationWatch();
 		startAnimation();
-		
-		// Don't auto-request permissions - wait for user button click
 		
 		// If we have a destination, fetch route
 		if (destination) {
@@ -507,7 +506,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: rgba(0, 0, 0, 0.85);
+		background: var(--background-overlay, rgba(0, 0, 0, 0.85));
 		display: none;
 		z-index: 2000;
 		align-items: center;
@@ -523,7 +522,7 @@
 		background: var(--background);
 		max-width: 500px;
 		width: 100%;
-		border-radius: 20px;
+		border-radius: var(--radius);
 		padding: 1.5rem;
 		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 		animation: fadeIn 0.3s ease-out;
@@ -551,7 +550,7 @@
 		margin: 0;
 		font-size: 1.5rem;
 		font-weight: 700;
-		color: var(--card);
+		color: var(--text-light);
 	}
 	
 	.destination-label {
@@ -565,7 +564,7 @@
 		background: none;
 		border: none;
 		font-size: 2rem;
-		color: var(--card);
+		color: var(--text-light);
 		cursor: pointer;
 		padding: 0;
 		line-height: 1;
@@ -610,7 +609,7 @@
 	
 	.status-text {
 		font-size: 0.9rem;
-		color: var(--card);
+		color: var(--text-light);
 		font-weight: 600;
 	}
 	
@@ -634,7 +633,7 @@
 		justify-content: center;
 		text-align: center;
 		padding: 2rem;
-		color: var(--card);
+		color: var(--text-light);
 	}
 
 	.permission-overlay p {
@@ -657,7 +656,7 @@
 		position: absolute;
 		font-weight: 900;
 		font-size: 1.5rem;
-		color: var(--card);
+		color: var(--text-light);
 	}
 	
 	.compass-marker.north {
@@ -711,7 +710,7 @@
 	
 	.heading-label {
 		font-size: 0.9rem;
-		color: var(--card);
+		color: var(--text-light);
 		opacity: 0.8;
 		margin-top: 0.25rem;
 	}
@@ -732,7 +731,7 @@
 	
 	.stat-label {
 		font-size: 0.85rem;
-		color: var(--card);
+		color: var(--text-light);
 		opacity: 0.7;
 		margin-bottom: 0.25rem;
 	}
@@ -753,8 +752,8 @@
 		margin-bottom: 1rem;
 		padding: 1rem;
 		background: rgba(var(--primary-rgb, 200, 121, 65), 0.1);
-		border-radius: 8px;
-		color: var(--card);
+		border-radius: var(--radius);
+		color: var(--text-light);
 		line-height: 1.6;
 	}
 	
@@ -768,18 +767,20 @@
 		padding: 0.75rem 1rem;
 		border: 2px solid var(--card);
 		background: transparent;
-		color: var(--card);
-		border-radius: var(--button-radius, 12px);
+		color: var(--text-light);
+		border-radius: var(--radius);
 		font-weight: 600;
 		font-size: 0.9rem;
 		cursor: pointer;
-		transition: all 0.2s;
+		transition: all 0.2s, transform 0.2s, box-shadow 0.2s;
 		font-family: var(--font-primary);
 	}
 	
 	.nav-btn:hover:not(:disabled) {
 		background: var(--card);
 		color: var(--text-light);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	}
 	
 	.nav-btn.primary {
