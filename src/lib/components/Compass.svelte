@@ -62,6 +62,9 @@
 		startGeolocationWatch();
 		startAnimation();
 		
+		// Request sensor permissions automatically
+		requestSensorPermissions();
+		
 		// If we have a destination, fetch route
 		if (destination) {
 			fetchRoute();

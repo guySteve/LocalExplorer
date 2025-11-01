@@ -98,16 +98,17 @@
 
 	async function fetchHistoricalWeather(lat, lng) {
 		try {
-			const endDate = new Date();
-			endDate.setDate(endDate.getDate() - 1);
-			const startDate = new Date(endDate);
-			startDate.setDate(startDate.getDate() - 30); // Only fetch 30 days
-
+			// Get current date and same date last year
+			const today = new Date();
+			const lastYear = new Date(today);
+			lastYear.setFullYear(lastYear.getFullYear() - 1);
+			
+			// Fetch last year's data for the same date
 			const params = new URLSearchParams({
 				latitude: lat.toFixed(4),
 				longitude: lng.toFixed(4),
-				start_date: startDate.toISOString().split('T')[0],
-				end_date: endDate.toISOString().split('T')[0],
+				start_date: lastYear.toISOString().split('T')[0],
+				end_date: lastYear.toISOString().split('T')[0],
 				daily: 'temperature_2m_max,temperature_2m_min,weathercode',
 				temperature_unit: 'fahrenheit',
 				timezone: 'auto'
@@ -120,7 +121,7 @@
 			}
 
 			const data = await response.json();
-			historicalData = parseHistoricalData(data);
+			historicalData = parseHistoricalData(data, lastYear);
 		} catch (err) {
 			console.error('Historical weather error:', err);
 		}
@@ -156,17 +157,17 @@
 		};
 	}
 
-	function parseHistoricalData(data) {
+	function parseHistoricalData(data, lastYearDate) {
 		const daily = data.daily || {};
-		if (!daily.time) return [];
+		if (!daily.time || daily.time.length === 0) return [];
 
-		// Return all available days (should be 30)
-		return daily.time.map((date, i) => ({
-			date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-			high: Math.round(daily.temperature_2m_max[i]),
-			low: Math.round(daily.temperature_2m_min[i]),
-			icon: getWeatherIcon(daily.weathercode[i])
-		}));
+		// Return data for the same date last year
+		return [{
+			date: lastYearDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+			high: Math.round(daily.temperature_2m_max[0]),
+			low: Math.round(daily.temperature_2m_min[0]),
+			icon: getWeatherIcon(daily.weathercode[0])
+		}];
 	}
 
 	function getWeatherCondition(code) {
@@ -332,18 +333,36 @@
 			<div class="bird-fact">{birdFact}</div>
 		{/if}
 
-		{#if showHistory && historicalData.length > 0}
+		{#if showHistory && historicalData.length > 0 && weather}
 			<div class="weather-history">
-				<h4>Last 30 Days</h4>
-				<div class="history-grid">
-					{#each historicalData as day}
-						<div class="history-day">
-							<span class="history-date">{day.date}</span>
-							<span class="history-icon">{day.icon}</span>
-							<span class="history-temps">{day.high}°/{day.low}°</span>
+				<h4>Compared to Last Year</h4>
+				{#each historicalData as day}
+					{@const tempDiff = weather.temperature - day.high}
+					{@const isHotter = tempDiff > 0}
+					{@const isSignificant = Math.abs(tempDiff) > 5}
+					<div class="history-comparison">
+						<div class="comparison-header">
+							<span class="comparison-label">Same date last year ({day.date})</span>
 						</div>
-					{/each}
-				</div>
+						<div class="comparison-details">
+							<div class="comparison-temps">
+								<span class="comparison-icon">{day.icon}</span>
+								<span class="comparison-temp">{day.high}°/{day.low}°</span>
+							</div>
+							<div class="comparison-verdict" class:hotter={isHotter} class:colder={!isHotter} class:significant={isSignificant}>
+								{#if isSignificant}
+									{#if isHotter}
+										🔥 {Math.abs(tempDiff)}° Hotter than last year
+									{:else}
+										❄️ {Math.abs(tempDiff)}° Colder than last year
+									{/if}
+								{:else}
+									👍 About the same as last year
+								{/if}
+							</div>
+						</div>
+					</div>
+				{/each}
 			</div>
 		{/if}
 	{:else}
@@ -509,39 +528,66 @@
 		font-weight: 600;
 	}
 
-	.history-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-		gap: 0.5rem;
-		max-height: 300px;
-		overflow-y: auto;
-	}
-
-	.history-day {
+	.history-comparison {
 		background: rgba(255, 255, 255, 0.08);
-		padding: 0.5rem;
-		border-radius: 6px;
-		text-align: center;
-		font-size: 0.8rem;
+		padding: 0.75rem;
+		border-radius: 8px;
+		margin-bottom: 0.5rem;
 	}
 
-	.history-date {
-		display: block;
-		font-size: 0.7rem;
-		opacity: 0.7;
-		margin-bottom: 0.25rem;
+	.comparison-header {
+		margin-bottom: 0.5rem;
 	}
 
-	.history-icon {
-		display: block;
+	.comparison-label {
+		font-size: 0.85rem;
+		opacity: 0.8;
+		font-weight: 500;
+	}
+
+	.comparison-details {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.comparison-temps {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.comparison-icon {
 		font-size: 1.5rem;
-		margin: 0.25rem 0;
 	}
 
-	.history-temps {
-		display: block;
-		font-size: 0.75rem;
+	.comparison-temp {
+		font-size: 1.1rem;
 		font-weight: 600;
+	}
+
+	.comparison-verdict {
+		padding: 0.5rem 0.75rem;
+		border-radius: 6px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-align: center;
+		flex: 1;
+	}
+
+	.comparison-verdict.hotter {
+		background: rgba(255, 87, 34, 0.2);
+		border: 1px solid rgba(255, 87, 34, 0.4);
+	}
+
+	.comparison-verdict.colder {
+		background: rgba(33, 150, 243, 0.2);
+		border: 1px solid rgba(33, 150, 243, 0.4);
+	}
+
+	.comparison-verdict.significant {
+		font-weight: 700;
 	}
 
 	.weather-error {
@@ -587,8 +633,13 @@
 			font-size: 2rem;
 		}
 
-		.history-grid {
-			grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+		.comparison-details {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.comparison-verdict {
+			width: 100%;
 		}
 	}
 </style>

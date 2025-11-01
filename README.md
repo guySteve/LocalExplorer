@@ -2,8 +2,6 @@
 
 A Progressive Web App for discovering local attractions, events, and activities. Built with **SvelteKit** and designed for **adventure seekers** who want to explore their surroundings.
 
-> **🎉 NEW**: Recently migrated to SvelteKit for better performance and developer experience! See [SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md) for details.
-
 ## 🚀 Quick Deploy to Netlify
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/guySteve/LocalExplorer)
@@ -28,9 +26,9 @@ Or run: `./check-deploy-ready.sh`
 - 🍺 **Breweries** - Locate nearby breweries (Open Brewery DB)
 - 📍 **What3Words** - Precise location addressing
 - 🗺️ **Interactive Maps** - Google Maps integration
-- 🌤️ **Weather** - Local weather forecasts (Open-Meteo)
+- 🌤️ **Weather** - Local weather forecasts with year-over-year comparison (Open-Meteo)
 - 📅 **Holiday Alerts** - Plan around local holidays
-- 🧭 **Compass Navigation** - Navigate to your destinations
+- 🧭 **Compass Navigation** - Navigate to your destinations with voice guidance
 - 💾 **Offline Support** - Progressive Web App with service worker
 
 ## 🔐 Security
@@ -92,6 +90,7 @@ netlify deploy --prod
 
 - **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - ⭐ Complete Netlify deployment guide
 - **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 Automated deployment setup
+- **[DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md)** - 📝 Developer notes and architecture
 
 ## 💻 Local Development
 
@@ -206,13 +205,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ### For Developers
 
 If you're new to SvelteKit, check out:
-- [SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md) - Migration guide and architecture
+- [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) - Developer guide and architecture
 - [SvelteKit Docs](https://kit.svelte.dev/docs) - Official documentation
 - [Svelte Tutorial](https://svelte.dev/tutorial) - Interactive tutorial
 
 ## 📚 Documentation
 
-- **[SVELTEKIT_MIGRATION.md](SVELTEKIT_MIGRATION.md)** - 📘 SvelteKit migration guide
+- **[DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md)** - 📝 Developer notes and architecture
 - **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - 🚀 Netlify deployment instructions
 - **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 CI/CD setup
 
@@ -232,12 +231,16 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 ## 🔧 Recent Updates
 
-### API Functionality Improvements
+### November 2025
+- ✅ **Weather Comparison** - Now compares current weather to same date last year (hotter/colder indicator)
+- ✅ **Compass Enhancement** - Automatic sensor permission request on open
+- ✅ **Documentation** - Consolidated development notes into single DEVELOPMENT_NOTES.md
+- ✅ **Code Cleanup** - Removed redundant documentation files
+
+### Earlier Updates
 All API functions have been updated with improved error handling:
 - ✅ **Proper error handling** for all API responses
-- ✅ **Historical Weather** now shows last year's data for better performance
 - ✅ **eBird, Ticketmaster, What3Words** and all other APIs now gracefully handle errors
-- 📖 See [API_FIXES.md](API_FIXES.md) for detailed information
 
 To verify API functionality, run:
 ```bash
@@ -247,10 +250,10 @@ node verify-api-functions.cjs
 ## 🐛 Issues
 
 If you encounter any issues, please:
-1. Check [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for deployment troubleshooting and Netlify configuration help
-2. Review Netlify function logs
-3. Run `node verify-api-functions.cjs` to verify API function integrity
-4. See [API_FIXES.md](API_FIXES.md) for API-specific troubleshooting
+1. Check [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for deployment troubleshooting
+2. Review [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) for common issues
+3. Review Netlify function logs
+4. Run `node verify-api-functions.cjs` to verify API function integrity
 5. Open an issue on GitHub with details
 
 ## 📞 Support
