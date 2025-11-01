@@ -620,7 +620,7 @@ h1, h2, h3 {
     .close-btn:active {
       transform: scale(0.9);
     }
-    .subMenuList button,
+    .subMenuList button:not(.sub-menu-item),
     .results-list button {
       width: 100%;
       background: var(--card);
@@ -652,7 +652,7 @@ h1, h2, h3 {
       color: var(--text-light);
       font-weight: 600;
     }
-    .subMenuList button:hover,
+    .subMenuList button:not(.sub-menu-item):hover,
     .results-list button:hover {
       background: var(--secondary);
     }
