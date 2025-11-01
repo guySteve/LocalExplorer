@@ -204,6 +204,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		gap: 1rem;
 		padding: 0.75rem;
 		background: rgba(255, 255, 255, 0.05);
 		border-radius: 8px;
@@ -229,18 +230,20 @@
 
 	.toggle-btn {
 		position: relative;
-		width: 52px;
-		height: 28px;
-		background: rgba(0, 0, 0, 0.2);
-		border: 2px solid rgba(255, 255, 255, 0.2);
-		border-radius: 14px;
+		width: 48px;
+		height: 24px;
+		background: rgba(0, 0, 0, 0.3);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: 12px;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		padding: 0;
+		flex-shrink: 0;
 	}
 
 	.toggle-btn:hover {
-		background: rgba(0, 0, 0, 0.3);
+		background: rgba(0, 0, 0, 0.4);
+		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 	}
 
 	.toggle-btn.active {
@@ -248,16 +251,21 @@
 		border-color: var(--primary);
 	}
 
+	.toggle-btn.active:hover {
+		filter: brightness(1.1);
+	}
+
 	.toggle-slider {
 		position: absolute;
 		top: 2px;
 		left: 2px;
-		width: 20px;
-		height: 20px;
+		width: 18px;
+		height: 18px;
 		background: white;
 		border-radius: 50%;
-		transition: transform 0.3s ease;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+		pointer-events: none;
 	}
 
 	.toggle-btn.active .toggle-slider {
