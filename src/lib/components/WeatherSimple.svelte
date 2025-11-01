@@ -16,8 +16,10 @@
 	let showBirds = true; // Default enabled, controlled by settings
 	let birdFact = '';
 	let sassyMode = false; // Sassy weather mode
+	let lastHistoricalFetch = 0; // Cache timestamp for historical data
 
 	const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+	const TEMP_DIFF_THRESHOLD = 5; // Degrees for significant temperature change
 
 	onMount(() => {
 		// Load bird settings from localStorage
@@ -39,11 +41,6 @@
 				fetchWeather(pos.lat, pos.lng);
 			}
 		});
-		
-		// Auto-fetch historical data if we already have current position
-		if ($currentPosition && !loading) {
-			fetchWeather($currentPosition.lat, $currentPosition.lng);
-		}
 		
 		return unsubscribe;
 	});
@@ -82,8 +79,10 @@
 				fetchBirdSightings(lat, lng);
 			}
 			
-			// Always fetch historical data for comparison
-			await fetchHistoricalWeather(lat, lng);
+			// Fetch historical data only if not cached
+			if (Date.now() - lastHistoricalFetch > CACHE_TIME) {
+				await fetchHistoricalWeather(lat, lng);
+			}
 		} catch (err) {
 			console.error('Weather fetch error:', err);
 			error = err.message;
@@ -140,6 +139,7 @@
 
 			const data = await response.json();
 			historicalData = parseHistoricalData(data, lastYearDate);
+			lastHistoricalFetch = Date.now(); // Update cache timestamp
 		} catch (err) {
 			console.error('Historical weather error:', err);
 		}
@@ -337,7 +337,7 @@
 					{@const todayHigh = weather.daily[0].high}
 					{@const tempDiff = todayHigh - day.high}
 					{@const isHotter = tempDiff > 0}
-					{@const isSignificant = Math.abs(tempDiff) > 5}
+					{@const isSignificant = Math.abs(tempDiff) > TEMP_DIFF_THRESHOLD}
 					<div class="history-mini-item" title="Same date last year: {day.date}">
 						<span class="mini-icon">{day.icon}</span>
 						<span class="mini-temp">{day.high}°</span>
@@ -360,7 +360,7 @@
 					{@const todayHigh = weather.daily[0].high}
 					{@const tempDiff = todayHigh - day.high}
 					{@const isHotter = tempDiff > 0}
-					{@const isSignificant = Math.abs(tempDiff) > 5}
+					{@const isSignificant = Math.abs(tempDiff) > TEMP_DIFF_THRESHOLD}
 					<div class="history-comparison">
 						<div class="comparison-header">
 							<span class="comparison-label">Same date last year ({day.date})</span>
