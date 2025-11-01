@@ -24,7 +24,7 @@
 	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} on:click|stopPropagation>
 		<div class="modal-header">
 			<h3>Support Local Explorer</h3>
-			<button class="close-btn" on:click={() => dispatch('close')}>×</button>
+			<button class="close-btn" on:click={() => dispatch('close')} type="button">×</button>
 		</div>
 		
 		<div class="donate-content">
