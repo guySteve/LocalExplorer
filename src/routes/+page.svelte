@@ -6,7 +6,8 @@
 		searchLocalEvents, 
 		searchBreweries, 
 		searchNationalParks, 
-		searchRecreationAreas
+		searchRecreationAreas,
+		searchBirdSightings
 	} from '$lib/utils/api-extended';
 	
 	// Import components
@@ -72,10 +73,19 @@
 		try {
 			// Detect category type and route to appropriate API
 			if (item.value) {
-				// Local Events (Ticketmaster)
-				const classification = item.value === 'all' ? '' : item.value;
-				const events = await searchLocalEvents(lat, lng, classification);
-				results = transformEventsToStandardFormat(events);
+				// Check if it's a bird watching search
+				if (item.value === 'bird-sightings') {
+					results = await searchBirdSightings(lat, lng, 'recent');
+				} else if (item.value === 'rare-birds') {
+					results = await searchBirdSightings(lat, lng, 'rare');
+				} else if (item.value === 'bird-hotspots') {
+					results = await searchBirdSightings(lat, lng, 'hotspots');
+				} else {
+					// Local Events (Ticketmaster)
+					const classification = item.value === 'all' ? '' : item.value;
+					const events = await searchLocalEvents(lat, lng, classification);
+					results = transformEventsToStandardFormat(events);
+				}
 			} else if (item.search) {
 				// Breweries or Recreation
 				if (item.search === 'national_park') {

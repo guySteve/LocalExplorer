@@ -149,6 +149,75 @@ export async function fetchRecentBirdSightings(lat, lng) {
   }
 }
 
+// Search bird sightings for list view
+export async function searchBirdSightings(lat, lng, type = 'recent') {
+  try {
+    const params = new URLSearchParams({
+      lat: lat.toString(),
+      lng: lng.toString(),
+      dist: type === 'hotspots' ? '50' : '25', // Wider radius for hotspots
+      maxResults: '50' // More results for list view
+    });
+    
+    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      if (response.status === 500) {
+        console.warn('eBird API key not configured');
+        return [];
+      }
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    // Filter based on search type
+    let filteredData = data;
+    if (type === 'rare') {
+      // Consider birds with low observation counts as "rare" (observed <= 2 times)
+      const birdCounts = {};
+      data.forEach(bird => {
+        birdCounts[bird.comName] = (birdCounts[bird.comName] || 0) + 1;
+      });
+      filteredData = data.filter(bird => birdCounts[bird.comName] <= 2);
+    }
+    
+    // Transform to standard format
+    return filteredData.map(bird => {
+      const date = new Date(bird.obsDt);
+      const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+      
+      let distance = null;
+      if (bird.lat && bird.lng) {
+        distance = calculateDistanceMiles(lat, lng, bird.lat, bird.lng) * 1609.34; // miles to meters
+      }
+      
+      return {
+        id: `${bird.speciesCode}-${bird.obsDt}-${bird.locId}`,
+        name: `${bird.comName}${bird.howMany > 1 ? ` (${bird.howMany})` : ''}`,
+        address: bird.locName || 'Unknown location',
+        categories: [bird.sciName],
+        timeStr: `Spotted ${timeStr}`,
+        provider: 'eBird',
+        lat: parseFloat(bird.lat),
+        lng: parseFloat(bird.lng),
+        distance: distance,
+        obsReviewed: bird.obsReviewed,
+        locationPrivate: bird.locationPrivate
+      };
+    }).filter(b => b.lat && b.lng);
+  } catch (err) {
+    console.error('Failed to search bird sightings:', err);
+    return [];
+  }
+}
+
 // ===== BREWERIES (Open Brewery DB - FREE) =====
 
 export async function searchBreweries(lat, lng, query = '') {
