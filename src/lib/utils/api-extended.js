@@ -8,6 +8,7 @@ const birdFactCache = new Map();
 const breweriesCache = new Map();
 
 const WEATHER_CACHE_MS = 10 * 60 * 1000; // 10 minutes
+const DEFAULT_FORECAST_DAYS = 10;
 const BIRD_FACT_CACHE_MS = 30 * 60 * 1000; // 30 minutes
 const BREWERIES_CACHE_MS = 60 * 60 * 1000; // 1 hour
 
@@ -23,46 +24,61 @@ function generateLocationCacheKey(lat, lng, ...params) {
 
 // ===== WEATHER (Open-Meteo - FREE) =====
 
-export async function fetchWeatherData(lat, lng) {
-  // Check cache first
-  const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+export async function fetchWeatherData(lat, lng, options = {}) {
+  const { days = DEFAULT_FORECAST_DAYS, units = 'imperial' } = options;
+
+  const cacheKey = getWeatherCacheKey(lat, lng, days, units);
   const cached = weatherCache.get(cacheKey);
-  
+
   if (isCacheValid(cached, WEATHER_CACHE_MS)) {
     console.log('✅ Weather: Using cached data');
     return cached.value;
   }
-  
+
   const params = new URLSearchParams({
-    latitude: lat.toFixed(4),
-    longitude: lng.toFixed(4),
-    current_weather: 'true',
-    hourly: 'apparent_temperature',
-    daily: 'temperature_2m_max,temperature_2m_min,sunrise,sunset,weathercode,precipitation_sum,windspeed_10m_max',
-    timezone: 'auto',
-    forecast_days: 7
+    lat: lat.toString(),
+    lng: lng.toString(),
+    days: days.toString(),
+    units,
+    language: 'en-US'
   });
-  
-  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  
+
+  const response = await fetch(`${NETLIFY_FUNCTIONS_BASE}/weather?${params}`);
+
   if (!response.ok) {
-    throw new Error('Weather fetch failed');
+    const info = await safeParseJson(response);
+    throw new Error(info?.error || 'Weather fetch failed');
   }
-  
+
   const data = await response.json();
-  
-  // Cache the result
+
   weatherCache.set(cacheKey, {
     value: data,
     timestamp: Date.now()
   });
-  
+
   return data;
 }
 
 export function invalidateWeatherCache(lat, lng) {
-  const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
-  weatherCache.delete(cacheKey);
+  const prefix = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+  [...weatherCache.keys()].forEach((key) => {
+    if (key.startsWith(prefix)) {
+      weatherCache.delete(key);
+    }
+  });
+}
+
+function getWeatherCacheKey(lat, lng, days, units) {
+  return `${lat.toFixed(3)},${lng.toFixed(3)},${days},${units}`;
+}
+
+async function safeParseJson(response) {
+  try {
+    return await response.clone().json();
+  } catch (err) {
+    return null;
+  }
 }
 
 export function weatherCodeToSummary(code) {
