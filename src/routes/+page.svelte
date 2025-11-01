@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { currentPosition, currentResults, latestLocationLabel } from '$lib/stores/appState';
-	import { searchGooglePlaces } from '$lib/utils/api';
+	import { searchGooglePlaces, MILES_TO_METERS } from '$lib/utils/api';
 	import { 
 		searchLocalEvents, 
 		searchBreweries, 
@@ -143,7 +143,7 @@
 			provider: 'OpenBreweryDB',
 			lat: brewery.lat,
 			lng: brewery.lng,
-			distance: brewery.distance ? brewery.distance * 1609.34 : null // miles to meters
+			distance: brewery.distance ? brewery.distance * MILES_TO_METERS : null
 		}));
 	}
 
@@ -157,7 +157,7 @@
 			provider: 'NPS',
 			lat: park.lat,
 			lng: park.lng,
-			distance: park.distance ? park.distance * 1609.34 : null, // miles to meters
+			distance: park.distance ? park.distance * MILES_TO_METERS : null,
 			image: park.images?.[0]?.url
 		}));
 	}
