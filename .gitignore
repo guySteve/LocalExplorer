@@ -7,8 +7,8 @@
 .netlify
 netlify/functions/node_modules
 
-# API Keys (sensitive)
-key.js
+# API Keys (sensitive) - only ignore root level key.js, not static/key.js
+/key.js
 
 # Node modules
 node_modules/
