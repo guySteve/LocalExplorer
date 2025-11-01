@@ -32,8 +32,11 @@
 	});
 
 	async function loadWeather(forceFresh = false) {
+		if (loading) return;
+
 		hasRequestedWeather = true;
 		errorMessage = '';
+
 		const pos = $currentPosition;
 		if (!pos) {
 			errorMessage = 'Location not ready yet.';
@@ -67,11 +70,21 @@
 			errorMessage = '';
 		} catch (error) {
 			console.error('Weather fetch failed:', error);
-			errorMessage = error?.message || 'Unable to load weather data.';
 			const fallback = $cachedWeather;
+			const fallbackTimestamp = fallback?.metadata?.fetchedAt || $lastWeatherFetch || Date.now();
+			const message = error?.message || 'Unable to load weather data.';
+
+			if (/weather api key not configured/i.test(message)) {
+				errorMessage = 'Add WEATHER_API_KEY to your environment to enable the forecast.';
+			} else {
+				errorMessage = message;
+			}
+
 			if (fallback) {
 				weatherData = fallback;
-				updateLastUpdated(fallback?.metadata?.fetchedAt || $lastWeatherFetch || Date.now());
+				updateLastUpdated(fallbackTimestamp);
+			} else {
+				weatherData = null;
 			}
 		} finally {
 			loading = false;
@@ -150,6 +163,7 @@
 	}
 
 	function handleLoadWeather() {
+		if (loading) return;
 		if (!expanded) {
 			expanded = true;
 		}
@@ -208,6 +222,7 @@
 	let hourlyPreview = $derived(weatherData?.hourly?.slice(0, 6) || []);
 	let todayHighF = $derived(weatherData?.daily?.[0]?.highF ?? null);
 	let todayLowF = $derived(weatherData?.daily?.[0]?.lowF ?? null);
+	let canRetryLoad = $derived(() => Boolean(errorMessage) && Boolean($currentPosition) && !/weather_api_key/i.test(errorMessage));
 </script>
 
 <div id="weatherWidget" aria-live="polite" class:expanded>
@@ -257,9 +272,16 @@
 		</button>
 	</div>
 
-	{#if errorMessage && !$currentPosition}
-		<div class="weather-error">{errorMessage}</div>
-	{/if}
+		{#if errorMessage}
+			<div class="weather-error">
+				<span>{errorMessage}</span>
+				{#if canRetryLoad}
+					<button class="retry-btn" type="button" onclick={() => loadWeather(true)} disabled={loading}>
+						Retry
+					</button>
+				{/if}
+			</div>
+		{/if}
 
 	<div id="weatherContent">
 		<div id="weatherPrimary">
@@ -280,11 +302,15 @@
 
 		{#if !$currentPosition}
 			<div class="weather-placeholder">Enable location to load your local forecast.</div>
-		{:else if !weatherData && !loading}
-			<div class="weather-placeholder">
-				Ready when you are. Expand or tap Load to fetch the latest weather.
-				<button class="load-weather-btn" type="button" onclick={handleLoadWeather}>Load Local Weather</button>
-			</div>
+		{:else if !weatherData}
+			{#if loading}
+				<div class="weather-placeholder loading">Fetching the latest forecast...</div>
+			{:else}
+				<div class="weather-placeholder">
+					Ready when you are. Expand or tap Load to fetch the latest weather.
+					<button class="load-weather-btn" type="button" onclick={handleLoadWeather}>Load Local Weather</button>
+				</div>
+			{/if}
 		{/if}
 
 		{#if weatherData}
@@ -514,6 +540,11 @@
 		gap: 0.75rem;
 	}
 
+	.weather-placeholder.loading {
+		opacity: 0.75;
+		font-style: italic;
+	}
+
 	.stat-card {
 		padding: 0.75rem;
 		border-radius: var(--button-radius, 12px);
@@ -649,6 +680,31 @@
 		border: 1px solid rgba(244, 67, 54, 0.25);
 		color: #b71c1c;
 		font-size: 0.9rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.retry-btn {
+		padding: 0.4rem 0.85rem;
+		border: none;
+		border-radius: var(--button-radius, 12px);
+		background: var(--primary);
+		color: var(--text-light);
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.2s ease;
+	}
+
+	.retry-btn:hover:not(:disabled) {
+		background: var(--secondary);
+	}
+
+	.retry-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 
 	@media (max-width: 768px) {
