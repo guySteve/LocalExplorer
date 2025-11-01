@@ -28,11 +28,11 @@
 	}
 </script>
 
-<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }}>
-	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }}>
+<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true">
+	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} on:click|stopPropagation>
 		<div class="modal-header">
 			<h3>{title}</h3>
-			<button class="close-btn" on:click={() => dispatch('close')}>×</button>
+			<button class="close-btn" on:click={() => dispatch('close')} type="button">×</button>
 		</div>
 		
 		{#if loading}

@@ -9,11 +9,11 @@
 	}
 </script>
 
-<div id="myCollectionModal" class="modal" style="display: block;">
-	<div class="modal-content">
+<div id="myCollectionModal" class="modal" style="display: block;" role="dialog" aria-modal="true">
+	<div class="modal-content" on:click|stopPropagation>
 		<div class="modal-header">
 			<h3>My Collection</h3>
-			<button class="close-btn" on:click={handleClose}>×</button>
+			<button class="close-btn" on:click={handleClose} type="button">×</button>
 		</div>
 		<div id="listView" class="collection-view">
 			<div class="results-list">
