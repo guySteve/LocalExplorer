@@ -98,17 +98,18 @@
 
 	async function fetchHistoricalWeather(lat, lng) {
 		try {
-			// Get current date and same date last year
-			const today = new Date();
-			const lastYear = new Date(today);
-			lastYear.setFullYear(lastYear.getFullYear() - 1);
+			// Get current date and same date last year for comparison
+			const currentDate = new Date();
+			const lastYearDate = new Date(currentDate);
+			lastYearDate.setFullYear(lastYearDate.getFullYear() - 1);
 			
-			// Fetch last year's data for the same date
+			// Fetch last year's data for the same date (single day)
+			const targetDate = lastYearDate.toISOString().split('T')[0];
 			const params = new URLSearchParams({
 				latitude: lat.toFixed(4),
 				longitude: lng.toFixed(4),
-				start_date: lastYear.toISOString().split('T')[0],
-				end_date: lastYear.toISOString().split('T')[0],
+				start_date: targetDate,
+				end_date: targetDate, // Same date for single day fetch
 				daily: 'temperature_2m_max,temperature_2m_min,weathercode',
 				temperature_unit: 'fahrenheit',
 				timezone: 'auto'
@@ -121,7 +122,7 @@
 			}
 
 			const data = await response.json();
-			historicalData = parseHistoricalData(data, lastYear);
+			historicalData = parseHistoricalData(data, lastYearDate);
 		} catch (err) {
 			console.error('Historical weather error:', err);
 		}
@@ -333,11 +334,12 @@
 			<div class="bird-fact">{birdFact}</div>
 		{/if}
 
-		{#if showHistory && historicalData.length > 0 && weather}
+		{#if showHistory && historicalData.length > 0 && weather && weather.daily && weather.daily.length > 0}
 			<div class="weather-history">
 				<h4>Compared to Last Year</h4>
 				{#each historicalData as day}
-					{@const tempDiff = weather.temperature - day.high}
+					{@const todayHigh = weather.daily[0].high}
+					{@const tempDiff = todayHigh - day.high}
 					{@const isHotter = tempDiff > 0}
 					{@const isSignificant = Math.abs(tempDiff) > 5}
 					<div class="history-comparison">
