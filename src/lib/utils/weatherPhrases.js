@@ -2,9 +2,9 @@
 
 export const sassyPhrases = {
 	hot: [
-		"Bruh, take your lazy ass for a walk its a nice day",
+		"Bruh, take your lazy ass for a walk it's a nice day",
 		"It's hotter than the devil's asshole out there",
-		"Last time it was this hot, I got kicked out of Chilis for getting naked and eating fajitas - the fucking sizzzzle man",
+		"Last time it was this hot, I got kicked out of Chili's for getting naked and eating fajitas - the fucking sizzzzle man",
 		"Holy hell, did someone forget to turn off the surface of the sun?",
 		"It's so hot, I just saw a squirrel using oven mitts to hold nuts",
 		"Satan called, he wants his thermostat back",
@@ -109,7 +109,7 @@ export const sassyPhrases = {
 		"It's colder than a witch's tit in a brass bra",
 		"Holy shivers Batman, bundle the hell up",
 		"Freezing my ass off isn't just an expression anymore",
-		"It's so cold, even my attitude has froze",
+		"It's so cold, my attitude has frozen",
 		"Winter said 'hold my beer' and cranked it to arctic",
 		"This cold is more aggressive than my ex's lawyer",
 		"It's colder than your ex's heart out there",
