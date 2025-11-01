@@ -35,6 +35,9 @@
 	// Bird sightings setting
 	let showBirdSightings = true;
 	
+	// Sassy weather setting
+	let sassyWeather = false;
+	
 	// Voice navigation setting
 	let voiceEnabled = true;
 	let availableVoices = [];
@@ -46,6 +49,10 @@
 		if (browser) {
 			const savedBirdSetting = localStorage.getItem('showBirdSightings');
 			showBirdSightings = savedBirdSetting === null ? true : savedBirdSetting !== 'false';
+
+			// Load sassy weather setting
+			const savedSassySetting = localStorage.getItem('sassyWeather');
+			sassyWeather = savedSassySetting === null ? false : savedSassySetting === 'true';
 
 			// Load voice enabled setting
 			const savedVoiceSetting = localStorage.getItem('voiceEnabled');
@@ -90,6 +97,15 @@
 		}
 		// Dispatch event to refresh weather if needed
 		dispatch('settingsChanged', { showBirds: showBirdSightings });
+	}
+
+	function handleSassyToggle() {
+		sassyWeather = !sassyWeather;
+		if (browser) {
+			localStorage.setItem('sassyWeather', sassyWeather.toString());
+		}
+		// Dispatch event to refresh weather phrases
+		dispatch('settingsChanged', { sassyWeather });
 	}
 
 	function handleVoiceToggle() {
@@ -141,6 +157,24 @@
 					class="toggle-btn {showBirdSightings ? 'active' : ''}" 
 					on:click={handleBirdToggle}
 					aria-label="Toggle bird sightings"
+					type="button"
+				>
+					<span class="toggle-slider"></span>
+				</button>
+			</div>
+		</div>
+
+		<div class="setting-group">
+			<div class="setting-toggle">
+				<label for="sassyToggle">
+					<span class="setting-label">Sassy Weather Mode 😎</span>
+					<span class="setting-description">Get entertaining and sassy weather commentary</span>
+				</label>
+				<button 
+					id="sassyToggle"
+					class="toggle-btn {sassyWeather ? 'active' : ''}" 
+					on:click={handleSassyToggle}
+					aria-label="Toggle sassy weather mode"
 					type="button"
 				>
 					<span class="toggle-slider"></span>
