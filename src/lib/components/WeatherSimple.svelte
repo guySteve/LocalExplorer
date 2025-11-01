@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentPosition } from '$lib/stores/appState';
+	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { browser } from '$app/environment';
 
 	const dispatch = createEventDispatcher();
@@ -76,13 +77,11 @@
 
 	async function fetchBirdSightings(lat, lng) {
 		try {
-			const response = await fetch(`/.netlify/functions/ebird?lat=${lat}&lng=${lng}&maxResults=5`);
-			if (response.ok) {
-				const birds = await response.json();
-				if (birds && birds.length > 0) {
-					const recent = birds[0];
-					birdFact = `🐦 Recently spotted: ${recent.comName} (${recent.howMany || 1} seen)`;
-				}
+			const fact = await fetchRecentBirdSightings(lat, lng);
+			if (fact && fact !== 'configure-key') {
+				birdFact = fact;
+			} else if (fact === 'configure-key') {
+				birdFact = '🐦 Bird sightings unavailable. Add EBIRD_API_KEY to enable.';
 			}
 		} catch (err) {
 			console.error('Bird fetch error:', err);
