@@ -15,7 +15,7 @@
 	import LocationDisplay from '$lib/components/LocationDisplay.svelte';
 	import PrimaryActions from '$lib/components/PrimaryActions.svelte';
 	import UnifiedSearch from '$lib/components/UnifiedSearch.svelte';
-	import WeatherWidget from '$lib/components/WeatherWidget.svelte';
+	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
 	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import SupportCTA from '$lib/components/SupportCTA.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
@@ -236,7 +236,7 @@
 	
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
-	<WeatherWidget on:openForecast={handleOpenForecast} />
+	<WeatherSimple on:openForecast={handleOpenForecast} />
 	
 	<FilterGrid on:openSubMenu={handleOpenSubMenu} />
 	
