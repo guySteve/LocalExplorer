@@ -41,6 +41,14 @@
 // It is set by the netlify/inject-env.js script during deployment
 // window.MAPS_API_KEY will be set during build process
 
+// =============================================================================
+// OPTIONAL: WEATHER API KEY (GOOGLE MAPS PLATFORM WEATHER API)
+// =============================================================================
+// By default the weather proxy runs purely on the server using WEATHER_API_KEY.
+// Only expose this key client-side if you understand the security implications
+// and have set strict domain-level restrictions in Google Cloud Console.
+// window.WEATHER_API_KEY will be set during build process when provided
+
 // If the Maps API key is not configured, the app will show a setup guide
 // and will still function for some features (weather, manual location input, etc.)
 
@@ -50,4 +58,5 @@
 // The frontend will make requests to these serverless endpoints:
 window.USE_NETLIFY_FUNCTIONS = true;
 window.NETLIFY_FUNCTIONS_BASE = '/.netlify/functions';
+window.WEATHER_API_KEY = window.WEATHER_API_KEY || null;
 

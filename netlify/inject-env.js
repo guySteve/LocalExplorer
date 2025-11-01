@@ -24,19 +24,34 @@ try {
   
   let content = fs.readFileSync(keyFilePath, 'utf8');
 
+  let mutated = false;
+
   // Inject MAPS_API_KEY if available
   if (process.env.MAPS_API_KEY) {
     console.log('Injecting MAPS_API_KEY into client code...');
-    // Find the comment line and add the API key assignment after it
-    // Using JSON.stringify to safely escape special characters
     content = content.replace(
       /(\/\/ window\.MAPS_API_KEY will be set during build process)(?:\nwindow\.MAPS_API_KEY\s*=\s*.*?;)?/,
       `$1\nwindow.MAPS_API_KEY = ${JSON.stringify(process.env.MAPS_API_KEY)};`
     );
-    fs.writeFileSync(keyFilePath, content);
+    mutated = true;
     console.log('MAPS_API_KEY injected successfully');
   } else {
     console.warn('MAPS_API_KEY environment variable not found - API key will not be available');
+  }
+
+  // Inject WEATHER_API_KEY if explicitly provided (optional)
+  if (process.env.WEATHER_API_KEY) {
+    console.log('Injecting WEATHER_API_KEY into client code...');
+    content = content.replace(
+      /(\/\/ window\.WEATHER_API_KEY will be set during build process when provided)(?:\nwindow\.WEATHER_API_KEY\s*=\s*.*?;)?/,
+      `$1\nwindow.WEATHER_API_KEY = ${JSON.stringify(process.env.WEATHER_API_KEY)};`
+    );
+    mutated = true;
+    console.log('WEATHER_API_KEY injected successfully');
+  }
+
+  if (mutated) {
+    fs.writeFileSync(keyFilePath, content);
   }
 } catch (error) {
   // Log error but don't fail the build

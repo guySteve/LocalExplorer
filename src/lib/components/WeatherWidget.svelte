@@ -21,10 +21,22 @@
 
 	onMount(() => {
 		const unsubscribe = currentPosition.subscribe(() => {
-			if (!hasRequestedWeather || loading) return;
 			const pos = $currentPosition;
+			if (!pos) {
+				return;
+			}
+
+			if (!hasRequestedWeather && !loading) {
+				loadWeather();
+				return;
+			}
+
+			if (loading) {
+				return;
+			}
+
 			const coords = $lastWeatherCoords;
-			if (weatherData && pos && coords && !isSameLocation(pos, coords)) {
+			if (weatherData && coords && !isSameLocation(pos, coords)) {
 				loadWeather(true);
 			}
 		});
@@ -162,14 +174,6 @@
 		}
 	}
 
-	function handleLoadWeather() {
-		if (loading) return;
-		if (!expanded) {
-			expanded = true;
-		}
-		loadWeather();
-	}
-
 	function isSameLocation(a, b) {
 		if (!a || !b) return false;
 		return Math.abs(a.lat - b.lat) < 0.05 && Math.abs(a.lng - b.lng) < 0.05;
@@ -206,7 +210,7 @@
 	// Computed values
 	let currentConditions = $derived(weatherData?.current || null);
 	let weatherIcon = $derived(currentConditions?.icon || '🌤️');
-	let weatherDescription = $derived(currentConditions?.description || ($currentPosition ? 'Ready to load forecast' : 'Waiting for location'));
+	let weatherDescription = $derived(currentConditions?.description || ($currentPosition ? 'Fetching forecast...' : 'Waiting for location'));
 	let tempF = $derived(currentConditions?.temperatureF ?? null);
 	let feelsF = $derived(currentConditions?.feelsLikeF ?? tempF);
 	let humidityPct = $derived(currentConditions?.humidity ?? null);
@@ -237,7 +241,7 @@
 				{:else if !$currentPosition}
 					Waiting for location...
 				{:else}
-					Tap ▶ to load your 10-day forecast
+					Forecast will load shortly
 				{/if}
 			</span>
 		</div>
@@ -303,14 +307,13 @@
 		{#if !$currentPosition}
 			<div class="weather-placeholder">Enable location to load your local forecast.</div>
 		{:else if !weatherData}
-			{#if loading}
-				<div class="weather-placeholder loading">Fetching the latest forecast...</div>
-			{:else}
-				<div class="weather-placeholder">
-					Ready when you are. Expand or tap Load to fetch the latest weather.
-					<button class="load-weather-btn" type="button" onclick={handleLoadWeather}>Load Local Weather</button>
-				</div>
-			{/if}
+			<div class="weather-placeholder" class:loading={loading}>
+				{#if loading}
+					Fetching the latest forecast...
+				{:else}
+					Weather data is taking longer than expected.
+				{/if}
+			</div>
 		{/if}
 
 		{#if weatherData}
@@ -517,21 +520,6 @@
 		flex-direction: column;
 		gap: 0.75rem;
 		align-items: center;
-	}
-
-	.load-weather-btn {
-		padding: 0.6rem 1.2rem;
-		border: none;
-		border-radius: var(--button-radius, 12px);
-		background: var(--primary);
-		color: var(--text-light);
-		font-weight: 600;
-		cursor: pointer;
-		transition: background 0.2s ease;
-	}
-
-	.load-weather-btn:hover {
-		background: var(--secondary);
 	}
 
 	.weather-stats-grid {

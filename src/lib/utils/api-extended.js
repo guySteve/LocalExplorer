@@ -1,5 +1,4 @@
 // Extended API utilities for LocalExplorer - Weather, eBird, Breweries, What3Words, etc.
-import { browser } from '$app/environment';
 import { NETLIFY_FUNCTIONS_BASE, calculateDistance, calculateDistanceMiles, MILES_TO_METERS } from './api.js';
 
 // ===== CACHING =====
@@ -22,12 +21,13 @@ function generateLocationCacheKey(lat, lng, ...params) {
   return [latKey, lngKey, ...params].join(',');
 }
 
-// ===== WEATHER (Open-Meteo - FREE) =====
+// ===== WEATHER (Google Weather with Open-Meteo fallback) =====
 
 export async function fetchWeatherData(lat, lng, options = {}) {
-  const { days = DEFAULT_FORECAST_DAYS, units = 'imperial' } = options;
+  const { days = DEFAULT_FORECAST_DAYS, units = 'imperial', language = 'en-US' } = options;
+  const boundedDays = Math.min(Math.max(days, 1), 16);
 
-  const cacheKey = getWeatherCacheKey(lat, lng, days, units);
+  const cacheKey = getWeatherCacheKey(lat, lng, boundedDays, units);
   const cached = weatherCache.get(cacheKey);
 
   if (isCacheValid(cached, WEATHER_CACHE_MS)) {
@@ -35,29 +35,29 @@ export async function fetchWeatherData(lat, lng, options = {}) {
     return cached.value;
   }
 
-  const params = new URLSearchParams({
-    lat: lat.toString(),
-    lng: lng.toString(),
-    days: days.toString(),
-    units,
-    language: 'en-US'
-  });
-
-  const response = await fetch(`${NETLIFY_FUNCTIONS_BASE}/weather?${params}`);
-
-  if (!response.ok) {
-    const info = await safeParseJson(response);
-    throw new Error(info?.error || 'Weather fetch failed');
+  let weatherPayload;
+  try {
+    weatherPayload = await fetchGoogleWeather(lat, lng, boundedDays, units, language);
+  } catch (primaryError) {
+    console.warn('Weather: primary provider failed, attempting fallback.', primaryError);
+    if (shouldFallbackToOpenMeteo(primaryError)) {
+      try {
+        weatherPayload = await fetchOpenMeteoFallback(lat, lng, boundedDays, units);
+      } catch (fallbackError) {
+        console.error('Weather fallback failed:', fallbackError);
+        throw primaryError;
+      }
+    } else {
+      throw primaryError;
+    }
   }
 
-  const data = await response.json();
-
   weatherCache.set(cacheKey, {
-    value: data,
+    value: weatherPayload,
     timestamp: Date.now()
   });
 
-  return data;
+  return weatherPayload;
 }
 
 export function invalidateWeatherCache(lat, lng) {
@@ -79,6 +79,195 @@ async function safeParseJson(response) {
   } catch (err) {
     return null;
   }
+}
+
+async function fetchGoogleWeather(lat, lng, days, units, language) {
+  const params = new URLSearchParams({
+    lat: lat.toString(),
+    lng: lng.toString(),
+    days: days.toString(),
+    units,
+    language
+  });
+
+  const functionsBase = NETLIFY_FUNCTIONS_BASE || '/.netlify/functions';
+  const response = await fetch(`${functionsBase}/weather?${params}`);
+
+  if (!response.ok) {
+    const info = await safeParseJson(response);
+    const error = Object.assign(
+      new Error(info?.error || 'Weather fetch failed'),
+      {
+        status: response.status,
+        info,
+        source: 'google-weather',
+        code: info?.details?.status
+      }
+    );
+    throw error;
+  }
+
+  return response.json();
+}
+
+function shouldFallbackToOpenMeteo(error) {
+  if (!error) return true;
+  if (/weather api key not configured/i.test(error.message || '')) return true;
+  if (error.status && error.status >= 500) return true;
+  if (error.code && typeof error.code === 'string' && /permission|forbidden|quota/i.test(error.code)) return true;
+  if (/Failed to fetch|NetworkError|fetch failed/i.test(error.message || '')) return true;
+  return true;
+}
+
+async function fetchOpenMeteoFallback(lat, lng, days, units) {
+  const params = new URLSearchParams({
+    latitude: lat.toFixed(4),
+    longitude: lng.toFixed(4),
+    current_weather: 'true',
+    hourly: 'temperature_2m,apparent_temperature,precipitation_probability,relativehumidity_2m,weathercode,windspeed_10m,winddirection_10m',
+    daily: 'weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,windspeed_10m_max',
+    timezone: 'auto',
+    forecast_days: Math.min(days, 16).toString()
+  });
+
+  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+
+  if (!response.ok) {
+    const info = await safeParseJson(response);
+    const error = Object.assign(new Error(info?.reason || 'Weather fallback failed'), {
+      source: 'open-meteo'
+    });
+    throw error;
+  }
+
+  const raw = await response.json();
+  return normalizeOpenMeteoWeather(raw, { lat, lng, days, units });
+}
+
+function normalizeOpenMeteoWeather(raw, { lat, lng, days, units }) {
+  const fetchedAt = new Date().toISOString();
+  const current = raw?.current_weather || null;
+  const hourly = raw?.hourly || {};
+  const daily = raw?.daily || {};
+
+  const hourlyTimes = Array.isArray(hourly.time) ? hourly.time : [];
+  const dailyTimes = Array.isArray(daily.time) ? daily.time : [];
+
+  const currentTimeIndex = current?.time ? hourlyTimes.indexOf(current.time) : -1;
+  const currentSummary = weatherCodeToSummary(current?.weathercode);
+  const currentTempC = current?.temperature ?? null;
+  const currentFeelsLikeC = currentTimeIndex >= 0 && Array.isArray(hourly.apparent_temperature)
+    ? hourly.apparent_temperature[currentTimeIndex]
+    : currentTempC;
+  const currentHumidity = currentTimeIndex >= 0 && Array.isArray(hourly.relativehumidity_2m)
+    ? hourly.relativehumidity_2m[currentTimeIndex]
+    : null;
+  const currentPrecip = currentTimeIndex >= 0 && Array.isArray(hourly.precipitation_probability)
+    ? hourly.precipitation_probability[currentTimeIndex]
+    : null;
+  const currentWindKph = current?.windspeed ?? null;
+  const currentWindDir = current?.winddirection ?? null;
+
+  const normalizedCurrent = current
+    ? {
+        description: currentSummary.text,
+        icon: currentSummary.icon,
+        temperatureF: celsiusToFahrenheit(currentTempC),
+        temperatureC: currentTempC,
+        feelsLikeF: celsiusToFahrenheit(currentFeelsLikeC),
+        feelsLikeC: currentFeelsLikeC,
+        dewPointF: null,
+        dewPointC: null,
+        humidity: normalizePercent(currentHumidity),
+        windMph: kphToMph(currentWindKph),
+        windKph: currentWindKph,
+        windDirection: currentWindDir,
+        windGustMph: null,
+        windGustKph: null,
+        pressureMb: null,
+        pressureInHg: null,
+        precipitationChance: normalizePercent(currentPrecip),
+        uvIndex: null,
+        visibilityMiles: null,
+        observationTime: current.time || null
+      }
+    : null;
+
+  const hourlyCount = Math.min(hourlyTimes.length, days * 24);
+  const normalizedHourly = [];
+  for (let i = 0; i < hourlyCount; i += 1) {
+    const summary = weatherCodeToSummary(hourly.weathercode?.[i]);
+    const tempC = hourly.temperature_2m?.[i] ?? null;
+    const feelsC = hourly.apparent_temperature?.[i] ?? tempC;
+    const windKph = hourly.windspeed_10m?.[i] ?? null;
+    normalizedHourly.push({
+      time: hourlyTimes[i],
+      description: summary.text,
+      icon: summary.icon,
+      temperatureF: celsiusToFahrenheit(tempC),
+      temperatureC: tempC,
+      feelsLikeF: celsiusToFahrenheit(feelsC),
+      feelsLikeC: feelsC,
+      precipitationChance: normalizePercent(hourly.precipitation_probability?.[i]),
+      humidity: normalizePercent(hourly.relativehumidity_2m?.[i]),
+      windMph: kphToMph(windKph),
+      windDirection: hourly.winddirection_10m?.[i] ?? null
+    });
+  }
+
+  const dailyCount = Math.min(dailyTimes.length, days);
+  const normalizedDaily = [];
+  for (let i = 0; i < dailyCount; i += 1) {
+    const summary = weatherCodeToSummary(daily.weathercode?.[i]);
+    const highC = daily.temperature_2m_max?.[i] ?? null;
+    const lowC = daily.temperature_2m_min?.[i] ?? null;
+    const windKph = daily.windspeed_10m_max?.[i] ?? null;
+    normalizedDaily.push({
+      date: dailyTimes[i],
+      description: summary.text,
+      icon: summary.icon,
+      highF: celsiusToFahrenheit(highC),
+      highC,
+      lowF: celsiusToFahrenheit(lowC),
+      lowC,
+      precipitationChance: normalizePercent(daily.precipitation_probability_max?.[i]),
+      humidity: null,
+      windMph: kphToMph(windKph),
+      sunrise: daily.sunrise?.[i] ?? null,
+      sunset: daily.sunset?.[i] ?? null
+    });
+  }
+
+  return {
+    metadata: {
+      source: 'open-meteo',
+      fetchedAt,
+      units,
+      language: 'en-US',
+      location: { lat, lng }
+    },
+    current: normalizedCurrent,
+    hourly: normalizedHourly,
+    daily: normalizedDaily
+  };
+}
+
+function celsiusToFahrenheit(value) {
+  if (value == null) return null;
+  return (value * 9) / 5 + 32;
+}
+
+function kphToMph(value) {
+  if (value == null) return null;
+  return value / 1.60934;
+}
+
+function normalizePercent(value) {
+  if (value == null) return null;
+  if (value > 1) {
+    return Math.round(Math.min(value, 100));
+  }
+  return Math.round(value * 100);
 }
 
 export function weatherCodeToSummary(code) {
