@@ -1380,6 +1380,43 @@ h1, h2, h3 {
     transform: none;
   }
   
+  /* Enhanced touch targets and feedback for mobile */
+  button, .filter-btn, .collection-tab, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Enhanced touch feedback */
+  button:active, .filter-btn:active, .collection-tab:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Better modal interactions */
+  .modal {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better text selection on mobile */
+  .modal-content, .details-content {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Better scroll behavior */
+  * {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  }
+  
   #closeCompassBtn:hover {
     transform: none;
     background: rgba(200,121,65,0.2);
@@ -1394,6 +1431,54 @@ h1, h2, h3 {
   
   .accordion:hover {
     background: var(--secondary);
+  }
+  
+  /* Enhanced mobile touch feedback */
+  .filter-btn:hover {
+    transform: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  #primaryActions button:hover {
+    transform: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  #settingsBtn:hover {
+    transform: none;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  }
+  
+  /* Add active states for better touch feedback */
+  .filter-btn:active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    transform: scale(0.95);
+  }
+  
+  #primaryActions button:active {
+    background: var(--primary);
+    transform: scale(0.95);
+  }
+  
+  #settingsBtn:active {
+    background-color: var(--primary);
+    transform: scale(0.9);
+  }
+  
+  /* Ensure tap targets are large enough for mobile */
+  .filter-btn {
+    min-height: 44px;
+    padding: 1.1rem 0.8rem;
+  }
+  
+  #primaryActions button {
+    min-height: 44px;
+    padding: 0.8rem 1.2rem;
+  }
+  
+  #settingsBtn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -1761,4 +1846,93 @@ h1, h2, h3 {
   font-weight: 700;
   color: var(--primary);
   border-bottom: 3px solid var(--primary);
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  .appShell {
+    width: 96%;
+    gap: 0.75rem;
+  }
+  
+  #appHeader {
+    width: 96%;
+    padding: 0.8rem 0.5rem 0.6rem;
+  }
+  
+  #appHeader h1 {
+    font-size: 1.5rem;
+  }
+  
+  .filters {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.6rem;
+  }
+  
+  .filter-btn {
+    padding: 1rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .filter-emoji {
+    font-size: 1.6rem;
+  }
+  
+  #primaryActions {
+    gap: 0.6rem;
+  }
+  
+  #primaryActions button {
+    font-size: 0.85rem;
+    padding: 0.7rem 1rem;
+  }
+  
+  /* Ensure modal content is mobile-friendly */
+  .modal-content {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+  
+  /* Better spacing for mobile weather widget */
+  #weatherWidget {
+    padding: 0.8rem;
+  }
+  
+  #weatherPrimary span {
+    font-size: 1.8rem;
+  }
+  
+  #weatherTemp {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .filter-btn {
+    padding: 0.9rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .filter-emoji {
+    font-size: 1.4rem;
+  }
+  
+  #appHeader h1 {
+    font-size: 1.3rem;
+  }
+  
+  #primaryActions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  #primaryActions button {
+    width: 100%;
+  }
 }

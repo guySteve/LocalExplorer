@@ -1837,6 +1837,57 @@ html {
   }
 }
 
+/* Mobile-specific theme enhancements */
+@media (hover: none) and (pointer: coarse) {
+  /* Ensure theme animations still work on mobile */
+  body.theme-retro90 .filter-btn {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  body.theme-playful .filter-btn {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  body.theme-neon button:active,
+  body.theme-highseas button:active,
+  body.theme-arcade80 button:active {
+    animation: glow 1s ease-in-out;
+  }
+  
+  body.theme-psychedelic60 button:active {
+    animation: pulse 1s ease-in-out;
+  }
+  
+  /* Ensure text effects work on mobile */
+  body.theme-retro90 h1, 
+  body.theme-retro90 h2, 
+  body.theme-retro90 h3 {
+    text-shadow: 
+      2px 2px 0 #845ef7,
+      4px 4px 0 #00f5d4,
+      6px 6px 16px rgba(0,0,0,0.8);
+    animation: retro90TextGlitch 0.8s ease-in-out infinite;
+  }
+  
+  body.theme-arcade80 h1,
+  body.theme-arcade80 h2,
+  body.theme-arcade80 h3,
+  body.theme-arcade80 button,
+  body.theme-arcade80 .filter-btn {
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Mobile weather widget animation */
+  #weatherIcon {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* Mobile-friendly support CTA pulse */
+  .support-cta {
+    animation: pulse 4s ease-in-out infinite;
+  }
+}
+
 /* Dark theme text glow effects */
 body.theme-neon h1,
 body.theme-neon h2,
