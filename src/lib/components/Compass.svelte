@@ -49,21 +49,13 @@
 			cleanup();
 		}
 	});
-
-	$effect(() => {
-		if (visible && browser && permissionState === 'granted') {
-			startOrientationListener();
-			startMotionListener();
-		}
-	});
 	
 	function init() {
 		console.log('Compass: Initializing...');
 		startGeolocationWatch();
 		startAnimation();
 		
-		// Request sensor permissions automatically
-		requestSensorPermissions();
+		// Don't auto-request permissions - wait for user button click
 		
 		// If we have a destination, fetch route
 		if (destination) {

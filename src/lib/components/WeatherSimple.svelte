@@ -1,7 +1,8 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentPosition } from '$lib/stores/appState';
+	import { currentPosition, currentTheme } from '$lib/stores/appState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
+	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
 	import { browser } from '$app/environment';
 
 	const dispatch = createEventDispatcher();
@@ -14,6 +15,7 @@
 	let historicalData = [];
 	let showBirds = true; // Default enabled, controlled by settings
 	let birdFact = '';
+	let sassyMode = false; // Sassy weather mode
 
 	const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 
@@ -24,6 +26,12 @@
 			if (savedBirdSetting !== null) {
 				showBirds = savedBirdSetting === 'true';
 			}
+			
+			// Load sassy weather setting
+			const savedSassySetting = localStorage.getItem('sassyWeather');
+			if (savedSassySetting !== null) {
+				sassyMode = savedSassySetting === 'true';
+			}
 		}
 
 		const unsubscribe = currentPosition.subscribe((pos) => {
@@ -31,6 +39,12 @@
 				fetchWeather(pos.lat, pos.lng);
 			}
 		});
+		
+		// Auto-fetch historical data if we already have current position
+		if ($currentPosition && !loading) {
+			fetchWeather($currentPosition.lat, $currentPosition.lng);
+		}
+		
 		return unsubscribe;
 	});
 
@@ -67,6 +81,9 @@
 			if (showBirds) {
 				fetchBirdSightings(lat, lng);
 			}
+			
+			// Always fetch historical data for comparison
+			await fetchHistoricalWeather(lat, lng);
 		} catch (err) {
 			console.error('Weather fetch error:', err);
 			error = err.message;
@@ -215,27 +232,6 @@
 		return '🌤️';
 	}
 
-	function getFunSaying(temp, condition) {
-		if (condition.includes('Rain') || condition.includes('Drizzle') || condition.includes('Showers')) {
-			return "Don't forget your umbrella!";
-		}
-		if (condition.includes('Clear') || condition.includes('Sunny')) {
-			return "Perfect day for a walk!";
-		}
-		if (condition.includes('Cloud') || condition.includes('Overcast')) {
-			return "A bit gloomy, but still a good day.";
-		}
-		if (condition.includes('Snow')) {
-			return "Bundle up, it's snowy!";
-		}
-		if (condition.includes('Thunder') || condition.includes('Storm')) {
-			return "Stay safe, stormy weather ahead!";
-		}
-		if (temp > 85) return "It's hot! Stay hydrated.";
-		if (temp < 40) return "Brrr! It's chilly, grab a coat.";
-		return "Enjoy your day!";
-	}
-
 	async function handleRefresh() {
 		if ($currentPosition) {
 			lastFetch = 0;
@@ -254,7 +250,7 @@
 		}
 	}
 
-	$: funSaying = weather ? getFunSaying(weather.temperature, weather.condition) : "";
+	$: funSaying = weather ? getWeatherPhrase(weather.temperature, weather.condition, sassyMode, $currentTheme) : "";
 </script>
 
 <div class="weather-widget">
@@ -332,6 +328,29 @@
 
 		{#if showBirds && birdFact}
 			<div class="bird-fact">{birdFact}</div>
+		{/if}
+
+		<!-- Always show historical weather as small visual at bottom -->
+		{#if historicalData.length > 0 && weather && weather.daily && weather.daily.length > 0}
+			<div class="weather-history-mini">
+				{#each historicalData as day}
+					{@const todayHigh = weather.daily[0].high}
+					{@const tempDiff = todayHigh - day.high}
+					{@const isHotter = tempDiff > 0}
+					{@const isSignificant = Math.abs(tempDiff) > 5}
+					<div class="history-mini-item" title="Same date last year: {day.date}">
+						<span class="mini-icon">{day.icon}</span>
+						<span class="mini-temp">{day.high}°</span>
+						<span class="mini-diff" class:hotter={isHotter && isSignificant} class:colder={!isHotter && isSignificant}>
+							{#if isSignificant}
+								{isHotter ? '+' : ''}{tempDiff}°
+							{:else}
+								~
+							{/if}
+						</span>
+					</div>
+				{/each}
+			</div>
 		{/if}
 
 		{#if showHistory && historicalData.length > 0 && weather && weather.daily && weather.daily.length > 0}
@@ -441,6 +460,9 @@
 	.weather-icon {
 		font-size: 4rem;
 		animation: float 3s ease-in-out infinite;
+		background: none;
+		text-shadow: none;
+		filter: none;
 	}
 
 	@keyframes float {
@@ -516,6 +538,48 @@
 		border: 1px solid rgba(76, 175, 80, 0.3);
 		font-size: 0.9rem;
 		margin-bottom: 0.75rem;
+	}
+
+	.weather-history-mini {
+		display: flex;
+		justify-content: center;
+		padding: 0.75rem;
+		margin-top: 0.75rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
+		gap: 1rem;
+	}
+
+	.history-mini-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.8rem;
+	}
+
+	.mini-icon {
+		font-size: 1.5rem;
+		filter: grayscale(0.2) opacity(0.85);
+	}
+
+	.mini-temp {
+		font-size: 0.9rem;
+		font-weight: 600;
+		opacity: 0.75;
+	}
+
+	.mini-diff {
+		font-size: 0.75rem;
+		opacity: 0.7;
+		font-weight: 500;
+	}
+
+	.mini-diff.hotter {
+		color: #ff6b6b;
+	}
+
+	.mini-diff.colder {
+		color: #4dabf7;
 	}
 
 	.weather-history {

@@ -244,7 +244,7 @@
 </main>
 
 <!-- Hidden map div for Google Places service -->
-<div id="hiddenMap" style="display: none;"></div>
+<div id="hiddenMap" style="display: none; pointer-events: none;"></div>
 
 <!-- Modals -->
 {#if showSettings}
