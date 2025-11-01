@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentPosition, cachedWeather, lastWeatherFetch, WEATHER_CACHE_MS } from '$lib/stores/appState';
-	import { fetchWeatherData, weatherCodeToSummary, fetchRecentBirdSightings } from '$lib/utils/api-extended';
+	import { fetchWeatherData, weatherCodeToSummary, fetchRecentBirdSightings, invalidateWeatherCache } from '$lib/utils/api-extended';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -18,21 +18,24 @@
 				loadWeather();
 			}
 		});
-		
+
 		return unsubscribe;
 	});
-	
-	async function loadWeather() {
+
+	async function loadWeather(forceFresh = false) {
 		const pos = $currentPosition;
 		if (!pos) {
 			return;
 		}
 		
-		// Check cache
+		const cached = $cachedWeather;
+		const lastFetch = $lastWeatherFetch || 0;
 		const now = Date.now();
-		if ($cachedWeather && (now - $lastWeatherFetch < WEATHER_CACHE_MS)) {
-			weatherData = $cachedWeather;
-			updateLastUpdated();
+
+		if (!forceFresh && cached && (now - lastFetch < WEATHER_CACHE_MS)) {
+			weatherData = cached;
+			updateLastUpdated(lastFetch || now);
+			loadBirdFact();
 			return;
 		}
 		
@@ -42,16 +45,21 @@
 			if (data) {
 				weatherData = data;
 				cachedWeather.set(data);
-				lastWeatherFetch.set(Date.now());
-				updateLastUpdated();
-				
-				// Also fetch bird facts
-				loadBirdFact();
+				const timestamp = Date.now();
+				lastWeatherFetch.set(timestamp);
+				updateLastUpdated(timestamp);
 			}
 		} catch (error) {
 			console.error('Weather fetch failed:', error);
+			if (cached) {
+				console.warn('Falling back to previously cached weather data.');
+				weatherData = cached;
+				updateLastUpdated(lastFetch || now);
+			}
 		} finally {
 			loading = false;
+			// Fetch bird facts independently so failures do not block weather
+			loadBirdFact();
 		}
 	}
 	
@@ -72,9 +80,12 @@
 	}
 	
 	async function handleRefresh() {
-		// Clear cache and force refresh
+		const pos = $currentPosition;
+		if (pos) {
+			invalidateWeatherCache(pos.lat, pos.lng);
+		}
 		lastWeatherFetch.set(0);
-		await loadWeather();
+		await loadWeather(true);
 	}
 	
 	async function handleOpenForecast() {
@@ -85,9 +96,13 @@
 		}
 	}
 	
-	function updateLastUpdated() {
-		const now = new Date();
-		lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+	function updateLastUpdated(timestamp = Date.now()) {
+		const time = new Date(timestamp);
+		if (Number.isNaN(time.getTime())) {
+			lastUpdated = '';
+			return;
+		}
+		lastUpdated = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 	}
 	
 	function toggleDetails() {
@@ -96,20 +111,26 @@
 	
 	// Computed values
 	let weatherIcon = $derived(
-		weatherData ? weatherCodeToSummary(weatherData.current_weather.weathercode).icon : '🌤️'
+		weatherData?.current_weather
+			? weatherCodeToSummary(weatherData.current_weather.weathercode).icon
+			: '🌤️'
 	);
-	
+
 	let weatherDescription = $derived(
-		weatherData ? weatherCodeToSummary(weatherData.current_weather.weathercode).text : 'Loading...'
+		weatherData?.current_weather
+			? weatherCodeToSummary(weatherData.current_weather.weathercode).text
+			: 'Loading...'
 	);
-	
+
 	let tempF = $derived(
-		weatherData ? Math.round(weatherData.current_weather.temperature * 9/5 + 32) : null
+		weatherData?.current_weather
+			? Math.round(weatherData.current_weather.temperature * 9/5 + 32)
+			: null
 	);
-	
+
 	let feelsF = $derived(() => {
-		if (!weatherData || !weatherData.hourly) return tempF;
-		
+		if (!weatherData?.current_weather || !weatherData?.hourly) return tempF;
+
 		const hourlyData = weatherData.hourly;
 		if (Array.isArray(hourlyData.time) && Array.isArray(hourlyData.apparent_temperature)) {
 			const index = hourlyData.time.indexOf(weatherData.current_weather.time);
@@ -119,19 +140,23 @@
 		}
 		return tempF;
 	});
-	
+
 	let highF = $derived(
-		weatherData && weatherData.daily ? 
-		Math.round(weatherData.daily.temperature_2m_max[0] * 9/5 + 32) : null
+		weatherData?.daily && Array.isArray(weatherData.daily.temperature_2m_max)
+			? Math.round(weatherData.daily.temperature_2m_max[0] * 9/5 + 32)
+			: null
 	);
-	
+
 	let lowF = $derived(
-		weatherData && weatherData.daily ? 
-		Math.round(weatherData.daily.temperature_2m_min[0] * 9/5 + 32) : null
+		weatherData?.daily && Array.isArray(weatherData.daily.temperature_2m_min)
+			? Math.round(weatherData.daily.temperature_2m_min[0] * 9/5 + 32)
+			: null
 	);
-	
+
 	let windMph = $derived(
-		weatherData ? Math.round(weatherData.current_weather.windspeed / 1.609) : null
+		weatherData?.current_weather?.windspeed != null
+			? Math.round(weatherData.current_weather.windspeed / 1.609)
+			: null
 	);
 </script>
 

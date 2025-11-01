@@ -32,6 +32,7 @@
 	let routeSteps = [];
 	let currentStepIndex = 0;
 	let navigationActive = false;
+	let permissionState = 'prompt'; // 'prompt', 'granted', or 'denied'
 	
 	// Constants
 	const PITCH_LIMIT = 55;
@@ -47,17 +48,47 @@
 			cleanup();
 		}
 	});
+
+	$effect(() => {
+		if (visible && browser && permissionState === 'granted') {
+			startOrientationListener();
+			startMotionListener();
+		}
+	});
 	
 	function init() {
 		console.log('Compass: Initializing...');
-		startOrientationListener();
-		startMotionListener();
 		startGeolocationWatch();
 		startAnimation();
 		
 		// If we have a destination, fetch route
 		if (destination) {
 			fetchRoute();
+		}
+	}
+
+	async function requestSensorPermissions() {
+		if (typeof DeviceOrientationEvent !== 'undefined' &&
+			typeof DeviceOrientationEvent.requestPermission === 'function') {
+			try {
+				const state = await DeviceOrientationEvent.requestPermission();
+				if (state === 'granted') {
+					startOrientationListener();
+					startMotionListener();
+					permissionState = 'granted';
+				} else {
+					console.warn('Compass: DeviceOrientation permission denied');
+					permissionState = 'denied';
+				}
+			} catch (err) {
+				console.error('Compass: Error requesting DeviceOrientation permission:', err);
+				permissionState = 'denied';
+			}
+		} else {
+			console.log('Compass: No permission required, starting sensors.');
+			startOrientationListener();
+			startMotionListener();
+			permissionState = 'granted';
 		}
 	}
 	
@@ -108,39 +139,13 @@
 			window.addEventListener(eventName, orientationListener, true);
 		};
 		
-		if (typeof DeviceOrientationEvent !== 'undefined' && 
-		    typeof DeviceOrientationEvent.requestPermission === 'function') {
-			// iOS 13+ requires permission
-			DeviceOrientationEvent.requestPermission().then(permissionState => {
-				if (permissionState === 'granted') {
-					if ('ondeviceorientationabsolute' in window) {
-						register('deviceorientationabsolute');
-					} else {
-						register('deviceorientation');
-					}
-				} else {
-					console.warn('Compass: DeviceOrientation permission denied');
-					alert('Compass permission was denied. Please grant it in your browser settings.');
-				}
-			}).catch(error => {
-				console.error('Compass: Error requesting DeviceOrientation permission:', error);
-				// Fallback
-				if ('ondeviceorientationabsolute' in window) {
-					register('deviceorientationabsolute');
-				} else if ('ondeviceorientation' in window) {
-					register('deviceorientation');
-				}
-			});
+		if ('ondeviceorientationabsolute' in window) {
+			register('deviceorientationabsolute');
+		} else if ('ondeviceorientation' in window) {
+			register('deviceorientation');
 		} else {
-			// Non-iOS or older browsers
-			if ('ondeviceorientationabsolute' in window) {
-				register('deviceorientationabsolute');
-			} else if ('ondeviceorientation' in window) {
-				register('deviceorientation');
-			} else {
-				console.warn('Compass: DeviceOrientation not supported');
-				alert('Compass features are not supported on this device.');
-			}
+			console.warn('Compass: DeviceOrientation not supported');
+			alert('Compass features are not supported on this device.');
 		}
 	}
 	
@@ -413,6 +418,18 @@
 		
 		<!-- Compass Dial -->
 		<div class="compass-dial-container">
+			{#if permissionState !== 'granted'}
+				<div class="permission-overlay">
+					{#if permissionState === 'prompt'}
+						<p>Compass requires sensor access to function.</p>
+						<button class="nav-btn primary" onclick={requestSensorPermissions}>
+							🛰️ Activate Sensors
+						</button>
+					{:else}
+						<p>Sensor access was denied. You must grant permission in your browser's site settings to use the compass.</p>
+					{/if}
+				</div>
+			{/if}
 			<div class="compass-ring" style="transform: {transform}">
 				<div class="compass-marker north">N</div>
 				<div class="compass-marker east">E</div>
@@ -590,6 +607,28 @@
 		width: 250px;
 		height: 250px;
 		margin: 2rem auto;
+	}
+
+	/* Permission overlay prompts user before starting sensors */
+	.permission-overlay {
+		position: absolute;
+		inset: 0;
+		background: var(--background);
+		z-index: 10;
+		border-radius: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 2rem;
+		color: var(--card);
+	}
+
+	.permission-overlay p {
+		font-weight: 600;
+		margin-bottom: 1rem;
+		font-size: 0.9rem;
 	}
 	
 	.compass-ring {

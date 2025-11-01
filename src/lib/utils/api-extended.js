@@ -60,6 +60,11 @@ export async function fetchWeatherData(lat, lng) {
   return data;
 }
 
+export function invalidateWeatherCache(lat, lng) {
+  const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+  weatherCache.delete(cacheKey);
+}
+
 export function weatherCodeToSummary(code) {
   const map = {
     0: { icon: '☀️', text: 'Clear' },
