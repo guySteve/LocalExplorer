@@ -1,6 +1,7 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
-	import { currentTheme } from '$lib/stores/appState';
+	import { createEventDispatcher, onMount } from 'svelte';
+	import { currentTheme, selectedVoiceUri } from '$lib/stores/appState';
+	import { browser } from '$app/environment';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -30,6 +31,73 @@
 		{ value: 'bbq', label: 'BBQ Pit' },
 		{ value: 'cafe', label: 'Coffee Café' }
 	];
+
+	// Bird sightings setting
+	let showBirdSightings = true;
+	
+	// Voice navigation setting
+	let voiceEnabled = true;
+	let availableVoices = [];
+	let selectedVoice = '';
+
+	onMount(() => {
+		// Load bird sightings setting
+		if (browser) {
+			const savedBirdSetting = localStorage.getItem('showBirdSightings');
+			showBirdSightings = savedBirdSetting !== 'false';
+
+			// Load voice enabled setting
+			const savedVoiceSetting = localStorage.getItem('voiceEnabled');
+			voiceEnabled = savedVoiceSetting !== 'false';
+
+			// Load available voices
+			loadVoices();
+
+			// Subscribe to voice URI changes
+			selectedVoiceUri.subscribe(uri => {
+				selectedVoice = uri;
+			});
+		}
+	});
+
+	function loadVoices() {
+		if (!browser || !window.speechSynthesis) return;
+
+		const getVoices = () => {
+			availableVoices = window.speechSynthesis.getVoices();
+		};
+
+		getVoices();
+		
+		if (window.speechSynthesis.onvoiceschanged !== undefined) {
+			window.speechSynthesis.onvoiceschanged = getVoices;
+		}
+	}
+
+	function handleBirdToggle() {
+		showBirdSightings = !showBirdSightings;
+		if (browser) {
+			localStorage.setItem('showBirdSightings', showBirdSightings.toString());
+		}
+		// Dispatch event to refresh weather if needed
+		dispatch('settingsChanged', { showBirds: showBirdSightings });
+	}
+
+	function handleVoiceToggle() {
+		voiceEnabled = !voiceEnabled;
+		if (browser) {
+			localStorage.setItem('voiceEnabled', voiceEnabled.toString());
+		}
+		dispatch('settingsChanged', { voiceEnabled });
+	}
+
+	function handleVoiceChange(event) {
+		const uri = event.target.value;
+		selectedVoiceUri.set(uri);
+		if (browser) {
+			localStorage.setItem('selectedVoiceUri', uri);
+		}
+	}
 	
 	function handleClose() {
 		dispatch('close');
@@ -42,6 +110,7 @@
 			<h3>Settings</h3>
 			<button class="close-btn" on:click={handleClose}>×</button>
 		</div>
+
 		<div class="setting-group">
 			<label for="themeSelect">Theme</label>
 			<select id="themeSelect" bind:value={$currentTheme}>
@@ -51,9 +120,154 @@
 			</select>
 			<span class="setting-hint">Pick a style and we will remember it for next time.</span>
 		</div>
+
+		<div class="setting-group">
+			<div class="setting-toggle">
+				<label for="birdToggle">
+					<span class="setting-label">Show Bird Sightings</span>
+					<span class="setting-description">Display recent bird sightings in weather widget</span>
+				</label>
+				<button 
+					id="birdToggle"
+					class="toggle-btn {showBirdSightings ? 'active' : ''}" 
+					on:click={handleBirdToggle}
+					aria-label="Toggle bird sightings"
+				>
+					<span class="toggle-slider"></span>
+				</button>
+			</div>
+		</div>
+
+		<div class="setting-group">
+			<div class="setting-toggle">
+				<label for="voiceToggle">
+					<span class="setting-label">Voice Navigation</span>
+					<span class="setting-description">Enable voice guidance for compass navigation</span>
+				</label>
+				<button 
+					id="voiceToggle"
+					class="toggle-btn {voiceEnabled ? 'active' : ''}" 
+					on:click={handleVoiceToggle}
+					aria-label="Toggle voice navigation"
+				>
+					<span class="toggle-slider"></span>
+				</button>
+			</div>
+		</div>
+
+		{#if voiceEnabled && availableVoices.length > 0}
+			<div class="setting-group">
+				<label for="voiceSelect">Voice Selection</label>
+				<select id="voiceSelect" value={selectedVoice} on:change={handleVoiceChange}>
+					<option value="">Default Voice</option>
+					{#each availableVoices as voice}
+						<option value={voice.voiceURI}>
+							{voice.name} ({voice.lang})
+						</option>
+					{/each}
+				</select>
+				<span class="setting-hint">Choose a voice for turn-by-turn navigation.</span>
+			</div>
+		{/if}
 	</div>
 </div>
 
 <style>
 	/* Component-specific styles scoped by default */
+	.setting-group {
+		margin-bottom: 1.5rem;
+	}
+
+	.setting-group label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+	}
+
+	.setting-hint {
+		display: block;
+		font-size: 0.85rem;
+		margin-top: 0.5rem;
+		opacity: 0.7;
+	}
+
+	.setting-toggle {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.75rem;
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 8px;
+	}
+
+	.setting-toggle label {
+		display: flex;
+		flex-direction: column;
+		margin-bottom: 0;
+	}
+
+	.setting-label {
+		font-weight: 600;
+		font-size: 1rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.setting-description {
+		font-size: 0.85rem;
+		opacity: 0.7;
+		font-weight: normal;
+	}
+
+	.toggle-btn {
+		position: relative;
+		width: 52px;
+		height: 28px;
+		background: rgba(0, 0, 0, 0.2);
+		border: 2px solid rgba(255, 255, 255, 0.2);
+		border-radius: 14px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		padding: 0;
+	}
+
+	.toggle-btn:hover {
+		background: rgba(0, 0, 0, 0.3);
+	}
+
+	.toggle-btn.active {
+		background: var(--primary);
+		border-color: var(--primary);
+	}
+
+	.toggle-slider {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 20px;
+		height: 20px;
+		background: white;
+		border-radius: 50%;
+		transition: transform 0.3s ease;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	}
+
+	.toggle-btn.active .toggle-slider {
+		transform: translateX(24px);
+	}
+
+	select {
+		width: 100%;
+		padding: 0.75rem;
+		border-radius: 8px;
+		border: 2px solid rgba(255, 255, 255, 0.2);
+		background: rgba(255, 255, 255, 0.05);
+		color: inherit;
+		font-size: 1rem;
+		cursor: pointer;
+	}
+
+	select:focus {
+		outline: none;
+		border-color: var(--primary);
+	}
 </style>

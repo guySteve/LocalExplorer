@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { selectedVoiceUri } from '$lib/stores/appState';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -315,6 +316,12 @@
 	}
 	
 	function speakStep(index) {
+		// Check if voice is enabled
+		if (browser) {
+			const voiceEnabled = localStorage.getItem('voiceEnabled');
+			if (voiceEnabled === 'false') return;
+		}
+		
 		if (!routeSteps[index] || typeof speechSynthesis === 'undefined') return;
 		
 		const step = routeSteps[index];
@@ -326,6 +333,16 @@
 		utterance.rate = 1.1;
 		utterance.pitch = 1;
 		utterance.volume = 1;
+		
+		// Use selected voice if available
+		const voiceUri = $selectedVoiceUri;
+		if (voiceUri) {
+			const voices = speechSynthesis.getVoices();
+			const selectedVoice = voices.find(v => v.voiceURI === voiceUri);
+			if (selectedVoice) {
+				utterance.voice = selectedVoice;
+			}
+		}
 		
 		utterance.onend = () => {
 			if (navigationActive && currentStepIndex < routeSteps.length - 1) {
