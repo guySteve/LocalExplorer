@@ -34,7 +34,7 @@
 		<button 
 			class="filter-btn"
 			on:click={() => handleCategoryClick(category)}
-			in:fly={{ y: 20, duration: 400, delay: i * 50 }}
+			transition:fly={{ y: 20, duration: 400, delay: i * 50 }}
 		>
 			<span class="filter-emoji">{categoryEmojis[category] || '📍'}</span>
 			<span class="filter-label">{category}</span>
@@ -49,7 +49,6 @@
 		gap: 0.8rem;
 		width: 100%;
 		margin: 0;
-		contain: layout;
 	}
 	
 	.filter-btn {
@@ -101,7 +100,6 @@
 	.filter-emoji {
 		font-size: 1.8rem;
 		animation: bounce 2s ease-in-out infinite;
-		will-change: transform;
 	}
 	
 	.filter-label {
