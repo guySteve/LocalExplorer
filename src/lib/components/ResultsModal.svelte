@@ -28,8 +28,8 @@
 	}
 </script>
 
-<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true">
-	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} on:click|stopPropagation>
+<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && dispatch('close')}>
+	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
 		<div class="modal-header">
 			<h3>{title}</h3>
 			<button class="close-btn" on:click={() => dispatch('close')} type="button">×</button>
@@ -47,7 +47,8 @@
 		{:else}
 			<div class="results-list">
 				{#each results as place, i (place.id + '-' + i)}
-					<div 
+					<button
+						type="button"
 						class="result-card" 
 						on:click={() => handlePlaceClick(place)}
 						transition:fly={{ y: 20, duration: 300, delay: i * 30 }}
@@ -84,7 +85,7 @@
 						{#if place.distance}
 							<p class="result-distance">{formatDistance(place.distance)}</p>
 						{/if}
-					</div>
+					</button>
 				{/each}
 			</div>
 			

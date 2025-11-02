@@ -135,8 +135,8 @@
 	}
 </script>
 
-<div id="settingsPanel" class="modal" style="display: block;" on:click={handleBackdropClick} role="dialog" aria-modal="true">
-	<div class="modal-content" on:click|stopPropagation>
+<div id="settingsPanel" class="modal" style="display: block;" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>Settings</h3>
 			<button class="close-btn" on:click={handleClose} type="button">×</button>

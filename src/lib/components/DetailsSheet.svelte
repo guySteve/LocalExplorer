@@ -9,10 +9,10 @@
 	
 	// Props
 	let { place = null, visible = false } = $props();
-	
-	let what3words = '';
-	let streetViewActive = false;
-	let loading = true;
+
+	let what3words = $state('');
+	let streetViewActive = $state(false);
+	let loading = $state(true);
 	
 	// Reactive: Fetch What3Words when place changes
 	$effect(() => {
@@ -137,107 +137,107 @@
 </script>
 
 {#if visible && place}
-<div class="details-sheet-overlay" class:active={visible} onclick={close} role="button" tabindex="0">
-	<div class="details-sheet" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-		<!-- Header -->
-		<div class="details-header">
-			<div>
-				<h2 class="details-name">{place.name}</h2>
-				{#if place.provider}
-					<div style="margin-top: 0.5rem;">
-						{@html formatProviderBadge(place.provider)}
-					</div>
-				{/if}
-			</div>
-			<button class="close-btn" onclick={close} aria-label="Close details">×</button>
-		</div>
-		
-		<!-- Content -->
-		<div class="details-content">
-			<!-- Rating -->
-			{#if place.rating}
-				<div class="details-row">
-					<span class="details-label">Rating:</span>
-					<div>{@html formatRating(place.rating, place.provider)}</div>
-				</div>
-			{/if}
-			
-			<!-- Address -->
-			{#if place.address}
-				<div class="details-row">
-					<span class="details-label">📍 Address:</span>
-					<span>{place.address}</span>
-				</div>
-			{/if}
-			
-			<!-- What3Words -->
-			{#if what3words}
-				<div class="details-row">
-					<span class="details-label">🔷 What3Words:</span>
-					<span style="font-weight: 600; color: var(--accent);">{what3words}</span>
-				</div>
-			{/if}
-			
-			<!-- Phone -->
-			{#if place._original?.formatted_phone_number || place._original?.tel}
-				<div class="details-row">
-					<span class="details-label">📞 Phone:</span>
-					<a href="tel:{place._original.formatted_phone_number || place._original.tel}" 
-					   style="color: var(--primary); text-decoration: none;">
-						{place._original.formatted_phone_number || place._original.tel}
-					</a>
-				</div>
-			{/if}
-			
-			<!-- Description (for NPS/Recreation) -->
-			{#if place._original?.description}
-				<div class="details-row" style="flex-direction: column; align-items: flex-start;">
-					<span class="details-label">ℹ️ About:</span>
-					<p style="margin: 0.5rem 0 0; line-height: 1.6; opacity: 0.9;">
-						{place._original.description.substring(0, 300)}{place._original.description.length > 300 ? '...' : ''}
-					</p>
-				</div>
-			{/if}
-			
-			<!-- Categories -->
-			{#if place.categories && place.categories.length > 0}
-				<div class="details-row">
-					<span class="details-label">🏷️ Categories:</span>
-					<div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-						{#each place.categories.slice(0, 3) as category}
-							<span style="background: rgba(var(--accent-rgb, 138, 90, 68), 0.2); 
-										 padding: 0.25rem 0.5rem; 
-										 border-radius: 4px; 
-										 font-size: 0.85rem;">
-								{category}
-							</span>
-						{/each}
-					</div>
-				</div>
-			{/if}
-		</div>
-		
-		<!-- Action Buttons -->
-		<div class="details-actions">
-			<button class="action-btn primary" onclick={startNavigation}>
-				🧭 Guide Me
-			</button>
-			<button class="action-btn" onclick={openMaps}>
-				🗺️ Maps
-			</button>
-			{#if place._original?.website}
-				<button class="action-btn" onclick={openWebsite}>
-					🌐 Website
-				</button>
-			{/if}
-			<button class="action-btn" onclick={savePlace}>
-				💾 Save
-			</button>
-			<button class="action-btn" onclick={sharePlace}>
-				📤 Share
-			</button>
-		</div>
-	</div>
+<div class="details-sheet-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Enter' && close()} role="button" tabindex="0">
+  <div class="details-sheet" onclick={(e) => e.stopPropagation()} role="document" aria-modal="true" tabindex="-1">
+    <!-- Header -->
+    <div class="details-header">
+      <div>
+        <h2 class="details-name">{place.name}</h2>
+        {#if place.provider}
+          <div style="margin-top: 0.5rem;">
+            {@html formatProviderBadge(place.provider)}
+          </div>
+        {/if}
+      </div>
+      <button class="close-btn" onclick={close} aria-label="Close details">×</button>
+    </div>
+    
+    <!-- Content -->
+    <div class="details-content">
+      <!-- Rating -->
+      {#if place.rating}
+        <div class="details-row">
+          <span class="details-label">Rating:</span>
+          <div>{@html formatRating(place.rating, place.provider)}</div>
+        </div>
+      {/if}
+      
+      <!-- Address -->
+      {#if place.address}
+        <div class="details-row">
+          <span class="details-label">📍 Address:</span>
+          <span>{place.address}</span>
+        </div>
+      {/if}
+      
+      <!-- What3Words -->
+      {#if what3words}
+        <div class="details-row">
+          <span class="details-label">🔷 What3Words:</span>
+          <span style="font-weight: 600; color: var(--accent);">{what3words}</span>
+        </div>
+      {/if}
+      
+      <!-- Phone -->
+      {#if place._original?.formatted_phone_number || place._original?.tel}
+        <div class="details-row">
+          <span class="details-label">📞 Phone:</span>
+          <a href="tel:{place._original.formatted_phone_number || place._original.tel}" 
+             style="color: var(--primary); text-decoration: none;">
+            {place._original.formatted_phone_number || place._original.tel}
+          </a>
+        </div>
+      {/if}
+      
+      <!-- Description (for NPS/Recreation) -->
+      {#if place._original?.description}
+        <div class="details-row" style="flex-direction: column; align-items: flex-start;">
+          <span class="details-label">ℹ️ About:</span>
+          <p style="margin: 0.5rem 0 0; line-height: 1.6; opacity: 0.9;">
+            {place._original.description.substring(0, 300)}{place._original.description.length > 300 ? '...' : ''}
+          </p>
+        </div>
+      {/if}
+      
+      <!-- Categories -->
+      {#if place.categories && place.categories.length > 0}
+        <div class="details-row">
+          <span class="details-label">🏷️ Categories:</span>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            {#each place.categories.slice(0, 3) as category}
+              <span style="background: rgba(var(--accent-rgb, 138, 90, 68), 0.2); 
+                           padding: 0.25rem 0.5rem; 
+                           border-radius: 4px; 
+                           font-size: 0.85rem;">
+                {category}
+              </span>
+            {/each}
+          </div>
+        </div>
+      {/if}
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="details-actions">
+      <button class="action-btn primary" onclick={startNavigation}>
+        🧭 Guide Me
+      </button>
+      <button class="action-btn" onclick={openMaps}>
+        🗺️ Maps
+      </button>
+      {#if place._original?.website}
+        <button class="action-btn" onclick={openWebsite}>
+          🌐 Website
+        </button>
+      {/if}
+      <button class="action-btn" onclick={savePlace}>
+        💾 Save
+      </button>
+      <button class="action-btn" onclick={sharePlace}>
+        📤 Share
+      </button>
+    </div>
+  </div>
 </div>
 {/if}
 
@@ -389,5 +389,11 @@
 			font-size: 0.85rem;
 			padding: 0.65rem 0.85rem;
 		}
+	}
+	
+	.details-sheet-content {
+		padding: 1rem;
+		overflow-y: auto;
+		max-height: calc(100% - 120px); /* Adjust based on header/footer */
 	}
 </style>

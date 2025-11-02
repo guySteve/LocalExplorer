@@ -2,27 +2,27 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { selectedVoiceUri } from '$lib/stores/appState';
-	
+
 	const dispatch = createEventDispatcher();
 	
 	// Props
 	let { destination = null, destinationName = '', visible = false } = $props();
 	
 	// State
-	let currentHeading = 0;
-	let ringHeadingTarget = 0;
-	let ringHeadingVisual = 0;
-	let pitchTarget = 0;
-	let pitchVisual = 0;
-	let rollTarget = 0;
-	let rollVisual = 0;
+	let currentHeading = $state(0);
+	let ringHeadingTarget = $state(0);
+	let ringHeadingVisual = $state(0);
+	let pitchTarget = $state(0);
+	let pitchVisual = $state(0);
+	let rollTarget = $state(0);
+	let rollVisual = $state(0);
 	
-	let orientationReady = false;
-	let geolocationReady = false;
-	let currentPosition = null;
-	let currentSpeed = 0;
-	let accuracy = '—';
-	let bearing = '—';
+	let orientationReady = $state(false);
+	let geolocationReady = $state(false);
+	let currentPosition = $state(null);
+	let currentSpeed = $state(0);
+	let accuracy = $state('—');
+	let bearing = $state('—');
 	
 	let watchId = null;
 	let orientationListener = null;
@@ -30,10 +30,10 @@
 	let motionListener = null;
 	let animationFrameId = null;
 	
-	let routeSteps = [];
-	let currentStepIndex = 0;
-	let navigationActive = false;
-	let permissionState = 'prompt'; // 'prompt', 'granted', or 'denied'
+	let routeSteps = $state([]);
+	let currentStepIndex = $state(0);
+	let navigationActive = $state(false);
+	let permissionState = $state('prompt'); // 'prompt', 'granted', or 'denied'
 	
 	// Constants
 	const PITCH_LIMIT = 55;
@@ -154,6 +154,8 @@
 		} else if (event.absolute === true && typeof event.alpha === 'number') {
 			heading = normalizeHeading(event.alpha);
 		} else if (typeof event.alpha === 'number') {
+			// Fallback for non-absolute orientation
+			// This can be less reliable and might need calibration logic in a real app
 			heading = normalizeHeading(360 - event.alpha);
 		}
 		
@@ -242,6 +244,7 @@
 		if (animationFrameId) return;
 		
 		const animate = () => {
+			// Smoothly interpolate visual values towards targets
 			const headingStep = shortestAngle(ringHeadingVisual, ringHeadingTarget);
 			ringHeadingVisual = wrapAngle(ringHeadingVisual + headingStep * HEADING_SMOOTH);
 			
@@ -410,8 +413,8 @@
 </script>
 
 {#if visible}
-<div class="compass-overlay" class:active={visible}>
-	<div class="compass-container">
+<div class="compass-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="-1">
+	<div class="compass-container" onclick={(e) => e.stopPropagation()} role="document">
 		<!-- Header -->
 		<div class="compass-header">
 			<div>
