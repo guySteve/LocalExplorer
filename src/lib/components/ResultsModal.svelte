@@ -3,16 +3,17 @@
 	import { fade, fly } from 'svelte/transition';
 	import { calculateDistance } from '$lib/utils/api';
 	
-	export let title = 'Results';
-	/** @type {any[]} */
-	export let results = [];
-	/** @type {(place: any) => void} */
-	export let onSelectPlace = (place) => {};
-	/** @type {(() => void) | null} */
-	export let onLoadMore = null;
-	export let loading = false;
-	
 	const dispatch = createEventDispatcher();
+	
+	// Props
+	let { 
+		visible = false,
+		title = 'Results',
+		results = [],
+		onSelectPlace = (place) => {},
+		onLoadMore = null,
+		loading = false
+	} = $props();
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
@@ -31,6 +32,7 @@
 	}
 </script>
 
+{#if visible}
 <div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && dispatch('close')}>
 	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
 		<div class="modal-header">
@@ -104,6 +106,7 @@
 		{/if}
 	</div>
 </div>
+{/if}
 
 <style>
 	.loading-state, .empty-state {

@@ -367,42 +367,42 @@
 <div id="hiddenMap" style="display: none; pointer-events: none;"></div>
 
 <!-- Modals -->
-{#if showSettings}
-	<SettingsModal on:close={() => showSettings = false} />
-{/if}
+<SettingsModal 
+	visible={showSettings} 
+	on:close={() => showSettings = false} 
+/>
 
-{#if showMyCollection}
-	<CollectionModal on:close={() => showMyCollection = false} />
-{/if}
+<CollectionModal 
+	visible={showMyCollection} 
+	on:close={() => showMyCollection = false} 
+/>
 
-{#if showSubMenu}
-	<SubMenuModal 
-		title={subMenuTitle}
-		items={subMenuItems}
-		onSelectItem={handleSubMenuSelect}
-		on:close={() => showSubMenu = false}
-	/>
-{/if}
+<SubMenuModal 
+	visible={showSubMenu}
+	title={subMenuTitle}
+	items={subMenuItems}
+	onSelectItem={handleSubMenuSelect}
+	on:close={() => showSubMenu = false}
+/>
 
-{#if showResults}
-	<ResultsModal 
-		title={resultsTitle}
-		results={searchResults}
-		onSelectPlace={handlePlaceSelect}
-		on:close={() => showResults = false}
-	/>
-{/if}
+<ResultsModal 
+	visible={showResults}
+	title={resultsTitle}
+	results={searchResults}
+	onSelectPlace={handlePlaceSelect}
+	on:close={() => showResults = false}
+/>
 
-{#if showDonate}
-	<DonateModal on:close={() => showDonate = false} />
-{/if}
+<DonateModal 
+	visible={showDonate} 
+	on:close={() => showDonate = false} 
+/>
 
-{#if showForecast}
-	<ForecastModal 
-		forecastData={forecastData}
-		on:close={() => showForecast = false}
-	/>
-{/if}
+<ForecastModal 
+	visible={showForecast}
+	forecastData={forecastData}
+	on:close={() => showForecast = false}
+/>
 
 <!-- NEW: Details Sheet -->
 <DetailsSheet 

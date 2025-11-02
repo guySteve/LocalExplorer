@@ -4,6 +4,9 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	// Props
+	let { visible = false } = $props();
+	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
 			dispatch('close');
@@ -20,6 +23,7 @@
 	}
 </script>
 
+{#if visible}
 <div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && dispatch('close')}>
 	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
 		<div class="modal-header">
@@ -48,6 +52,7 @@
 		</div>
 	</div>
 </div>
+{/if}
 
 <style>
 	.donate-content {

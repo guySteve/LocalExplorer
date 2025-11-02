@@ -4,6 +4,9 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	// Props
+	let { visible = false } = $props();
+	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
 			dispatch('close');
@@ -15,7 +18,8 @@
 	}
 </script>
 
-<div id="myCollectionModal" class="modal" style="display: block;" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+{#if visible}
+<div id="myCollectionModal" class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
 	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>My Collection</h3>
@@ -37,6 +41,7 @@
 		</div>
 	</div>
 </div>
+{/if}
 
 <style>
 	/* Component-specific styles scoped by default */

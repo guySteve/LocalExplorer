@@ -2,9 +2,10 @@
 	import { createEventDispatcher } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
 	
-	export let forecastData = [];
-	
 	const dispatch = createEventDispatcher();
+	
+	// Props
+	let { visible = false, forecastData = [] } = $props();
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
@@ -33,6 +34,7 @@
 	}
 </script>
 
+{#if visible}
 <div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && dispatch('close')}>
 	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
 		<div class="modal-header">
@@ -61,6 +63,7 @@
 		{/if}
 	</div>
 </div>
+{/if}
 
 <style>
 	.empty-state {

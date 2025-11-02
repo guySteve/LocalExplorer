@@ -5,6 +5,9 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	// Props
+	let { visible = false } = $props();
+	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
 			dispatch('close');
@@ -96,19 +99,18 @@
 		selectedVoiceUri.set(selectedVoice);
 	}
 	
-	function handleClose() {
-		dispatch('close');
-	}
+function handleClose() {
+	dispatch('close');
+}
 </script>
 
-<div id="settingsPanel" class="modal" style="display: block;" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+{#if visible}
+<div id="settingsPanel" class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
 	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>Settings</h3>
 			<button class="close-btn" on:click={handleClose} type="button">×</button>
-		</div>
-
-		<div class="setting-group">
+		</div>		<div class="setting-group">
 			<label for="themeSelect">Theme</label>
 			<select id="themeSelect" bind:value={$currentTheme}>
 				{#each themes as theme}
@@ -188,6 +190,7 @@
 		{/if}
 	</div>
 </div>
+{/if}
 
 <style>
 	/* Component-specific styles scoped by default */
