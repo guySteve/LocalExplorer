@@ -138,7 +138,7 @@
 
 {#if visible && place}
 <div class="details-sheet-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Enter' && close()} role="button" tabindex="0">
-  <div class="details-sheet" onclick={(e) => e.stopPropagation()} role="document" aria-modal="true" tabindex="-1">
+  <div class="details-sheet" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
     <!-- Header -->
     <div class="details-header">
       <div>
@@ -374,12 +374,6 @@
 		box-shadow: 0 4px 12px rgba(var(--primary-rgb, 200, 121, 65), 0.3);
 	}
 	
-	.stars {
-		color: #ffd700;
-		font-size: 1.1rem;
-		letter-spacing: 2px;
-	}
-	
 	@media (max-width: 768px) {
 		.details-actions {
 			grid-template-columns: repeat(2, 1fr);
@@ -389,11 +383,5 @@
 			font-size: 0.85rem;
 			padding: 0.65rem 0.85rem;
 		}
-	}
-	
-	.details-sheet-content {
-		padding: 1rem;
-		overflow-y: auto;
-		max-height: calc(100% - 120px); /* Adjust based on header/footer */
 	}
 </style>

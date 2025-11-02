@@ -572,14 +572,5 @@
 		.weather-temp {
 			font-size: 2rem;
 		}
-
-		.comparison-details {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		.comparison-verdict {
-			width: 100%;
-		}
 	}
 </style>

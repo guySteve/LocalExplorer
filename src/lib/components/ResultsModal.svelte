@@ -4,8 +4,11 @@
 	import { calculateDistance } from '$lib/utils/api';
 	
 	export let title = 'Results';
+	/** @type {any[]} */
 	export let results = [];
-	export let onSelectPlace = () => {};
+	/** @type {(place: any) => void} */
+	export let onSelectPlace = (place) => {};
+	/** @type {(() => void) | null} */
 	export let onLoadMore = null;
 	export let loading = false;
 	

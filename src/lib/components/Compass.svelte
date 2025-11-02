@@ -414,7 +414,7 @@
 
 {#if visible}
 <div class="compass-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="-1">
-	<div class="compass-container" onclick={(e) => e.stopPropagation()} role="document">
+	<div class="compass-container" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="document">
 		<!-- Header -->
 		<div class="compass-header">
 			<div>
