@@ -16,6 +16,7 @@
 	import PrimaryActions from '$lib/components/PrimaryActions.svelte';
 	import UnifiedSearch from '$lib/components/UnifiedSearch.svelte';
 	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
+	import NearbyNow from '$lib/components/NearbyNow.svelte';
 	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import SupportCTA from '$lib/components/SupportCTA.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
@@ -342,6 +343,18 @@
 		compassDestination = null;
 		compassDestinationName = '';
 	}
+	
+	function handleOpenBirdWatching() {
+		// Open submenu with bird watching options
+		const birdWatchingItems = [
+			{ name: 'Recent Sightings', value: 'bird-sightings' },
+			{ name: 'Rare Birds', value: 'rare-birds' },
+			{ name: 'Hotspots', value: 'bird-hotspots' }
+		];
+		subMenuTitle = 'Bird Watching';
+		subMenuItems = birdWatchingItems;
+		showSubMenu = true;
+	}
 </script>
 
 <Header on:openSettings={() => showSettings = true} />
@@ -357,6 +370,8 @@
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
 	<WeatherSimple on:openForecast={handleOpenForecast} />
+	
+	<NearbyNow on:openBirdWatching={handleOpenBirdWatching} />
 	
 	<FilterGrid on:openSubMenu={handleOpenSubMenu} />
 	
