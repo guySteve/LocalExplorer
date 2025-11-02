@@ -1484,7 +1484,6 @@ h1, h2, h3 {
     min-width: 44px;
     min-height: 44px;
   }
-}
 
 #directionsPanel.open {
   max-height: min(800px, 85vh);
