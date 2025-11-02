@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { currentPosition, currentResults, latestLocationLabel } from '$lib/stores/appState';
-	import { searchGooglePlaces, MILES_TO_METERS } from '$lib/utils/api';
+	import { searchGooglePlaces, performUnifiedSearch, calculateDistance, MILES_TO_METERS } from '$lib/utils/api';
 	import { 
 		searchLocalEvents, 
 		searchBreweries, 
@@ -100,14 +100,26 @@
 					results = transformBreweriesToStandardFormat(breweries);
 				}
 			} else {
-				// Standard Google Places search
-				results = await searchGooglePlaces(
-					item.type,
-					item.keyword,
-					item.primaryTypeOnly
-				);
+				// Standard Google Places search with unified fallback
+				try {
+					const places = await searchGooglePlaces(
+						item.type,
+						item.keyword,
+						item.primaryTypeOnly
+					);
+					results = normalizeGooglePlacesResults(places);
+				} catch (primaryError) {
+					console.error('Primary Google search failed, attempting fallback:', primaryError);
+					const fallbackQuery = item.keyword || item.name;
+					if (fallbackQuery) {
+						const fallbackResults = await performUnifiedSearch(fallbackQuery);
+						results = normalizeUnifiedResults(fallbackResults);
+					} else {
+						throw primaryError;
+					}
+				}
 			}
-			
+			results = attachMissingDistances(results);
 			resultsTitle = `${item.name} near you`;
 			searchResults = results;
 			currentResults.set(results);
@@ -119,46 +131,108 @@
 	}
 	
 	// Transform functions to standardize results for ResultsModal
+	function toStandardPlace({
+		id,
+		name,
+		address = '',
+		provider = 'LocalExplorer',
+		location = null,
+		lat = null,
+		lng = null,
+		url = '',
+		categories = [],
+		rating = null,
+		distance = null,
+		image = null,
+		date = null,
+		original = null,
+		extra = {}
+	}) {
+		if (!id || !name) return null;
+		const coords = location || (lat != null && lng != null ? { lat, lng } : null);
+		if (!coords) return null;
+		const parsedLat = Number(coords.lat);
+		const parsedLng = Number(coords.lng);
+		if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return null;
+		const normalizedCategories = Array.isArray(categories) ? categories.filter(Boolean) : [];
+		const normalizedUrl = typeof url === 'string' ? url : '';
+		const resolvedDistance = typeof distance === 'number' ? distance : null;
+		return {
+			id,
+			name,
+			address,
+			provider,
+			location: { lat: parsedLat, lng: parsedLng },
+			lat: parsedLat,
+			lng: parsedLng,
+			url: normalizedUrl,
+			categories: normalizedCategories,
+			rating,
+			distance: resolvedDistance,
+			image,
+			date,
+			_original: original,
+			...extra
+		};
+	}
+
 	function transformEventsToStandardFormat(events) {
-		return events.map(event => ({
-			id: event.id || event.name,
-			name: event.name,
-			address: event._embedded?.venues?.[0]?.address?.line1 || event._embedded?.venues?.[0]?.name || '',
-			url: event.url,
-			provider: 'Ticketmaster',
-			lat: parseFloat(event._embedded?.venues?.[0]?.location?.latitude),
-			lng: parseFloat(event._embedded?.venues?.[0]?.location?.longitude),
-			image: event.images?.[0]?.url
-		})).filter(e => e.lat && e.lng);
+		return events.map(event => {
+			const venue = event._embedded?.venues?.[0];
+			const classifications = Array.isArray(event.classifications)
+				? event.classifications.map(c => c.segment?.name || c.genre?.name || '').filter(Boolean)
+				: [];
+			return toStandardPlace({
+				id: event.id || event.name,
+				name: event.name,
+				address: venue?.address?.line1 || venue?.name || '',
+				provider: 'Ticketmaster',
+				lat: venue?.location?.latitude,
+				lng: venue?.location?.longitude,
+				url: event.url,
+				categories: classifications,
+				date: event.dates?.start?.dateTime || event.dates?.start?.localDate || null,
+				image: event.images?.[0]?.url,
+				original: event
+			});
+		}).filter(Boolean);
 	}
 
 	function transformBreweriesToStandardFormat(breweries) {
-		return breweries.map(brewery => ({
-			id: brewery.id,
-			name: brewery.name,
-			address: brewery.address,
-			categories: [brewery.brewery_type],
-			url: brewery.website,
-			provider: 'OpenBreweryDB',
-			lat: brewery.lat,
-			lng: brewery.lng,
-			distance: brewery.distance ? brewery.distance * MILES_TO_METERS : null
-		}));
+		return breweries.map(brewery => {
+			const meters = typeof brewery.distance === 'number' ? brewery.distance * MILES_TO_METERS : null;
+			return toStandardPlace({
+				id: brewery.id,
+				name: brewery.name,
+				address: brewery.address,
+				provider: 'OpenBreweryDB',
+				lat: brewery.lat,
+				lng: brewery.lng,
+				url: brewery.website,
+				categories: brewery.brewery_type ? [brewery.brewery_type] : [],
+				distance: meters,
+				original: brewery
+			});
+		}).filter(Boolean);
 	}
 
 	function transformParksToStandardFormat(parks) {
-		return parks.map(park => ({
-			id: park.id,
-			name: park.name,
-			address: park.states,
-			categories: [park.designation],
-			url: park.url,
-			provider: 'NPS',
-			lat: park.lat,
-			lng: park.lng,
-			distance: park.distance ? park.distance * MILES_TO_METERS : null,
-			image: park.images?.[0]?.url
-		}));
+		return parks.map(park => {
+			const meters = typeof park.distance === 'number' ? park.distance * MILES_TO_METERS : null;
+			return toStandardPlace({
+				id: park.id,
+				name: park.name,
+				address: park.states,
+				provider: 'NPS',
+				lat: park.lat,
+				lng: park.lng,
+				url: park.url,
+				categories: park.designation ? [park.designation] : [],
+				distance: meters,
+				image: park.images?.[0]?.url,
+				original: park
+			});
+		}).filter(Boolean);
 	}
 
 	function transformRecreationToStandardFormat(facilities, searchType) {
@@ -170,23 +244,69 @@
 			);
 		}
 		
-		return filtered.map(facility => ({
+		return filtered.map(facility => toStandardPlace({
 			id: facility.id,
 			name: facility.name,
-			address: `${facility.city}, ${facility.state}`,
-			categories: ['Recreation Area'],
-			url: facility.reservationUrl,
+			address: `${facility.city}, ${facility.state}`.trim(),
 			provider: 'Recreation.gov',
 			lat: facility.lat,
-			lng: facility.lng
-		})).filter(f => f.lat && f.lng);
+			lng: facility.lng,
+			url: facility.reservationUrl,
+			categories: ['Recreation Area'],
+			original: facility
+		})).filter(Boolean);
+	}
+
+	function normalizeGooglePlacesResults(places = []) {
+		return places.map(place => toStandardPlace({
+			id: place.id,
+			name: place.name,
+			address: place.address,
+			provider: place.provider || 'Google',
+			location: place.location,
+			url: place._original?.website || place.url || '',
+			categories: place.categories || [],
+			rating: typeof place.rating === 'number' ? place.rating : null,
+			distance: typeof place.distance === 'number' ? place.distance : null,
+			original: place._original || place
+		})).filter(Boolean);
+	}
+
+	function normalizeUnifiedResults(places = []) {
+		return places.map(place => toStandardPlace({
+			id: place.id,
+			name: place.name,
+			address: place.address,
+			provider: place.provider || 'LocalExplorer',
+			location: place.location,
+			url: place.url || place._original?.url || '',
+			categories: place.categories || [],
+			rating: typeof place.rating === 'number' ? place.rating : null,
+			distance: typeof place.distance === 'number' ? place.distance : null,
+			image: place.image || null,
+			date: place.date || null,
+			original: place._original || place
+		})).filter(Boolean);
+	}
+
+	function attachMissingDistances(places) {
+		if (!Array.isArray(places) || !$currentPosition) return places;
+		const { lat, lng } = $currentPosition;
+		return places.map(place => {
+			if (!place?.location || typeof place.distance === 'number') {
+				return place;
+			}
+			const meters = calculateDistance(lat, lng, place.location.lat, place.location.lng);
+			return { ...place, distance: meters };
+		});
 	}
 	
 	function handleSearchResults(event) {
 		const { query, results } = event.detail;
-		resultsTitle = `${results.length} results for "${query}"`;
-		searchResults = results;
-		currentResults.set(results);
+		const standardized = attachMissingDistances(normalizeUnifiedResults(results));
+		resultsTitle = `${standardized.length} results for "${query}"`;
+		searchResults = standardized;
+		currentResults.set(standardized);
 		showResults = true;
 	}
 	

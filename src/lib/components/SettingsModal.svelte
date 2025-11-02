@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentTheme, selectedVoiceUri } from '$lib/stores/appState';
+	import { currentTheme, selectedVoiceUri, showBirdSightings, sassyWeatherMode, voiceNavigationEnabled } from '$lib/stores/appState';
 	import { browser } from '$app/environment';
 	
 	const dispatch = createEventDispatcher();
@@ -38,46 +38,24 @@
 		{ value: 'cafe', label: 'Coffee Café' }
 	];
 
-	// Bird sightings setting
-	let showBirdSightings = true;
-	
-	// Sassy weather setting
-	let sassyWeather = false;
-	
-	// Voice navigation setting
-	let voiceEnabled = true;
 	let availableVoices = [];
 	let selectedVoice = '';
 	let voicesChangedHandler = null;
 
 	onMount(() => {
-		// Load bird sightings setting
 		if (browser) {
-			const savedBirdSetting = localStorage.getItem('showBirdSightings');
-			showBirdSightings = savedBirdSetting === null ? true : savedBirdSetting !== 'false';
-
-			// Load sassy weather setting
-			const savedSassySetting = localStorage.getItem('sassyWeather');
-			sassyWeather = savedSassySetting === null ? false : savedSassySetting === 'true';
-
-			// Load voice enabled setting
-			const savedVoiceSetting = localStorage.getItem('voiceEnabled');
-			voiceEnabled = savedVoiceSetting === null ? true : savedVoiceSetting !== 'false';
-
-			// Load available voices
 			loadVoices();
-
-			// Subscribe to voice URI changes
-			selectedVoiceUri.subscribe(uri => {
-				selectedVoice = uri;
-			});
 		}
 
-		// Cleanup on unmount
+		const unsubscribeVoice = selectedVoiceUri.subscribe(uri => {
+			selectedVoice = uri;
+		});
+
 		return () => {
 			if (browser && window.speechSynthesis && voicesChangedHandler) {
 				window.speechSynthesis.removeEventListener('voiceschanged', voicesChangedHandler);
 			}
+			unsubscribeVoice();
 		};
 	});
 
@@ -97,37 +75,25 @@
 	}
 
 	function handleBirdToggle() {
-		showBirdSightings = !showBirdSightings;
-		if (browser) {
-			localStorage.setItem('showBirdSightings', showBirdSightings.toString());
-		}
-		// Dispatch event to refresh weather if needed
-		dispatch('settingsChanged', { showBirds: showBirdSightings });
+		const next = !$showBirdSightings;
+		showBirdSightings.set(next);
+		dispatch('settingsChanged', { showBirds: next });
 	}
 
 	function handleSassyToggle() {
-		sassyWeather = !sassyWeather;
-		if (browser) {
-			localStorage.setItem('sassyWeather', sassyWeather.toString());
-		}
-		// Dispatch event to refresh weather phrases
-		dispatch('settingsChanged', { sassyWeather });
+		const next = !$sassyWeatherMode;
+		sassyWeatherMode.set(next);
+		dispatch('settingsChanged', { sassyWeather: next });
 	}
 
 	function handleVoiceToggle() {
-		voiceEnabled = !voiceEnabled;
-		if (browser) {
-			localStorage.setItem('voiceEnabled', voiceEnabled.toString());
-		}
-		dispatch('settingsChanged', { voiceEnabled });
+		const next = !$voiceNavigationEnabled;
+		voiceNavigationEnabled.set(next);
+		dispatch('settingsChanged', { voiceEnabled: next });
 	}
 
-	function handleVoiceChange(event) {
-		const uri = event.target.value;
-		selectedVoiceUri.set(uri);
-		if (browser) {
-			localStorage.setItem('selectedVoiceUri', uri);
-		}
+	function handleVoiceChange() {
+		selectedVoiceUri.set(selectedVoice);
 	}
 	
 	function handleClose() {
@@ -160,7 +126,7 @@
 				</label>
 				<button 
 					id="birdToggle"
-					class="toggle-btn {showBirdSightings ? 'active' : ''}" 
+					class="toggle-btn {$showBirdSightings ? 'active' : ''}" 
 					on:click={handleBirdToggle}
 					aria-label="Toggle bird sightings"
 					type="button"
@@ -178,7 +144,7 @@
 				</label>
 				<button 
 					id="sassyToggle"
-					class="toggle-btn {sassyWeather ? 'active' : ''}" 
+					class="toggle-btn {$sassyWeatherMode ? 'active' : ''}" 
 					on:click={handleSassyToggle}
 					aria-label="Toggle sassy weather mode"
 					type="button"
@@ -196,7 +162,7 @@
 				</label>
 				<button 
 					id="voiceToggle"
-					class="toggle-btn {voiceEnabled ? 'active' : ''}" 
+					class="toggle-btn {$voiceNavigationEnabled ? 'active' : ''}" 
 					on:click={handleVoiceToggle}
 					aria-label="Toggle voice navigation"
 					type="button"
@@ -206,10 +172,10 @@
 			</div>
 		</div>
 
-		{#if voiceEnabled && availableVoices.length > 0}
+		{#if $voiceNavigationEnabled && availableVoices.length > 0}
 			<div class="setting-group">
 				<label for="voiceSelect">Voice Selection</label>
-				<select id="voiceSelect" value={selectedVoice} on:change={handleVoiceChange}>
+				<select id="voiceSelect" bind:value={selectedVoice} on:change={handleVoiceChange}>
 					<option value="">Default Voice</option>
 					{#each availableVoices as voice}
 						<option value={voice.voiceURI}>

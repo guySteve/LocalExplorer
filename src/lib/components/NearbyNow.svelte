@@ -69,6 +69,15 @@
 		dispatch('openBirdWatching');
 	}
 	
+	function handleKeyDown(handler) {
+		return (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				handler();
+			}
+		};
+	}
+	
 	function formatEventDate(event) {
 		if (!event || !event.dates || !event.dates.start) return '';
 		
@@ -106,7 +115,7 @@
 		<div class="nearby-content">
 			<!-- Event Card -->
 			{#if event}
-				<div class="nearby-card event-card" onclick={handleEventClick} role="button" tabindex="0">
+				<div class="nearby-card event-card" onclick={handleEventClick} onkeydown={handleKeyDown(handleEventClick)} role="button" tabindex="0">
 					<div class="card-badge event-badge">
 						{formatEventDate(event)}
 					</div>
@@ -135,7 +144,7 @@
 			
 			<!-- Bird Sighting Card -->
 			{#if birdSighting}
-				<div class="nearby-card bird-card" onclick={handleBirdClick} role="button" tabindex="0">
+				<div class="nearby-card bird-card" onclick={handleBirdClick} onkeydown={handleKeyDown(handleBirdClick)} role="button" tabindex="0">
 					<div class="card-badge bird-badge">
 						🐦 Nature Watch
 					</div>
@@ -268,6 +277,7 @@
 		line-height: 1.3;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

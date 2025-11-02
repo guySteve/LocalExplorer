@@ -1,9 +1,8 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentPosition, currentTheme } from '$lib/stores/appState';
+	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode } from '$lib/stores/appState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
-	import { browser } from '$app/environment';
 
 	const dispatch = createEventDispatcher();
 
@@ -12,36 +11,42 @@
 	let error = null;
 	let lastFetch = 0;
 	let historicalData = [];
-	let showBirds = true; // Default enabled, controlled by settings
+	let showBirds = true; // Controlled via store
 	let birdFact = '';
-	let sassyMode = false; // Sassy weather mode
+	let sassyMode = false; // Controlled via store
 	let lastHistoricalFetch = 0; // Cache timestamp for historical data
+	let lastKnownPosition = null;
 
 	const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 	const TEMP_DIFF_THRESHOLD = 5; // Degrees for significant temperature change
 
 	onMount(() => {
-		// Load bird settings from localStorage
-		if (browser) {
-			const savedBirdSetting = localStorage.getItem('showBirdSightings');
-			if (savedBirdSetting !== null) {
-				showBirds = savedBirdSetting === 'true';
-			}
-			
-			// Load sassy weather setting
-			const savedSassySetting = localStorage.getItem('sassyWeather');
-			if (savedSassySetting !== null) {
-				sassyMode = savedSassySetting === 'true';
-			}
-		}
-
-		const unsubscribe = currentPosition.subscribe((pos) => {
+		const unsubscribePosition = currentPosition.subscribe((pos) => {
+			lastKnownPosition = pos;
 			if (pos && !loading && Date.now() - lastFetch > CACHE_TIME) {
 				fetchWeather(pos.lat, pos.lng);
 			}
 		});
-		
-		return unsubscribe;
+
+		const unsubscribeBirds = showBirdSightings.subscribe((value) => {
+			showBirds = value;
+			if (!value) {
+				birdFact = '';
+			} else if (lastKnownPosition) {
+				lastFetch = 0;
+				fetchWeather(lastKnownPosition.lat, lastKnownPosition.lng);
+			}
+		});
+
+		const unsubscribeSassy = sassyWeatherMode.subscribe((value) => {
+			sassyMode = value;
+		});
+
+		return () => {
+			unsubscribePosition();
+			unsubscribeBirds();
+			unsubscribeSassy();
+		};
 	});
 
 	async function fetchWeather(lat, lng) {
@@ -66,6 +71,8 @@
 				birdFact = birdResponse;
 			} else if (birdResponse === 'configure-key') {
 				birdFact = '🐦 Bird sightings unavailable. Add EBIRD_API_KEY to enable.';
+			} else if (!showBirds) {
+				birdFact = '';
 			}
 			
 			// Fetch historical data only if not cached

@@ -406,12 +406,17 @@ export async function searchBirdSightings(lat, lng, type = 'recent') {
       const date = new Date(bird.obsDt);
       const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
       const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
-      
+		
+      const parsedLat = typeof bird.lat === 'number' ? bird.lat : parseFloat(bird.lat);
+      const parsedLng = typeof bird.lng === 'number' ? bird.lng : parseFloat(bird.lng);
+      const hasCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
+      if (!hasCoords) return null;
+		
       let distance = null;
-      if (bird.lat && bird.lng) {
-        distance = calculateDistanceMiles(lat, lng, bird.lat, bird.lng) * MILES_TO_METERS;
+      if (hasCoords) {
+        distance = calculateDistanceMiles(lat, lng, parsedLat, parsedLng) * MILES_TO_METERS;
       }
-      
+		
       return {
         id: `${bird.speciesCode}-${bird.obsDt}-${bird.locId}`,
         name: `${bird.comName}${bird.howMany > 1 ? ` (${bird.howMany})` : ''}`,
@@ -419,13 +424,15 @@ export async function searchBirdSightings(lat, lng, type = 'recent') {
         categories: [bird.sciName],
         timeStr: `Spotted ${timeStr}`,
         provider: 'eBird',
-        lat: parseFloat(bird.lat),
-        lng: parseFloat(bird.lng),
-        distance: distance,
+        lat: parsedLat,
+        lng: parsedLng,
+        location: { lat: parsedLat, lng: parsedLng },
+        distance,
         obsReviewed: bird.obsReviewed,
-        locationPrivate: bird.locationPrivate
+        locationPrivate: bird.locationPrivate,
+        _original: bird
       };
-    }).filter(b => b.lat && b.lng);
+    }).filter(Boolean);
   } catch (err) {
     console.error('Failed to search bird sightings:', err);
     return [];

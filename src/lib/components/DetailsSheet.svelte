@@ -14,21 +14,33 @@
 	let streetViewActive = $state(false);
 	let loading = $state(true);
 	
+	function getPlaceCoordinates() {
+		if (!place) return null;
+		if (place.location && typeof place.location.lat === 'number' && typeof place.location.lng === 'number') {
+			return place.location;
+		}
+		if (typeof place.lat === 'number' && typeof place.lng === 'number') {
+			return { lat: place.lat, lng: place.lng };
+		}
+		return null;
+	}
+
 	// Reactive: Fetch What3Words when place changes
 	$effect(() => {
-		if (place && place.location) {
+		const coords = getPlaceCoordinates();
+		if (place && coords) {
 			loading = false;
-			loadWhat3Words();
+			loadWhat3Words(coords);
 		} else {
 			loading = true;
 		}
 	});
 	
-	async function loadWhat3Words() {
-		if (!place || !place.location) return;
+	async function loadWhat3Words(coords) {
+		if (!place || !coords) return;
 		
 		try {
-			const w3w = await fetchWhat3Words(place.location.lat, place.location.lng);
+			const w3w = await fetchWhat3Words(coords.lat, coords.lng);
 			what3words = w3w || '';
 		} catch (err) {
 			console.error('Failed to load What3Words:', err);
@@ -43,10 +55,11 @@
 	}
 	
 	function openMaps() {
-		if (!place || !place.location) return;
+		const coords = getPlaceCoordinates();
+		if (!place || !coords) return;
 		
 		const url = place._original?.url || 
-			`https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}`;
+			`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
 		
 		window.open(url, '_blank');
 	}
@@ -57,10 +70,11 @@
 	}
 	
 	function sharePlace() {
+		const coords = getPlaceCoordinates();
 		if (!place) return;
 		
 		const mapUrl = place._original?.url || 
-			`https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}`;
+			(coords ? `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}` : '');
 		
 		if (navigator.share) {
 			navigator.share({
@@ -74,7 +88,8 @@
 	}
 	
 	function savePlace() {
-		if (!place) return;
+		const coords = getPlaceCoordinates();
+		if (!place || !coords) return;
 		
 		try {
 			const collection = JSON.parse(localStorage.getItem('myCollection') || '[]');
@@ -90,7 +105,7 @@
 				id: place.id,
 				name: place.name,
 				address: place.address,
-				location: place.location,
+				location: coords,
 				provider: place.provider,
 				savedAt: new Date().toISOString()
 			});
@@ -104,10 +119,11 @@
 	}
 	
 	function startNavigation() {
-		if (!place || !place.location) return;
+		const coords = getPlaceCoordinates();
+		if (!place || !coords) return;
 		
 		dispatch('startNavigation', {
-			location: place.location,
+			location: coords,
 			name: place.name
 		});
 	}

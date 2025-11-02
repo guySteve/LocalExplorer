@@ -1,5 +1,5 @@
 // Core app state management using Svelte stores
-import { writable, derived } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 // Theme configuration
@@ -56,6 +56,22 @@ function getInitialVoiceUri() {
   return '';
 }
 export const selectedVoiceUri = writable(getInitialVoiceUri());
+
+function getInitialBooleanSetting(key, defaultValue) {
+  if (!browser) return defaultValue;
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved === null) return defaultValue;
+    return saved === 'true';
+  } catch (error) {
+    console.warn(`Unable to read setting "${key}" from localStorage`, error);
+    return defaultValue;
+  }
+}
+
+export const showBirdSightings = writable(getInitialBooleanSetting('showBirdSightings', true));
+export const sassyWeatherMode = writable(getInitialBooleanSetting('sassyWeather', false));
+export const voiceNavigationEnabled = writable(getInitialBooleanSetting('voiceEnabled', true));
 
 // Search categories configuration
 export const categories = {
@@ -144,4 +160,24 @@ if (browser) {
   if (savedTheme && THEMES[savedTheme]) {
     currentTheme.set(savedTheme);
   }
+
+  showBirdSightings.subscribe(value => {
+    localStorage.setItem('showBirdSightings', value ? 'true' : 'false');
+  });
+
+  sassyWeatherMode.subscribe(value => {
+    localStorage.setItem('sassyWeather', value ? 'true' : 'false');
+  });
+
+  voiceNavigationEnabled.subscribe(value => {
+    localStorage.setItem('voiceEnabled', value ? 'true' : 'false');
+  });
+
+  selectedVoiceUri.subscribe(uri => {
+    if (uri) {
+      localStorage.setItem('selectedVoiceUri', uri);
+    } else {
+      localStorage.removeItem('selectedVoiceUri');
+    }
+  });
 }

@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { selectedVoiceUri } from '$lib/stores/appState';
+	import { selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
 
 	const dispatch = createEventDispatcher();
 	
@@ -288,6 +288,10 @@
 	}
 	
 	function startNavigation() {
+		if (!$voiceNavigationEnabled) {
+			alert('Enable voice navigation in Settings to use turn-by-turn guidance.');
+			return;
+		}
 		if (!routeSteps || routeSteps.length === 0) {
 			alert('No route available. Please wait for route to load.');
 			return;
@@ -313,6 +317,7 @@
 	}
 	
 	function speakStep(index) {
+		if (!$voiceNavigationEnabled) return;
 		// Check if voice is enabled
 		if (browser) {
 			const voiceEnabled = localStorage.getItem('voiceEnabled');
@@ -413,8 +418,10 @@
 </script>
 
 {#if visible}
-<div class="compass-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="-1">
-	<div class="compass-container" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="document">
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<div class="compass-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="0">
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<div class="compass-container" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="document" tabindex="-1">
 		<!-- Header -->
 		<div class="compass-header">
 			<div>
@@ -484,7 +491,7 @@
 				
 				<div class="navigation-buttons">
 					{#if !navigationActive}
-						<button class="nav-btn primary" onclick={startNavigation}>
+						<button class="nav-btn primary" onclick={startNavigation} disabled={!$voiceNavigationEnabled} title={$voiceNavigationEnabled ? 'Start guided navigation' : 'Enable voice navigation in Settings'}>
 							🎙️ Start Voice Navigation
 						</button>
 					{:else}
