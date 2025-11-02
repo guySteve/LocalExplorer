@@ -11,7 +11,6 @@
 	let loading = false;
 	let error = null;
 	let lastFetch = 0;
-	let showHistory = false;
 	let historicalData = [];
 	let showBirds = true; // Default enabled, controlled by settings
 	let birdFact = '';
@@ -104,43 +103,35 @@
 		return parseOpenMeteoData(data);
 	}
 
-	async function toggleHistory() {
-		showHistory = !showHistory;
-		if (showHistory && historicalData.length === 0 && $currentPosition) {
-			await fetchHistoricalWeather($currentPosition.lat, $currentPosition.lng);
-		}
-	}
-
 	async function fetchHistoricalWeather(lat, lng) {
 		try {
 			// Get current date and same date last year for comparison
 			const currentDate = new Date();
-			const lastYearDate = new Date(currentDate);
-			lastYearDate.setFullYear(lastYearDate.getFullYear() - 1);
-			
-			// Fetch last year's data for the same date (single day)
-			const targetDate = lastYearDate.toISOString().split('T')[0];
+			const lastYearDate = new Date();
+			lastYearDate.setFullYear(currentDate.getFullYear() - 1);
+
+			// Fetch historical weather data from Open-Meteo
 			const params = new URLSearchParams({
 				latitude: lat.toFixed(4),
 				longitude: lng.toFixed(4),
-				start_date: targetDate,
-				end_date: targetDate, // Same date for single day fetch
 				daily: 'temperature_2m_max,temperature_2m_min,weathercode',
 				temperature_unit: 'fahrenheit',
-				timezone: 'auto'
+				timezone: 'auto',
+				start_date: lastYearDate.toISOString().split('T')[0],
+				end_date: lastYearDate.toISOString().split('T')[0]
 			});
 
-			const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`);
+			const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
 			
 			if (!response.ok) {
-				throw new Error('Historical data unavailable');
+				throw new Error('Historical weather service unavailable');
 			}
 
 			const data = await response.json();
 			historicalData = parseHistoricalData(data, lastYearDate);
-			lastHistoricalFetch = Date.now(); // Update cache timestamp
+			lastHistoricalFetch = Date.now();
 		} catch (err) {
-			console.error('Historical weather error:', err);
+			console.error('Historical weather fetch error:', err);
 		}
 	}
 
@@ -258,14 +249,6 @@
 		<div class="weather-actions">
 			<button 
 				class="weather-btn" 
-				on:click={toggleHistory} 
-				title="View history"
-				disabled={loading || !weather}
-			>
-				📊
-			</button>
-			<button 
-				class="weather-btn" 
 				on:click={handleViewForecast} 
 				title="7-day forecast"
 				disabled={loading || !weather}
@@ -347,40 +330,6 @@
 								~
 							{/if}
 						</span>
-					</div>
-				{/each}
-			</div>
-		{/if}
-
-		{#if showHistory && historicalData.length > 0 && weather && weather.daily && weather.daily.length > 0}
-			<div class="weather-history">
-				<h4>Compared to Last Year</h4>
-				{#each historicalData as day}
-					{@const todayHigh = weather.daily[0].high}
-					{@const tempDiff = todayHigh - day.high}
-					{@const isHotter = tempDiff > 0}
-					{@const isSignificant = Math.abs(tempDiff) > TEMP_DIFF_THRESHOLD}
-					<div class="history-comparison">
-						<div class="comparison-header">
-							<span class="comparison-label">Same date last year ({day.date})</span>
-						</div>
-						<div class="comparison-details">
-							<div class="comparison-temps">
-								<span class="comparison-icon">{day.icon}</span>
-								<span class="comparison-temp">{day.high}°/{day.low}°</span>
-							</div>
-							<div class="comparison-verdict" class:hotter={isHotter} class:colder={!isHotter} class:significant={isSignificant}>
-								{#if isSignificant}
-									{#if isHotter}
-										🔥 {Math.abs(tempDiff)}° Hotter than last year
-									{:else}
-										❄️ {Math.abs(tempDiff)}° Colder than last year
-									{/if}
-								{:else}
-									👍 About the same as last year
-								{/if}
-							</div>
-						</div>
 					</div>
 				{/each}
 			</div>
@@ -579,80 +528,6 @@
 
 	.mini-diff.colder {
 		color: #4dabf7;
-	}
-
-	.weather-history {
-		margin-top: 1rem;
-		padding-top: 1rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.2);
-	}
-
-	.weather-history h4 {
-		margin: 0 0 0.75rem 0;
-		font-size: 1rem;
-		font-weight: 600;
-	}
-
-	.history-comparison {
-		background: rgba(255, 255, 255, 0.08);
-		padding: 0.75rem;
-		border-radius: 8px;
-		margin-bottom: 0.5rem;
-	}
-
-	.comparison-header {
-		margin-bottom: 0.5rem;
-	}
-
-	.comparison-label {
-		font-size: 0.85rem;
-		opacity: 0.8;
-		font-weight: 500;
-	}
-
-	.comparison-details {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.comparison-temps {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.comparison-icon {
-		font-size: 1.5rem;
-	}
-
-	.comparison-temp {
-		font-size: 1.1rem;
-		font-weight: 600;
-	}
-
-	.comparison-verdict {
-		padding: 0.5rem 0.75rem;
-		border-radius: 6px;
-		font-size: 0.85rem;
-		font-weight: 600;
-		text-align: center;
-		flex: 1;
-	}
-
-	.comparison-verdict.hotter {
-		background: rgba(255, 87, 34, 0.2);
-		border: 1px solid rgba(255, 87, 34, 0.4);
-	}
-
-	.comparison-verdict.colder {
-		background: rgba(33, 150, 243, 0.2);
-		border: 1px solid rgba(33, 150, 243, 0.4);
-	}
-
-	.comparison-verdict.significant {
-		font-weight: 700;
 	}
 
 	.weather-error {
