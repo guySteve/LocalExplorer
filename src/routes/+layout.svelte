@@ -94,7 +94,7 @@
 		};
 		
 		const mapsScript = document.createElement('script');
-		mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap&loading=async`;
+		mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${mapsKey}&libraries=places,geometry&callback=initMap`;
 		mapsScript.async = true;
 		mapsScript.defer = true;
 		mapsScript.dataset.role = 'maps-api';
