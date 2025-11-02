@@ -313,7 +313,7 @@
 			{/if}
 		</div>
 
-		<div class="weather-fun-saying">"{funSaying}"</div>
+		<div class="weather-fun-saying">{funSaying}</div>
 
 		{#if showBirds && birdFact}
 			<div class="bird-fact">{birdFact}</div>
