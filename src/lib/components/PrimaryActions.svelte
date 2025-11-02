@@ -7,16 +7,14 @@
 		dispatch('openCollection');
 	}
 	
-	// Compass functionality reserved for future implementation
-	// function handleCompassClick() {
-	// 	dispatch('openCompass');
-	// }
+	function handleCompassClick() {
+		dispatch('openCompass');
+	}
 </script>
 
 <div id="primaryActions">
 	<button id="myCollectionBtn" on:click={handleCollectionClick}>📋 My Collection</button>
-	<!-- Compass button disabled until CompassModal.svelte is implemented -->
-	<button id="compassBtn" disabled style="opacity: 0.5;">🧭 Compass (Coming Soon)</button>
+	<button id="compassBtn" on:click={handleCompassClick}>🧭 Compass</button>
 </div>
 
 <style>
