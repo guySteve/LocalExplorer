@@ -28,6 +28,13 @@
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
 	import Compass from '$lib/components/Compass.svelte';
 	
+	// Configuration constants
+	const BIRD_WATCHING_MENU_ITEMS = [
+		{ name: 'Recent Sightings', value: 'bird-sightings' },
+		{ name: 'Rare Birds', value: 'rare-birds' },
+		{ name: 'Hotspots', value: 'bird-hotspots' }
+	];
+	
 	// Modal visibility state
 	let showSettings = false;
 	let showMyCollection = false;
@@ -346,13 +353,8 @@
 	
 	function handleOpenBirdWatching() {
 		// Open submenu with bird watching options
-		const birdWatchingItems = [
-			{ name: 'Recent Sightings', value: 'bird-sightings' },
-			{ name: 'Rare Birds', value: 'rare-birds' },
-			{ name: 'Hotspots', value: 'bird-hotspots' }
-		];
 		subMenuTitle = 'Bird Watching';
-		subMenuItems = birdWatchingItems;
+		subMenuItems = BIRD_WATCHING_MENU_ITEMS;
 		showSubMenu = true;
 	}
 </script>
