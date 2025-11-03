@@ -363,7 +363,7 @@
 	
 	<WeatherSimple 
 		on:openForecast={handleOpenForecast}
-		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Bird Watching', items: $categories['Bird Watching'] || [] } })}
+		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Bird Watching', items: categories['Bird Watching'] || [] } })}
 	/>
 	
 	<FilterGrid on:openSubMenu={handleOpenSubMenu} />

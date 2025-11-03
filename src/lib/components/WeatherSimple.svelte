@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode, categories } from '$lib/stores/appState';
+	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode } from '$lib/stores/appState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
 
