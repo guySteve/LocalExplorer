@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { browser } from '$app/environment';
 	import { fetchWhat3Words } from '$lib/utils/api-extended';
+	import { getPlaceDetails } from '$lib/utils/api';
 	import { currentPosition } from '$lib/stores/appState';
 	import { get } from 'svelte/store';
 	
@@ -14,6 +15,8 @@
 	let what3words = '';
 	let streetViewActive = false;
 	let loading = true;
+	let reviews = [];
+	let loadingReviews = false;
 	
 	function getPlaceCoordinates() {
 		if (!place) return null;
@@ -26,14 +29,16 @@
 		return null;
 	}
 
-	// Reactive: Fetch What3Words when place changes
+	// Reactive: Fetch What3Words and reviews when place changes
 	$: {
 		const coords = getPlaceCoordinates();
 		if (place && coords) {
 			loading = false;
 			loadWhat3Words(coords);
+			loadReviews();
 		} else {
 			loading = true;
+			reviews = [];
 		}
 	}
 	
@@ -49,9 +54,39 @@
 		}
 	}
 	
+	async function loadReviews() {
+		if (!place || !place.id) return;
+		
+		// Only fetch reviews for Google Places
+		if (place.provider !== 'Google' && place.provider !== 'google') {
+			reviews = [];
+			return;
+		}
+		
+		loadingReviews = true;
+		try {
+			// The place ID might be in id or _original.place_id
+			const placeId = place._original?.place_id || place.id;
+			if (!placeId) {
+				console.warn('No place ID available for reviews');
+				reviews = [];
+				return;
+			}
+			
+			const details = await getPlaceDetails(placeId);
+			reviews = details?.reviews || [];
+		} catch (err) {
+			console.error('Failed to load reviews:', err);
+			reviews = [];
+		} finally {
+			loadingReviews = false;
+		}
+	}
+	
 	function close() {
 		visible = false;
 		streetViewActive = false;
+		reviews = [];
 		dispatch('close');
 	}
 	
@@ -232,6 +267,39 @@
           </div>
         </div>
       {/if}
+      
+      <!-- Reviews -->
+      {#if loadingReviews}
+        <div class="details-row">
+          <span class="details-label">⭐ Reviews:</span>
+          <span style="opacity: 0.7;">Loading reviews...</span>
+        </div>
+      {:else if reviews && reviews.length > 0}
+        <div class="details-row" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
+          <span class="details-label" style="margin-bottom: 0.75rem;">⭐ Reviews ({reviews.length}):</span>
+          <div class="reviews-container">
+            {#each reviews.slice(0, 3) as review}
+              <div class="review-card">
+                <div class="review-header">
+                  <div class="review-author">
+                    {#if review.profile_photo_url}
+                      <img src={review.profile_photo_url} alt={review.author_name} class="review-avatar" />
+                    {/if}
+                    <div>
+                      <div class="review-author-name">{review.author_name}</div>
+                      <div class="review-rating">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</div>
+                    </div>
+                  </div>
+                  <div class="review-time">{review.relative_time_description}</div>
+                </div>
+                <p class="review-text">
+                  {review.text.length > 150 ? review.text.substring(0, 150) + '...' : review.text}
+                </p>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
     </div>
     
     <!-- Action Buttons -->
@@ -391,6 +459,67 @@
 		box-shadow: 0 4px 12px rgba(var(--primary-rgb, 200, 121, 65), 0.3);
 	}
 	
+	.reviews-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		width: 100%;
+	}
+	
+	.review-card {
+		background: rgba(var(--card-rgb, 26, 43, 68), 0.03);
+		padding: 1rem;
+		border-radius: 8px;
+		border-left: 3px solid var(--accent);
+	}
+	
+	.review-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 0.5rem;
+		gap: 0.5rem;
+	}
+	
+	.review-author {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	
+	.review-avatar {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+	
+	.review-author-name {
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: var(--card);
+	}
+	
+	.review-rating {
+		color: #ffa000;
+		font-size: 0.85rem;
+	}
+	
+	.review-time {
+		font-size: 0.75rem;
+		opacity: 0.6;
+		color: var(--card);
+		white-space: nowrap;
+	}
+	
+	.review-text {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.5;
+		color: var(--card);
+		opacity: 0.9;
+	}
+	
 	@media (max-width: 768px) {
 		.details-actions {
 			grid-template-columns: repeat(2, 1fr);
@@ -399,6 +528,24 @@
 		.action-btn {
 			font-size: 0.85rem;
 			padding: 0.65rem 0.85rem;
+		}
+		
+		.review-card {
+			padding: 0.75rem;
+		}
+		
+		.review-avatar {
+			width: 28px;
+			height: 28px;
+		}
+		
+		.review-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		
+		.review-time {
+			margin-top: 0.25rem;
 		}
 	}
 </style>

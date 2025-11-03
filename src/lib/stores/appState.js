@@ -141,6 +141,11 @@ export const categories = {
     { name: 'Campgrounds', search: 'campground' },
     { name: 'Recreation Areas', search: 'recreation' },
     { name: 'National Parks', search: 'national_park' }
+  ],
+  'Bird Watching': [
+    { name: 'Recent Sightings', value: 'bird-sightings' },
+    { name: 'Rare Birds', value: 'rare-birds' },
+    { name: 'Hotspots', value: 'bird-hotspots' }
   ]
 };
 

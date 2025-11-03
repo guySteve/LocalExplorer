@@ -15,7 +15,8 @@
 		'Outdoor': '🏞️',
 		'Local Events': '🎭',
 		'Breweries': '🍺',
-		'Recreation': '⛺'
+		'Recreation': '⛺',
+		'Bird Watching': '🐦'
 	};
 	
 	function handleCategoryClick(categoryName) {
