@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { calculateDistance, MILES_TO_METERS } from '$lib/utils/api';
+	import { SWIPE_CLOSE_THRESHOLD } from '$lib/utils/uiConstants';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -18,6 +19,7 @@
 	let startY = 0;
 	let currentY = 0;
 	let isDragging = false;
+	let animationFrameId = null;
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
@@ -50,9 +52,16 @@
 		currentY = e.touches[0].clientY;
 		const diff = currentY - startY;
 		
-		// Only allow downward swipe
+		// Only allow downward swipe, use requestAnimationFrame for performance
 		if (diff > 0 && modalContent) {
-			modalContent.style.transform = `translateY(${diff}px)`;
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId);
+			}
+			animationFrameId = requestAnimationFrame(() => {
+				if (modalContent) {
+					modalContent.style.transform = `translateY(${diff}px)`;
+				}
+			});
 		}
 	}
 	
@@ -60,10 +69,15 @@
 		if (!isDragging) return;
 		isDragging = false;
 		
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+		
 		const diff = currentY - startY;
 		
-		// If swiped down more than 100px, close the modal
-		if (diff > 100) {
+		// If swiped down more than threshold, close the modal
+		if (diff > SWIPE_CLOSE_THRESHOLD) {
 			closeModal();
 		} else if (modalContent) {
 			// Reset position with animation
