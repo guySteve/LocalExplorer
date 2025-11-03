@@ -145,7 +145,8 @@ export const categories = {
   'Bird Watching': [
     { name: 'Recent Sightings', value: 'bird-sightings' },
     { name: 'Rare Birds', value: 'rare-birds' },
-    { name: 'Hotspots', value: 'bird-hotspots' }
+    { name: 'Hotspots Near Me', value: 'bird-hotspots-nearby' },
+    { name: 'Notable Species', value: 'bird-notable' }
   ]
 };
 

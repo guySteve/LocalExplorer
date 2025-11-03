@@ -362,7 +362,13 @@ export async function fetchRecentBirdSightings(lat, lng) {
 // Search bird sightings for list view
 export async function searchBirdSightings(lat, lng, type = 'recent') {
   try {
+    let endpoint = 'recent';
+    if (type === 'notable') {
+      endpoint = 'notable';
+    }
+    
     const params = new URLSearchParams({
+      endpoint: endpoint,
       lat: lat.toString(),
       lng: lng.toString(),
       dist: type === 'hotspots' ? '50' : '25', // Wider radius for hotspots
@@ -435,6 +441,205 @@ export async function searchBirdSightings(lat, lng, type = 'recent') {
     }).filter(Boolean);
   } catch (err) {
     console.error('Failed to search bird sightings:', err);
+    return [];
+  }
+}
+
+// Get nearby bird hotspots
+export async function fetchBirdHotspots(lat, lng, distance = 50) {
+  try {
+    const params = new URLSearchParams({
+      endpoint: 'hotspots',
+      lat: lat.toString(),
+      lng: lng.toString(),
+      dist: distance.toString()
+    });
+    
+    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn('Failed to fetch bird hotspots');
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    // Transform to standard format
+    return data.map(hotspot => {
+      const parsedLat = typeof hotspot.lat === 'number' ? hotspot.lat : parseFloat(hotspot.lat);
+      const parsedLng = typeof hotspot.lng === 'number' ? hotspot.lng : parseFloat(hotspot.lng);
+      
+      if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return null;
+      
+      const distance = calculateDistanceMiles(lat, lng, parsedLat, parsedLng) * MILES_TO_METERS;
+      
+      return {
+        id: hotspot.locId,
+        name: hotspot.locName,
+        address: `${hotspot.countryCode} - ${hotspot.numSpeciesAllTime || 0} species recorded`,
+        categories: ['Bird Hotspot'],
+        provider: 'eBird',
+        lat: parsedLat,
+        lng: parsedLng,
+        location: { lat: parsedLat, lng: parsedLng },
+        distance,
+        speciesCount: hotspot.numSpeciesAllTime || 0,
+        latestObsDate: hotspot.latestObsDt,
+        _original: hotspot
+      };
+    }).filter(Boolean);
+  } catch (err) {
+    console.error('Failed to fetch bird hotspots:', err);
+    return [];
+  }
+}
+
+// Get species list for a region
+export async function fetchRegionSpecies(regionCode) {
+  try {
+    const params = new URLSearchParams({
+      endpoint: 'species-list',
+      regionCode: regionCode
+    });
+    
+    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn('Failed to fetch regional species');
+      return [];
+    }
+    
+    const data = await response.json();
+    return data || [];
+  } catch (err) {
+    console.error('Failed to fetch regional species:', err);
+    return [];
+  }
+}
+
+// Get hotspot details and species
+export async function fetchHotspotDetails(hotspotCode) {
+  try {
+    const [info, species] = await Promise.all([
+      fetch(`${NETLIFY_FUNCTIONS_BASE}/ebird?endpoint=hotspot-info&hotspotCode=${hotspotCode}`),
+      fetch(`${NETLIFY_FUNCTIONS_BASE}/ebird?endpoint=hotspot-species&hotspotCode=${hotspotCode}`)
+    ]);
+    
+    const hotspotInfo = info.ok ? await info.json() : null;
+    const speciesList = species.ok ? await species.json() : [];
+    
+    return {
+      info: hotspotInfo,
+      species: speciesList
+    };
+  } catch (err) {
+    console.error('Failed to fetch hotspot details:', err);
+    return { info: null, species: [] };
+  }
+}
+
+// Find nearest observations of a specific species
+export async function findNearestSpecies(lat, lng, speciesCode, maxResults = 10) {
+  try {
+    const params = new URLSearchParams({
+      endpoint: 'nearest-species',
+      lat: lat.toString(),
+      lng: lng.toString(),
+      speciesCode: speciesCode,
+      maxResults: maxResults.toString(),
+      dist: '50'
+    });
+    
+    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn('Failed to find nearest species');
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    // Transform to standard format
+    return data.map(obs => {
+      const parsedLat = typeof obs.lat === 'number' ? obs.lat : parseFloat(obs.lat);
+      const parsedLng = typeof obs.lng === 'number' ? obs.lng : parseFloat(obs.lng);
+      
+      if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return null;
+      
+      const distance = calculateDistanceMiles(lat, lng, parsedLat, parsedLng) * MILES_TO_METERS;
+      const date = new Date(obs.obsDt);
+      const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+      
+      return {
+        id: `${obs.speciesCode}-${obs.obsDt}-${obs.locId}`,
+        name: `${obs.comName}${obs.howMany > 1 ? ` (${obs.howMany})` : ''}`,
+        address: obs.locName || 'Unknown location',
+        categories: [obs.sciName],
+        timeStr: `Spotted ${timeStr}`,
+        provider: 'eBird',
+        lat: parsedLat,
+        lng: parsedLng,
+        location: { lat: parsedLat, lng: parsedLng },
+        distance,
+        _original: obs
+      };
+    }).filter(Boolean);
+  } catch (err) {
+    console.error('Failed to find nearest species:', err);
+    return [];
+  }
+}
+
+// Get eBird taxonomy data
+export async function fetchBirdTaxonomy(speciesCode = null) {
+  try {
+    const params = new URLSearchParams({
+      endpoint: 'taxonomy'
+    });
+    if (speciesCode) {
+      params.append('speciesCode', speciesCode);
+    }
+    
+    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn('Failed to fetch bird taxonomy');
+      return [];
+    }
+    
+    const data = await response.json();
+    return data || [];
+  } catch (err) {
+    console.error('Failed to fetch bird taxonomy:', err);
+    return [];
+  }
+}
+
+// Get top 100 contributors for a region
+export async function fetchTopContributors(regionCode) {
+  try {
+    const params = new URLSearchParams({
+      endpoint: 'top100',
+      regionCode: regionCode
+    });
+    
+    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn('Failed to fetch top contributors');
+      return [];
+    }
+    
+    const data = await response.json();
+    return data || [];
+  } catch (err) {
+    console.error('Failed to fetch top contributors:', err);
     return [];
   }
 }

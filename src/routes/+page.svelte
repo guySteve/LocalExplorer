@@ -7,7 +7,8 @@
 		searchBreweries, 
 		searchNationalParks, 
 		searchRecreationAreas,
-		searchBirdSightings
+		searchBirdSightings,
+		fetchBirdHotspots
 	} from '$lib/utils/api-extended';
 	
 	// Import components
@@ -79,6 +80,10 @@
 					results = await searchBirdSightings(lat, lng, 'rare');
 				} else if (item.value === 'bird-hotspots') {
 					results = await searchBirdSightings(lat, lng, 'hotspots');
+				} else if (item.value === 'bird-hotspots-nearby') {
+					results = await fetchBirdHotspots(lat, lng, 50);
+				} else if (item.value === 'bird-notable') {
+					results = await searchBirdSightings(lat, lng, 'notable');
 				} else {
 					// Local Events (Ticketmaster)
 					const classification = item.value === 'all' ? '' : item.value;
