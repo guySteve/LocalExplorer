@@ -99,7 +99,7 @@
 	>
 		<div class="modal-header">
 			<h3>{title}</h3>
-			<button class="close-btn" on:click={closeModal} type="button" aria-label="Close">×</button>
+			<button class="close-btn" on:click|stopPropagation={closeModal} type="button" aria-label="Close">×</button>
 		</div>
 		
 		{#if loading}
@@ -177,6 +177,14 @@
 		padding-bottom: 1rem;
 		border-bottom: 1px solid rgba(200, 121, 65, 0.2);
 		margin-bottom: 1rem;
+		position: relative;
+		z-index: 10;
+	}
+	
+	.modal-header .close-btn {
+		position: relative;
+		z-index: 11;
+		touch-action: manipulation;
 	}
 	
 	.loading-state, .empty-state {

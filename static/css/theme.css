@@ -41,8 +41,44 @@ body.theme-aurora {
 }
 
 body.theme-arcane {
-  background-image: radial-gradient(150% 140% at 50% -30%, rgba(100,63,165,0.75) 0%, #0b0d1f 65%, #060712 100%);
+  background-image: 
+    repeating-linear-gradient(60deg, transparent 0px, transparent 40px, rgba(247,200,115,0.02) 40px, rgba(247,200,115,0.02) 42px),
+    repeating-linear-gradient(-60deg, transparent 0px, transparent 40px, rgba(100,63,165,0.03) 40px, rgba(100,63,165,0.03) 42px),
+    radial-gradient(150% 140% at 50% -30%, rgba(100,63,165,0.75) 0%, #0b0d1f 65%, #060712 100%);
   color: var(--text-light);
+}
+
+/* Arcane hextech glow effects */
+body.theme-arcane h1,
+body.theme-arcane h2,
+body.theme-arcane h3 {
+  text-shadow: 
+    0 0 8px rgba(247,200,115,0.6),
+    0 0 16px rgba(247,200,115,0.3),
+    0 2px 4px rgba(0,0,0,0.8);
+}
+
+body.theme-arcane button,
+body.theme-arcane .filter-btn {
+  box-shadow: 
+    0 0 12px rgba(247,200,115,0.3),
+    0 4px 16px rgba(0,0,0,0.4),
+    inset 0 0 8px rgba(247,200,115,0.1);
+}
+
+body.theme-arcane button:hover,
+body.theme-arcane .filter-btn:hover {
+  box-shadow: 
+    0 0 20px rgba(247,200,115,0.5),
+    0 6px 20px rgba(0,0,0,0.5),
+    inset 0 0 12px rgba(247,200,115,0.15);
+}
+
+body.theme-arcane #weatherWidget,
+body.theme-arcane #locationDisplay {
+  box-shadow: 
+    0 0 15px rgba(100,63,165,0.4),
+    0 8px 24px rgba(0,0,0,0.5);
 }
 
 body.theme-solstice {
