@@ -2,6 +2,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
+	import { GOOGLE_COMPASS_MAP_ID } from '$lib/utils/uiConstants';
 
 	const dispatch = createEventDispatcher();
 	
@@ -40,7 +41,6 @@
 	
 	// Constants
 	const HEADING_SMOOTH = 0.12;
-	const GOOGLE_MAP_ID = 'aa21b88ff243203e342ea23b';
 	
 	// Reactive: Start/stop services when visible changes
 	$: if (visible && browser) {
@@ -138,7 +138,7 @@
 			map = new window.google.maps.Map(mapContainer, {
 				center: { lat: currentPosition.lat, lng: currentPosition.lng },
 				zoom: 18,
-				mapId: GOOGLE_MAP_ID,
+				mapId: GOOGLE_COMPASS_MAP_ID,
 				disableDefaultUI: true,
 				gestureHandling: 'none',
 				keyboardShortcuts: false,
@@ -147,7 +147,7 @@
 			});
 			
 			mapInitialized = true;
-			console.log('Compass: Map initialized with ID:', GOOGLE_MAP_ID);
+			console.log('Compass: Map initialized with ID:', GOOGLE_COMPASS_MAP_ID);
 		} catch (error) {
 			console.error('Compass: Error initializing map:', error);
 		}
@@ -438,7 +438,7 @@
 
 {#if visible}
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="compass-overlay" class:active={visible} on:click={close} on:keydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="0">
+<div class="compass-overlay" class:active={visible} on:click={close} on:keydown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }} role="dialog" aria-modal="true" tabindex="0">
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div class="compass-container" on:click={(e) => e.stopPropagation()} on:keydown={(e) => e.stopPropagation()} role="document" tabindex="-1">
 		<!-- Header -->
@@ -447,7 +447,7 @@
 				<h2 class="compass-title">🧭 Compass</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
-			<button class="close-btn" on:click={close} aria-label="Close compass" type="button">×</button>
+			<button class="close-btn" on:click={close} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }} aria-label="Close compass" type="button">×</button>
 		</div>
 		
 		<!-- Status -->
