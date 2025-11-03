@@ -265,14 +265,19 @@
 		const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 		const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 		
-		if (diffHours < 0) return null; // Event already passed
+		// If event already passed today, it might be tomorrow
+		if (diffHours < 0 && diffHours > -24) return null; // Event passed today
 		
-		if (diffHours === 0) {
-			return `${diffMinutes}m`;
-		} else if (diffHours < 24) {
-			return `${diffHours}h ${diffMinutes}m`;
+		// Show countdown for events within the next 24 hours
+		if (diffHours >= 0 && diffHours < 24) {
+			if (diffHours === 0) {
+				return `${diffMinutes}m`;
+			} else {
+				return `${diffHours}h ${diffMinutes}m`;
+			}
 		}
-		return null;
+		
+		return null; // Event is too far in the future or past
 	}
 	
 	$: sunriseTime = weather?.sunrise ? getTimeUntilSunEvent(weather.sunrise) : null;
