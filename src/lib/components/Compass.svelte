@@ -173,16 +173,27 @@
 			map = new window.google.maps.Map(mapContainer, {
 				center: { lat: currentPosition.lat, lng: currentPosition.lng },
 				zoom: 18,
-				mapId: GOOGLE_COMPASS_MAP_ID,
-				disableDefaultUI: true,
-				gestureHandling: 'none',
-				keyboardShortcuts: false,
+				mapTypeId: 'terrain', // Terrain style map
+				disableDefaultUI: false, // Enable default UI controls
+				zoomControl: true, // Show zoom controls
+				mapTypeControl: true, // Show map type control
+				mapTypeControlOptions: {
+					style: window.google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+					position: window.google.maps.ControlPosition.TOP_RIGHT
+				},
+				zoomControlOptions: {
+					position: window.google.maps.ControlPosition.RIGHT_CENTER
+				},
+				streetViewControl: false, // Disable street view
+				fullscreenControl: false, // Disable fullscreen
+				gestureHandling: 'greedy', // Allow map interaction
+				keyboardShortcuts: true,
 				heading: 0, // Will be updated based on device orientation
-				tilt: 45 // 3D view
+				tilt: 0 // Flat view for terrain style
 			});
 			
 			mapInitialized = true;
-			console.log('Compass: Map initialized with ID:', GOOGLE_COMPASS_MAP_ID);
+			console.log('Compass: Map initialized with terrain style');
 		} catch (error) {
 			console.error('Compass: Error initializing map:', error);
 			mapInitialized = false;
@@ -859,10 +870,10 @@
 		transform-origin: center center;
 		z-index: 3;
 		pointer-events: none;
-		width: 70px;
-		height: 70px;
-		margin-left: -35px;
-		margin-top: -35px;
+		width: 50px;
+		height: 50px;
+		margin-left: -25px;
+		margin-top: -25px;
 		transition: transform 0.05s linear; /* Smooth but responsive */
 	}
 	
@@ -990,10 +1001,10 @@
 		}
 		
 		.person-icon {
-			width: 50px;
-			height: 50px;
-			margin-left: -25px;
-			margin-top: -25px;
+			width: 40px;
+			height: 40px;
+			margin-left: -20px;
+			margin-top: -20px;
 		}
 	}
 </style>
