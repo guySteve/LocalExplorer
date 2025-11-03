@@ -4,6 +4,7 @@
 	import { fetchWhat3Words } from '$lib/utils/api-extended';
 	import { getPlaceDetails } from '$lib/utils/api';
 	import { currentPosition } from '$lib/stores/appState';
+	import { SWIPE_CLOSE_THRESHOLD } from '$lib/utils/uiConstants';
 	import { get } from 'svelte/store';
 	
 	const dispatch = createEventDispatcher();
@@ -26,6 +27,7 @@
 	let startY = 0;
 	let currentY = 0;
 	let isDragging = false;
+	let animationFrameId = null;
 	
 	function getPlaceCoordinates() {
 		if (!place) return null;
@@ -163,9 +165,16 @@
 		currentY = e.touches[0].clientY;
 		const diff = currentY - startY;
 		
-		// Only allow downward swipe
+		// Only allow downward swipe, use requestAnimationFrame for performance
 		if (diff > 0 && sheetElement) {
-			sheetElement.style.transform = `translateY(${diff}px)`;
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId);
+			}
+			animationFrameId = requestAnimationFrame(() => {
+				if (sheetElement) {
+					sheetElement.style.transform = `translateY(${diff}px)`;
+				}
+			});
 		}
 	}
 	
@@ -173,10 +182,15 @@
 		if (!isDragging) return;
 		isDragging = false;
 		
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+		
 		const diff = currentY - startY;
 		
-		// If swiped down more than 100px, close the sheet
-		if (diff > 100) {
+		// If swiped down more than threshold, close the sheet
+		if (diff > SWIPE_CLOSE_THRESHOLD) {
 			close();
 		} else if (sheetElement) {
 			// Reset position with animation
