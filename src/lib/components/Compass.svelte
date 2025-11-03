@@ -478,7 +478,9 @@
 		<!-- Header -->
 		<div class="compass-header">
 			<div>
-				<h2 class="compass-title">🧭 Compass</h2>
+				<h2 class="compass-title">
+					<span class="compass-icon"></span> Compass
+				</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
 			<button class="close-btn" on:click={close} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }} aria-label="Close compass" type="button">×</button>
@@ -626,6 +628,33 @@
 		font-size: 1.5rem;
 		font-weight: 700;
 		color: var(--text-light);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	
+	.compass-icon {
+		display: inline-block;
+		width: 0;
+		height: 0;
+		border-left: 8px solid transparent;
+		border-right: 8px solid transparent;
+		border-bottom: 14px solid currentColor;
+		position: relative;
+		flex-shrink: 0;
+	}
+	
+	.compass-icon::after {
+		content: '';
+		position: absolute;
+		width: 0;
+		height: 0;
+		border-left: 8px solid transparent;
+		border-right: 8px solid transparent;
+		border-top: 14px solid currentColor;
+		left: -8px;
+		top: 4px;
+		opacity: 0.5;
 	}
 	
 	.destination-label {

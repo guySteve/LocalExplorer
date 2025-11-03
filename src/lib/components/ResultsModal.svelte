@@ -167,6 +167,16 @@
 <style>
 	.modal-content {
 		transition: transform 0.3s ease;
+		display: flex;
+		flex-direction: column;
+		max-height: 80vh;
+	}
+	
+	.modal-header {
+		flex-shrink: 0;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid rgba(200, 121, 65, 0.2);
+		margin-bottom: 1rem;
 	}
 	
 	.loading-state, .empty-state {
@@ -190,9 +200,10 @@
 	}
 	
 	.results-list {
-		max-height: 60vh;
+		flex: 1;
 		overflow-y: auto;
 		padding: 0.5rem 0;
+		min-height: 0;
 	}
 	
 	.result-card {
@@ -288,6 +299,7 @@
 		cursor: pointer;
 		transition: all 0.3s ease;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		flex-shrink: 0;
 	}
 	
 	.load-more-btn:hover:not(:disabled) {
@@ -301,10 +313,6 @@
 	}
 	
 	@media (max-width: 768px) {
-		.results-list {
-			max-height: 55vh;
-		}
-		
 		.result-card {
 			padding: 0.9rem;
 			margin-bottom: 0.6rem;
@@ -320,10 +328,6 @@
 	}
 	
 	@media (max-width: 480px) {
-		.results-list {
-			max-height: 50vh;
-		}
-		
 		.result-card {
 			padding: 0.8rem;
 		}
