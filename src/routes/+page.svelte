@@ -382,7 +382,13 @@
 
 <CollectionModal 
 	visible={showMyCollection} 
-	on:close={() => showMyCollection = false} 
+	on:close={() => showMyCollection = false}
+	on:startTrip={(e) => {
+		showMyCollection = false;
+		compassDestination = e.detail.stops;
+		compassDestinationName = 'Your Day Plan';
+		showCompass = true;
+	}}
 />
 
 <SubMenuModal 
