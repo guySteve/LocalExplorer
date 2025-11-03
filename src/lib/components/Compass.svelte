@@ -229,8 +229,8 @@
 	function toggleMapType() {
 		if (map) {
 			const currentType = map.getMapTypeId();
-			const newType = currentType === 'terrain' ? 'satellite' : 
-			                currentType === 'satellite' ? 'roadmap' : 'terrain';
+			const mapTypeOrder = { 'terrain': 'satellite', 'satellite': 'roadmap', 'roadmap': 'terrain' };
+			const newType = mapTypeOrder[currentType] || 'terrain';
 			map.setMapTypeId(newType);
 		}
 	}
@@ -500,7 +500,7 @@
 	function getCardinalDirection(heading) {
 		const normalized = wrapAngle(heading);
 		for (const dir of CARDINAL_DIRECTIONS) {
-			if (normalized >= dir.min && normalized < dir.max) {
+			if (normalized >= dir.min && normalized <= dir.max) {
 				return dir.name;
 			}
 		}
