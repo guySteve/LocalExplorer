@@ -91,4 +91,28 @@
 	.sub-menu-item:active {
 		transform: translateY(-1px) scale(0.98);
 	}
+	
+	@media (max-width: 768px) {
+		.subMenuList {
+			grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+			gap: 0.5rem;
+		}
+		
+		.sub-menu-item {
+			padding: 1rem 0.6rem;
+			font-size: 0.9rem;
+			min-height: 44px; /* Minimum touch target size */
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.subMenuList {
+			grid-template-columns: 1fr;
+		}
+		
+		.sub-menu-item {
+			padding: 1.1rem 1rem;
+			font-size: 1rem;
+		}
+	}
 </style>
