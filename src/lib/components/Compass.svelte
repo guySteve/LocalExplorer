@@ -217,23 +217,41 @@
 	// Map control functions
 	function zoomIn() {
 		if (map) {
-			const currentZoom = map.getZoom();
-			map.setZoom(currentZoom + 1);
+			try {
+				const currentZoom = map.getZoom();
+				const maxZoom = map.mapTypes.get(map.getMapTypeId())?.maxZoom || 21;
+				if (currentZoom < maxZoom) {
+					map.setZoom(currentZoom + 1);
+				}
+			} catch (error) {
+				console.warn('Compass: Error zooming in:', error);
+			}
 		}
 	}
 	
 	function zoomOut() {
 		if (map) {
-			const currentZoom = map.getZoom();
-			map.setZoom(currentZoom - 1);
+			try {
+				const currentZoom = map.getZoom();
+				const minZoom = map.mapTypes.get(map.getMapTypeId())?.minZoom || 0;
+				if (currentZoom > minZoom) {
+					map.setZoom(currentZoom - 1);
+				}
+			} catch (error) {
+				console.warn('Compass: Error zooming out:', error);
+			}
 		}
 	}
 	
 	function toggleMapType() {
 		if (map) {
-			const currentType = map.getMapTypeId();
-			const newType = MAP_TYPE_ORDER[currentType] || 'terrain';
-			map.setMapTypeId(newType);
+			try {
+				const currentType = map.getMapTypeId();
+				const newType = MAP_TYPE_ORDER[currentType] || 'terrain';
+				map.setMapTypeId(newType);
+			} catch (error) {
+				console.warn('Compass: Error changing map type:', error);
+			}
 		}
 	}
 	
@@ -502,9 +520,7 @@
 	function getCardinalDirection(heading) {
 		const normalized = wrapAngle(heading);
 		for (const dir of CARDINAL_DIRECTIONS) {
-			// Use < for max comparison except for 360 boundary
-			const matchesMax = dir.max === 360 ? normalized <= dir.max : normalized < dir.max;
-			if (normalized >= dir.min && matchesMax) {
+			if (normalized >= dir.min && normalized < dir.max) {
 				return dir.name;
 			}
 		}
