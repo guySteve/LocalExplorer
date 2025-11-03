@@ -47,6 +47,8 @@
 	const MAX_MAP_INIT_RETRIES = 10; // Maximum number of retry attempts
 	
 	// Cardinal direction names for display
+	// Note: Boundaries are non-overlapping. Each range uses >= for min and < for max,
+	// so exact boundary values (22.5, 67.5, etc.) belong to the next direction.
 	const CARDINAL_DIRECTIONS = [
 		{ name: 'North', min: 337.5, max: 360 },
 		{ name: 'North', min: 0, max: 22.5 },
