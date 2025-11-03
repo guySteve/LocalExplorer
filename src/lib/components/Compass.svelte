@@ -14,10 +14,6 @@
 	let currentHeading = 0;
 	let ringHeadingTarget = 0;
 	let ringHeadingVisual = 0;
-	let pitchTarget = 0;
-	let pitchVisual = 0;
-	let rollTarget = 0;
-	let rollVisual = 0;
 	
 	let orientationReady = false;
 	let geolocationReady = false;
@@ -37,11 +33,14 @@
 	let navigationActive = false;
 	let permissionState = 'prompt'; // 'prompt', 'granted', or 'denied'
 	
+	// Google Map state
+	let mapContainer = null;
+	let map = null;
+	let mapInitialized = false;
+	
 	// Constants
-	const PITCH_LIMIT = 55;
-	const ROLL_LIMIT = 45;
 	const HEADING_SMOOTH = 0.12;
-	const TILT_SMOOTH = 0.15;
+	const GOOGLE_MAP_ID = 'aa21b88ff243203e342ea23b';
 	
 	// Reactive: Start/stop services when visible changes
 	$: if (visible && browser) {
@@ -55,6 +54,11 @@
 		requestSensorPermissions(); // Automatically request permissions on open
 		startGeolocationWatch();
 		startAnimation();
+		
+		// Initialize Google Map
+		if (mapContainer && !mapInitialized) {
+			initializeMap();
+		}
 		
 		// If we have a destination, fetch route
 		if (destination) {
@@ -124,6 +128,41 @@
 		currentStepIndex = 0;
 	}
 	
+	function initializeMap() {
+		if (!window.google || !window.google.maps || !currentPosition) {
+			console.log('Compass: Waiting for Google Maps or position...');
+			return;
+		}
+		
+		try {
+			map = new window.google.maps.Map(mapContainer, {
+				center: { lat: currentPosition.lat, lng: currentPosition.lng },
+				zoom: 18,
+				mapId: GOOGLE_MAP_ID,
+				disableDefaultUI: true,
+				gestureHandling: 'none',
+				keyboardShortcuts: false,
+				heading: 0, // Will be updated based on device orientation
+				tilt: 45 // 3D view
+			});
+			
+			mapInitialized = true;
+			console.log('Compass: Map initialized with ID:', GOOGLE_MAP_ID);
+		} catch (error) {
+			console.error('Compass: Error initializing map:', error);
+		}
+	}
+	
+	// Update map heading based on device orientation
+	$: if (map && orientationReady) {
+		map.setHeading(currentHeading);
+	}
+	
+	// Update map center when position changes
+	$: if (map && currentPosition) {
+		map.setCenter({ lat: currentPosition.lat, lng: currentPosition.lng });
+	}
+	
 	function startOrientationListener() {
 		if (orientationListener) return;
 		
@@ -146,8 +185,6 @@
 	
 	function handleOrientation(event) {
 		let heading = null;
-		let beta = event.beta; // Pitch
-		let gamma = event.gamma; // Roll
 		
 		if (typeof event.webkitCompassHeading === 'number') {
 			heading = normalizeHeading(event.webkitCompassHeading);
@@ -155,7 +192,6 @@
 			heading = normalizeHeading(event.alpha);
 		} else if (typeof event.alpha === 'number') {
 			// Fallback for non-absolute orientation
-			// This can be less reliable and might need calibration logic in a real app
 			heading = normalizeHeading(360 - event.alpha);
 		}
 		
@@ -163,15 +199,6 @@
 		
 		currentHeading = heading;
 		ringHeadingTarget = wrapAngle(360 - currentHeading);
-		
-		// Apply pitch and roll for 3D effect
-		if (typeof beta === 'number' && !isNaN(beta)) {
-			pitchTarget = clamp(beta * 0.5, -PITCH_LIMIT, PITCH_LIMIT);
-		}
-		
-		if (typeof gamma === 'number' && !isNaN(gamma)) {
-			rollTarget = clamp(gamma * 0.5, -ROLL_LIMIT, ROLL_LIMIT);
-		}
 		
 		orientationReady = true;
 	}
@@ -247,9 +274,6 @@
 			// Smoothly interpolate visual values towards targets
 			const headingStep = shortestAngle(ringHeadingVisual, ringHeadingTarget);
 			ringHeadingVisual = wrapAngle(ringHeadingVisual + headingStep * HEADING_SMOOTH);
-			
-			pitchVisual += (pitchTarget - pitchVisual) * TILT_SMOOTH;
-			rollVisual += (rollTarget - rollVisual) * TILT_SMOOTH;
 			
 			animationFrameId = requestAnimationFrame(animate);
 		};
@@ -408,8 +432,8 @@
 			destination ? 'Destination set' :
 			'Pointing North';
 	
-	$: transform = 
-		`perspective(1000px) rotateX(${pitchVisual}deg) rotateY(${rollVisual}deg) rotateZ(${ringHeadingVisual}deg)`;
+	$: ringTransform = `rotateZ(${ringHeadingVisual}deg)`;
+	$: personTransform = `rotateZ(${-currentHeading}deg)`; // Person icon rotates opposite to stay pointing in device direction
 </script>
 
 {#if visible}
@@ -438,7 +462,7 @@
 				<div class="permission-overlay">
 					{#if permissionState === 'prompt'}
 						<p>Compass requires sensor access to function.</p>
-						<button class="nav-btn primary" onclick={requestSensorPermissions}>
+						<button class="nav-btn primary" on:click={requestSensorPermissions}>
 							🛰️ Activate Sensors
 						</button>
 					{:else}
@@ -446,13 +470,25 @@
 					{/if}
 				</div>
 			{/if}
-			<div class="compass-ring" style="transform: {transform}">
+			
+			<!-- Outer rotating ring with cardinal directions -->
+			<div class="compass-ring" style="transform: {ringTransform}">
 				<div class="compass-marker north">N</div>
 				<div class="compass-marker east">E</div>
 				<div class="compass-marker south">S</div>
 				<div class="compass-marker west">W</div>
 			</div>
-			<div class="compass-needle">▲</div>
+			
+			<!-- Inner map container -->
+			<div class="compass-map-container">
+				<div class="compass-map" bind:this={mapContainer}></div>
+				
+				<!-- Person icon on top of map, rotating with device -->
+				<div class="person-icon" style="transform: {personTransform}">
+					<div class="person-body">🚶</div>
+					<div class="person-direction">▲</div>
+				</div>
+			</div>
 		</div>
 		
 		<!-- Heading Display -->
@@ -620,8 +656,8 @@
 	
 	.compass-dial-container {
 		position: relative;
-		width: 250px;
-		height: 250px;
+		width: 300px;
+		height: 300px;
 		margin: 2rem auto;
 	}
 
@@ -647,21 +683,27 @@
 		font-size: 0.9rem;
 	}
 	
+	/* Outer rotating ring - always points North */
 	.compass-ring {
+		position: absolute;
+		inset: 0;
 		width: 100%;
 		height: 100%;
 		border: 4px solid var(--primary);
 		border-radius: 50%;
-		position: relative;
-		background: radial-gradient(circle, rgba(var(--primary-rgb, 200, 121, 65), 0.1), transparent);
+		background: transparent;
 		transition: transform 0.1s ease-out;
+		pointer-events: none;
+		z-index: 2;
 	}
 	
+	/* Cardinal direction markers on the ring */
 	.compass-marker {
 		position: absolute;
 		font-weight: 900;
 		font-size: 1.5rem;
 		color: var(--text-light);
+		pointer-events: none;
 	}
 	
 	.compass-marker.north {
@@ -690,15 +732,48 @@
 		transform: translateY(-50%);
 	}
 	
-	.compass-needle {
+	/* Map container inside the compass */
+	.compass-map-container {
+		position: absolute;
+		inset: 10px;
+		border-radius: 50%;
+		overflow: hidden;
+		z-index: 1;
+		box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+	}
+	
+	.compass-map {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+	}
+	
+	/* Person icon on top of map */
+	.person-icon {
 		position: absolute;
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
-		font-size: 3rem;
-		color: var(--accent);
-		filter: drop-shadow(0 0 10px var(--accent));
+		transform-origin: center;
+		z-index: 3;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 		pointer-events: none;
+		margin-left: -15px;
+		margin-top: -25px;
+		transition: transform 0.1s ease-out;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+	}
+	
+	.person-body {
+		font-size: 2rem;
+		line-height: 1;
+	}
+	
+	.person-direction {
+		font-size: 1.5rem;
+		color: var(--accent);
+		margin-top: -8px;
 	}
 	
 	.heading-display {
@@ -806,8 +881,8 @@
 	
 	@media (max-width: 768px) {
 		.compass-dial-container {
-			width: 200px;
-			height: 200px;
+			width: 240px;
+			height: 240px;
 		}
 		
 		.heading-value {
@@ -816,6 +891,14 @@
 		
 		.navigation-buttons {
 			flex-direction: column;
+		}
+		
+		.person-body {
+			font-size: 1.6rem;
+		}
+		
+		.person-direction {
+			font-size: 1.2rem;
 		}
 	}
 </style>

@@ -152,6 +152,13 @@ export const categories = {
 
 // Apply theme to document
 if (browser) {
+  // Load saved theme first, before subscribing
+  const savedTheme = localStorage.getItem('currentTheme');
+  if (savedTheme && THEMES[savedTheme]) {
+    currentTheme.set(savedTheme);
+  }
+  
+  // Then subscribe to changes
   currentTheme.subscribe(themeKey => {
     const theme = THEMES[themeKey] || THEMES[DEFAULT_THEME];
     const root = document.documentElement;
@@ -160,12 +167,6 @@ if (browser) {
     });
     localStorage.setItem('currentTheme', themeKey);
   });
-  
-  // Load saved theme
-  const savedTheme = localStorage.getItem('currentTheme');
-  if (savedTheme && THEMES[savedTheme]) {
-    currentTheme.set(savedTheme);
-  }
 
   showBirdSightings.subscribe(value => {
     localStorage.setItem('showBirdSightings', value ? 'true' : 'false');
