@@ -39,6 +39,8 @@
 	let mapContainer = null;
 	let map = null;
 	let mapInitialized = false;
+	let isMapCentered = true; // Track if map is auto-centering
+	let currentZoom = 18; // Track current zoom level
 	
 	// Constants
 	const HEADING_SMOOTH = 0.2; // Increased for smoother rotation
@@ -189,13 +191,25 @@
 		try {
 			map = new window.google.maps.Map(mapContainer, {
 				center: { lat: currentPosition.lat, lng: currentPosition.lng },
-				zoom: 18,
+				zoom: currentZoom,
 				mapTypeId: 'terrain', // Terrain style map
 				disableDefaultUI: true, // Disable all default UI - we'll add controls outside
 				gestureHandling: 'greedy', // Allow map interaction
 				keyboardShortcuts: true,
 				heading: 0, // Will be updated based on device orientation
 				tilt: 0 // Flat view for terrain style
+			});
+			
+			// Listen for user-initiated drag events
+			map.addListener('dragstart', () => {
+				isMapCentered = false;
+			});
+			
+			// Listen for zoom changes
+			map.addListener('zoom_changed', () => {
+				if (map) {
+					currentZoom = map.getZoom();
+				}
 			});
 			
 			mapInitialized = true;
@@ -211,8 +225,8 @@
 		map.setHeading(currentHeading);
 	}
 	
-	// Update map center when position changes
-	$: if (map && currentPosition) {
+	// Update map center when position changes, but only if auto-centering is enabled
+	$: if (map && currentPosition && isMapCentered) {
 		map.setCenter({ lat: currentPosition.lat, lng: currentPosition.lng });
 	}
 	
@@ -257,6 +271,24 @@
 		}
 	}
 	
+	function recenterMap() {
+		isMapCentered = true;
+		if (map && currentPosition) {
+			map.setCenter({ lat: currentPosition.lat, lng: currentPosition.lng });
+		}
+	}
+	
+	// Get the next map type label for display
+	$: nextMapTypeLabel = map ? (() => {
+		try {
+			const currentType = map.getMapTypeId();
+			const nextType = MAP_TYPE_ORDER[currentType] || 'terrain';
+			return nextType.charAt(0).toUpperCase() + nextType.slice(1);
+		} catch (error) {
+			return 'Terrain';
+		}
+	})() : 'Terrain';
+	
 	function startOrientationListener() {
 		if (orientationListener) return;
 		
@@ -293,7 +325,8 @@
 		
 		currentHeading = heading;
 		ringHeadingTarget = wrapAngle(360 - currentHeading);
-		personHeadingTarget = -currentHeading;
+		// Wrap personHeadingTarget to 0-360 range to prevent wobble at 0/360 crossing
+		personHeadingTarget = wrapAngle(-currentHeading);
 		
 		orientationReady = true;
 	}
@@ -366,13 +399,13 @@
 		if (animationFrameId) return;
 		
 		const animate = () => {
-			// Smoothly interpolate visual values towards targets
+			// Smoothly interpolate visual values towards targets using shortest angle
 			const headingStep = shortestAngle(ringHeadingVisual, ringHeadingTarget);
 			ringHeadingVisual = wrapAngle(ringHeadingVisual + headingStep * HEADING_SMOOTH);
 			
-			// Smooth person icon rotation as well
+			// Smooth person icon rotation using shortest angle to prevent wobble
 			const personStep = shortestAngle(personHeadingVisual, personHeadingTarget);
-			personHeadingVisual = personHeadingVisual + personStep * HEADING_SMOOTH;
+			personHeadingVisual = wrapAngle(personHeadingVisual + personStep * HEADING_SMOOTH);
 			
 			animationFrameId = requestAnimationFrame(animate);
 		};
@@ -609,16 +642,15 @@
 			<div class="compass-map-container">
 				<div class="compass-map" bind:this={mapContainer}></div>
 				
-				<!-- Arrow icon on top of map, rotating with device -->
-				<div class="person-icon" style="transform: {personTransform}">
-					<svg viewBox="0 0 100 100" class="compass-arrow" role="img" aria-label="Direction indicator">
-						<!-- Drop shadow for depth -->
+				<!-- Fixed center dot showing user's location -->
+				<div class="location-center-dot" style="transform: scale({Math.max(0.5, Math.min(2, currentZoom / 18))})">
+					<svg viewBox="0 0 100 100" class="center-dot-svg" role="img" aria-label="Your location">
 						<defs>
-							<filter id="arrowShadow" x="-50%" y="-50%" width="200%" height="200%">
-								<feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-								<feOffset dx="0" dy="2" result="offsetblur"/>
+							<filter id="centerDotGlow" x="-50%" y="-50%" width="200%" height="200%">
+								<feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+								<feOffset dx="0" dy="0" result="offsetblur"/>
 								<feComponentTransfer>
-									<feFuncA type="linear" slope="0.5"/>
+									<feFuncA type="linear" slope="0.8"/>
 								</feComponentTransfer>
 								<feMerge>
 									<feMergeNode/>
@@ -627,18 +659,38 @@
 							</filter>
 						</defs>
 						
-						<!-- Simplified modern arrow pointing up -->
-						<path 
-							d="M 50 20 L 58 40 L 54 40 L 54 65 L 46 65 L 46 40 L 42 40 Z" 
-							fill="var(--primary, #c87941)"
-							stroke="white"
-							stroke-width="1.5"
-							stroke-linejoin="round"
-							filter="url(#arrowShadow)"
-						/>
+						<!-- Center position dot -->
+						<circle cx="50" cy="50" r="8" fill="var(--primary, #c87941)" stroke="white" stroke-width="3" filter="url(#centerDotGlow)" />
+					</svg>
+				</div>
+				
+				<!-- Rotating arc indicator showing device heading -->
+				<div class="heading-arc-indicator" style="transform: {personTransform} scale({Math.max(0.5, Math.min(2, currentZoom / 18))})">
+					<svg viewBox="0 0 100 100" class="arc-svg" role="img" aria-label="Direction indicator">
+						<defs>
+							<filter id="arcGlow" x="-50%" y="-50%" width="200%" height="200%">
+								<feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+								<feOffset dx="0" dy="1" result="offsetblur"/>
+								<feComponentTransfer>
+									<feFuncA type="linear" slope="0.6"/>
+								</feComponentTransfer>
+								<feMerge>
+									<feMergeNode/>
+									<feMergeNode in="SourceGraphic"/>
+								</feMerge>
+							</filter>
+						</defs>
 						
-						<!-- Center position indicator -->
-						<circle cx="50" cy="50" r="4" fill="white" stroke="var(--primary, #c87941)" stroke-width="1.5" opacity="0.9" />
+						<!-- Arc shape (C shape) pointing upward -->
+						<path 
+							d="M 50 15 A 25 25 0 0 1 70 50 A 25 25 0 0 1 50 75"
+							fill="none"
+							stroke="var(--primary, #c87941)"
+							stroke-width="4"
+							stroke-linecap="round"
+							filter="url(#arcGlow)"
+							opacity="0.85"
+						/>
 					</svg>
 				</div>
 			</div>
@@ -658,14 +710,26 @@
 						<line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/>
 					</svg>
 				</button>
-				<button class="map-control-btn" on:click={toggleMapType} aria-label="Change map type" title="Change map type">
+				<button class="map-control-btn map-type-btn" on:click={toggleMapType} aria-label="Change to {nextMapTypeLabel}" title="Switch to {nextMapTypeLabel}">
 					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
 						<rect x="3" y="3" width="7" height="7" stroke-width="2"/>
 						<rect x="14" y="3" width="7" height="7" stroke-width="2"/>
 						<rect x="3" y="14" width="7" height="7" stroke-width="2"/>
 						<rect x="14" y="14" width="7" height="7" stroke-width="2"/>
 					</svg>
+					<span class="map-type-label">{nextMapTypeLabel}</span>
 				</button>
+				{#if !isMapCentered}
+					<button class="map-control-btn recenter-btn" on:click={recenterMap} aria-label="Re-center map" title="Re-center on your location">
+						<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+							<circle cx="12" cy="12" r="3" stroke-width="2"/>
+							<line x1="12" y1="2" x2="12" y2="6" stroke-width="2"/>
+							<line x1="12" y1="18" x2="12" y2="22" stroke-width="2"/>
+							<line x1="2" y1="12" x2="6" y2="12" stroke-width="2"/>
+							<line x1="18" y1="12" x2="22" y2="12" stroke-width="2"/>
+						</svg>
+					</button>
+				{/if}
 			</div>
 		{/if}
 		
@@ -804,6 +868,7 @@
 		font-size: 0.9rem;
 		color: var(--primary);
 		font-weight: 600;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
 	.close-btn {
@@ -857,6 +922,7 @@
 		font-size: 0.9rem;
 		color: var(--text-light);
 		font-weight: 600;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
 	.compass-dial-container {
@@ -953,23 +1019,43 @@
 		border-radius: 50%;
 	}
 	
-	/* Arrow icon on top of map */
-	.person-icon {
+	/* Fixed center dot showing user location */
+	.location-center-dot {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: 4;
+		pointer-events: none;
+		width: 24px;
+		height: 24px;
+		margin-left: -12px;
+		margin-top: -12px;
+		transform-origin: center center;
+		transition: transform 0.3s ease-out;
+	}
+	
+	.center-dot-svg {
+		width: 100%;
+		height: 100%;
+	}
+	
+	/* Rotating arc indicator showing heading */
+	.heading-arc-indicator {
 		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform-origin: center center;
 		z-index: 3;
 		pointer-events: none;
-		width: 32px;
-		height: 32px;
-		margin-left: -16px;
-		margin-top: -16px;
-		transition: transform 0.1s ease-out; /* Smooth but responsive */
+		width: 64px;
+		height: 64px;
+		margin-left: -32px;
+		margin-top: -32px;
+		transition: transform 0.1s ease-out;
 		opacity: 0.95;
 	}
 	
-	.compass-arrow {
+	.arc-svg {
 		width: 100%;
 		height: 100%;
 		filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
@@ -988,15 +1074,43 @@
 		background: var(--card);
 		border: 2px solid rgba(var(--card-rgb, 26, 43, 68), 0.2);
 		border-radius: 8px;
-		width: 44px;
+		min-width: 44px;
 		height: 44px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: 0.5rem;
 		cursor: pointer;
 		transition: all 0.2s ease;
 		color: var(--text-light);
-		padding: 0;
+		padding: 0 0.5rem;
+	}
+	
+	.map-type-btn {
+		width: auto;
+		padding: 0 0.75rem;
+	}
+	
+	.map-type-label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+		white-space: nowrap;
+	}
+	
+	.recenter-btn {
+		background: var(--primary);
+		border-color: var(--primary);
+		animation: pulse 2s ease-in-out infinite;
+	}
+	
+	@keyframes pulse {
+		0%, 100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.7;
+		}
 	}
 	
 	.map-control-btn:hover {
@@ -1020,6 +1134,7 @@
 		font-weight: 900;
 		color: var(--primary);
 		font-family: var(--font-primary);
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
 	.heading-label {
@@ -1027,6 +1142,7 @@
 		color: var(--text-light);
 		opacity: 0.8;
 		margin-top: 0.25rem;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
 	.compass-stats {
@@ -1054,6 +1170,7 @@
 		font-size: 1.25rem;
 		font-weight: 700;
 		color: var(--primary);
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
 	.navigation-controls {
@@ -1127,16 +1244,27 @@
 			flex-direction: column;
 		}
 		
-		.person-icon {
-			width: 28px;
-			height: 28px;
-			margin-left: -14px;
-			margin-top: -14px;
+		.location-center-dot {
+			width: 20px;
+			height: 20px;
+			margin-left: -10px;
+			margin-top: -10px;
+		}
+		
+		.heading-arc-indicator {
+			width: 56px;
+			height: 56px;
+			margin-left: -28px;
+			margin-top: -28px;
 		}
 		
 		.map-control-btn {
-			width: 40px;
+			min-width: 40px;
 			height: 40px;
+		}
+		
+		.map-type-label {
+			font-size: 0.75rem;
 		}
 	}
 </style>
