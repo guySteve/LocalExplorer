@@ -8,6 +8,9 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	// Configuration constants
+	const REVIEW_TEXT_MAX_LENGTH = 150;
+	
 	// Props
 	export let place = null;
 	export let visible = false;
@@ -58,7 +61,7 @@
 		if (!place || !place.id) return;
 		
 		// Only fetch reviews for Google Places
-		if (place.provider !== 'Google' && place.provider !== 'google') {
+		if (place.provider?.toLowerCase() !== 'google') {
 			reviews = [];
 			return;
 		}
@@ -293,7 +296,7 @@
                   <div class="review-time">{review.relative_time_description}</div>
                 </div>
                 <p class="review-text">
-                  {review.text.length > 150 ? review.text.substring(0, 150) + '...' : review.text}
+                  {review.text.length > REVIEW_TEXT_MAX_LENGTH ? review.text.substring(0, REVIEW_TEXT_MAX_LENGTH) + '...' : review.text}
                 </p>
               </div>
             {/each}
