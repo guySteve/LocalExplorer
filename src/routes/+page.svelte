@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { currentPosition, currentResults, latestLocationLabel, categories } from '$lib/stores/appState';
+	import { currentPosition, currentResults, latestLocationLabel, categories, currentWeatherCondition } from '$lib/stores/appState';
 	import { searchGooglePlaces, performUnifiedSearch, calculateDistance, MILES_TO_METERS } from '$lib/utils/api';
 	import { 
 		searchLocalEvents, 

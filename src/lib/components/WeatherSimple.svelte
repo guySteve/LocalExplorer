@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode } from '$lib/stores/appState';
+	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode, currentWeatherCondition } from '$lib/stores/appState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
 
@@ -157,6 +157,10 @@
 		const condition = getWeatherCondition(weatherCode);
 		const icon = getWeatherIcon(weatherCode);
 
+		// Store the normalized weather condition for context-aware sorting
+		const normalizedCondition = normalizeWeatherCondition(weatherCode);
+		currentWeatherCondition.set(normalizedCondition);
+
 		const currentHour = new Date().getHours();
 		const currentIndex = hourly.time ? hourly.time.findIndex(t => new Date(t).getHours() === currentHour) : 0;
 
@@ -178,6 +182,15 @@
 				precipChance: daily.precipitation_probability_max?.[i] || 0
 			})) : []
 		};
+	}
+
+	function normalizeWeatherCondition(code) {
+		// Normalize to simple categories for sorting logic
+		if (code >= 61 && code <= 82) return 'rain';
+		if (code >= 71 && code <= 86) return 'snow';
+		if (code === 0 || code === 1) return 'sunny';
+		if (code >= 95) return 'storm';
+		return 'clear';
 	}
 
 	function parseHistoricalData(data, lastYearDate) {

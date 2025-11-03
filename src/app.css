@@ -2,6 +2,14 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Font size variables for accessibility */
+  --font-size-base: 1rem;
+  --font-size-small: 0.85rem;
+  --font-size-large: 1.15rem;
+  --font-size-xlarge: 1.3rem;
+}
+
 body {
   margin: 0;
   font-family: var(--font-secondary, 'Raleway', sans-serif);
@@ -14,6 +22,22 @@ body {
   min-height: 100vh;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   transition: background-color 0.5s ease, color 0.5s ease;
+  font-size: var(--font-size-base);
+}
+
+/* Font size adjustments */
+body[data-font-size="small"] {
+  --font-size-base: 0.9rem;
+  --font-size-small: 0.75rem;
+  --font-size-large: 1rem;
+  --font-size-xlarge: 1.15rem;
+}
+
+body[data-font-size="large"] {
+  --font-size-base: 1.15rem;
+  --font-size-small: 1rem;
+  --font-size-large: 1.3rem;
+  --font-size-xlarge: 1.5rem;
 }
 
 .appShell {
@@ -150,6 +174,46 @@ h1, h2, h3 {
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
+    #voiceSearchBtn {
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      background-color: var(--background);
+      color: var(--card);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      min-width: 50px;
+    }
+    
+    #voiceSearchBtn:hover:not(:disabled) {
+      background-color: var(--accent);
+      color: var(--text-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+    
+    #voiceSearchBtn.listening {
+      background-color: var(--primary);
+      color: var(--text-light);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+    
+    #voiceSearchBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
     #unifiedSearchBtn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(0,0,0,0.2);
@@ -157,6 +221,11 @@ h1, h2, h3 {
     
     #unifiedSearchBtn:active {
       transform: translateY(0);
+    }
+    
+    #unifiedSearchBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     
     #localAlertsWidget {

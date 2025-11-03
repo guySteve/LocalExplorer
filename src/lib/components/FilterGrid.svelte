@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import { categories } from '$lib/stores/appState';
+	import { categories, currentWeatherCondition } from '$lib/stores/appState';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -19,6 +19,31 @@
 		'Bird Watching': '🐦'
 	};
 	
+	// Reactive category ordering based on weather
+	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Bird Watching'), $currentWeatherCondition);
+	
+	function reorderCategoriesByWeather(categoryList, weatherCondition) {
+		const list = [...categoryList];
+		
+		// Define weather-based priority
+		if (weatherCondition === 'rain' || weatherCondition === 'snow') {
+			// Move outdoor categories to the end
+			const outdoorCategories = ['Outdoor', 'Recreation'];
+			const outdoor = list.filter(cat => outdoorCategories.includes(cat));
+			const rest = list.filter(cat => !outdoorCategories.includes(cat));
+			return [...rest, ...outdoor];
+		} else if (weatherCondition === 'sunny') {
+			// Move outdoor categories to the beginning
+			const outdoorCategories = ['Outdoor', 'Recreation'];
+			const outdoor = list.filter(cat => outdoorCategories.includes(cat));
+			const rest = list.filter(cat => !outdoorCategories.includes(cat));
+			return [...outdoor, ...rest];
+		}
+		
+		// Default order
+		return list;
+	}
+	
 	function handleCategoryClick(categoryName) {
 		const categoryItems = categories[categoryName];
 		if (categoryItems && categoryItems.length > 0) {
@@ -31,7 +56,7 @@
 </script>
 
 <div class="filters" id="filterGrid">
-	{#each Object.keys(categories).filter(cat => cat !== 'Bird Watching') as category, i}
+	{#each orderedCategories as category, i (category)}
 		<button 
 			class="filter-btn"
 			on:click={() => handleCategoryClick(category)}

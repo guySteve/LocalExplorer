@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentTheme, selectedVoiceUri, showBirdSightings, sassyWeatherMode, voiceNavigationEnabled } from '$lib/stores/appState';
+	import { currentTheme, selectedVoiceUri, showBirdSightings, sassyWeatherMode, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
 	import { browser } from '$app/environment';
 	
 	const dispatch = createEventDispatcher();
@@ -172,6 +172,16 @@ function handleClose() {
 					<span class="toggle-slider"></span>
 				</button>
 			</div>
+		</div>
+
+		<div class="setting-group">
+			<label for="fontSizeSelect">Font Size</label>
+			<select id="fontSizeSelect" bind:value={$fontSize}>
+				<option value="small">Small</option>
+				<option value="medium">Medium</option>
+				<option value="large">Large</option>
+			</select>
+			<span class="setting-hint">Adjust text size for better readability.</span>
 		</div>
 
 		{#if $voiceNavigationEnabled && availableVoices.length > 0}
