@@ -59,6 +59,9 @@
 		{ name: 'Northwest', min: 292.5, max: 337.5 }
 	];
 	
+	// Map type cycling order
+	const MAP_TYPE_ORDER = { 'terrain': 'satellite', 'satellite': 'roadmap', 'roadmap': 'terrain' };
+	
 	// Retry counter for map initialization
 	let mapInitRetryCount = 0;
 	
@@ -229,8 +232,7 @@
 	function toggleMapType() {
 		if (map) {
 			const currentType = map.getMapTypeId();
-			const mapTypeOrder = { 'terrain': 'satellite', 'satellite': 'roadmap', 'roadmap': 'terrain' };
-			const newType = mapTypeOrder[currentType] || 'terrain';
+			const newType = MAP_TYPE_ORDER[currentType] || 'terrain';
 			map.setMapTypeId(newType);
 		}
 	}
@@ -500,7 +502,9 @@
 	function getCardinalDirection(heading) {
 		const normalized = wrapAngle(heading);
 		for (const dir of CARDINAL_DIRECTIONS) {
-			if (normalized >= dir.min && normalized <= dir.max) {
+			// Use < for max comparison except for 360 boundary
+			const matchesMax = dir.max === 360 ? normalized <= dir.max : normalized < dir.max;
+			if (normalized >= dir.min && matchesMax) {
 				return dir.name;
 			}
 		}
