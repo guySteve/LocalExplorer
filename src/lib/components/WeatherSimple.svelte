@@ -99,7 +99,7 @@
 			longitude: lng.toFixed(4),
 			current_weather: 'true',
 			hourly: 'temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_probability,weathercode',
-			daily: 'weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+			daily: 'weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max',
 			temperature_unit: 'fahrenheit',
 			timezone: 'auto',
 			forecast_days: '7'
@@ -167,6 +167,8 @@
 			feelsLike: hourly.apparent_temperature?.[currentIndex] ? Math.round(hourly.apparent_temperature[currentIndex]) : null,
 			precipChance: hourly.precipitation_probability?.[currentIndex] || null,
 			windSpeed: Math.round(current.windspeed * 0.621371), // Convert km/h to mph
+			sunrise: daily.sunrise?.[0] || null,
+			sunset: daily.sunset?.[0] || null,
 			daily: daily.time ? daily.time.slice(0, 7).map((date, i) => ({
 				date: new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
 				high: Math.round(daily.temperature_2m_max[i]),
@@ -253,6 +255,28 @@
 	}
 
 	$: funSaying = weather ? getWeatherPhrase(weather.temperature, weather.condition, sassyMode, $currentTheme) : "";
+	
+	function getTimeUntilSunEvent(sunTime) {
+		if (!sunTime) return null;
+		
+		const now = new Date();
+		const sunDate = new Date(sunTime);
+		const diffMs = sunDate - now;
+		const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+		const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+		
+		if (diffHours < 0) return null; // Event already passed
+		
+		if (diffHours === 0) {
+			return `${diffMinutes}m`;
+		} else if (diffHours < 24) {
+			return `${diffHours}h ${diffMinutes}m`;
+		}
+		return null;
+	}
+	
+	$: sunriseTime = weather?.sunrise ? getTimeUntilSunEvent(weather.sunrise) : null;
+	$: sunsetTime = weather?.sunset ? getTimeUntilSunEvent(weather.sunset) : null;
 </script>
 
 <div class="weather-widget">
@@ -277,6 +301,17 @@
 			</button>
 		</div>
 	</div>
+	
+	{#if weather && (sunriseTime || sunsetTime)}
+		<div class="weather-sun-info">
+			{#if sunriseTime}
+				<span class="sun-event">🌅 Sunrise in {sunriseTime}</span>
+			{/if}
+			{#if sunsetTime}
+				<span class="sun-event">🌇 Sunset in {sunsetTime}</span>
+			{/if}
+		</div>
+	{/if}
 
 	{#if error}
 		<div class="weather-error">
@@ -328,23 +363,28 @@
 
 		<!-- Always show historical weather as small visual at bottom -->
 		{#if historicalData.length > 0 && weather && weather.daily && weather.daily.length > 0}
-			<div class="weather-history-mini">
+			<div class="weather-history-compare">
 				{#each historicalData as day}
 					{@const todayHigh = weather.daily[0].high}
-					{@const tempDiff = todayHigh - day.high}
+					{@const lastYearHigh = day.high}
+					{@const tempDiff = todayHigh - lastYearHigh}
 					{@const isHotter = tempDiff > 0}
 					{@const isSignificant = Math.abs(tempDiff) > TEMP_DIFF_THRESHOLD}
-					<div class="history-mini-item" title="Same date last year: {day.date}">
-						<span class="mini-icon">{day.icon}</span>
-						<span class="mini-temp">{day.high}°</span>
-						<span class="mini-diff" class:hotter={isHotter && isSignificant} class:colder={!isHotter && isSignificant}>
-							{#if isSignificant}
-								{isHotter ? '+' : ''}{tempDiff}°
-							{:else}
-								~
-							{/if}
-						</span>
-					</div>
+					{#if isSignificant}
+						<div class="history-comparison">
+							<span class="history-icon">{isHotter ? '🔥' : '❄️'}</span>
+							<span class="history-text">
+								{isHotter ? 'Warmer' : 'Cooler'} than usual - {todayHigh}°F vs {lastYearHigh}°F average
+							</span>
+						</div>
+					{:else}
+						<div class="history-comparison">
+							<span class="history-icon">🌡️</span>
+							<span class="history-text">
+								About average - {todayHigh}°F (similar to last year's {lastYearHigh}°F)
+							</span>
+						</div>
+					{/if}
 				{/each}
 			</div>
 		{/if}
@@ -380,6 +420,23 @@
 	.weather-title {
 		font-weight: 700;
 		font-size: 1.1rem;
+	}
+	
+	.weather-sun-info {
+		display: flex;
+		gap: 1rem;
+		padding: 0.5rem 0.75rem;
+		margin-bottom: 0.5rem;
+		background: rgba(255, 255, 255, 0.08);
+		border-radius: 8px;
+		font-size: 0.85rem;
+	}
+	
+	.sun-event {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		opacity: 0.9;
 	}
 
 	.weather-actions {
@@ -421,15 +478,9 @@
 
 	.weather-icon {
 		font-size: 4rem;
-		animation: float 3s ease-in-out infinite;
 		background: none;
 		text-shadow: none;
 		filter: none;
-	}
-
-	@keyframes float {
-		0%, 100% { transform: translateY(0); }
-		50% { transform: translateY(-8px); }
 	}
 
 	.weather-details {
@@ -519,46 +570,29 @@
 		transform: translateY(0);
 	}
 
-	.weather-history-mini {
-		display: flex;
-		justify-content: center;
+	.weather-history-compare {
 		padding: 0.75rem;
 		margin-top: 0.75rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.15);
-		gap: 1rem;
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 8px;
 	}
 
-	.history-mini-item {
+	.history-comparison {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		gap: 0.25rem;
-		font-size: 0.8rem;
+		gap: 0.5rem;
+		font-size: 0.85rem;
+		line-height: 1.4;
 	}
 
-	.mini-icon {
-		font-size: 1.5rem;
-		filter: grayscale(0.2) opacity(0.85);
+	.history-icon {
+		font-size: 1.2rem;
 	}
 
-	.mini-temp {
-		font-size: 0.9rem;
-		font-weight: 600;
-		opacity: 0.75;
-	}
-
-	.mini-diff {
-		font-size: 0.75rem;
-		opacity: 0.7;
-		font-weight: 500;
-	}
-
-	.mini-diff.hotter {
-		color: #ff6b6b;
-	}
-
-	.mini-diff.colder {
-		color: #4dabf7;
+	.history-text {
+		color: var(--text-light);
+		opacity: 0.9;
 	}
 
 	.weather-error {
