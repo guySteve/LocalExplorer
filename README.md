@@ -6,91 +6,121 @@ A Progressive Web App for discovering local attractions, events, and activities.
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/guySteve/LocalExplorer)
 
-**Ready to deploy?** Choose your method:
-- 🎯 **[One-Click Deploy Guide](NETLIFY_DEPLOY.md)** - Full deployment instructions (Recommended)
-- 🤖 **[GitHub Actions Setup](GITHUB_ACTIONS_DEPLOY.md)** - Automated deployments on every push
+**Ready to deploy?** 
 - ⚡ **Quick Start**: Click the button above, add API keys, and you're live!
-
-**Before deploying**, verify your setup:
-```bash
-npm run check-deploy
-```
-Or run: `./check-deploy-ready.sh`
+- For detailed setup, see deployment instructions below
 
 ## ✨ Features
 
-- 🎫 **Local Events** - Discover concerts, sports, and entertainment (Ticketmaster)
-- 🐦 **Bird Watching** - View recent bird sightings in your area (eBird)
-- 🏞️ **National Parks** - Find and explore nearby parks (NPS)
-- 🏕️ **Recreation Areas** - Discover camping and outdoor activities (Recreation.gov)
-- 🍺 **Breweries** - Locate nearby breweries (Open Brewery DB)
-- 📍 **What3Words** - Precise location addressing
-- 🗺️ **Interactive Maps** - Google Maps integration
-- 🌤️ **Weather** - Local weather forecasts with year-over-year comparison (Open-Meteo)
-- 📅 **Holiday Alerts** - Plan around local holidays
-- 🧭 **Compass Navigation** - Navigate to your destinations with voice guidance
-- 💾 **Offline Support** - Progressive Web App with service worker
+### 🔍 Discovery & Search
+- **Smart Search** - Find places, attractions, and points of interest
+- **Category Filters** - Quick access to 11 categories with 50+ subcategories
+- **Distance-Based Results** - Everything sorted by proximity
+
+### 🐦 Bird Watching (eBird Integration)
+- Recent bird sightings near you
+- Notable/rare species alerts
+- Birding hotspot discovery
+- Detailed observation data
+- 📱 *Note: Submit observations via eBird website/app*
+
+### 🏞️ Outdoor & Recreation
+- **National Parks** (NPS API)
+- **Recreation Areas** (Recreation.gov)
+- **Campgrounds & Trails**
+- **Nature Reserves & Beaches**
+
+### 🎭 Events & Entertainment
+- **Local Events** (Ticketmaster) - Concerts, sports, comedy, festivals
+- **Breweries** (OpenBreweryDB) - Nearby breweries and brew pubs
+- **Night Life** - Bars, clubs, theaters, venues
+
+### 🌤️ Weather Features
+- Current conditions with historical comparison
+- "Hotter/colder than last year" insights
+- 7-day forecast
+- Sassy weather mode (optional humorous descriptions)
+- **100% Free** - No API key required!
+
+### 🗺️ Place Details & Reviews
+- **Google Places Reviews** - Smart filtering shows:
+  - Most recent review
+  - Worst review from last year (if critical)
+  - Balanced positive review
+- Address, phone, website
+- What3Words precise location
+- Photos and ratings
+- Distance and directions
+
+### 🧭 Navigation & Compass
+- Turn-by-turn compass navigation
+- Voice guidance (customizable voices)
+- Real-time direction updates
+- Works offline once destination set
+- Auto-requests sensor permissions
+
+### 💾 Collections & Settings
+- Save favorite places
+- 26 visual themes (Naval, Retro 90, Arcade 80, etc.)
+- Customize bird alerts, weather style, voice settings
+
+### 📱 Mobile Optimized
+- Touch-friendly (44px minimum targets)
+- Responsive layouts for all screen sizes
+- Smooth animations and transitions
+- PWA - Add to home screen
 
 ## 🔐 Security
 
-**All API keys are secured!** This app uses Netlify serverless functions to protect API keys from exposure. API keys are stored as environment variables and never exposed to the client.
+**All API keys are secured!** This app uses Netlify serverless functions to protect API keys from exposure. Keys are stored as environment variables and never exposed to the client.
 
-## 🚀 Deployment Options
+## 🚀 Deployment
 
-Choose the deployment method that works best for you:
+### Netlify Deployment (Recommended)
 
-### Option 1: One-Click Deploy (Easiest)
-1. Click the **Deploy to Netlify** button at the top
-2. Connect your GitHub account
-3. Add API keys in Netlify dashboard
-4. Done! 🎉
+1. **Deploy:**
+   ```bash
+   # Option 1: One-click deploy button above
+   # Option 2: Manual via CLI
+   npm install -g netlify-cli
+   netlify login
+   netlify init
+   netlify deploy --prod
+   ```
 
-📖 **[Complete Deployment Guide](NETLIFY_DEPLOY.md)**
+2. **Add Environment Variables** in Netlify Dashboard:
+   ```bash
+   MAPS_API_KEY=your_google_maps_key
+   EBIRD_API_KEY=your_ebird_key          # Optional
+   TICKETMASTER_API_KEY=your_tm_key     # Optional
+   WHAT3WORDS_API_KEY=your_w3w_key      # Optional
+   ```
 
-### Option 2: Automated Deployments with GitHub Actions
-Set up once, then deployments happen automatically on every push:
-1. Create a Netlify site
-2. Add GitHub Secrets (NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID)
-3. Push to main branch - GitHub Actions deploys automatically!
+3. **Build Settings:**
+   - Build command: `npm run build`
+   - Publish directory: `.svelte-kit/output/client`
+   - Functions directory: `netlify/functions`
 
-📖 **[GitHub Actions Setup Guide](GITHUB_ACTIONS_DEPLOY.md)**
-
-### Option 3: Manual Deployment via CLI
-For developers who prefer command-line tools:
-```bash
-npm install -g netlify-cli
-netlify login
-netlify init
-netlify deploy --prod
-```
-
-📖 **[CLI Deployment Instructions](NETLIFY_DEPLOY.md#method-3-deploy-via-netlify-cli)**
-
----
-
-## 🔑 Required API Keys
-
-#### Obtaining API Keys
+## 🔑 API Keys
 
 | Service | Get Key | Free Tier | Required | Notes |
 |---------|---------|-----------|----------|-------|
-| Google Maps | [Get Key](https://developers.google.com/maps/documentation/javascript/get-api-key) | Yes | Yes | Required for maps and location |
-| **Weather (Open-Meteo)** | **No Key Needed** | **100% Free** | **No** | **Weather works automatically - no API key required!** |
-| Ticketmaster | [Get Key](https://developer.ticketmaster.com/) | Yes | Optional | For event listings |
-| What3Words | [Get Key](https://accounts.what3words.com/register) | Yes | Optional | For precise location addressing |
-| Foursquare | [Get Key](https://foursquare.com/developers/) | Yes | Optional | For place discovery |
-| eBird | [Get Key](https://ebird.org/api/keygen) | Yes | Optional | For bird sighting features |
-| Recreation.gov | [Get Key](https://ridb.recreation.gov/) | Yes | Optional | For recreation areas |
-| NPS | [Get Key](https://www.nps.gov/subjects/developer/get-started.htm) | Yes | Optional | For national parks |
-| HolidayAPI | [Get Key](https://holidayapi.com/) | Limited | Optional | For holiday information |
+| Google Maps | [Get Key](https://developers.google.com/maps/documentation/javascript/get-api-key) | Yes | **Yes** | Required for maps and location |
+| **Weather** | **No Key Needed** | **100% Free** | **No** | **Works automatically!** |
+| eBird | [Get Key](https://ebird.org/api/keygen) | Yes (10K/day) | No | For bird watching features |
+| Ticketmaster | [Get Key](https://developer.ticketmaster.com/) | Yes | No | For event listings |
+| What3Words | [Get Key](https://accounts.what3words.com/register) | Yes | No | For precise location codes |
+| OpenBreweryDB | **No Key Needed** | **Free** | **No** | **Works automatically!** |
+| Recreation.gov | [Get Key](https://ridb.recreation.gov/) | Yes | No | For recreation areas |
+| NPS | [Get Key](https://www.nps.gov/subjects/developer/get-started.htm) | Yes | No | For national parks |
 
-**Note**: The app will work with just Google Maps! Weather is built-in and FREE (no key required). Other features require their respective API keys.
+**Minimum Required:** Just Google Maps API key. Everything else works without keys or is optional!
 
-### 📖 Documentation
+## 📖 Documentation
 
-- **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - ⭐ Complete Netlify deployment guide
-- **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 Automated deployment setup
-- **[DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md)** - 📝 Developer notes and architecture
+- **[CURRENT_FEATURES.md](CURRENT_FEATURES.md)** - 📋 Complete feature list and technical details
+- **[EBIRD_INTEGRATION.md](EBIRD_INTEGRATION.md)** - 🐦 eBird API features documentation
+- **[MOBILE_UX_IMPROVEMENTS.md](MOBILE_UX_IMPROVEMENTS.md)** - 📱 Mobile optimization details
 
 ## 💻 Local Development
 

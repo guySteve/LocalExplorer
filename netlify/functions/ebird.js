@@ -1,5 +1,32 @@
-// Netlify Function to proxy eBird API requests
-// Supports multiple eBird API v2 endpoints
+/**
+ * Netlify Function: eBird API Proxy
+ * 
+ * Routes requests to various eBird API v2 endpoints while keeping the API key secure.
+ * 
+ * Supported Endpoints:
+ * - 'recent': Recent observations by location (lat, lng, dist, maxResults, back)
+ * - 'notable': Notable/rare observations (lat, lng, dist, maxResults, back)
+ * - 'hotspots': Nearby hotspots (lat, lng, dist, back, fmt)
+ * - 'hotspot-info': Specific hotspot information (hotspotCode)
+ * - 'hotspot-species': Species at a hotspot (hotspotCode)
+ * - 'regional-hotspots': Hotspots in a region (regionCode, back, fmt)
+ * - 'nearest-species': Nearest observations of a species (lat, lng, speciesCode, dist, back, maxResults)
+ * - 'species-list': Species list for region (regionCode)
+ * - 'taxonomy': Taxonomy information (speciesCode, fmt)
+ * - 'checklist': View specific checklist (checklistId)
+ * - 'top100': Top 100 contributors (regionCode, back)
+ * - 'stats': Regional statistics (regionCode, back)
+ * 
+ * Default: Falls back to 'recent' observations for backward compatibility
+ * 
+ * Error Handling:
+ * - Returns 400 for missing required parameters
+ * - Returns 500 if API key not configured
+ * - Returns eBird API error status codes on failure
+ * 
+ * Environment Variables:
+ * - EBIRD_API_KEY: Required eBird API key
+ */
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
