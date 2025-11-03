@@ -15,6 +15,8 @@
 	let currentHeading = 0;
 	let ringHeadingTarget = 0;
 	let ringHeadingVisual = 0;
+	let personHeadingTarget = 0;
+	let personHeadingVisual = 0;
 	
 	let orientationReady = false;
 	let geolocationReady = false;
@@ -40,7 +42,7 @@
 	let mapInitialized = false;
 	
 	// Constants
-	const HEADING_SMOOTH = 0.12;
+	const HEADING_SMOOTH = 0.15; // Increased for smoother rotation
 	const MAP_INIT_DELAY_MS = 100; // Delay to ensure DOM is ready
 	const MAP_INIT_RETRY_DELAY_MS = 500; // Delay between retry attempts
 	const MAX_MAP_INIT_RETRIES = 10; // Maximum number of retry attempts
@@ -233,6 +235,7 @@
 		
 		currentHeading = heading;
 		ringHeadingTarget = wrapAngle(360 - currentHeading);
+		personHeadingTarget = -currentHeading;
 		
 		orientationReady = true;
 	}
@@ -308,6 +311,10 @@
 			// Smoothly interpolate visual values towards targets
 			const headingStep = shortestAngle(ringHeadingVisual, ringHeadingTarget);
 			ringHeadingVisual = wrapAngle(ringHeadingVisual + headingStep * HEADING_SMOOTH);
+			
+			// Smooth person icon rotation as well
+			const personStep = shortestAngle(personHeadingVisual, personHeadingTarget);
+			personHeadingVisual = personHeadingVisual + personStep * HEADING_SMOOTH;
 			
 			animationFrameId = requestAnimationFrame(animate);
 		};
@@ -467,7 +474,7 @@
 			'Pointing North';
 	
 	$: ringTransform = `rotateZ(${ringHeadingVisual}deg)`;
-	$: personTransform = `rotateZ(${-currentHeading}deg)`; // Person icon rotates opposite to stay pointing in device direction
+	$: personTransform = `rotateZ(${personHeadingVisual}deg)`; // Person icon rotates with smoothing
 </script>
 
 {#if visible}
@@ -519,9 +526,41 @@
 			<div class="compass-map-container">
 				<div class="compass-map" bind:this={mapContainer}></div>
 				
-				<!-- CompassMan icon on top of map, rotating with device -->
+				<!-- Arrow icon on top of map, rotating with device -->
 				<div class="person-icon" style="transform: {personTransform}">
-					<img src="/compassman.png" alt="Compass indicator" class="compassman-image" />
+					<svg viewBox="0 0 100 100" class="compass-arrow" aria-label="Direction indicator">
+						<!-- Outer glow/shadow circle for depth -->
+						<circle cx="50" cy="50" r="35" fill="rgba(0, 0, 0, 0.2)" />
+						
+						<!-- Main arrow body pointing up -->
+						<path 
+							d="M 50 15 L 60 45 L 55 45 L 55 75 L 45 75 L 45 45 L 40 45 Z" 
+							fill="var(--primary, #c87941)"
+							stroke="white"
+							stroke-width="2"
+							stroke-linejoin="round"
+							filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+						/>
+						
+						<!-- Arrow head with gradient for depth -->
+						<defs>
+							<linearGradient id="arrowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+								<stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+								<stop offset="100%" style="stop-color:#c87941;stop-opacity:1" />
+							</linearGradient>
+						</defs>
+						<path 
+							d="M 50 10 L 65 35 L 50 30 L 35 35 Z" 
+							fill="url(#arrowGradient)"
+							stroke="white"
+							stroke-width="2"
+							stroke-linejoin="round"
+							filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
+						/>
+						
+						<!-- Center dot for visual anchor -->
+						<circle cx="50" cy="50" r="6" fill="white" stroke="var(--primary, #c87941)" stroke-width="2" />
+					</svg>
 				</div>
 			</div>
 		</div>
@@ -810,7 +849,7 @@
 		border-radius: 50%;
 	}
 	
-	/* CompassMan icon on top of map */
+	/* Arrow icon on top of map */
 	.person-icon {
 		position: absolute;
 		top: 50%;
@@ -818,18 +857,17 @@
 		transform-origin: center center;
 		z-index: 3;
 		pointer-events: none;
-		width: 120px;
-		height: 120px;
-		margin-left: -60px;
-		margin-top: -60px;
-		transition: transform 0.1s ease-out;
-		filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+		width: 100px;
+		height: 100px;
+		margin-left: -50px;
+		margin-top: -50px;
+		transition: transform 0.05s linear; /* Smooth but responsive */
 	}
 	
-	.compassman-image {
+	.compass-arrow {
 		width: 100%;
 		height: 100%;
-		object-fit: contain;
+		filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.4));
 	}
 	
 	.heading-display {
@@ -950,10 +988,10 @@
 		}
 		
 		.person-icon {
-			width: 80px;
-			height: 80px;
-			margin-left: -40px;
-			margin-top: -40px;
+			width: 70px;
+			height: 70px;
+			margin-left: -35px;
+			margin-top: -35px;
 		}
 	}
 </style>
