@@ -10,6 +10,15 @@
 	export let destinationName = '';
 	export let visible = false;
 	
+	// Multi-stop trip support
+	$: isMultiStop = Array.isArray(destination) && destination.length > 0;
+	$: currentStops = isMultiStop ? destination : (destination ? [destination] : []);
+	let currentStopIndex = 0;
+	$: currentDestination = currentStops.length > 0 ? currentStops[currentStopIndex] : null;
+	$: currentDestinationName = isMultiStop 
+		? `Stop ${currentStopIndex + 1} of ${currentStops.length}${currentStops[currentStopIndex]?.name ? ': ' + currentStops[currentStopIndex].name : ''}`
+		: destinationName;
+	
 	// State
 	let currentHeading = 0;
 	let ringHeadingTarget = 0;
@@ -88,6 +97,7 @@
 	function init() {
 		console.log('Compass: Initializing...');
 		mapInitRetryCount = 0; // Reset retry counter
+		currentStopIndex = 0; // Reset to first stop
 		requestSensorPermissions(); // Automatically request permissions on open
 		startGeolocationWatch();
 		startAnimation();
@@ -100,7 +110,7 @@
 		}, MAP_INIT_DELAY_MS);
 		
 		// If we have a destination, fetch route
-		if (destination) {
+		if (currentDestination) {
 			fetchRoute();
 		}
 	}
@@ -391,15 +401,23 @@
 					? Math.round(position.coords.accuracy).toString()
 					: '—';
 				
-				// Calculate bearing to destination
-				if (destination) {
-					const destLat = typeof destination.lat === 'function' ? destination.lat() : destination.lat;
-					const destLng = typeof destination.lng === 'function' ? destination.lng() : destination.lng;
+				// Calculate bearing to current destination
+				if (currentDestination) {
+					const destLat = typeof currentDestination.lat === 'function' ? currentDestination.lat() : (currentDestination.location?.lat || currentDestination.lat);
+					const destLng = typeof currentDestination.lng === 'function' ? currentDestination.lng() : (currentDestination.location?.lng || currentDestination.lng);
 					
-					if (window.google && window.google.maps) {
+					if (window.google && window.google.maps && destLat && destLng) {
 						const curLatLng = new window.google.maps.LatLng(currentPosition.lat, currentPosition.lng);
 						const destLatLng = new window.google.maps.LatLng(destLat, destLng);
 						bearing = Math.round(window.google.maps.geometry.spherical.computeHeading(curLatLng, destLatLng)).toString();
+						
+						// Check if close to destination (within 50 meters) for multi-stop
+						if (isMultiStop && currentStopIndex < currentStops.length - 1) {
+							const distance = window.google.maps.geometry.spherical.computeDistanceBetween(curLatLng, destLatLng);
+							if (distance < 50) { // Within 50 meters
+								console.log('Compass: Close to destination, ready for next stop');
+							}
+						}
 					}
 				}
 			},
@@ -430,15 +448,15 @@
 	}
 	
 	async function fetchRoute() {
-		if (!currentPosition || !destination || !window.google || !window.google.maps) {
+		if (!currentPosition || !currentDestination || !window.google || !window.google.maps) {
 			console.warn('Compass: Cannot fetch route - missing requirements');
 			return;
 		}
 		
 		const directionsService = new window.google.maps.DirectionsService();
 		
-		const destLat = typeof destination.lat === 'function' ? destination.lat() : destination.lat;
-		const destLng = typeof destination.lng === 'function' ? destination.lng() : destination.lng;
+		const destLat = typeof currentDestination.lat === 'function' ? currentDestination.lat() : (currentDestination.location?.lat || currentDestination.lat);
+		const destLng = typeof currentDestination.lng === 'function' ? currentDestination.lng() : (currentDestination.location?.lng || currentDestination.lng);
 		const destLatLng = new window.google.maps.LatLng(destLat, destLng);
 		
 		directionsService.route(
@@ -457,6 +475,20 @@
 				}
 			}
 		);
+	}
+	
+	function nextStop() {
+		if (!isMultiStop || currentStopIndex >= currentStops.length - 1) {
+			return;
+		}
+		
+		currentStopIndex++;
+		stopNavigation();
+		
+		// Fetch route to new destination
+		if (currentDestination) {
+			fetchRoute();
+		}
 	}
 	
 	function startNavigation() {
@@ -600,9 +632,9 @@
 		orientationReady ? `${String(Math.round(currentHeading)).padStart(3, '0')}°` : '---°';
 	
 	$: destinationDisplay = 
-		destination && destinationName ? 
-			`${destinationName}${bearing !== '—' ? ` (${bearing}°)` : ''}` :
-			destination ? 'Destination set' :
+		currentDestination && currentDestinationName ? 
+			`${currentDestinationName}${bearing !== '—' ? ` (${bearing}°)` : ''}` :
+			currentDestination ? 'Destination set' :
 			orientationReady ? `Pointing ${getCardinalDirection(currentHeading)}` : 'Pointing North';
 	
 	$: ringTransform = `rotateZ(${ringHeadingVisual}deg)`;
@@ -767,8 +799,25 @@
 			</div>
 		</div>
 		
+		<!-- Multi-stop Progress (if applicable) -->
+		{#if isMultiStop}
+			<div class="multi-stop-progress">
+				<div class="progress-text">
+					Stop {currentStopIndex + 1} of {currentStops.length}
+				</div>
+				<div class="progress-bar">
+					<div class="progress-fill" style="width: {((currentStopIndex + 1) / currentStops.length) * 100}%"></div>
+				</div>
+				{#if currentStopIndex < currentStops.length - 1}
+					<button class="nav-btn next-stop-btn" onclick={nextStop}>
+						⏭️ Next Stop
+					</button>
+				{/if}
+			</div>
+		{/if}
+		
 		<!-- Navigation Controls (if destination is set) -->
-		{#if destination && routeSteps.length > 0}
+		{#if currentDestination && routeSteps.length > 0}
 			<div class="navigation-controls">
 				<div class="route-info">
 					<strong>Route:</strong> {routeSteps.length} steps
@@ -1187,6 +1236,50 @@
 		font-weight: 700;
 		color: var(--primary);
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+	
+	.multi-stop-progress {
+		margin: 1.5rem 0;
+		padding: 1rem;
+		background: rgba(var(--primary-rgb, 200, 121, 65), 0.1);
+		border-radius: 8px;
+		border: 2px solid var(--primary);
+	}
+	
+	.progress-text {
+		text-align: center;
+		font-weight: 700;
+		font-size: 1rem;
+		color: var(--text-light);
+		margin-bottom: 0.75rem;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+	
+	.progress-bar {
+		height: 8px;
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: 4px;
+		overflow: hidden;
+		margin-bottom: 1rem;
+	}
+	
+	.progress-fill {
+		height: 100%;
+		background: var(--primary);
+		transition: width 0.3s ease;
+		box-shadow: 0 0 10px var(--primary);
+	}
+	
+	.next-stop-btn {
+		width: 100%;
+		background: var(--primary);
+		border-color: var(--primary);
+		color: var(--text-light);
+	}
+	
+	.next-stop-btn:hover {
+		background: var(--secondary);
+		border-color: var(--secondary);
 	}
 	
 	.navigation-controls {

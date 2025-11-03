@@ -4,6 +4,7 @@
 	import { fetchWhat3Words } from '$lib/utils/api-extended';
 	import { getPlaceDetails } from '$lib/utils/api';
 	import { currentPosition } from '$lib/stores/appState';
+	import { savedPlaces, dayPlan } from '$lib/stores/storage';
 	import { SWIPE_CLOSE_THRESHOLD } from '$lib/utils/uiConstants';
 	import { get } from 'svelte/store';
 	
@@ -231,34 +232,65 @@
 		}
 	}
 	
-	function savePlace() {
+	// Check if place is in collection
+	$: isInCollection = place && place.id ? $savedPlaces.some(p => p.place_id === place.id) : false;
+	
+	// Check if place is in day plan
+	$: isInDayPlan = place && place.id ? $dayPlan.some(p => p.place_id === place.id) : false;
+	
+	function addToCollection() {
 		const coords = getPlaceCoordinates();
 		if (!place || !coords) return;
 		
-		try {
-			const collection = JSON.parse(localStorage.getItem('myCollection') || '[]');
-			
-			// Check if already saved
-			const exists = collection.find(p => p.id === place.id);
-			if (exists) {
-				alert(`${place.name} is already in your collection!`);
-				return;
-			}
-			
-			collection.push({
-				id: place.id,
+		if (isInCollection) {
+			// Remove from collection
+			savedPlaces.remove(place.id);
+			alert(`${place.name} removed from your collection.`);
+		} else {
+			// Add to collection using normalized format
+			const placeData = {
+				place_id: place.id,
 				name: place.name,
-				address: place.address,
+				formatted_address: place.address || '',
 				location: coords,
-				provider: place.provider,
-				savedAt: new Date().toISOString()
-			});
-			
-			localStorage.setItem('myCollection', JSON.stringify(collection));
+				rating: place.rating || null,
+				user_ratings_total: place.user_ratings_total || null,
+				types: place.categories || [],
+				icon: place._original?.icon || '',
+				url: place._original?.url || place.url || '',
+				website: place._original?.website || '',
+				_original: place._original || place
+			};
+			savedPlaces.add(placeData);
 			alert(`✅ ${place.name} added to your collection!`);
-		} catch (err) {
-			console.error('Failed to save place:', err);
-			alert('Failed to save place. Please try again.');
+		}
+	}
+	
+	function addToDayPlan() {
+		const coords = getPlaceCoordinates();
+		if (!place || !coords) return;
+		
+		if (isInDayPlan) {
+			// Remove from day plan
+			dayPlan.remove(place.id);
+			alert(`${place.name} removed from your day plan.`);
+		} else {
+			// Add to day plan using normalized format
+			const placeData = {
+				place_id: place.id,
+				name: place.name,
+				formatted_address: place.address || '',
+				location: coords,
+				rating: place.rating || null,
+				user_ratings_total: place.user_ratings_total || null,
+				types: place.categories || [],
+				icon: place._original?.icon || '',
+				url: place._original?.url || place.url || '',
+				website: place._original?.website || '',
+				_original: place._original || place
+			};
+			dayPlan.add(placeData);
+			alert(`✅ ${place.name} added to your day plan!`);
 		}
 	}
 	
@@ -434,8 +466,11 @@
           🌐 Website
         </button>
       {/if}
-      <button class="action-btn" onclick={savePlace}>
-        💾 Save
+      <button class="action-btn" onclick={addToCollection} class:saved={isInCollection}>
+        {isInCollection ? '✓ Saved' : '💾 Add to Collection'}
+      </button>
+      <button class="action-btn" onclick={addToDayPlan} class:in-plan={isInDayPlan}>
+        {isInDayPlan ? '✓ In Plan' : '📅 Add to Day Plan'}
       </button>
       <button class="action-btn" onclick={sharePlace}>
         📤 Share
@@ -605,6 +640,20 @@
 		border-color: var(--secondary);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 12px rgba(var(--primary-rgb, 200, 121, 65), 0.3);
+	}
+	
+	.action-btn.saved,
+	.action-btn.in-plan {
+		background: rgba(76, 175, 80, 0.15);
+		border-color: #4caf50;
+		color: #4caf50;
+	}
+	
+	.action-btn.saved:hover,
+	.action-btn.in-plan:hover {
+		background: rgba(76, 175, 80, 0.25);
+		border-color: #388e3c;
+		color: #388e3c;
 	}
 	
 	.reviews-container {
