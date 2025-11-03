@@ -528,7 +528,15 @@
 				
 				<!-- Arrow icon on top of map, rotating with device -->
 				<div class="person-icon" style="transform: {personTransform}">
-					<svg viewBox="0 0 100 100" class="compass-arrow" aria-label="Direction indicator">
+					<svg viewBox="0 0 100 100" class="compass-arrow" role="img" aria-label="Direction indicator">
+						<!-- Arrow gradient definition -->
+						<defs>
+							<linearGradient id="arrowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+								<stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+								<stop offset="100%" style="stop-color:#c87941;stop-opacity:1" />
+							</linearGradient>
+						</defs>
+						
 						<!-- Outer glow/shadow circle for depth -->
 						<circle cx="50" cy="50" r="35" fill="rgba(0, 0, 0, 0.2)" />
 						
@@ -543,12 +551,6 @@
 						/>
 						
 						<!-- Arrow head with gradient for depth -->
-						<defs>
-							<linearGradient id="arrowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-								<stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
-								<stop offset="100%" style="stop-color:#c87941;stop-opacity:1" />
-							</linearGradient>
-						</defs>
 						<path 
 							d="M 50 10 L 65 35 L 50 30 L 35 35 Z" 
 							fill="url(#arrowGradient)"
