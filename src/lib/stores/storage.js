@@ -5,12 +5,14 @@ import { browser } from '$app/environment';
 export const STORAGE_KEYS = {
   saved: 'localExplorer.savedPlaces',
   plan: 'localExplorer.plan',
-  visited: 'localExplorer.visitedPlan'
+  visited: 'localExplorer.visitedPlan',
+  dayPlan: 'localExplorer.dayPlan'
 };
 
 export const STORAGE_LIMITS = {
   saved: 60,
-  plan: 40
+  plan: 40,
+  dayPlan: 20
 };
 
 const storageFallback = Object.create(null);
@@ -250,6 +252,59 @@ function createVisitedPlanStore() {
 export const savedPlaces = createSavedPlacesStore();
 export const plan = createPlanStore();
 export const visitedPlan = createVisitedPlanStore();
+
+// Day Plan store for trip planning
+function createDayPlanStore() {
+  const { subscribe, set, update } = writable(browser ? revivePlaces(STORAGE_KEYS.dayPlan, STORAGE_LIMITS.dayPlan) : []);
+
+  return {
+    subscribe,
+    add: (place) => {
+      const normalized = normalizePlace(place);
+      if (!normalized) return;
+      update(list => {
+        // Check if already in plan
+        const filtered = list.filter(item => item.place_id !== normalized.place_id);
+        // Add to end of list for trip order
+        filtered.push(normalized);
+        const trimmed = filtered.slice(0, STORAGE_LIMITS.dayPlan);
+        writeStorageList(STORAGE_KEYS.dayPlan, trimmed);
+        return trimmed;
+      });
+    },
+    remove: (id) => {
+      if (!id) return;
+      update(list => {
+        const filtered = list.filter(item => item.place_id !== id);
+        writeStorageList(STORAGE_KEYS.dayPlan, filtered);
+        return filtered;
+      });
+    },
+    set: (list) => {
+      const incoming = Array.isArray(list) ? list : [];
+      const sanitized = [];
+      const seen = new Set();
+      incoming.forEach(item => {
+        const normalized = normalizePlace(item, { preserveTimestamp: true });
+        if (!normalized || seen.has(normalized.place_id)) return;
+        seen.add(normalized.place_id);
+        sanitized.push(normalized);
+      });
+      const trimmed = sanitized.slice(0, STORAGE_LIMITS.dayPlan);
+      writeStorageList(STORAGE_KEYS.dayPlan, trimmed);
+      set(trimmed);
+    },
+    refresh: () => {
+      set(revivePlaces(STORAGE_KEYS.dayPlan, STORAGE_LIMITS.dayPlan));
+    },
+    clear: () => {
+      writeStorageList(STORAGE_KEYS.dayPlan, []);
+      set([]);
+    }
+  };
+}
+
+export const dayPlan = createDayPlanStore();
 
 // Data normalization utilities
 export function normalizePlaceData(place, provider) {

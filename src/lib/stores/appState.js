@@ -47,6 +47,7 @@ export const lastWeatherFetch = writable(0);
 export const lastWeatherCoords = writable(null);
 export const cachedWeather = writable(null);
 export const WEATHER_CACHE_MS = 10 * 60 * 1000; // 10 minutes
+export const currentWeatherCondition = writable('clear'); // Store current weather condition for context-aware sorting
 
 // Voice settings
 function getInitialVoiceUri() {
@@ -72,6 +73,19 @@ function getInitialBooleanSetting(key, defaultValue) {
 export const showBirdSightings = writable(getInitialBooleanSetting('showBirdSightings', true));
 export const sassyWeatherMode = writable(getInitialBooleanSetting('sassyWeather', false));
 export const voiceNavigationEnabled = writable(getInitialBooleanSetting('voiceEnabled', true));
+
+// Font size setting for accessibility
+function getInitialFontSize() {
+  if (!browser) return 'medium';
+  try {
+    const saved = localStorage.getItem('fontSize');
+    return saved || 'medium';
+  } catch (error) {
+    console.warn('Unable to read fontSize from localStorage', error);
+    return 'medium';
+  }
+}
+export const fontSize = writable(getInitialFontSize());
 
 // Search categories configuration
 export const categories = {
@@ -186,5 +200,11 @@ if (browser) {
     } else {
       localStorage.removeItem('selectedVoiceUri');
     }
+  });
+
+  fontSize.subscribe(size => {
+    localStorage.setItem('fontSize', size);
+    // Apply font size to body element
+    document.body.setAttribute('data-font-size', size);
   });
 }
