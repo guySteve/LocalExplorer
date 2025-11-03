@@ -40,13 +40,17 @@
 	let map = null;
 	let mapInitialized = false;
 	let isMapCentered = true; // Track if map is auto-centering
-	let currentZoom = 18; // Track current zoom level
+	let currentZoom = DEFAULT_ZOOM; // Track current zoom level
 	
 	// Constants
 	const HEADING_SMOOTH = 0.2; // Increased for smoother rotation
 	const MAP_INIT_DELAY_MS = 100; // Delay to ensure DOM is ready
 	const MAP_INIT_RETRY_DELAY_MS = 500; // Delay between retry attempts
 	const MAX_MAP_INIT_RETRIES = 10; // Maximum number of retry attempts
+	const DEFAULT_ZOOM = 18; // Default map zoom level
+	const MIN_INDICATOR_SCALE = 0.5; // Minimum scale for indicators when zoomed out
+	const MAX_INDICATOR_SCALE = 2; // Maximum scale for indicators when zoomed in
+	const ZOOM_SCALE_BASE = 18; // Base zoom level for 1:1 scale
 	
 	// Cardinal direction names for display
 	// Note: Boundaries are non-overlapping. Each range uses >= for min and < for max,
@@ -191,7 +195,7 @@
 		try {
 			map = new window.google.maps.Map(mapContainer, {
 				center: { lat: currentPosition.lat, lng: currentPosition.lng },
-				zoom: currentZoom,
+				zoom: DEFAULT_ZOOM,
 				mapTypeId: 'terrain', // Terrain style map
 				disableDefaultUI: true, // Disable all default UI - we'll add controls outside
 				gestureHandling: 'greedy', // Allow map interaction
@@ -278,16 +282,28 @@
 		}
 	}
 	
+	// Calculate indicator scale based on zoom level
+	function getIndicatorScale(zoom) {
+		return Math.max(MIN_INDICATOR_SCALE, Math.min(MAX_INDICATOR_SCALE, zoom / ZOOM_SCALE_BASE));
+	}
+	
 	// Get the next map type label for display
-	$: nextMapTypeLabel = map ? (() => {
+	function getNextMapTypeLabel(mapInstance) {
+		if (!mapInstance) return 'Terrain';
 		try {
-			const currentType = map.getMapTypeId();
+			const currentType = mapInstance.getMapTypeId();
 			const nextType = MAP_TYPE_ORDER[currentType] || 'terrain';
 			return nextType.charAt(0).toUpperCase() + nextType.slice(1);
 		} catch (error) {
 			return 'Terrain';
 		}
-	})() : 'Terrain';
+	}
+	
+	// Reactive statement for next map type label
+	$: nextMapTypeLabel = getNextMapTypeLabel(map);
+	
+	// Reactive statement for indicator scale
+	$: indicatorScale = getIndicatorScale(currentZoom);
 	
 	function startOrientationListener() {
 		if (orientationListener) return;
@@ -643,7 +659,7 @@
 				<div class="compass-map" bind:this={mapContainer}></div>
 				
 				<!-- Fixed center dot showing user's location -->
-				<div class="location-center-dot" style="transform: scale({Math.max(0.5, Math.min(2, currentZoom / 18))})">
+				<div class="location-center-dot" style="transform: scale({indicatorScale})">
 					<svg viewBox="0 0 100 100" class="center-dot-svg" role="img" aria-label="Your location">
 						<defs>
 							<filter id="centerDotGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -665,7 +681,7 @@
 				</div>
 				
 				<!-- Rotating arc indicator showing device heading -->
-				<div class="heading-arc-indicator" style="transform: {personTransform} scale({Math.max(0.5, Math.min(2, currentZoom / 18))})">
+				<div class="heading-arc-indicator" style="transform: {personTransform} scale({indicatorScale})">>
 					<svg viewBox="0 0 100 100" class="arc-svg" role="img" aria-label="Direction indicator">
 						<defs>
 							<filter id="arcGlow" x="-50%" y="-50%" width="200%" height="200%">
