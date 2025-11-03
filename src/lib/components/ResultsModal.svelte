@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
-	import { calculateDistance } from '$lib/utils/api';
+	import { calculateDistance, MILES_TO_METERS } from '$lib/utils/api';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -13,10 +13,20 @@
 	export let onLoadMore = null;
 	export let loading = false;
 	
+	// Swipe gesture state
+	let modalContent;
+	let startY = 0;
+	let currentY = 0;
+	let isDragging = false;
+	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
-			dispatch('close');
+			closeModal();
 		}
+	}
+	
+	function closeModal() {
+		dispatch('close');
 	}
 	
 	function handlePlaceClick(place) {
@@ -25,17 +35,57 @@
 	
 	function formatDistance(meters) {
 		if (!meters) return '';
-		const km = meters / 1000;
-		return km < 1 ? `${meters.toFixed(0)}m away` : `${km.toFixed(1)}km away`;
+		const miles = meters / MILES_TO_METERS;
+		return miles < 0.1 ? `${meters.toFixed(0)}m away` : `${miles.toFixed(1)} mi away`;
+	}
+	
+	// Touch event handlers for swipe-to-close
+	function handleTouchStart(e) {
+		startY = e.touches[0].clientY;
+		isDragging = true;
+	}
+	
+	function handleTouchMove(e) {
+		if (!isDragging) return;
+		currentY = e.touches[0].clientY;
+		const diff = currentY - startY;
+		
+		// Only allow downward swipe
+		if (diff > 0 && modalContent) {
+			modalContent.style.transform = `translateY(${diff}px)`;
+		}
+	}
+	
+	function handleTouchEnd(e) {
+		if (!isDragging) return;
+		isDragging = false;
+		
+		const diff = currentY - startY;
+		
+		// If swiped down more than 100px, close the modal
+		if (diff > 100) {
+			closeModal();
+		} else if (modalContent) {
+			// Reset position with animation
+			modalContent.style.transform = 'translateY(0)';
+		}
 	}
 </script>
 
 {#if visible}
-<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && dispatch('close')}>
-	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
+<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && closeModal()}>
+	<div 
+		class="modal-content" 
+		bind:this={modalContent}
+		on:touchstart={handleTouchStart}
+		on:touchmove={handleTouchMove}
+		on:touchend={handleTouchEnd}
+		transition:fly={{ y: 50, duration: 300 }} 
+		role="document"
+	>
 		<div class="modal-header">
 			<h3>{title}</h3>
-			<button class="close-btn" on:click={() => dispatch('close')} type="button">×</button>
+			<button class="close-btn" on:click={closeModal} type="button" aria-label="Close">×</button>
 		</div>
 		
 		{#if loading}
@@ -73,12 +123,6 @@
 							<p class="result-address">{place.address}</p>
 						{/if}
 						
-						{#if place.categories && place.categories.length > 0}
-							<p class="result-categories">
-								{place.categories.slice(0, 2).join(', ')}
-							</p>
-						{/if}
-						
 						{#if place.rating}
 							<p class="result-rating">
 								⭐ {place.rating.toFixed(1)}
@@ -107,6 +151,10 @@
 {/if}
 
 <style>
+	.modal-content {
+		transition: transform 0.3s ease;
+	}
+	
 	.loading-state, .empty-state {
 		text-align: center;
 		padding: 3rem 2rem;

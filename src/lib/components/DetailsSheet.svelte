@@ -21,6 +21,12 @@
 	let reviews = [];
 	let loadingReviews = false;
 	
+	// Swipe gesture state
+	let sheetElement;
+	let startY = 0;
+	let currentY = 0;
+	let isDragging = false;
+	
 	function getPlaceCoordinates() {
 		if (!place) return null;
 		if (place.location && typeof place.location.lat === 'number' && typeof place.location.lng === 'number') {
@@ -146,6 +152,38 @@
 		dispatch('close');
 	}
 	
+	// Touch event handlers for swipe-to-close
+	function handleTouchStart(e) {
+		startY = e.touches[0].clientY;
+		isDragging = true;
+	}
+	
+	function handleTouchMove(e) {
+		if (!isDragging) return;
+		currentY = e.touches[0].clientY;
+		const diff = currentY - startY;
+		
+		// Only allow downward swipe
+		if (diff > 0 && sheetElement) {
+			sheetElement.style.transform = `translateY(${diff}px)`;
+		}
+	}
+	
+	function handleTouchEnd(e) {
+		if (!isDragging) return;
+		isDragging = false;
+		
+		const diff = currentY - startY;
+		
+		// If swiped down more than 100px, close the sheet
+		if (diff > 100) {
+			close();
+		} else if (sheetElement) {
+			// Reset position with animation
+			sheetElement.style.transform = 'translateY(0)';
+		}
+	}
+	
 	function openMaps() {
 		const coords = getPlaceCoordinates();
 		if (!place || !coords) return;
@@ -246,7 +284,18 @@
 
 {#if visible && place}
 <div class="details-sheet-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Enter' && close()} role="button" tabindex="0">
-  <div class="details-sheet" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
+  <div 
+    class="details-sheet" 
+    bind:this={sheetElement}
+    on:touchstart={handleTouchStart}
+    on:touchmove={handleTouchMove}
+    on:touchend={handleTouchEnd}
+    onclick={(e) => e.stopPropagation()} 
+    onkeydown={(e) => e.stopPropagation()} 
+    role="dialog" 
+    aria-modal="true" 
+    tabindex="-1"
+  >
     <!-- Header -->
     <div class="details-header">
       <div>
@@ -408,6 +457,7 @@
 		display: flex;
 		flex-direction: column;
 		animation: slideUp 0.3s ease-out;
+		transition: transform 0.3s ease;
 	}
 	
 	@keyframes slideUp {
