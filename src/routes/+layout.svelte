@@ -6,7 +6,6 @@
 	// Import CSS - Theme variables and app-wide styles
 	import '../app.css';
 	
-	let { children } = $props();
 	let mapsReady = false;
 	let mapsInitialized = false;
 	
@@ -279,4 +278,4 @@
 	<title>Local Explorer - Discover Local Places & Events</title>
 </svelte:head>
 
-{@render children()}
+<slot />

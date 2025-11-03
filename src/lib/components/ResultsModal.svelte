@@ -6,14 +6,12 @@
 	const dispatch = createEventDispatcher();
 	
 	// Props
-	let { 
-		visible = false,
-		title = 'Results',
-		results = [],
-		onSelectPlace = (place) => {},
-		onLoadMore = null,
-		loading = false
-	} = $props();
+	export let visible = false;
+	export let title = 'Results';
+	export let results = [];
+	export let onSelectPlace = (place) => {};
+	export let onLoadMore = null;
+	export let loading = false;
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
