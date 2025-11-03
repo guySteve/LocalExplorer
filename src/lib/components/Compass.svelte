@@ -859,10 +859,10 @@
 		transform-origin: center center;
 		z-index: 3;
 		pointer-events: none;
-		width: 100px;
-		height: 100px;
-		margin-left: -50px;
-		margin-top: -50px;
+		width: 70px;
+		height: 70px;
+		margin-left: -35px;
+		margin-top: -35px;
 		transition: transform 0.05s linear; /* Smooth but responsive */
 	}
 	
@@ -990,10 +990,10 @@
 		}
 		
 		.person-icon {
-			width: 70px;
-			height: 70px;
-			margin-left: -35px;
-			margin-top: -35px;
+			width: 50px;
+			height: 50px;
+			margin-left: -25px;
+			margin-top: -25px;
 		}
 	}
 </style>
