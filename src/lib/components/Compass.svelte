@@ -521,7 +521,7 @@
 				
 				<!-- CompassMan icon on top of map, rotating with device -->
 				<div class="person-icon" style="transform: {personTransform}">
-					<img src="/compassman" alt="Compass indicator" class="compassman-image" />
+					<img src="/compassman.png" alt="Compass indicator" class="compassman-image" />
 				</div>
 			</div>
 		</div>
@@ -817,9 +817,6 @@
 		left: 50%;
 		transform-origin: center center;
 		z-index: 3;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 		pointer-events: none;
 		width: 120px;
 		height: 120px;
