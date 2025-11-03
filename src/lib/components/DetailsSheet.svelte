@@ -107,6 +107,7 @@
 		}
 		
 		// Find worst review within last year
+		// Note: Google Places API returns timestamps in seconds, not milliseconds
 		const recentReviews = allReviews.filter(review => {
 			const reviewTime = review.time * 1000; // Convert to milliseconds
 			return reviewTime >= oneYearAgo;

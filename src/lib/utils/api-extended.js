@@ -362,16 +362,22 @@ export async function fetchRecentBirdSightings(lat, lng) {
 // Search bird sightings for list view
 export async function searchBirdSightings(lat, lng, type = 'recent') {
   try {
+    // Determine endpoint based on type
     let endpoint = 'recent';
+    let dist = '25';
+    
     if (type === 'notable') {
       endpoint = 'notable';
+    } else if (type === 'hotspots') {
+      endpoint = 'hotspots';
+      dist = '50'; // Wider radius for hotspots
     }
     
     const params = new URLSearchParams({
       endpoint: endpoint,
       lat: lat.toString(),
       lng: lng.toString(),
-      dist: type === 'hotspots' ? '50' : '25', // Wider radius for hotspots
+      dist: dist,
       maxResults: '50' // More results for list view
     });
     
