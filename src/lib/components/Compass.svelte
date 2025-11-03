@@ -41,6 +41,12 @@
 	
 	// Constants
 	const HEADING_SMOOTH = 0.12;
+	const MAP_INIT_DELAY_MS = 100; // Delay to ensure DOM is ready
+	const MAP_INIT_RETRY_DELAY_MS = 500; // Delay between retry attempts
+	const MAX_MAP_INIT_RETRIES = 10; // Maximum number of retry attempts
+	
+	// Retry counter for map initialization
+	let mapInitRetryCount = 0;
 	
 	// Reactive: Start/stop services when visible changes
 	$: if (visible && browser) {
@@ -56,6 +62,7 @@
 	
 	function init() {
 		console.log('Compass: Initializing...');
+		mapInitRetryCount = 0; // Reset retry counter
 		requestSensorPermissions(); // Automatically request permissions on open
 		startGeolocationWatch();
 		startAnimation();
@@ -65,7 +72,7 @@
 			if (mapContainer && !mapInitialized) {
 				initializeMap();
 			}
-		}, 100);
+		}, MAP_INIT_DELAY_MS);
 		
 		// If we have a destination, fetch route
 		if (destination) {
@@ -135,18 +142,22 @@
 		currentStepIndex = 0;
 		mapInitialized = false; // Reset map initialization flag for next open
 		map = null;
+		mapInitRetryCount = 0; // Reset retry counter
 	}
 	
 	function initializeMap() {
 		if (!window.google || !window.google.maps || !currentPosition || !mapContainer) {
 			console.log('Compass: Waiting for Google Maps, position, or container...');
-			// Retry after a short delay if we're still visible
-			if (visible && !mapInitialized) {
+			// Retry after a short delay if we're still visible and haven't exceeded max retries
+			if (visible && !mapInitialized && mapInitRetryCount < MAX_MAP_INIT_RETRIES) {
+				mapInitRetryCount++;
 				setTimeout(() => {
 					if (visible && !mapInitialized) {
 						initializeMap();
 					}
-				}, 500);
+				}, MAP_INIT_RETRY_DELAY_MS);
+			} else if (mapInitRetryCount >= MAX_MAP_INIT_RETRIES) {
+				console.warn('Compass: Max map initialization retries reached. Map will not be displayed.');
 			}
 			return;
 		}
