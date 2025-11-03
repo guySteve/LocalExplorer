@@ -27,13 +27,6 @@
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
 	import Compass from '$lib/components/Compass.svelte';
 	
-	// Configuration constants
-	const BIRD_WATCHING_MENU_ITEMS = [
-		{ name: 'Recent Sightings', value: 'bird-sightings' },
-		{ name: 'Rare Birds', value: 'rare-birds' },
-		{ name: 'Hotspots', value: 'bird-hotspots' }
-	];
-	
 	// Modal visibility state
 	let showSettings = false;
 	let showMyCollection = false;
