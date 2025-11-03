@@ -424,7 +424,7 @@
     <!-- Action Buttons -->
     <div class="details-actions">
       <button class="action-btn primary" onclick={startNavigation}>
-        <span class="compass-icon"></span> Guide Me
+        <span class="compass-icon" aria-hidden="true"></span> Guide Me
       </button>
       <button class="action-btn" onclick={openMaps}>
         🗺️ Maps

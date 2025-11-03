@@ -15,7 +15,7 @@
 <div id="primaryActions">
 	<button id="myCollectionBtn" on:click={handleCollectionClick}>📋 My Collection</button>
 	<button id="compassBtn" on:click={handleCompassClick}>
-		<span class="compass-icon"></span> Compass
+		<span class="compass-icon" aria-hidden="true"></span> Compass
 	</button>
 </div>
 
