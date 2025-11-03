@@ -2,7 +2,6 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
-	import { GOOGLE_COMPASS_MAP_ID } from '$lib/utils/uiConstants';
 
 	const dispatch = createEventDispatcher();
 	
