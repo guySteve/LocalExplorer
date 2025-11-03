@@ -122,7 +122,7 @@
 			const lastYearDate = new Date();
 			lastYearDate.setFullYear(currentDate.getFullYear() - 1);
 
-			// Fetch historical weather data from Open-Meteo
+			// Fetch historical weather data from Open-Meteo using the archive endpoint
 			const params = new URLSearchParams({
 				latitude: lat.toFixed(4),
 				longitude: lng.toFixed(4),
@@ -133,7 +133,8 @@
 				end_date: lastYearDate.toISOString().split('T')[0]
 			});
 
-			const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+			// Use the archive endpoint for historical data instead of forecast
+			const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`);
 			
 			if (!response.ok) {
 				throw new Error('Historical weather service unavailable');
