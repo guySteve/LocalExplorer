@@ -237,4 +237,42 @@
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
+	
+	@media (max-width: 768px) {
+		.results-list {
+			max-height: 55vh;
+		}
+		
+		.result-card {
+			padding: 0.9rem;
+			margin-bottom: 0.6rem;
+		}
+		
+		.result-header h4 {
+			font-size: 1rem;
+		}
+		
+		.provider-badge {
+			font-size: 0.65rem;
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.results-list {
+			max-height: 50vh;
+		}
+		
+		.result-card {
+			padding: 0.8rem;
+		}
+		
+		.result-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		
+		.provider-badge {
+			margin-top: 0.25rem;
+		}
+	}
 </style>
