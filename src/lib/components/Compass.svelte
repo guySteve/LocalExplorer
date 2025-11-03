@@ -6,23 +6,25 @@
 	const dispatch = createEventDispatcher();
 	
 	// Props
-	let { destination = null, destinationName = '', visible = false } = $props();
+	export let destination = null;
+	export let destinationName = '';
+	export let visible = false;
 	
 	// State
-	let currentHeading = $state(0);
-	let ringHeadingTarget = $state(0);
-	let ringHeadingVisual = $state(0);
-	let pitchTarget = $state(0);
-	let pitchVisual = $state(0);
-	let rollTarget = $state(0);
-	let rollVisual = $state(0);
+	let currentHeading = 0;
+	let ringHeadingTarget = 0;
+	let ringHeadingVisual = 0;
+	let pitchTarget = 0;
+	let pitchVisual = 0;
+	let rollTarget = 0;
+	let rollVisual = 0;
 	
-	let orientationReady = $state(false);
-	let geolocationReady = $state(false);
-	let currentPosition = $state(null);
-	let currentSpeed = $state(0);
-	let accuracy = $state('—');
-	let bearing = $state('—');
+	let orientationReady = false;
+	let geolocationReady = false;
+	let currentPosition = null;
+	let currentSpeed = 0;
+	let accuracy = '—';
+	let bearing = '—';
 	
 	let watchId = null;
 	let orientationListener = null;
@@ -30,10 +32,10 @@
 	let motionListener = null;
 	let animationFrameId = null;
 	
-	let routeSteps = $state([]);
-	let currentStepIndex = $state(0);
-	let navigationActive = $state(false);
-	let permissionState = $state('prompt'); // 'prompt', 'granted', or 'denied'
+	let routeSteps = [];
+	let currentStepIndex = 0;
+	let navigationActive = false;
+	let permissionState = 'prompt'; // 'prompt', 'granted', or 'denied'
 	
 	// Constants
 	const PITCH_LIMIT = 55;
@@ -42,13 +44,11 @@
 	const TILT_SMOOTH = 0.15;
 	
 	// Reactive: Start/stop services when visible changes
-	$effect(() => {
-		if (visible && browser) {
-			init();
-		} else if (!visible && browser) {
-			cleanup();
-		}
-	});
+	$: if (visible && browser) {
+		init();
+	} else if (!visible && browser) {
+		cleanup();
+	}
 	
 	function init() {
 		console.log('Compass: Initializing...');
@@ -388,33 +388,28 @@
 	}
 	
 	// Computed values
-	let statusText = $derived(
+	$: statusText = 
 		orientationReady && geolocationReady ? 'Heading & GPS locked' :
 		orientationReady ? 'Compass ready — waiting for GPS' :
 		geolocationReady ? 'GPS ready — waiting for compass' :
-		'Waiting for sensors…'
-	);
+		'Waiting for sensors…';
 	
-	let statusClass = $derived(
+	$: statusClass = 
 		orientationReady && geolocationReady ? 'status-good' :
 		orientationReady || geolocationReady ? 'status-warn' :
-		'status-bad'
-	);
+		'status-bad';
 	
-	let headingDisplay = $derived(
-		orientationReady ? `${String(Math.round(currentHeading)).padStart(3, '0')}°` : '---°'
-	);
+	$: headingDisplay = 
+		orientationReady ? `${String(Math.round(currentHeading)).padStart(3, '0')}°` : '---°';
 	
-	let destinationDisplay = $derived(
+	$: destinationDisplay = 
 		destination && destinationName ? 
 			`${destinationName}${bearing !== '—' ? ` (${bearing}°)` : ''}` :
 			destination ? 'Destination set' :
-			'Pointing North'
-	);
+			'Pointing North';
 	
-	let transform = $derived(
-		`perspective(1000px) rotateX(${pitchVisual}deg) rotateY(${rollVisual}deg) rotateZ(${ringHeadingVisual}deg)`
-	);
+	$: transform = 
+		`perspective(1000px) rotateX(${pitchVisual}deg) rotateY(${rollVisual}deg) rotateZ(${ringHeadingVisual}deg)`;
 </script>
 
 {#if visible}

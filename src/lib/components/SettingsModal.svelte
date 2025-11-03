@@ -6,7 +6,7 @@
 	const dispatch = createEventDispatcher();
 	
 	// Props
-	let { visible = false } = $props();
+	export let visible = false;
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {

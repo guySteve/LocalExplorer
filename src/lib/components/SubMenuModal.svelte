@@ -5,7 +5,10 @@
 	const dispatch = createEventDispatcher();
 	
 	// Props
-	let { visible = false, title = 'Categories', items = [], onSelectItem = () => {} } = $props();
+	export let visible = false;
+	export let title = 'Categories';
+	export let items = [];
+	export let onSelectItem = () => {};
 	
 	function handleSelect(item) {
 		onSelectItem(item);

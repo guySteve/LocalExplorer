@@ -5,7 +5,8 @@
 	const dispatch = createEventDispatcher();
 	
 	// Props
-	let { visible = false, forecastData = [] } = $props();
+	export let visible = false;
+	export let forecastData = [];
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {

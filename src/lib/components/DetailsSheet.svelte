@@ -8,11 +8,12 @@
 	const dispatch = createEventDispatcher();
 	
 	// Props
-	let { place = null, visible = false } = $props();
+	export let place = null;
+	export let visible = false;
 
-	let what3words = $state('');
-	let streetViewActive = $state(false);
-	let loading = $state(true);
+	let what3words = '';
+	let streetViewActive = false;
+	let loading = true;
 	
 	function getPlaceCoordinates() {
 		if (!place) return null;
@@ -26,7 +27,7 @@
 	}
 
 	// Reactive: Fetch What3Words when place changes
-	$effect(() => {
+	$: {
 		const coords = getPlaceCoordinates();
 		if (place && coords) {
 			loading = false;
@@ -34,7 +35,7 @@
 		} else {
 			loading = true;
 		}
-	});
+	}
 	
 	async function loadWhat3Words(coords) {
 		if (!place || !coords) return;
