@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { currentPosition, currentResults, latestLocationLabel } from '$lib/stores/appState';
+	import { currentPosition, currentResults, latestLocationLabel, categories } from '$lib/stores/appState';
 	import { searchGooglePlaces, performUnifiedSearch, calculateDistance, MILES_TO_METERS } from '$lib/utils/api';
 	import { 
 		searchLocalEvents, 
@@ -361,7 +361,10 @@
 	
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
-	<WeatherSimple on:openForecast={handleOpenForecast} />
+	<WeatherSimple 
+		on:openForecast={handleOpenForecast}
+		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Bird Watching', items: $categories['Bird Watching'] || [] } })}
+	/>
 	
 	<FilterGrid on:openSubMenu={handleOpenSubMenu} />
 	

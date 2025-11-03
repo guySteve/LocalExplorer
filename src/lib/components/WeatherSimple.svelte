@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode } from '$lib/stores/appState';
+	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode, categories } from '$lib/stores/appState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
 
@@ -19,6 +19,11 @@
 
 	const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 	const TEMP_DIFF_THRESHOLD = 5; // Degrees for significant temperature change
+	
+	function handleBirdBoxClick() {
+		// Dispatch event to open the Bird Watching submenu
+		dispatch('openBirdMenu');
+	}
 
 	onMount(() => {
 		const unsubscribePosition = currentPosition.subscribe((pos) => {
@@ -316,7 +321,9 @@
 		<div class="weather-fun-saying">{funSaying}</div>
 
 		{#if showBirds && birdFact}
-			<div class="bird-fact">{birdFact}</div>
+			<button class="bird-fact" on:click={handleBirdBoxClick} type="button" aria-label="Open bird watching menu">
+				{birdFact}
+			</button>
 		{/if}
 
 		<!-- Always show historical weather as small visual at bottom -->
@@ -493,6 +500,23 @@
 		border: 1px solid rgba(76, 175, 80, 0.3);
 		font-size: 0.9rem;
 		margin-bottom: 0.75rem;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		width: 100%;
+		text-align: left;
+		color: var(--text-light);
+		font-family: inherit;
+	}
+	
+	.bird-fact:hover {
+		background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(139, 195, 74, 0.3));
+		border-color: rgba(76, 175, 80, 0.5);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+	}
+	
+	.bird-fact:active {
+		transform: translateY(0);
 	}
 
 	.weather-history-mini {

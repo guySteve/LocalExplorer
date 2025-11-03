@@ -31,7 +31,7 @@
 </script>
 
 <div class="filters" id="filterGrid">
-	{#each Object.keys(categories) as category, i}
+	{#each Object.keys(categories).filter(cat => cat !== 'Bird Watching') as category, i}
 		<button 
 			class="filter-btn"
 			on:click={() => handleCategoryClick(category)}
