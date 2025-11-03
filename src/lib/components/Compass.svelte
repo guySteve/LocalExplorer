@@ -519,10 +519,9 @@
 			<div class="compass-map-container">
 				<div class="compass-map" bind:this={mapContainer}></div>
 				
-				<!-- Person icon on top of map, rotating with device -->
+				<!-- CompassMan icon on top of map, rotating with device -->
 				<div class="person-icon" style="transform: {personTransform}">
-					<div class="person-body">🚶</div>
-					<div class="person-direction">▲</div>
+					<img src="/compassman" alt="Compass indicator" class="compassman-image" />
 				</div>
 			</div>
 		</div>
@@ -811,32 +810,29 @@
 		border-radius: 50%;
 	}
 	
-	/* Person icon on top of map */
+	/* CompassMan icon on top of map */
 	.person-icon {
 		position: absolute;
 		top: 50%;
 		left: 50%;
-		transform-origin: center;
+		transform-origin: center center;
 		z-index: 3;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
+		justify-content: center;
 		pointer-events: none;
-		margin-left: -15px;
-		margin-top: -25px;
+		width: 120px;
+		height: 120px;
+		margin-left: -60px;
+		margin-top: -60px;
 		transition: transform 0.1s ease-out;
-		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+		filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
 	}
 	
-	.person-body {
-		font-size: 2rem;
-		line-height: 1;
-	}
-	
-	.person-direction {
-		font-size: 1.5rem;
-		color: var(--accent);
-		margin-top: -8px;
+	.compassman-image {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
 	}
 	
 	.heading-display {
@@ -956,12 +952,11 @@
 			flex-direction: column;
 		}
 		
-		.person-body {
-			font-size: 1.6rem;
-		}
-		
-		.person-direction {
-			font-size: 1.2rem;
+		.person-icon {
+			width: 80px;
+			height: 80px;
+			margin-left: -40px;
+			margin-top: -40px;
 		}
 	}
 </style>
