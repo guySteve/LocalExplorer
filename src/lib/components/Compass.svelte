@@ -479,7 +479,7 @@
 		<div class="compass-header">
 			<div>
 				<h2 class="compass-title">
-					<span class="compass-icon"></span> Compass
+					<span class="compass-icon" aria-hidden="true"></span> Compass
 				</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
