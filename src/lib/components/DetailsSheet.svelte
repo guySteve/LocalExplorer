@@ -77,13 +77,65 @@
 			}
 			
 			const details = await getPlaceDetails(placeId);
-			reviews = details?.reviews || [];
+			const allReviews = details?.reviews || [];
+			
+			// Process reviews to show most recent and worst (if within last year)
+			reviews = processReviews(allReviews);
 		} catch (err) {
 			console.error('Failed to load reviews:', err);
 			reviews = [];
 		} finally {
 			loadingReviews = false;
 		}
+	}
+	
+	function processReviews(allReviews) {
+		if (!allReviews || allReviews.length === 0) return [];
+		
+		const oneYearAgo = Date.now() - (365 * 24 * 60 * 60 * 1000);
+		const processedReviews = [];
+		
+		// Sort by time (most recent first)
+		const sortedByTime = [...allReviews].sort((a, b) => b.time - a.time);
+		
+		// Add most recent review
+		if (sortedByTime.length > 0) {
+			processedReviews.push({
+				...sortedByTime[0],
+				isRecent: true
+			});
+		}
+		
+		// Find worst review within last year
+		const recentReviews = allReviews.filter(review => {
+			const reviewTime = review.time * 1000; // Convert to milliseconds
+			return reviewTime >= oneYearAgo;
+		});
+		
+		if (recentReviews.length > 0) {
+			// Sort by rating (lowest first)
+			const sortedByRating = [...recentReviews].sort((a, b) => a.rating - b.rating);
+			const worstReview = sortedByRating[0];
+			
+			// Only add if it's different from the most recent and has low rating
+			if (worstReview.time !== sortedByTime[0].time && worstReview.rating <= 3) {
+				processedReviews.push({
+					...worstReview,
+					isWorst: true
+				});
+			}
+		}
+		
+		// Add one more positive review if space allows (for balance)
+		const positiveReviews = allReviews.filter(r => 
+			r.rating >= 4 && 
+			!processedReviews.find(pr => pr.time === r.time)
+		);
+		if (positiveReviews.length > 0 && processedReviews.length < 3) {
+			processedReviews.push(positiveReviews[0]);
+		}
+		
+		return processedReviews;
 	}
 	
 	function close() {
