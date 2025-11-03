@@ -49,16 +49,23 @@
 		cleanup();
 	}
 	
+	// Reactive: Try to initialize map when mapContainer becomes available
+	$: if (visible && browser && mapContainer && !mapInitialized && currentPosition) {
+		initializeMap();
+	}
+	
 	function init() {
 		console.log('Compass: Initializing...');
 		requestSensorPermissions(); // Automatically request permissions on open
 		startGeolocationWatch();
 		startAnimation();
 		
-		// Initialize Google Map
-		if (mapContainer && !mapInitialized) {
-			initializeMap();
-		}
+		// Initialize Google Map after a short delay to ensure DOM is ready
+		setTimeout(() => {
+			if (mapContainer && !mapInitialized) {
+				initializeMap();
+			}
+		}, 100);
 		
 		// If we have a destination, fetch route
 		if (destination) {
@@ -126,11 +133,26 @@
 		navigationActive = false;
 		routeSteps = [];
 		currentStepIndex = 0;
+		mapInitialized = false; // Reset map initialization flag for next open
+		map = null;
 	}
 	
 	function initializeMap() {
-		if (!window.google || !window.google.maps || !currentPosition) {
-			console.log('Compass: Waiting for Google Maps or position...');
+		if (!window.google || !window.google.maps || !currentPosition || !mapContainer) {
+			console.log('Compass: Waiting for Google Maps, position, or container...');
+			// Retry after a short delay if we're still visible
+			if (visible && !mapInitialized) {
+				setTimeout(() => {
+					if (visible && !mapInitialized) {
+						initializeMap();
+					}
+				}, 500);
+			}
+			return;
+		}
+		
+		// Avoid double initialization
+		if (mapInitialized) {
 			return;
 		}
 		
@@ -150,6 +172,7 @@
 			console.log('Compass: Map initialized with ID:', GOOGLE_COMPASS_MAP_ID);
 		} catch (error) {
 			console.error('Compass: Error initializing map:', error);
+			mapInitialized = false;
 		}
 	}
 	

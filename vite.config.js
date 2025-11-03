@@ -34,7 +34,7 @@ export default defineConfig({
 				// SvelteKit-specific configuration
 				globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
 				// Don't try to precache index.html since SvelteKit handles routing differently
-				navigateFallback: '/',
+				navigateFallback: null, // Disable navigateFallback to prevent precache errors
 				navigateFallbackDenylist: [/^\/api/, /^\/_app/, /^\/\.netlify/],
 				runtimeCaching: [
 					{
