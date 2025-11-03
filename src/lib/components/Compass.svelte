@@ -41,10 +41,23 @@
 	let mapInitialized = false;
 	
 	// Constants
-	const HEADING_SMOOTH = 0.15; // Increased for smoother rotation
+	const HEADING_SMOOTH = 0.2; // Increased for smoother rotation
 	const MAP_INIT_DELAY_MS = 100; // Delay to ensure DOM is ready
 	const MAP_INIT_RETRY_DELAY_MS = 500; // Delay between retry attempts
 	const MAX_MAP_INIT_RETRIES = 10; // Maximum number of retry attempts
+	
+	// Cardinal direction names for display
+	const CARDINAL_DIRECTIONS = [
+		{ name: 'North', min: 337.5, max: 360 },
+		{ name: 'North', min: 0, max: 22.5 },
+		{ name: 'Northeast', min: 22.5, max: 67.5 },
+		{ name: 'East', min: 67.5, max: 112.5 },
+		{ name: 'Southeast', min: 112.5, max: 157.5 },
+		{ name: 'South', min: 157.5, max: 202.5 },
+		{ name: 'Southwest', min: 202.5, max: 247.5 },
+		{ name: 'West', min: 247.5, max: 292.5 },
+		{ name: 'Northwest', min: 292.5, max: 337.5 }
+	];
 	
 	// Retry counter for map initialization
 	let mapInitRetryCount = 0;
@@ -173,18 +186,7 @@
 				center: { lat: currentPosition.lat, lng: currentPosition.lng },
 				zoom: 18,
 				mapTypeId: 'terrain', // Terrain style map
-				disableDefaultUI: false, // Enable default UI controls
-				zoomControl: true, // Show zoom controls
-				mapTypeControl: true, // Show map type control
-				mapTypeControlOptions: {
-					style: window.google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-					position: window.google.maps.ControlPosition.TOP_RIGHT
-				},
-				zoomControlOptions: {
-					position: window.google.maps.ControlPosition.RIGHT_CENTER
-				},
-				streetViewControl: false, // Disable street view
-				fullscreenControl: false, // Disable fullscreen
+				disableDefaultUI: true, // Disable all default UI - we'll add controls outside
 				gestureHandling: 'greedy', // Allow map interaction
 				keyboardShortcuts: true,
 				heading: 0, // Will be updated based on device orientation
@@ -207,6 +209,30 @@
 	// Update map center when position changes
 	$: if (map && currentPosition) {
 		map.setCenter({ lat: currentPosition.lat, lng: currentPosition.lng });
+	}
+	
+	// Map control functions
+	function zoomIn() {
+		if (map) {
+			const currentZoom = map.getZoom();
+			map.setZoom(currentZoom + 1);
+		}
+	}
+	
+	function zoomOut() {
+		if (map) {
+			const currentZoom = map.getZoom();
+			map.setZoom(currentZoom - 1);
+		}
+	}
+	
+	function toggleMapType() {
+		if (map) {
+			const currentType = map.getMapTypeId();
+			const newType = currentType === 'terrain' ? 'satellite' : 
+			                currentType === 'satellite' ? 'roadmap' : 'terrain';
+			map.setMapTypeId(newType);
+		}
 	}
 	
 	function startOrientationListener() {
@@ -449,11 +475,36 @@
 	}
 	
 	function wrapAngle(angle) {
-		return (angle % 360 + 360) % 360;
+		let wrapped = angle % 360;
+		if (wrapped < 0) wrapped += 360;
+		return wrapped;
 	}
 	
 	function shortestAngle(from, to) {
-		return ((to - from + 540) % 360) - 180;
+		// Ensure both angles are normalized to 0-360
+		from = wrapAngle(from);
+		to = wrapAngle(to);
+		
+		let delta = to - from;
+		
+		// Find the shortest rotation direction
+		if (delta > 180) {
+			delta -= 360;
+		} else if (delta < -180) {
+			delta += 360;
+		}
+		
+		return delta;
+	}
+	
+	function getCardinalDirection(heading) {
+		const normalized = wrapAngle(heading);
+		for (const dir of CARDINAL_DIRECTIONS) {
+			if (normalized >= dir.min && normalized < dir.max) {
+				return dir.name;
+			}
+		}
+		return 'North'; // Fallback
 	}
 	
 	function stripHtml(html) {
@@ -481,7 +532,7 @@
 		destination && destinationName ? 
 			`${destinationName}${bearing !== '—' ? ` (${bearing}°)` : ''}` :
 			destination ? 'Destination set' :
-			'Pointing North';
+			orientationReady ? `Pointing ${getCardinalDirection(currentHeading)}` : 'Pointing North';
 	
 	$: ringTransform = `rotateZ(${ringHeadingVisual}deg)`;
 	$: personTransform = `rotateZ(${personHeadingVisual}deg)`; // Person icon rotates with smoothing
@@ -539,43 +590,62 @@
 				<!-- Arrow icon on top of map, rotating with device -->
 				<div class="person-icon" style="transform: {personTransform}">
 					<svg viewBox="0 0 100 100" class="compass-arrow" role="img" aria-label="Direction indicator">
-						<!-- Arrow gradient definition -->
+						<!-- Drop shadow for depth -->
 						<defs>
-							<linearGradient id="arrowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-								<stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
-								<stop offset="100%" style="stop-color:#c87941;stop-opacity:1" />
-							</linearGradient>
+							<filter id="arrowShadow" x="-50%" y="-50%" width="200%" height="200%">
+								<feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+								<feOffset dx="0" dy="2" result="offsetblur"/>
+								<feComponentTransfer>
+									<feFuncA type="linear" slope="0.5"/>
+								</feComponentTransfer>
+								<feMerge>
+									<feMergeNode/>
+									<feMergeNode in="SourceGraphic"/>
+								</feMerge>
+							</filter>
 						</defs>
 						
-						<!-- Outer glow/shadow circle for depth -->
-						<circle cx="50" cy="50" r="35" fill="rgba(0, 0, 0, 0.2)" />
-						
-						<!-- Main arrow body pointing up -->
+						<!-- Simplified modern arrow pointing up -->
 						<path 
-							d="M 50 15 L 60 45 L 55 45 L 55 75 L 45 75 L 45 45 L 40 45 Z" 
+							d="M 50 20 L 58 40 L 54 40 L 54 65 L 46 65 L 46 40 L 42 40 Z" 
 							fill="var(--primary, #c87941)"
 							stroke="white"
-							stroke-width="2"
+							stroke-width="1.5"
 							stroke-linejoin="round"
-							filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+							filter="url(#arrowShadow)"
 						/>
 						
-						<!-- Arrow head with gradient for depth -->
-						<path 
-							d="M 50 10 L 65 35 L 50 30 L 35 35 Z" 
-							fill="url(#arrowGradient)"
-							stroke="white"
-							stroke-width="2"
-							stroke-linejoin="round"
-							filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
-						/>
-						
-						<!-- Center dot for visual anchor -->
-						<circle cx="50" cy="50" r="6" fill="white" stroke="var(--primary, #c87941)" stroke-width="2" />
+						<!-- Center position indicator -->
+						<circle cx="50" cy="50" r="4" fill="white" stroke="var(--primary, #c87941)" stroke-width="1.5" opacity="0.9" />
 					</svg>
 				</div>
 			</div>
 		</div>
+		
+		<!-- Map Controls (below compass) -->
+		{#if mapInitialized}
+			<div class="map-controls">
+				<button class="map-control-btn" on:click={zoomIn} aria-label="Zoom in" title="Zoom in">
+					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+						<line x1="12" y1="5" x2="12" y2="19" stroke-width="2"/>
+						<line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/>
+					</svg>
+				</button>
+				<button class="map-control-btn" on:click={zoomOut} aria-label="Zoom out" title="Zoom out">
+					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+						<line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/>
+					</svg>
+				</button>
+				<button class="map-control-btn" on:click={toggleMapType} aria-label="Change map type" title="Change map type">
+					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+						<rect x="3" y="3" width="7" height="7" stroke-width="2"/>
+						<rect x="14" y="3" width="7" height="7" stroke-width="2"/>
+						<rect x="3" y="14" width="7" height="7" stroke-width="2"/>
+						<rect x="14" y="14" width="7" height="7" stroke-width="2"/>
+					</svg>
+				</button>
+			</div>
+		{/if}
 		
 		<!-- Heading Display -->
 		<div class="heading-display">
@@ -869,17 +939,53 @@
 		transform-origin: center center;
 		z-index: 3;
 		pointer-events: none;
-		width: 50px;
-		height: 50px;
-		margin-left: -25px;
-		margin-top: -25px;
-		transition: transform 0.05s linear; /* Smooth but responsive */
+		width: 32px;
+		height: 32px;
+		margin-left: -16px;
+		margin-top: -16px;
+		transition: transform 0.1s ease-out; /* Smooth but responsive */
+		opacity: 0.95;
 	}
 	
 	.compass-arrow {
 		width: 100%;
 		height: 100%;
-		filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.4));
+		filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+	}
+	
+	/* Map Controls below compass */
+	.map-controls {
+		display: flex;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 1rem;
+		margin-bottom: 1rem;
+	}
+	
+	.map-control-btn {
+		background: var(--card);
+		border: 2px solid rgba(var(--card-rgb, 26, 43, 68), 0.2);
+		border-radius: 8px;
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		color: var(--text-light);
+		padding: 0;
+	}
+	
+	.map-control-btn:hover {
+		background: var(--primary);
+		border-color: var(--primary);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+	
+	.map-control-btn:active {
+		transform: translateY(0);
 	}
 	
 	.heading-display {
@@ -1000,10 +1106,15 @@
 		}
 		
 		.person-icon {
+			width: 28px;
+			height: 28px;
+			margin-left: -14px;
+			margin-top: -14px;
+		}
+		
+		.map-control-btn {
 			width: 40px;
 			height: 40px;
-			margin-left: -20px;
-			margin-top: -20px;
 		}
 	}
 </style>
