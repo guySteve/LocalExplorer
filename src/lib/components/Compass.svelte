@@ -414,16 +414,16 @@
 
 {#if visible}
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="compass-overlay" class:active={visible} onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="0">
+<div class="compass-overlay" class:active={visible} on:click={close} on:keydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" tabindex="0">
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div class="compass-container" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="document" tabindex="-1">
+	<div class="compass-container" on:click={(e) => e.stopPropagation()} on:keydown={(e) => e.stopPropagation()} role="document" tabindex="-1">
 		<!-- Header -->
 		<div class="compass-header">
 			<div>
 				<h2 class="compass-title">🧭 Compass</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
-			<button class="close-btn" onclick={close} aria-label="Close compass">×</button>
+			<button class="close-btn" on:click={close} aria-label="Close compass" type="button">×</button>
 		</div>
 		
 		<!-- Status -->

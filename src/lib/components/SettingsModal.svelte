@@ -241,11 +241,11 @@ function handleClose() {
 
 	.toggle-btn {
 		position: relative;
-		width: 48px;
-		height: 24px;
-		background: rgba(0, 0, 0, 0.3);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		border-radius: 12px;
+		width: 50px;
+		height: 28px;
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 14px;
 		cursor: pointer;
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		padding: 0;
@@ -253,34 +253,36 @@ function handleClose() {
 	}
 
 	.toggle-btn:hover {
-		background: rgba(0, 0, 0, 0.4);
-		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+		background: rgba(0, 0, 0, 0.3);
+		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
 	}
 
 	.toggle-btn.active {
 		background: var(--primary);
 		border-color: var(--primary);
+		box-shadow: 0 0 12px rgba(var(--primary-rgb, 200, 121, 65), 0.4);
 	}
 
 	.toggle-btn.active:hover {
 		filter: brightness(1.1);
+		box-shadow: 0 0 16px rgba(var(--primary-rgb, 200, 121, 65), 0.5);
 	}
 
 	.toggle-slider {
 		position: absolute;
-		top: 2px;
-		left: 2px;
-		width: 18px;
-		height: 18px;
+		top: 3px;
+		left: 3px;
+		width: 20px;
+		height: 20px;
 		background: white;
 		border-radius: 50%;
 		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 		pointer-events: none;
 	}
 
 	.toggle-btn.active .toggle-slider {
-		transform: translateX(24px);
+		transform: translateX(22px);
 	}
 
 	select {
