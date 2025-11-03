@@ -424,7 +424,7 @@
     <!-- Action Buttons -->
     <div class="details-actions">
       <button class="action-btn primary" onclick={startNavigation}>
-        🧭 Guide Me
+        <span class="compass-icon"></span> Guide Me
       </button>
       <button class="action-btn" onclick={openMaps}>
         🗺️ Maps
@@ -558,6 +558,34 @@
 		cursor: pointer;
 		transition: all 0.2s;
 		font-family: var(--font-primary);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+	
+	.compass-icon {
+		display: inline-block;
+		width: 0;
+		height: 0;
+		border-left: 6px solid transparent;
+		border-right: 6px solid transparent;
+		border-bottom: 10px solid currentColor;
+		position: relative;
+		flex-shrink: 0;
+	}
+	
+	.compass-icon::after {
+		content: '';
+		position: absolute;
+		width: 0;
+		height: 0;
+		border-left: 6px solid transparent;
+		border-right: 6px solid transparent;
+		border-top: 10px solid currentColor;
+		left: -6px;
+		top: 3px;
+		opacity: 0.5;
 	}
 	
 	.action-btn:hover {
