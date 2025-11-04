@@ -192,6 +192,13 @@ export async function performUnifiedSearch(query) {
   const apiCalls = [];
 
   try {
+    // Check if browser reports offline status
+    if (browser && !navigator.onLine) {
+      console.warn('Browser reports offline status');
+      isOffline.set(true);
+      // Continue with the search attempt anyway, as navigator.onLine can be unreliable
+    }
+
     // Google Maps Places Search (NEW)
     apiCalls.push(
       searchGooglePlaces(null, searchTerm, false)
