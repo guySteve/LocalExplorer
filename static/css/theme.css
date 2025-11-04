@@ -1948,95 +1948,40 @@ body.theme-voyager h1 {
    TEXT COLOR CONTRAST FIXES FOR LIGHT THEMES
    ============================================ */
 
-/* Naval theme - light background */
+/* Light-themed backgrounds - ensure proper text contrast */
 body.theme-naval #locationDisplay,
 body.theme-naval .rating,
-body.theme-naval #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Arctic theme - light background */
+body.theme-naval #weatherDescription,
 body.theme-arctic #locationDisplay,
 body.theme-arctic .rating,
-body.theme-arctic #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Solstice theme - light background */
+body.theme-arctic #weatherDescription,
 body.theme-solstice #locationDisplay,
 body.theme-solstice .rating,
-body.theme-solstice #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Evergreen theme - light background */
+body.theme-solstice #weatherDescription,
 body.theme-evergreen #locationDisplay,
 body.theme-evergreen .rating,
-body.theme-evergreen #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Monochrome theme - light background */
+body.theme-evergreen #weatherDescription,
 body.theme-monochrome #locationDisplay,
 body.theme-monochrome .rating,
-body.theme-monochrome #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Playful theme - light background */
+body.theme-monochrome #weatherDescription,
 body.theme-playful #locationDisplay,
 body.theme-playful .rating,
-body.theme-playful #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Mojave theme - light background */
+body.theme-playful #weatherDescription,
 body.theme-mojave #locationDisplay,
 body.theme-mojave .rating,
-body.theme-mojave #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Atomic50 theme - light background */
+body.theme-mojave #weatherDescription,
 body.theme-atomic50 #locationDisplay,
 body.theme-atomic50 .rating,
-body.theme-atomic50 #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Y2K00 theme - light background */
+body.theme-atomic50 #weatherDescription,
 body.theme-y2k00 #locationDisplay,
 body.theme-y2k00 .rating,
-body.theme-y2k00 #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Metro10 theme - light background */
+body.theme-y2k00 #weatherDescription,
 body.theme-metro10 #locationDisplay,
 body.theme-metro10 .rating,
-body.theme-metro10 #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Sushi theme - light background */
+body.theme-metro10 #weatherDescription,
 body.theme-sushi #locationDisplay,
 body.theme-sushi .rating,
-body.theme-sushi #weatherDescription {
-  color: var(--card);
-  text-shadow: none;
-}
-
-/* Cafe theme - light background */
+body.theme-sushi #weatherDescription,
 body.theme-cafe #locationDisplay,
 body.theme-cafe .rating,
 body.theme-cafe #weatherDescription {

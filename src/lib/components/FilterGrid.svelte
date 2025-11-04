@@ -12,13 +12,15 @@
 	let hiddenCategories = [];
 	let draggedIndex = null;
 	let categoryOrder = [];
+	let categoryOrderInitialized = false;
 	
 	// Reactive category ordering based on weather
 	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Bird Watching' && !hiddenCategories.includes(cat)), $currentWeatherCondition);
 	
-	// Initialize category order on first load
-	$: if (categoryOrder.length === 0 && orderedCategories.length > 0) {
+	// Initialize category order on first load only
+	$: if (!categoryOrderInitialized && orderedCategories.length > 0) {
 		categoryOrder = [...orderedCategories];
+		categoryOrderInitialized = true;
 	}
 	
 	// Use custom order if available, otherwise use weather-based order
@@ -81,7 +83,13 @@
 			e.stopPropagation();
 		}
 		
-		if (draggedIndex !== null && draggedIndex !== dropIndex) {
+		// Validate indices before proceeding
+		if (draggedIndex !== null && 
+		    draggedIndex !== dropIndex &&
+		    draggedIndex >= 0 && 
+		    dropIndex >= 0 &&
+		    draggedIndex < displayCategories.length && 
+		    dropIndex < displayCategories.length) {
 			const newOrder = [...displayCategories];
 			const draggedItem = newOrder[draggedIndex];
 			
