@@ -183,7 +183,9 @@ export async function performUnifiedSearch(query) {
     foursquare: [],
     nps: [],
     recreation: [],
-    ticketmaster: []
+    ticketmaster: [],
+    ebird: [],
+    holiday: []
   };
 
   const apiCalls = [];
@@ -297,6 +299,85 @@ export async function performUnifiedSearch(query) {
       .catch(err => console.warn('Ticketmaster search failed:', err))
   );
 
+  // eBird Search - search for bird species and hotspots
+  apiCalls.push(
+    fetch(`${NETLIFY_FUNCTIONS_BASE}/ebird?endpoint=recent&lat=${position.lat}&lng=${position.lng}&dist=25&maxResults=50`)
+      .then(res => {
+        if (!res.ok) {
+          console.warn('eBird API returned error:', res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          // Filter bird sightings by search term
+          const filtered = data.filter(bird => 
+            bird.comName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            bird.sciName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            bird.locName?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          
+          results.ebird = filtered.map(bird => {
+            const date = new Date(bird.obsDt);
+            const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+            const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+            
+            const parsedLat = typeof bird.lat === 'number' ? bird.lat : parseFloat(bird.lat);
+            const parsedLng = typeof bird.lng === 'number' ? bird.lng : parseFloat(bird.lng);
+            
+            if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return null;
+            
+            return {
+              id: `${bird.speciesCode}-${bird.obsDt}-${bird.locId}`,
+              provider: 'ebird',
+              name: `${bird.comName}${bird.howMany > 1 ? ` (${bird.howMany})` : ''}`,
+              address: `${bird.locName} - Spotted ${timeStr}`,
+              location: { lat: parsedLat, lng: parsedLng },
+              rating: null,
+              categories: ['Bird Sighting'],
+              _original: bird
+            };
+          }).filter(Boolean);
+        }
+      })
+      .catch(err => console.warn('eBird search failed:', err))
+  );
+
+  // Holiday Search - check for holidays matching the search term
+  apiCalls.push(
+    fetch(`${NETLIFY_FUNCTIONS_BASE}/holiday`)
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Holiday API returned error:', res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          // Filter holidays by search term
+          const filtered = data.filter(holiday => 
+            holiday.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            holiday.description?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          
+          results.holiday = filtered.map(holiday => ({
+            id: `holiday-${holiday.date}`,
+            provider: 'holiday',
+            name: holiday.name,
+            address: `${holiday.date} - ${holiday.type || 'Holiday'}`,
+            location: position, // Use current position since holidays are location-independent
+            rating: null,
+            categories: ['Holiday'],
+            date: holiday.date,
+            _original: holiday
+          }));
+        }
+      })
+      .catch(err => console.warn('Holiday search failed:', err))
+  );
+
   // Wait for all API calls
   await Promise.allSettled(apiCalls);
 
@@ -305,7 +386,9 @@ export async function performUnifiedSearch(query) {
     ...results.foursquare,
     ...results.nps,
     ...results.recreation,
-    ...results.ticketmaster
+    ...results.ticketmaster,
+    ...results.ebird,
+    ...results.holiday
   ].filter(item => item && item.name && item.location);
 
   const deduplicatedResults = deduplicatePlaces(allResults);
