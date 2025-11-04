@@ -27,7 +27,6 @@
 	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
 		<div class="modal-header">
 			<h3>{title}</h3>
-			<button class="close-btn" on:click={() => dispatch('close')} type="button">×</button>
 		</div>
 		<div class="subMenuList">
 			{#each items as item}
@@ -40,6 +39,7 @@
 				</button>
 			{/each}
 		</div>
+		<button class="close-btn-bottom" on:click={() => dispatch('close')} type="button">Close</button>
 	</div>
 </div>
 {/if}
@@ -90,6 +90,28 @@
 	
 	.sub-menu-item:active {
 		transform: translateY(-1px) scale(0.98);
+	}
+	
+	.close-btn-bottom {
+		width: 100%;
+		padding: 0.9rem;
+		margin-top: 1rem;
+		background: rgba(244, 67, 54, 0.9);
+		color: white;
+		border: none;
+		border-radius: var(--button-radius, 12px);
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+		font-family: var(--font-secondary);
+	}
+	
+	.close-btn-bottom:hover {
+		background: rgba(244, 67, 54, 1);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 18px rgba(244, 67, 54, 0.4);
 	}
 	
 	@media (max-width: 768px) {

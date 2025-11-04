@@ -99,7 +99,6 @@
 	>
 		<div class="modal-header">
 			<h3>{title}</h3>
-			<button class="close-btn" on:click|stopPropagation={closeModal} type="button" aria-label="Close">×</button>
 		</div>
 		
 		{#if loading}
@@ -160,6 +159,11 @@
 				</button>
 			{/if}
 		{/if}
+		
+		<!-- Close button at the bottom -->
+		<button class="close-btn-bottom" on:click|stopPropagation={closeModal} type="button" aria-label="Close">
+			Close
+		</button>
 	</div>
 </div>
 {/if}
@@ -181,10 +185,26 @@
 		z-index: 10;
 	}
 	
-	.modal-header .close-btn {
-		position: relative;
-		z-index: 11;
-		touch-action: manipulation;
+	.close-btn-bottom {
+		width: 100%;
+		padding: 0.9rem;
+		margin-top: 1rem;
+		background: rgba(244, 67, 54, 0.9);
+		color: var(--text-light);
+		border: none;
+		border-radius: var(--button-radius, 12px);
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+		flex-shrink: 0;
+	}
+	
+	.close-btn-bottom:hover {
+		background: rgba(244, 67, 54, 1);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 18px rgba(244, 67, 54, 0.4);
 	}
 	
 	.loading-state, .empty-state {

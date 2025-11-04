@@ -124,30 +124,36 @@
 	{#each displayCategories as category, i (category)}
 		<div 
 			class="filter-wrapper"
-			draggable="true"
-			on:dragstart={(e) => handleDragStart(e, i)}
 			on:dragover={handleDragOver}
 			on:drop={(e) => handleDrop(e, i)}
-			on:dragend={handleDragEnd}
 			role="button"
 			tabindex="0"
 			transition:fly={{ y: 20, duration: 400, delay: i * 50 }}
 		>
+			<div 
+				class="drag-handle" 
+				draggable="true"
+				on:dragstart={(e) => handleDragStart(e, i)}
+				on:dragend={handleDragEnd}
+				title="Drag to reorder"
+				role="button"
+				tabindex="0"
+				aria-label="Drag to reorder {category}"
+			>
+				<GripVertical size={16} color="currentColor" />
+			</div>
+			<button 
+				class="filter-close-btn" 
+				on:click={(e) => hideCategory(category, e)} 
+				title="Hide this category"
+				aria-label="Hide {category} category"
+			>
+				<X size={14} color="currentColor" />
+			</button>
 			<button 
 				class="filter-btn"
 				on:click={() => handleCategoryClick(category)}
 			>
-				<div class="drag-handle" title="Drag to reorder">
-					<GripVertical size={14} color="currentColor" />
-				</div>
-				<button 
-					class="filter-close-btn" 
-					on:click={(e) => hideCategory(category, e)} 
-					title="Hide this category"
-					aria-label="Hide {category} category"
-				>
-					<X size={12} color="currentColor" />
-				</button>
 				<div class="filter-icon">
 					<ThemeIcon iconName={category} />
 				</div>
@@ -195,7 +201,9 @@
 	
 	.filter-wrapper {
 		position: relative;
-		cursor: move;
+		display: flex;
+		flex-direction: column;
+		gap: 0;
 	}
 	
 	.filter-btn {
@@ -247,50 +255,58 @@
 	
 	.drag-handle {
 		position: absolute;
-		top: 0.25rem;
-		left: 0.25rem;
-		opacity: 0.4;
+		top: 0.3rem;
+		left: 50%;
+		transform: translateX(-50%);
+		opacity: 0.5;
 		cursor: grab;
-		z-index: 5;
+		z-index: 10;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 0.2rem;
-		transition: opacity 0.2s;
+		padding: 0.3rem;
+		transition: opacity 0.2s, transform 0.2s;
+		background: rgba(255, 255, 255, 0.15);
+		border-radius: 8px;
+		touch-action: none;
 	}
 	
 	.filter-wrapper:hover .drag-handle {
-		opacity: 0.8;
+		opacity: 1;
+		transform: translateX(-50%) scale(1.1);
 	}
 	
 	.drag-handle:active {
 		cursor: grabbing;
+		opacity: 1;
 	}
 	
 	.filter-close-btn {
 		position: absolute;
-		top: 0.25rem;
-		right: 0.25rem;
-		background: rgba(244, 67, 54, 0.2);
-		border: none;
-		border-radius: 50%;
+		bottom: 0.3rem;
+		left: 50%;
+		transform: translateX(-50%);
+		background: rgba(244, 67, 54, 0.85);
+		border: 1px solid rgba(255, 255, 255, 0.3);
+		border-radius: 12px;
 		cursor: pointer;
-		padding: 0.3rem;
+		padding: 0.4rem 0.6rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: rgba(244, 67, 54, 0.9);
+		color: white;
 		transition: all 0.2s ease;
-		z-index: 5;
-		opacity: 0.6;
-		width: 24px;
-		height: 24px;
+		z-index: 10;
+		opacity: 0.9;
+		font-size: 0.75rem;
+		font-weight: 600;
 	}
 	
 	.filter-close-btn:hover {
 		opacity: 1;
-		background: rgba(244, 67, 54, 0.4);
-		transform: scale(1.1);
+		background: rgba(244, 67, 54, 1);
+		transform: translateX(-50%) scale(1.05);
+		box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
 	}
 	
 	.filter-icon {

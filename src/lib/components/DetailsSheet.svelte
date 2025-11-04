@@ -7,7 +7,7 @@
 	import { savedPlaces, dayPlan } from '$lib/stores/storage';
 	import { SWIPE_CLOSE_THRESHOLD } from '$lib/utils/uiConstants';
 	import { get } from 'svelte/store';
-	import { Compass, Map, Globe, Bookmark, BookmarkCheck, CalendarPlus, CalendarCheck, Share2, MapPin, Phone, Info, Tag, Star } from 'lucide-svelte';
+	import { Compass, Map, Globe, Bookmark, BookmarkCheck, CalendarPlus, CalendarCheck, Share2, MapPin, Phone, Info, Tag, Star, X } from 'lucide-svelte';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -387,7 +387,6 @@
           </div>
         {/if}
       </div>
-      <button class="close-btn" onclick={close} aria-label="Close details">×</button>
     </div>
     
     <!-- Content -->
@@ -526,6 +525,10 @@
         <Share2 size={18} color="currentColor" />
         <span>Share</span>
       </button>
+      <button class="action-btn close-action" onclick={close} aria-label="Close details">
+        <X size={18} color="currentColor" />
+        <span>Close</span>
+      </button>
     </div>
   </div>
 </div>
@@ -571,7 +574,7 @@
 	
 	.details-header {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-start;
 		align-items: flex-start;
 		padding: 1.5rem;
 		border-bottom: 1px solid rgba(var(--card-rgb, 26, 43, 68), 0.1);
@@ -582,22 +585,6 @@
 		font-size: 1.5rem;
 		font-weight: 700;
 		color: var(--card);
-	}
-	
-	.close-btn {
-		background: none;
-		border: none;
-		font-size: 2rem;
-		color: var(--card);
-		cursor: pointer;
-		padding: 0;
-		line-height: 1;
-		opacity: 0.7;
-		transition: opacity 0.2s;
-	}
-	
-	.close-btn:hover {
-		opacity: 1;
 	}
 	
 	.details-content {
@@ -683,6 +670,21 @@
 		background: rgba(76, 175, 80, 0.25);
 		border-color: #388e3c;
 		color: #388e3c;
+	}
+	
+	.action-btn.close-action {
+		background: rgba(244, 67, 54, 0.1);
+		border-color: #f44336;
+		color: #f44336;
+		grid-column: 1 / -1;
+	}
+	
+	.action-btn.close-action:hover {
+		background: #f44336;
+		border-color: #f44336;
+		color: var(--text-light);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
 	}
 	
 	.reviews-container {
