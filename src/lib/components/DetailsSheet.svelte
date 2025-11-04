@@ -204,10 +204,24 @@
 		const coords = getPlaceCoordinates();
 		if (!place || !coords) return;
 		
-		const url = place._original?.url || 
-			`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
+		// Detect platform and open appropriate maps app
+		const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+		const isAndroid = /Android/.test(navigator.userAgent);
 		
-		window.open(url, '_blank');
+		let mapsUrl;
+		
+		if (isIOS) {
+			// Apple Maps on iOS
+			mapsUrl = `maps://maps.apple.com/?q=${encodeURIComponent(place.name)}&ll=${coords.lat},${coords.lng}`;
+		} else if (isAndroid) {
+			// Google Maps on Android
+			mapsUrl = `geo:${coords.lat},${coords.lng}?q=${coords.lat},${coords.lng}(${encodeURIComponent(place.name)})`;
+		} else {
+			// Desktop - open Google Maps in new tab
+			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
+		}
+		
+		window.open(mapsUrl, '_blank');
 	}
 	
 	function openWebsite() {
@@ -222,15 +236,35 @@
 		const mapUrl = place._original?.url || 
 			(coords ? `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}` : '');
 		
-		if (navigator.share) {
-			navigator.share({
-				title: place.name,
-				text: place.address || '',
-				url: mapUrl
-			}).catch(console.error);
+		const shareData = {
+			title: place.name,
+			text: `Check out ${place.name}${place.address ? ' - ' + place.address : ''}`,
+			url: mapUrl
+		};
+		
+		if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+			navigator.share(shareData).catch(err => {
+				console.error('Share failed:', err);
+				// Fallback to clipboard
+				copyToClipboard(shareData);
+			});
+		} else if (navigator.clipboard && mapUrl) {
+			// Fallback: copy to clipboard
+			copyToClipboard(shareData);
 		} else {
 			alert('Sharing not supported on this device.');
 		}
+	}
+	
+	function copyToClipboard(shareData) {
+		const textToCopy = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+		navigator.clipboard.writeText(textToCopy).then(() => {
+			alert('✅ Link copied to clipboard!');
+		}).catch(err => {
+			console.error('Copy failed:', err);
+			// Final fallback: show the URL
+			prompt('Copy this link:', shareData.url);
+		});
 	}
 	
 	// Check if place is in collection

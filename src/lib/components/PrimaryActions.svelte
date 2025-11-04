@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
-	import { BookMarked, Compass } from 'lucide-svelte';
+	import { BookMarked, Compass, X } from 'lucide-svelte';
+	import { widgetState } from '$lib/stores/widgetState';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -14,6 +15,14 @@
 </script>
 
 <div id="primaryActions">
+	<button 
+		class="minimize-primary-btn" 
+		on:click={() => widgetState.hide('primaryActions')} 
+		title="Hide primary actions"
+		aria-label="Hide primary actions"
+	>
+		<X size={16} color="currentColor" />
+	</button>
 	<button id="myCollectionBtn" on:click={handleCollectionClick}>
 		<BookMarked size={18} color="currentColor" />
 		<span>My Collection</span>
@@ -25,5 +34,30 @@
 </div>
 
 <style>
-	/* Component-specific styles scoped by default */
+	#primaryActions {
+		position: relative;
+	}
+	
+	.minimize-primary-btn {
+		position: absolute;
+		top: 0.25rem;
+		right: 0.25rem;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		padding: 0.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-light);
+		transition: all 0.2s ease;
+		z-index: 10;
+		opacity: 0.5;
+	}
+	
+	.minimize-primary-btn:hover {
+		transform: scale(1.1);
+		color: rgba(244, 67, 54, 0.9);
+		opacity: 1;
+	}
 </style>

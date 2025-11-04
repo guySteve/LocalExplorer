@@ -1,8 +1,10 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode, currentWeatherCondition } from '$lib/stores/appState';
+	import { widgetState } from '$lib/stores/widgetState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
+	import { ChevronDown, ChevronUp, X } from 'lucide-svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -16,6 +18,7 @@
 	let sassyMode = false; // Controlled via store
 	let lastHistoricalFetch = 0; // Cache timestamp for historical data
 	let lastKnownPosition = null;
+	let isExpanded = false; // Start collapsed by default
 
 	const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 	const TEMP_DIFF_THRESHOLD = 5; // Degrees for significant temperature change
@@ -174,8 +177,9 @@
 			windSpeed: Math.round(current.windspeed * 0.621371), // Convert km/h to mph
 			sunrise: daily.sunrise?.[0] || null,
 			sunset: daily.sunset?.[0] || null,
-			daily: daily.time ? daily.time.slice(0, 7).map((date, i) => ({
+			daily: daily.time ? daily.time.slice(0, 10).map((date, i) => ({
 				date: new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+				dayOfWeek: new Date(date).toLocaleDateString('en-US', { weekday: 'long' }),
 				high: Math.round(daily.temperature_2m_max[i]),
 				low: Math.round(daily.temperature_2m_min[i]),
 				icon: getWeatherIcon(daily.weathercode[i]),
@@ -303,39 +307,50 @@
 </script>
 
 <div class="weather-widget">
-	<div class="weather-header">
-		<span class="weather-title">Local Weather</span>
-		<div class="weather-actions">
+	<button class="weather-header" on:click={() => isExpanded = !isExpanded} type="button">
+		<div class="header-left">
+			{#if weather}
+				<span class="weather-icon-compact">{weather.icon}</span>
+				<span class="weather-temp-compact">{weather.temperature}°F</span>
+			{:else}
+				<span class="weather-title-compact">Weather</span>
+			{/if}
+		</div>
+		<div class="header-right">
+			{#if weather && (sunriseTime || sunsetTime)}
+				<span class="sun-compact">
+					{#if sunriseTime}🌅 {sunriseTime}{/if}
+					{#if sunsetTime}🌇 {sunsetTime}{/if}
+				</span>
+			{/if}
 			<button 
 				class="weather-btn" 
-				on:click={handleViewForecast} 
-				title="7-day forecast"
+				on:click|stopPropagation={handleViewForecast} 
+				title="{weather?.daily?.length || 10}-day forecast"
 				disabled={loading || !weather}
 			>
-				📅
+				📅 {weather?.daily?.length || 10}
 			</button>
 			<button 
-				class="weather-btn" 
-				on:click={handleRefresh} 
-				title="Refresh"
-				disabled={loading}
+				class="minimize-btn" 
+				on:click|stopPropagation={() => widgetState.hide('weather')} 
+				title="Hide weather widget"
+				aria-label="Hide weather widget"
 			>
-				↻
+				<X size={18} color="currentColor" />
+			</button>
+			<button class="toggle-btn" aria-label={isExpanded ? 'Collapse weather' : 'Expand weather'}>
+				{#if isExpanded}
+					<ChevronUp size={20} color="currentColor" />
+				{:else}
+					<ChevronDown size={20} color="currentColor" />
+				{/if}
 			</button>
 		</div>
-	</div>
-	
-	{#if weather && (sunriseTime || sunsetTime)}
-		<div class="weather-sun-info">
-			{#if sunriseTime}
-				<span class="sun-event">🌅 Sunrise in {sunriseTime}</span>
-			{/if}
-			{#if sunsetTime}
-				<span class="sun-event">🌇 Sunset in {sunsetTime}</span>
-			{/if}
-		</div>
-	{/if}
+	</button>
 
+	
+	{#if isExpanded}
 	{#if error}
 		<div class="weather-error">
 			<span>⚠️ {error}</span>
@@ -416,13 +431,14 @@
 			Enable location to see weather
 		</div>
 	{/if}
+	{/if}
 </div>
 
 <style>
 	.weather-widget {
 		background: var(--card);
 		color: var(--text-light);
-		padding: 1.25rem;
+		padding: 0.9rem 1rem;
 		border-radius: var(--button-radius, 12px);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -437,32 +453,46 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 1rem;
+		width: 100%;
+		background: transparent;
+		border: none;
+		color: var(--text-light);
+		cursor: pointer;
+		padding: 0;
+		margin-bottom: 0;
+		text-align: left;
+		font-family: inherit;
 	}
 
-	.weather-title {
-		font-weight: 700;
-		font-size: 1.1rem;
-	}
-	
-	.weather-sun-info {
-		display: flex;
-		gap: 1rem;
-		padding: 0.5rem 0.75rem;
-		margin-bottom: 0.5rem;
-		background: rgba(255, 255, 255, 0.08);
-		border-radius: 8px;
-		font-size: 0.85rem;
-	}
-	
-	.sun-event {
+	.header-left {
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
-		opacity: 0.9;
+		gap: 0.75rem;
 	}
 
-	.weather-actions {
+	.weather-icon-compact {
+		font-size: 2rem;
+	}
+
+	.weather-temp-compact {
+		font-size: 1.5rem;
+		font-weight: 700;
+	}
+
+	.weather-title-compact {
+		font-size: 1.1rem;
+		font-weight: 700;
+	}
+
+	.header-right {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.sun-compact {
+		font-size: 0.8rem;
+		opacity: 0.9;
 		display: flex;
 		gap: 0.5rem;
 	}
@@ -470,21 +500,22 @@
 	.weather-btn {
 		background: transparent;
 		border: 1px solid rgba(255, 255, 255, 0.2);
-		border-radius: 50%;
-		width: 32px;
-		height: 32px;
+		border-radius: 8px;
+		padding: 0.4rem 0.6rem;
 		cursor: pointer;
-		font-size: 1rem;
+		font-size: 0.85rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: 0.25rem;
 		transition: all 0.2s ease;
 		color: var(--text-light);
+		white-space: nowrap;
 	}
 
 	.weather-btn:hover:not(:disabled) {
 		background: rgba(255, 255, 255, 0.1);
-		transform: scale(1.1);
+		transform: translateY(-1px);
 	}
 
 	.weather-btn:disabled {
@@ -492,15 +523,40 @@
 		cursor: not-allowed;
 	}
 
+	.minimize-btn,
+	.toggle-btn {
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		padding: 0.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-light);
+		transition: all 0.2s ease;
+	}
+
+	.minimize-btn:hover,
+	.toggle-btn:hover {
+		transform: scale(1.1);
+	}
+	
+	.minimize-btn:hover {
+		color: rgba(244, 67, 54, 0.9);
+	}
+
 	.weather-main {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
 		margin-bottom: 1rem;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.weather-icon {
-		font-size: 4rem;
+		font-size: 3.5rem;
 		background: none;
 		text-shadow: none;
 		filter: none;
@@ -511,7 +567,7 @@
 	}
 
 	.weather-temp {
-		font-size: 2.5rem;
+		font-size: 2rem;
 		font-weight: 700;
 		line-height: 1;
 		margin-bottom: 0.25rem;
@@ -538,33 +594,33 @@
 
 	.stat-item {
 		background: rgba(255, 255, 255, 0.1);
-		padding: 0.65rem;
+		padding: 0.5rem;
 		border-radius: 8px;
 		text-align: center;
 	}
 
 	.stat-label {
 		display: block;
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		opacity: 0.7;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.2rem;
 		text-transform: uppercase;
 	}
 
 	.stat-value {
 		display: block;
-		font-size: 1rem;
+		font-size: 0.95rem;
 		font-weight: 600;
 	}
 
 	.weather-fun-saying {
 		text-align: center;
 		font-style: italic;
-		padding: 0.75rem;
+		padding: 0.65rem;
 		background: rgba(255, 255, 255, 0.08);
 		border-radius: 8px;
-		margin-bottom: 0.75rem;
-		font-size: 0.95rem;
+		margin-bottom: 0.65rem;
+		font-size: 0.9rem;
 	}
 
 	.bird-fact {
@@ -653,12 +709,33 @@
 	}
 
 	@media (max-width: 768px) {
+		.weather-widget {
+			padding: 0.75rem 0.85rem;
+		}
+
 		.weather-icon {
-			font-size: 3rem;
+			font-size: 2.5rem;
 		}
 
 		.weather-temp {
-			font-size: 2rem;
+			font-size: 1.75rem;
+		}
+
+		.weather-icon-compact {
+			font-size: 1.75rem;
+		}
+
+		.weather-temp-compact {
+			font-size: 1.25rem;
+		}
+
+		.sun-compact {
+			font-size: 0.75rem;
+		}
+
+		.weather-btn {
+			font-size: 0.8rem;
+			padding: 0.35rem 0.5rem;
 		}
 	}
 </style>

@@ -696,6 +696,13 @@
 			<div class="compass-map-container">
 				<div class="compass-map" bind:this={mapContainer}></div>
 				
+				<!-- Map Style Indicator -->
+				{#if mapInitialized && map}
+					<div class="map-style-indicator">
+						{MAP_TYPE_LABELS[map.getMapTypeId()] || 'Map'}
+					</div>
+				{/if}
+				
 				<!-- Fixed center dot showing user's location -->
 				<div class="location-center-dot">
 					<svg viewBox="0 0 100 100" class="center-dot-svg" role="img" aria-label="Your location">
@@ -1072,6 +1079,24 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 50%;
+	}
+	
+	/* Map Style Indicator */
+	.map-style-indicator {
+		position: absolute;
+		top: 60px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: rgba(0, 0, 0, 0.75);
+		color: white;
+		padding: 0.35rem 0.75rem;
+		border-radius: 12px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		z-index: 5;
+		pointer-events: none;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+		backdrop-filter: blur(4px);
 	}
 	
 	/* Fixed center dot showing user location */

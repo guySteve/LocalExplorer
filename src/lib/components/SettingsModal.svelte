@@ -1,7 +1,9 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentTheme, selectedVoiceUri, showBirdSightings, sassyWeatherMode, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
+	import { widgetState } from '$lib/stores/widgetState';
 	import { browser } from '$app/environment';
+	import { Eye } from 'lucide-svelte';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -198,6 +200,63 @@ function handleClose() {
 				<span class="setting-hint">Choose a voice for turn-by-turn navigation.</span>
 			</div>
 		{/if}
+
+		<!-- Restore Hidden Widgets Section -->
+		{#if !$widgetState.weather || !$widgetState.primaryActions || !$widgetState.filterGrid || !$widgetState.supportCTA}
+			<div class="setting-group restore-widgets-section">
+				<h3>Restore Hidden Widgets</h3>
+				<p class="restore-description">Show widgets you've previously minimized</p>
+				<div class="restore-buttons">
+					{#if !$widgetState.weather}
+						<button 
+							class="restore-btn"
+							on:click={() => widgetState.show('weather')}
+							type="button"
+						>
+							<Eye size={16} />
+							<span>Weather Widget</span>
+						</button>
+					{/if}
+					{#if !$widgetState.primaryActions}
+						<button 
+							class="restore-btn"
+							on:click={() => widgetState.show('primaryActions')}
+							type="button"
+						>
+							<Eye size={16} />
+							<span>Primary Actions</span>
+						</button>
+					{/if}
+					{#if !$widgetState.filterGrid}
+						<button 
+							class="restore-btn"
+							on:click={() => widgetState.show('filterGrid')}
+							type="button"
+						>
+							<Eye size={16} />
+							<span>Category Filters</span>
+						</button>
+					{/if}
+					{#if !$widgetState.supportCTA}
+						<button 
+							class="restore-btn"
+							on:click={() => widgetState.show('supportCTA')}
+							type="button"
+						>
+							<Eye size={16} />
+							<span>Support Section</span>
+						</button>
+					{/if}
+				</div>
+				<button 
+					class="restore-all-btn"
+					on:click={() => widgetState.reset()}
+					type="button"
+				>
+					Restore All Widgets
+				</button>
+			</div>
+		{/if}
 	</div>
 </div>
 {/if}
@@ -309,5 +368,71 @@ function handleClose() {
 	select:focus {
 		outline: none;
 		border-color: var(--primary);
+	}
+
+	/* Restore Widgets Section */
+	.restore-widgets-section {
+		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
+	}
+
+	.restore-widgets-section h3 {
+		margin-bottom: 0.5rem;
+		font-size: 1.1rem;
+	}
+
+	.restore-description {
+		font-size: 0.9rem;
+		opacity: 0.7;
+		margin-bottom: 1rem;
+	}
+
+	.restore-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.restore-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
+		background: rgba(76, 175, 80, 0.15);
+		border: 1px solid rgba(76, 175, 80, 0.3);
+		border-radius: 8px;
+		color: var(--text-light);
+		cursor: pointer;
+		transition: all 0.2s ease;
+		font-size: 0.95rem;
+		font-weight: 600;
+	}
+
+	.restore-btn:hover {
+		background: rgba(76, 175, 80, 0.25);
+		border-color: rgba(76, 175, 80, 0.5);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+	}
+
+	.restore-all-btn {
+		width: 100%;
+		padding: 0.85rem;
+		background: var(--primary);
+		border: none;
+		border-radius: 8px;
+		color: var(--text-light);
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 700;
+		transition: all 0.2s ease;
+	}
+
+	.restore-all-btn:hover {
+		background: var(--secondary);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 	}
 </style>

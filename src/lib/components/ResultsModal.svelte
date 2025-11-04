@@ -190,7 +190,7 @@
 	.loading-state, .empty-state {
 		text-align: center;
 		padding: 3rem 2rem;
-		color: var(--card);
+		color: var(--text-light);
 	}
 	
 	.spinner {
@@ -243,7 +243,7 @@
 	
 	.result-header h4 {
 		margin: 0;
-		color: var(--card);
+		color: var(--text-light);
 		font-size: 1.05rem;
 		font-weight: 600;
 		flex: 1;
@@ -269,7 +269,7 @@
 	
 	.result-address {
 		margin: 0.25rem 0;
-		color: var(--card);
+		color: var(--text-light);
 		opacity: 0.8;
 		font-size: 0.9rem;
 	}

@@ -2,6 +2,8 @@
 	import { createEventDispatcher } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { categories, currentWeatherCondition } from '$lib/stores/appState';
+	import { widgetState } from '$lib/stores/widgetState';
+	import { X } from 'lucide-svelte';
 	import ThemeIcon from '$lib/components/ThemeIcon.svelte';
 	
 	const dispatch = createEventDispatcher();
@@ -43,6 +45,14 @@
 </script>
 
 <div class="filters" id="filterGrid">
+	<button 
+		class="minimize-filter-btn" 
+		on:click={() => widgetState.hide('filterGrid')} 
+		title="Hide category filters"
+		aria-label="Hide category filters"
+	>
+		<X size={16} color="currentColor" />
+	</button>
 	{#each orderedCategories as category, i (category)}
 		<button 
 			class="filter-btn"
@@ -59,11 +69,38 @@
 
 <style>
 	.filters {
+		position: relative;
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
 		gap: 0.8rem;
 		width: 100%;
 		margin: 0;
+	}
+	
+	.minimize-filter-btn {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		background: var(--card);
+		border: none;
+		cursor: pointer;
+		padding: 0.4rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-light);
+		transition: all 0.2s ease;
+		z-index: 10;
+		opacity: 0.7;
+		border-radius: 50%;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	}
+	
+	.minimize-filter-btn:hover {
+		transform: scale(1.1);
+		color: rgba(244, 67, 54, 0.9);
+		opacity: 1;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	}
 	
 	.filter-btn {
@@ -113,13 +150,19 @@
 	}
 	
 	.filter-icon {
-		animation: bounce 2s ease-in-out infinite;
+		/* Removed bouncing animation for better UX */
+		transition: transform 0.2s ease;
+	}
+	
+	.filter-btn:hover .filter-icon {
+		transform: scale(1.1);
 	}
 	
 	.filter-label {
 		font-size: 0.8rem;
 	}
 	
+	/* Removed distracting bounce animation
 	@keyframes bounce {
 		0%, 100% {
 			transform: translateY(0);
@@ -128,6 +171,7 @@
 			transform: translateY(-3px);
 		}
 	}
+	*/
 	
 	/* Responsive adjustments */
 	@media (max-width: 600px) {

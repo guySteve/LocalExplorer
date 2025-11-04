@@ -71,7 +71,7 @@ function getInitialBooleanSetting(key, defaultValue) {
   }
 }
 
-export const showBirdSightings = writable(getInitialBooleanSetting('showBirdSightings', true));
+export const showBirdSightings = writable(getInitialBooleanSetting('showBirdSightings', false)); // Default to OFF unless user enables
 export const sassyWeatherMode = writable(getInitialBooleanSetting('sassyWeather', false));
 export const voiceNavigationEnabled = writable(getInitialBooleanSetting('voiceEnabled', true));
 

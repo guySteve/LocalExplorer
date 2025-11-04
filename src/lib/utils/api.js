@@ -180,6 +180,7 @@ export async function performUnifiedSearch(query) {
 
   const searchTerm = query.trim();
   const results = {
+    google: [],
     foursquare: [],
     nps: [],
     recreation: [],
@@ -189,6 +190,17 @@ export async function performUnifiedSearch(query) {
   };
 
   const apiCalls = [];
+
+  // Google Maps Places Search (NEW)
+  apiCalls.push(
+    searchGooglePlaces(null, searchTerm, false)
+      .then(places => {
+        if (places && places.length > 0) {
+          results.google = places;
+        }
+      })
+      .catch(err => console.warn('Google Places search failed:', err))
+  );
 
   // Foursquare Search
   apiCalls.push(
@@ -383,6 +395,7 @@ export async function performUnifiedSearch(query) {
 
   // Merge and deduplicate
   const allResults = [
+    ...results.google,
     ...results.foursquare,
     ...results.nps,
     ...results.recreation,
