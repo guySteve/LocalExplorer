@@ -3,13 +3,26 @@
 	import { fly } from 'svelte/transition';
 	import { categories, currentWeatherCondition } from '$lib/stores/appState';
 	import { widgetState } from '$lib/stores/widgetState';
-	import { X } from 'lucide-svelte';
+	import { X, GripVertical } from 'lucide-svelte';
 	import ThemeIcon from '$lib/components/ThemeIcon.svelte';
 	
 	const dispatch = createEventDispatcher();
 	
+	// Track hidden categories and custom ordering
+	let hiddenCategories = [];
+	let draggedIndex = null;
+	let categoryOrder = [];
+	
 	// Reactive category ordering based on weather
-	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Bird Watching'), $currentWeatherCondition);
+	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Bird Watching' && !hiddenCategories.includes(cat)), $currentWeatherCondition);
+	
+	// Initialize category order on first load
+	$: if (categoryOrder.length === 0 && orderedCategories.length > 0) {
+		categoryOrder = [...orderedCategories];
+	}
+	
+	// Use custom order if available, otherwise use weather-based order
+	$: displayCategories = categoryOrder.length > 0 ? categoryOrder.filter(cat => !hiddenCategories.includes(cat)) : orderedCategories;
 	
 	function reorderCategoriesByWeather(categoryList, weatherCondition) {
 		const list = [...categoryList];
@@ -42,28 +55,97 @@
 			});
 		}
 	}
+	
+	function hideCategory(categoryName, event) {
+		event.stopPropagation();
+		hiddenCategories = [...hiddenCategories, categoryName];
+	}
+	
+	// Drag and drop handlers
+	function handleDragStart(e, index) {
+		draggedIndex = index;
+		e.dataTransfer.effectAllowed = 'move';
+		e.dataTransfer.setData('text/plain', index.toString());
+	}
+	
+	function handleDragOver(e) {
+		if (e.preventDefault) {
+			e.preventDefault();
+		}
+		e.dataTransfer.dropEffect = 'move';
+		return false;
+	}
+	
+	function handleDrop(e, dropIndex) {
+		if (e.stopPropagation) {
+			e.stopPropagation();
+		}
+		
+		if (draggedIndex !== null && draggedIndex !== dropIndex) {
+			const newOrder = [...displayCategories];
+			const draggedItem = newOrder[draggedIndex];
+			
+			// Remove from old position
+			newOrder.splice(draggedIndex, 1);
+			
+			// Insert at new position
+			newOrder.splice(dropIndex, 0, draggedItem);
+			
+			// Update the order
+			categoryOrder = newOrder;
+		}
+		
+		draggedIndex = null;
+		return false;
+	}
+	
+	function handleDragEnd() {
+		draggedIndex = null;
+	}
 </script>
 
 <div class="filters" id="filterGrid">
 	<button 
 		class="minimize-filter-btn" 
 		on:click={() => widgetState.hide('filterGrid')} 
-		title="Hide category filters"
-		aria-label="Hide category filters"
+		title="Hide all category filters"
+		aria-label="Hide all category filters"
 	>
 		<X size={16} color="currentColor" />
 	</button>
-	{#each orderedCategories as category, i (category)}
-		<button 
-			class="filter-btn"
-			on:click={() => handleCategoryClick(category)}
+	{#each displayCategories as category, i (category)}
+		<div 
+			class="filter-wrapper"
+			draggable="true"
+			on:dragstart={(e) => handleDragStart(e, i)}
+			on:dragover={handleDragOver}
+			on:drop={(e) => handleDrop(e, i)}
+			on:dragend={handleDragEnd}
+			role="button"
+			tabindex="0"
 			transition:fly={{ y: 20, duration: 400, delay: i * 50 }}
 		>
-			<div class="filter-icon">
-				<ThemeIcon iconName={category} />
-			</div>
-			<span class="filter-label">{category}</span>
-		</button>
+			<button 
+				class="filter-btn"
+				on:click={() => handleCategoryClick(category)}
+			>
+				<div class="drag-handle" title="Drag to reorder">
+					<GripVertical size={14} color="currentColor" />
+				</div>
+				<button 
+					class="filter-close-btn" 
+					on:click={(e) => hideCategory(category, e)} 
+					title="Hide this category"
+					aria-label="Hide {category} category"
+				>
+					<X size={12} color="currentColor" />
+				</button>
+				<div class="filter-icon">
+					<ThemeIcon iconName={category} />
+				</div>
+				<span class="filter-label">{category}</span>
+			</button>
+		</div>
 	{/each}
 </div>
 
@@ -84,16 +166,16 @@
 		background: var(--card);
 		border: none;
 		cursor: pointer;
-		padding: 0.4rem;
+		padding: 0.5rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: var(--text-light);
 		transition: all 0.2s ease;
-		z-index: 10;
-		opacity: 0.7;
+		z-index: 20;
+		opacity: 0.9;
 		border-radius: 50%;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 	}
 	
 	.minimize-filter-btn:hover {
@@ -101,6 +183,11 @@
 		color: rgba(244, 67, 54, 0.9);
 		opacity: 1;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+	
+	.filter-wrapper {
+		position: relative;
+		cursor: move;
 	}
 	
 	.filter-btn {
@@ -123,6 +210,7 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 0.4rem;
+		width: 100%;
 	}
 	
 	.filter-btn::before {
@@ -149,6 +237,54 @@
 		transform: translateY(-2px) scale(0.98);
 	}
 	
+	.drag-handle {
+		position: absolute;
+		top: 0.25rem;
+		left: 0.25rem;
+		opacity: 0.4;
+		cursor: grab;
+		z-index: 5;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.2rem;
+		transition: opacity 0.2s;
+	}
+	
+	.filter-wrapper:hover .drag-handle {
+		opacity: 0.8;
+	}
+	
+	.drag-handle:active {
+		cursor: grabbing;
+	}
+	
+	.filter-close-btn {
+		position: absolute;
+		top: 0.25rem;
+		right: 0.25rem;
+		background: rgba(244, 67, 54, 0.2);
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+		padding: 0.3rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: rgba(244, 67, 54, 0.9);
+		transition: all 0.2s ease;
+		z-index: 5;
+		opacity: 0.6;
+		width: 24px;
+		height: 24px;
+	}
+	
+	.filter-close-btn:hover {
+		opacity: 1;
+		background: rgba(244, 67, 54, 0.4);
+		transform: scale(1.1);
+	}
+	
 	.filter-icon {
 		/* Removed bouncing animation for better UX */
 		transition: transform 0.2s ease;
@@ -161,17 +297,6 @@
 	.filter-label {
 		font-size: 0.8rem;
 	}
-	
-	/* Removed distracting bounce animation
-	@keyframes bounce {
-		0%, 100% {
-			transform: translateY(0);
-		}
-		50% {
-			transform: translateY(-3px);
-		}
-	}
-	*/
 	
 	/* Responsive adjustments */
 	@media (max-width: 600px) {

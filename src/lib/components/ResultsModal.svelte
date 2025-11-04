@@ -212,6 +212,8 @@
 		overflow-y: auto;
 		padding: 0.5rem 0;
 		min-height: 0;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
 	}
 	
 	.result-card {

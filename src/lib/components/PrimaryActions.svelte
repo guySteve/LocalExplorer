@@ -40,19 +40,21 @@
 	
 	.minimize-primary-btn {
 		position: absolute;
-		top: 0.25rem;
-		right: 0.25rem;
-		background: transparent;
+		top: 0.5rem;
+		right: 0.5rem;
+		background: var(--card);
 		border: none;
 		cursor: pointer;
-		padding: 0.25rem;
+		padding: 0.4rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: var(--text-light);
 		transition: all 0.2s ease;
-		z-index: 10;
-		opacity: 0.5;
+		z-index: 20;
+		opacity: 0.8;
+		border-radius: 50%;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 	}
 	
 	.minimize-primary-btn:hover {
