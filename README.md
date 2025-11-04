@@ -76,30 +76,75 @@ A Progressive Web App for discovering local attractions, events, and activities.
 
 ## 🚀 Deployment
 
-### Netlify Deployment (Recommended)
+### Automatic Deployment (GitHub Actions)
 
-1. **Deploy:**
-   ```bash
-   # Option 1: One-click deploy button above
-   # Option 2: Manual via CLI
-   npm install -g netlify-cli
-   netlify login
-   netlify init
-   netlify deploy --prod
-   ```
+**Every push to `main` automatically deploys to Netlify!**
 
-2. **Add Environment Variables** in Netlify Dashboard:
+The repository includes GitHub Actions workflow that:
+- ✅ Automatically builds on every push to `main`
+- ✅ Runs on pull requests for testing
+- ✅ Deploys directly to Netlify
+- ✅ Comments deployment status on PRs
+
+**Setup Steps:**
+1. **Fork or clone this repository**
+2. **Connect to Netlify:**
+   - Go to [Netlify](https://app.netlify.com/)
+   - Create new site from Git
+   - Select your repository
+   - Netlify will auto-detect settings from `netlify.toml`
+
+3. **Add Secrets to GitHub:**
+   - Go to your repo → Settings → Secrets and variables → Actions
+   - Add `NETLIFY_AUTH_TOKEN` (from Netlify: User Settings → Applications)
+   - Add `NETLIFY_SITE_ID` (from Netlify: Site Settings → General)
+
+4. **Add Environment Variables in Netlify Dashboard:**
    ```bash
    MAPS_API_KEY=your_google_maps_key
    EBIRD_API_KEY=your_ebird_key          # Optional
    TICKETMASTER_API_KEY=your_tm_key     # Optional
    WHAT3WORDS_API_KEY=your_w3w_key      # Optional
+   RECREATION_GOV_API_KEY=your_rec_key   # Optional
+   NPS_API_KEY=your_nps_key              # Optional
    ```
 
-3. **Build Settings:**
-   - Build command: `npm run build`
-   - Publish directory: `.svelte-kit/output/client`
-   - Functions directory: `netlify/functions`
+5. **Push to main branch** - Automatic deployment starts!
+
+### Manual Deployment (Alternative)
+
+If you prefer manual control:
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
+
+# Initialize site
+netlify init
+
+# Deploy
+netlify deploy --prod
+```
+
+### Build Configuration
+
+The following are automatically configured via `netlify.toml`:
+- **Build command:** `npm run build`
+- **Publish directory:** `build`
+- **Functions directory:** `netlify/functions`
+- **Node version:** 18.x (via `.nvmrc` or package.json)
+
+### Verify Deployment
+
+After deployment, verify:
+1. ✅ Site loads correctly
+2. ✅ Search functionality works
+3. ✅ Weather displays (no API key needed)
+4. ✅ Maps load (requires MAPS_API_KEY)
+5. ✅ Optional features work if API keys provided
 
 ## 🔑 API Keys
 
@@ -118,6 +163,7 @@ A Progressive Web App for discovering local attractions, events, and activities.
 
 ## 📖 Documentation
 
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 🚀 Complete deployment guide with CI/CD setup
 - **[CURRENT_FEATURES.md](CURRENT_FEATURES.md)** - 📋 Complete feature list and technical details
 - **[EBIRD_INTEGRATION.md](EBIRD_INTEGRATION.md)** - 🐦 eBird API features documentation
 - **[MOBILE_UX_IMPROVEMENTS.md](MOBILE_UX_IMPROVEMENTS.md)** - 📱 Mobile optimization details

@@ -27,7 +27,8 @@ export const THEMES = {
   metro10:  { '--background': '#ffffff', '--card': '#2c3e50', '--primary': '#e74c3c', '--secondary': '#3498db', '--text-dark': '#2c3e50', '--text-light': '#ffffff', '--accent': '#95a5a6', '--button-radius': '0px', '--font-primary': 'Roboto, sans-serif', '--font-secondary': 'Roboto, sans-serif' },
   sushi:    { '--background': '#f5f5f5', '--card': '#1a1a1a', '--primary': '#e91e63', '--secondary': '#4caf50', '--text-dark': '#1a1a1a', '--text-light': '#ffffff', '--accent': '#ffc107', '--button-radius': '4px', '--font-primary': 'Noto Sans JP, sans-serif', '--font-secondary': 'Noto Sans JP, sans-serif' },
   bbq:      { '--background': '#3e2723', '--card': '#d32f2f', '--primary': '#ff6f00', '--secondary': '#5d4037', '--text-dark': '#fff3e0', '--text-light': '#ffffff', '--accent': '#ffab91', '--button-radius': '8px', '--font-primary': 'Rye, serif', '--font-secondary': 'Merriweather, serif' },
-  cafe:     { '--background': '#fff8e1', '--card': '#5d4037', '--primary': '#8d6e63', '--secondary': '#6d4c41', '--text-dark': '#3e2723', '--text-light': '#ffffff', '--accent': '#bcaaa4', '--button-radius': '12px', '--font-primary': 'Merriweather, serif', '--font-secondary': 'Merriweather, serif' }
+  cafe:     { '--background': '#fff8e1', '--card': '#5d4037', '--primary': '#8d6e63', '--secondary': '#6d4c41', '--text-dark': '#3e2723', '--text-light': '#ffffff', '--accent': '#bcaaa4', '--button-radius': '12px', '--font-primary': 'Merriweather, serif', '--font-secondary': 'Merriweather, serif' },
+  broncos:  { '--background': '#002244', '--card': '#FB4F14', '--primary': '#FB4F14', '--secondary': '#002244', '--text-dark': '#FFFFFF', '--text-light': '#FFFFFF', '--accent': '#FFB612', '--button-radius': '8px', '--font-primary': 'Impact, sans-serif', '--font-secondary': 'Arial Black, sans-serif' }
 };
 
 // Reactive stores

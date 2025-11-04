@@ -1,4 +1,1 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20 5C11.716 5 5 11.716 5 20C5 28.284 11.716 35 20 35C28.284 35 35 28.284 35 20C35 11.716 28.284 5 20 5Z" fill="currentColor" opacity="0.2"/>
-  <path d="M14 12V24M14 12L12 16M14 12L16 16M26 12V24M26 24H22M26 24H30M20 12V16C20 18.2091 21.7909 20 24 20H26" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow"><feGaussianBlur stdDeviation="3"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M14 10V28M14 10L11 14M14 10L17 14" stroke="#4cc9f0" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/><path d="M26 10V28M23 28H29M20 10V16C20 19 22 21 25 21H26" stroke="#ff4d6d" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/></svg>

@@ -1,7 +1,1 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="13" y="16" width="10" height="18" rx="2" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="2"/>
-  <path d="M13 22H23M13 26H23" stroke="currentColor" stroke-width="1.5"/>
-  <ellipse cx="18" cy="12" rx="4" ry="2" fill="currentColor"/>
-  <path d="M23 18H26C27.6569 18 29 19.3431 29 21V25C29 26.6569 27.6569 28 26 28H23" stroke="currentColor" stroke-width="2"/>
-  <rect x="11" y="34" width="14" height="2" rx="1" fill="currentColor"/>
-</svg>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow"><feGaussianBlur stdDeviation="3"/></filter></defs><rect x="14" y="14" width="12" height="14" stroke="#4cc9f0" stroke-width="2" fill="none" filter="url(#glow)"/><rect x="26" y="18" width="4" height="6" stroke="#4cc9f0" stroke-width="2" fill="none" filter="url(#glow)"/><rect x="16" y="12" width="8" height="2" fill="#ff4d6d" filter="url(#glow)"/></svg>

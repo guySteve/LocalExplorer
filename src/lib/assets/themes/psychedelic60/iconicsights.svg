@@ -1,8 +1,1 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="8" y="18" width="24" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
-  <path d="M12 18V12C12 10.8954 12.8954 10 14 10H26C27.1046 10 28 10.8954 28 12V18" stroke="currentColor" stroke-width="2"/>
-  <rect x="14" y="14" width="3" height="4" fill="currentColor"/>
-  <rect x="19" y="14" width="3" height="4" fill="currentColor"/>
-  <rect x="24" y="14" width="3" height="4" fill="currentColor"/>
-  <rect x="5" y="34" width="30" height="2" fill="currentColor"/>
-</svg>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="18" width="20" height="16" rx="2" fill="#FF00FF" opacity="0.3"/><path d="M10 18Q15 12 20 6Q25 12 30 18" fill="#00FFFF" opacity="0.3"/><circle cx="16" cy="24" r="2" fill="#FFFF00"/><circle cx="24" cy="24" r="2" fill="#FF00FF"/><path d="M18 30Q20 28 22 30" stroke="#00FFFF" stroke-width="2" stroke-linecap="round"/><path d="M15 10Q17 8 19 8Q21 8 23 10" stroke="#FF00FF" stroke-width="2" stroke-linecap="round"/></svg>

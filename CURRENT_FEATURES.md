@@ -291,26 +291,157 @@ npm run check
 
 ## Deployment
 
-### Netlify Deployment
+### Automatic CI/CD via GitHub Actions
 
-**Automatic:**
-- Connect repository to Netlify
-- Set environment variables in Netlify dashboard
-- Push to main branch triggers deploy
+**Every push to `main` triggers automatic deployment!**
 
-**Build Settings:**
-- Build command: `npm run build`
-- Publish directory: `.svelte-kit/output/client`
-- Functions directory: `netlify/functions`
+The repository includes `.github/workflows/netlify-deploy.yml` which:
+- Runs on push to `main` branch
+- Runs on pull requests (preview deployments)
+- Can be manually triggered via workflow_dispatch
+- Uses Netlify GitHub Action for seamless deployment
 
-### Environment Configuration
-Set in Netlify dashboard under Site settings → Environment variables
+#### GitHub Actions Setup
+```yaml
+Required Secrets (in repo settings):
+- NETLIFY_AUTH_TOKEN
+- NETLIFY_SITE_ID
+```
 
-### PWA Features
-- Service worker for offline support
-- App manifest for install
-- Works offline for cached content
-- Add to home screen on mobile
+#### Deployment Flow
+1. Code pushed to main/PR created
+2. GitHub Actions checks out code
+3. Node.js 18 environment set up
+4. Dependencies installed (npm ci)
+5. Deployed to Netlify via actions-netlify
+6. Netlify builds with environment variables
+7. Functions deployed to edge
+8. Site live with CDN
+
+### Netlify Configuration
+
+The `netlify.toml` file configures:
+- **Build command:** `npm run build`
+- **Publish directory:** `build`
+- **Functions directory:** `netlify/functions`
+- **Security headers:** CSP, XSS protection, frame options
+- **Cache control:** Long-term caching for static assets
+- **Redirects:** PWA fallback routing
+
+#### Security Headers Applied
+```
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- X-XSS-Protection: 1; mode=block
+- Referrer-Policy: strict-origin-when-cross-origin
+- Content-Security-Policy: (comprehensive CSP)
+```
+
+### Environment Variables
+
+**Required:**
+```bash
+MAPS_API_KEY=your_google_maps_api_key
+```
+
+**Optional (features work without these):**
+```bash
+EBIRD_API_KEY=your_ebird_api_key
+TICKETMASTER_API_KEY=your_ticketmaster_api_key
+WHAT3WORDS_API_KEY=your_what3words_api_key
+RECREATION_GOV_API_KEY=your_recreation_gov_api_key
+NPS_API_KEY=your_nps_api_key
+```
+
+Set these in:
+- **Netlify Dashboard:** Site settings → Environment variables
+- **Local Development:** Copy `.env.example` to `.env`
+
+### Manual Deployment
+
+If needed, you can deploy manually:
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login
+netlify login
+
+# Initialize (first time)
+netlify init
+
+# Deploy to production
+netlify deploy --prod
+
+# Or use npm script
+npm run deploy
+```
+
+### Build Process
+
+1. **SvelteKit Build:**
+   ```bash
+   vite build
+   ```
+   - Compiles Svelte components
+   - Bundles JavaScript with tree-shaking
+   - Optimizes CSS
+   - Generates static assets
+
+2. **Netlify Adapter:**
+   - Converts SvelteKit output for Netlify
+   - Prepares serverless functions
+   - Configures redirects and headers
+
+3. **Environment Injection:**
+   ```bash
+   node netlify/inject-env.js
+   ```
+   - Injects MAPS_API_KEY into built files
+   - Maintains security (key only in output, not source)
+
+4. **PWA Service Worker:**
+   - Vite PWA plugin generates service worker
+   - Precaches static assets
+   - Enables offline functionality
+   - Manages cache strategies
+
+### Deployment Checklist
+
+Before deploying:
+- ✅ `npm run check` passes (0 errors)
+- ✅ All required environment variables set in Netlify
+- ✅ `netlify.toml` configuration correct
+- ✅ GitHub secrets configured for Actions
+- ✅ `.env.example` matches production requirements
+- ✅ Service worker configuration valid
+- ✅ Functions tested locally
+
+After deployment:
+- ✅ Site loads correctly
+- ✅ Google Maps displays (MAPS_API_KEY works)
+- ✅ Weather widget shows data (no key needed)
+- ✅ Search functionality operational
+- ✅ Optional features work if keys provided
+- ✅ PWA installs correctly
+- ✅ Service worker active
+- ✅ All modals and interactions work
+
+### Monitoring & Logs
+
+**Netlify Dashboard provides:**
+- Build logs (view build output)
+- Function logs (serverless function calls)
+- Deploy history (rollback capability)
+- Analytics (if enabled)
+- Real-time deploys (track progress)
+
+**GitHub Actions provides:**
+- Workflow run history
+- Build status badges
+- PR deployment comments
+- Failure notifications
 
 ---
 

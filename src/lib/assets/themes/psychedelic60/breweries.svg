@@ -1,7 +1,1 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="13" y="16" width="10" height="18" rx="2" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="2"/>
-  <path d="M13 22H23M13 26H23" stroke="currentColor" stroke-width="1.5"/>
-  <ellipse cx="18" cy="12" rx="4" ry="2" fill="currentColor"/>
-  <path d="M23 18H26C27.6569 18 29 19.3431 29 21V25C29 26.6569 27.6569 28 26 28H23" stroke="currentColor" stroke-width="2"/>
-  <rect x="11" y="34" width="14" height="2" rx="1" fill="currentColor"/>
-</svg>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 12Q14 10 16 10H24Q26 10 26 12V28H14V12Z" stroke="#FF00FF" stroke-width="2.5" fill="none"/><path d="M26 18Q28 18 28 20V24Q28 26 26 26" stroke="#00FFFF" stroke-width="2.5" fill="none"/><path d="M16 8Q18 6 20 6Q22 6 24 8" stroke="#FFFF00" stroke-width="2"/><path d="M16 20Q18 18 20 18Q22 18 24 20" stroke="#FF00FF" stroke-width="2"/></svg>

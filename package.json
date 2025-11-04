@@ -10,7 +10,8 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
     "deploy": "npm run build && netlify deploy --prod",
-    "check-deploy": "bash check-deploy-ready.sh"
+    "deploy:preview": "npm run build && netlify deploy",
+    "verify": "npm run check && node verify-api-functions.cjs"
   },
   "keywords": [
     "pwa",
