@@ -53,7 +53,8 @@
 	function handleDragStart(e, index) {
 		draggedIndex = index;
 		e.dataTransfer.effectAllowed = 'move';
-		e.dataTransfer.setData('text/html', e.target.innerHTML);
+		// Use plain text with index for security
+		e.dataTransfer.setData('text/plain', index.toString());
 	}
 	
 	function handleDragOver(e) {
