@@ -3,7 +3,6 @@
 	import { browser } from '$app/environment';
 	import { selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
 	import { Navigation } from 'lucide-svelte';
-	import compassArrow from '$lib/assets/compass-arrow.svg';
 
 	const dispatch = createEventDispatcher();
 	
@@ -54,7 +53,7 @@
 	let currentZoom = DEFAULT_ZOOM; // Track current zoom level
 	
 	// Constants
-	const HEADING_SMOOTH = 0.2; // Increased for smoother rotation
+	const HEADING_SMOOTH = 0.15; // Smooth rotation for 360° movement
 	const MAP_INIT_DELAY_MS = 100; // Delay to ensure DOM is ready
 	const MAP_INIT_RETRY_DELAY_MS = 500; // Delay between retry attempts
 	const MAX_MAP_INIT_RETRIES = 10; // Maximum number of retry attempts
@@ -78,8 +77,9 @@
 		{ name: 'Northwest', min: 292.5, max: 337.5 }
 	];
 	
-	// Map type cycling order
-	const MAP_TYPE_ORDER = { 'terrain': 'satellite', 'satellite': 'roadmap', 'roadmap': 'terrain' };
+	// Map type cycling order: Roadmap → Terrain → Satellite
+	const MAP_TYPE_ORDER = { 'roadmap': 'terrain', 'terrain': 'satellite', 'satellite': 'roadmap' };
+	const MAP_TYPE_LABELS = { 'roadmap': 'Roadmap', 'terrain': 'Terrain', 'satellite': 'Satellite' };
 	
 	// Retry counter for map initialization
 	let mapInitRetryCount = 0;
@@ -208,17 +208,16 @@
 			map = new window.google.maps.Map(mapContainer, {
 				center: { lat: currentPosition.lat, lng: currentPosition.lng },
 				zoom: DEFAULT_ZOOM,
-				mapTypeId: 'terrain', // Terrain style map
+				mapTypeId: 'roadmap', // Start with Roadmap
 				disableDefaultUI: true, // Disable all default UI - we'll add controls outside
-				gestureHandling: 'greedy', // Allow map interaction
-				keyboardShortcuts: true,
+				gestureHandling: 'none', // Disable map dragging - keep centered
+				keyboardShortcuts: false,
+				draggable: false, // Disable dragging
+				zoomControl: false,
+				scrollwheel: false,
+				disableDoubleClickZoom: true,
 				heading: 0, // Will be updated based on device orientation
-				tilt: 0 // Flat view for terrain style
-			});
-			
-			// Listen for user-initiated drag events
-			map.addListener('dragstart', () => {
-				isMapCentered = false;
+				tilt: 0 // Flat 2D view only
 			});
 			
 			// Listen for zoom changes
@@ -228,8 +227,11 @@
 				}
 			});
 			
+			// Map is always centered since dragging is disabled
+			isMapCentered = true;
+			
 			mapInitialized = true;
-			console.log('Compass: Map initialized with terrain style');
+			console.log('Compass: Map initialized with roadmap style (2D, no dragging)');
 		} catch (error) {
 			console.error('Compass: Error initializing map:', error);
 			mapInitialized = false;
@@ -279,8 +281,9 @@
 		if (map) {
 			try {
 				const currentType = map.getMapTypeId();
-				const newType = MAP_TYPE_ORDER[currentType] || 'terrain';
+				const newType = MAP_TYPE_ORDER[currentType] || 'roadmap';
 				map.setMapTypeId(newType);
+				console.log(`Compass: Map type changed to ${newType}`);
 			} catch (error) {
 				console.warn('Compass: Error changing map type:', error);
 			}
@@ -304,8 +307,8 @@
 		if (!mapInstance) return 'Terrain';
 		try {
 			const currentType = mapInstance.getMapTypeId();
-			const nextType = MAP_TYPE_ORDER[currentType] || 'terrain';
-			return nextType.charAt(0).toUpperCase() + nextType.slice(1);
+			const nextType = MAP_TYPE_ORDER[currentType] || 'roadmap';
+			return MAP_TYPE_LABELS[nextType] || nextType.charAt(0).toUpperCase() + nextType.slice(1);
 		} catch (error) {
 			return 'Terrain';
 		}
@@ -694,7 +697,7 @@
 				<div class="compass-map" bind:this={mapContainer}></div>
 				
 				<!-- Fixed center dot showing user's location -->
-				<div class="location-center-dot" style="transform: scale({indicatorScale})">
+				<div class="location-center-dot">
 					<svg viewBox="0 0 100 100" class="center-dot-svg" role="img" aria-label="Your location">
 						<defs>
 							<filter id="centerDotGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -715,9 +718,29 @@
 					</svg>
 				</div>
 				
-				<!-- Rotating arc indicator showing device heading -->
-				<div class="heading-arc-indicator" style="transform: {personTransform} scale({indicatorScale})">
-					<img src={compassArrow} alt="Direction indicator" class="compass-arrow-svg" />
+				<!-- Single arrow pointing device direction -->
+				<div class="heading-arc-indicator" style="transform: {personTransform}">
+					<svg viewBox="0 0 100 100" class="compass-arrow-svg" role="img" aria-label="Device heading">
+						<defs>
+							<filter id="arrowGlow" x="-50%" y="-50%" width="200%" height="200%">
+								<feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+								<feOffset dx="0" dy="0" result="offsetblur"/>
+								<feComponentTransfer>
+									<feFuncA type="linear" slope="0.6"/>
+								</feComponentTransfer>
+								<feMerge>
+									<feMergeNode/>
+									<feMergeNode in="SourceGraphic"/>
+								</feMerge>
+							</filter>
+						</defs>
+						<!-- Arrow pointing up (device direction) -->
+						<path d="M 50 10 L 65 35 L 57 35 L 57 70 L 43 70 L 43 35 L 35 35 Z" 
+							fill="var(--primary, #c87941)" 
+							stroke="white" 
+							stroke-width="2" 
+							filter="url(#arrowGlow)" />
+					</svg>
 				</div>
 			</div>
 		</div>
@@ -745,17 +768,6 @@
 					</svg>
 					<span class="map-type-label">{nextMapTypeLabel}</span>
 				</button>
-				{#if !isMapCentered}
-					<button class="map-control-btn recenter-btn" on:click={recenterMap} aria-label="Re-center map" title="Re-center on your location">
-						<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
-							<circle cx="12" cy="12" r="3" stroke-width="2"/>
-							<line x1="12" y1="2" x2="12" y2="6" stroke-width="2"/>
-							<line x1="12" y1="18" x2="12" y2="22" stroke-width="2"/>
-							<line x1="2" y1="12" x2="6" y2="12" stroke-width="2"/>
-							<line x1="18" y1="12" x2="22" y2="12" stroke-width="2"/>
-						</svg>
-					</button>
-				{/if}
 			</div>
 		{/if}
 		
