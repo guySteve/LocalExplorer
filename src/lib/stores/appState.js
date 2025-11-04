@@ -155,7 +155,8 @@ export const categories = {
   'Recreation': [
     { name: 'Campgrounds', search: 'campground' },
     { name: 'Recreation Areas', search: 'recreation' },
-    { name: 'National Parks', search: 'national_park' }
+    { name: 'National Parks', search: 'national_park' },
+    { name: 'Pickleball Courts', keyword: 'pickleball court', type: 'sports_complex', primaryTypeOnly: false }
   ],
   'Bird Watching': [
     { name: 'Recent Sightings', value: 'bird-sightings' },
