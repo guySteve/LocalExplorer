@@ -188,6 +188,20 @@
 
 <style>
 	/* Component-specific styles scoped by default */
+	.collection-view {
+		max-height: 60vh;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+	
+	.results-list {
+		overflow-y: auto;
+		max-height: 100%;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+	
 	.tabs {
 		display: flex;
 		gap: 0.5rem;

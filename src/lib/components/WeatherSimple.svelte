@@ -4,7 +4,7 @@
 	import { widgetState } from '$lib/stores/widgetState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
-	import { ChevronDown, ChevronUp, X } from 'lucide-svelte';
+	import { ChevronDown, ChevronUp, X, Calendar } from 'lucide-svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -329,7 +329,8 @@
 				title="{weather?.daily?.length || 10}-day forecast"
 				disabled={loading || !weather}
 			>
-				📅 {weather?.daily?.length || 10}
+				<Calendar size={16} color="currentColor" />
+				<span>{weather?.daily?.length || 10} days</span>
 			</button>
 			<button 
 				class="minimize-btn" 
@@ -499,7 +500,7 @@
 
 	.weather-btn {
 		background: transparent;
-		border: 1px solid rgba(255, 255, 255, 0.2);
+		border: none;
 		border-radius: 8px;
 		padding: 0.4rem 0.6rem;
 		cursor: pointer;
