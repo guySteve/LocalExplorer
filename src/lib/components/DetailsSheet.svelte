@@ -604,6 +604,8 @@
 		padding: 1rem 1.5rem;
 		overflow-y: auto;
 		flex: 1;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
 	}
 	
 	.details-row {
