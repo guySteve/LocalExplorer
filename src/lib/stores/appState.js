@@ -88,6 +88,9 @@ function getInitialFontSize() {
 }
 export const fontSize = writable(getInitialFontSize());
 
+// Network status
+export const isOffline = writable(false);
+
 // Search categories configuration
 export const categories = {
   'Foodie Finds': [

@@ -40,6 +40,23 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Security: Implement allowlist for valid Foursquare endpoints to prevent path traversal
+    const ALLOWED_ENDPOINTS = [
+      'places/search',
+      'places/nearby',
+      'places/categories',
+      'autocomplete'
+    ];
+
+    if (!ALLOWED_ENDPOINTS.includes(endpoint)) {
+      console.error('Invalid endpoint requested:', endpoint);
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Invalid endpoint. Only approved Foursquare endpoints are allowed.' })
+      };
+    }
+
     const queryString = new URLSearchParams(params).toString();
     const url = `https://api.foursquare.com/v3/${endpoint}?${queryString}`;
     
