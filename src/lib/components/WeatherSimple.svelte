@@ -186,11 +186,15 @@
 
 	function normalizeWeatherCondition(code) {
 		// Normalize to simple categories for sorting logic
-		if (code >= 61 && code <= 82) return 'rain';
-		if (code >= 71 && code <= 86) return 'snow';
-		if (code === 0 || code === 1) return 'sunny';
-		if (code >= 95) return 'storm';
-		return 'clear';
+		// More specific conditions first to avoid overlaps
+		if (code >= 71 && code <= 77) return 'snow'; // Snow codes
+		if (code >= 85 && code <= 86) return 'snow'; // Snow showers
+		if (code >= 61 && code <= 65) return 'rain'; // Rain codes
+		if (code >= 80 && code <= 82) return 'rain'; // Rain showers
+		if (code >= 51 && code <= 55) return 'rain'; // Drizzle
+		if (code >= 95) return 'storm'; // Thunderstorm
+		if (code === 0 || code === 1) return 'sunny'; // Clear/mainly clear
+		return 'clear'; // Default
 	}
 
 	function parseHistoricalData(data, lastYearDate) {

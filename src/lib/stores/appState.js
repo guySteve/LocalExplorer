@@ -204,7 +204,9 @@ if (browser) {
 
   fontSize.subscribe(size => {
     localStorage.setItem('fontSize', size);
-    // Apply font size to body element
-    document.body.setAttribute('data-font-size', size);
+    // Apply font size to body element only in browser environment
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.setAttribute('data-font-size', size);
+    }
   });
 }

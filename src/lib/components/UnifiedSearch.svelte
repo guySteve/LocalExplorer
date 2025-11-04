@@ -111,7 +111,7 @@
 		title="Voice search"
 		class:listening={isListening}
 	>
-		{isListening ? '🎤' : '🎤'}
+		{isListening ? '🔴' : '🎤'}
 	</button>
 	<button 
 		id="unifiedSearchBtn" 
