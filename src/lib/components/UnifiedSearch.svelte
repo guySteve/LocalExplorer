@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { browser } from '$app/environment';
 	import { performUnifiedSearch } from '$lib/utils/api';
+	import { Mic, MicOff, Search, Loader2 } from 'lucide-svelte';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -98,7 +99,7 @@
 		id="unifiedSearchInput"
 		bind:value={searchQuery}
 		on:keypress={handleKeyPress}
-		placeholder="🔍 Search all sources (places, events, parks...)"
+		placeholder="Search all sources (places, events, parks...)"
 		aria-label="Search all sources"
 		disabled={isSearching || isListening}
 	/>
@@ -111,7 +112,11 @@
 		title="Voice search"
 		class:listening={isListening}
 	>
-		{isListening ? '🔴' : '🎤'}
+		{#if isListening}
+			<MicOff size={18} color="red" />
+		{:else}
+			<Mic size={18} color="currentColor" />
+		{/if}
 	</button>
 	<button 
 		id="unifiedSearchBtn" 
@@ -120,10 +125,27 @@
 		disabled={isSearching || isListening}
 		aria-label="Search"
 	>
-		{isSearching ? '⏳' : 'Search'}
+		{#if isSearching}
+			<Loader2 size={18} color="currentColor" class="spinning" />
+		{:else}
+			<Search size={18} color="currentColor" />
+		{/if}
+		<span>Search</span>
 	</button>
 </div>
 
 <style>
 	/* Component-specific styles scoped by default */
+	:global(.spinning) {
+		animation: spin 1s linear infinite;
+	}
+	
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
 </style>

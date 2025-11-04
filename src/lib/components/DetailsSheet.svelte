@@ -7,6 +7,7 @@
 	import { savedPlaces, dayPlan } from '$lib/stores/storage';
 	import { SWIPE_CLOSE_THRESHOLD } from '$lib/utils/uiConstants';
 	import { get } from 'svelte/store';
+	import { Compass, Map, Globe, Bookmark, BookmarkCheck, CalendarPlus, CalendarCheck, Share2, MapPin, Phone, Info, Tag, Star } from 'lucide-svelte';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -368,7 +369,7 @@
       <!-- Address -->
       {#if place.address}
         <div class="details-row">
-          <span class="details-label">📍 Address:</span>
+          <span class="details-label"><MapPin size={16} color="currentColor" /> Address:</span>
           <span>{place.address}</span>
         </div>
       {/if}
@@ -376,7 +377,7 @@
       <!-- What3Words -->
       {#if what3words}
         <div class="details-row">
-          <span class="details-label">🔷 What3Words:</span>
+          <span class="details-label" style="color: #e1251b;">🔷 What3Words:</span>
           <span style="font-weight: 600; color: var(--accent);">{what3words}</span>
         </div>
       {/if}
@@ -384,7 +385,7 @@
       <!-- Phone -->
       {#if place._original?.formatted_phone_number || place._original?.tel}
         <div class="details-row">
-          <span class="details-label">📞 Phone:</span>
+          <span class="details-label"><Phone size={16} color="currentColor" /> Phone:</span>
           <a href="tel:{place._original.formatted_phone_number || place._original.tel}" 
              style="color: var(--primary); text-decoration: none;">
             {place._original.formatted_phone_number || place._original.tel}
@@ -395,7 +396,7 @@
       <!-- Description (for NPS/Recreation) -->
       {#if place._original?.description}
         <div class="details-row" style="flex-direction: column; align-items: flex-start;">
-          <span class="details-label">ℹ️ About:</span>
+          <span class="details-label"><Info size={16} color="currentColor" /> About:</span>
           <p style="margin: 0.5rem 0 0; line-height: 1.6; opacity: 0.9;">
             {place._original.description.substring(0, 300)}{place._original.description.length > 300 ? '...' : ''}
           </p>
@@ -405,7 +406,7 @@
       <!-- Categories -->
       {#if place.categories && place.categories.length > 0}
         <div class="details-row">
-          <span class="details-label">🏷️ Categories:</span>
+          <span class="details-label"><Tag size={16} color="currentColor" /> Categories:</span>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             {#each place.categories.slice(0, 3) as category}
               <span style="background: rgba(var(--accent-rgb, 138, 90, 68), 0.2); 
@@ -427,7 +428,7 @@
         </div>
       {:else if reviews && reviews.length > 0}
         <div class="details-row" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
-          <span class="details-label" style="margin-bottom: 0.75rem;">⭐ Reviews ({reviews.length}):</span>
+          <span class="details-label" style="margin-bottom: 0.75rem;"><Star size={16} color="currentColor" /> Reviews ({reviews.length}):</span>
           <div class="reviews-container">
             {#each reviews.slice(0, 3) as review}
               <div class="review-card">
@@ -456,24 +457,40 @@
     <!-- Action Buttons -->
     <div class="details-actions">
       <button class="action-btn primary" onclick={startNavigation}>
-        <span class="compass-icon" aria-hidden="true"></span> Guide Me
+        <Compass size={18} color="currentColor" />
+        <span>Guide Me</span>
       </button>
       <button class="action-btn" onclick={openMaps}>
-        🗺️ Maps
+        <Map size={18} color="currentColor" />
+        <span>Maps</span>
       </button>
       {#if place._original?.website}
         <button class="action-btn" onclick={openWebsite}>
-          🌐 Website
+          <Globe size={18} color="currentColor" />
+          <span>Website</span>
         </button>
       {/if}
       <button class="action-btn" onclick={addToCollection} class:saved={isInCollection}>
-        {isInCollection ? '✓ Saved' : '💾 Add to Collection'}
+        {#if isInCollection}
+          <BookmarkCheck size={18} color="currentColor" />
+          <span>Saved</span>
+        {:else}
+          <Bookmark size={18} color="currentColor" />
+          <span>Add to Collection</span>
+        {/if}
       </button>
       <button class="action-btn" onclick={addToDayPlan} class:in-plan={isInDayPlan}>
-        {isInDayPlan ? '✓ In Plan' : '📅 Add to Day Plan'}
+        {#if isInDayPlan}
+          <CalendarCheck size={18} color="currentColor" />
+          <span>In Plan</span>
+        {:else}
+          <CalendarPlus size={18} color="currentColor" />
+          <span>Add to Day Plan</span>
+        {/if}
       </button>
       <button class="action-btn" onclick={sharePlace}>
-        📤 Share
+        <Share2 size={18} color="currentColor" />
+        <span>Share</span>
       </button>
     </div>
   </div>
@@ -597,30 +614,6 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-	}
-	
-	.compass-icon {
-		display: inline-block;
-		width: 0;
-		height: 0;
-		border-left: 6px solid transparent;
-		border-right: 6px solid transparent;
-		border-bottom: 10px solid currentColor;
-		position: relative;
-		flex-shrink: 0;
-	}
-	
-	.compass-icon::after {
-		content: '';
-		position: absolute;
-		width: 0;
-		height: 0;
-		border-left: 6px solid transparent;
-		border-right: 6px solid transparent;
-		border-top: 10px solid currentColor;
-		left: -6px;
-		top: 3px;
-		opacity: 0.5;
 	}
 	
 	.action-btn:hover {

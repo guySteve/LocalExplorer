@@ -2,22 +2,9 @@
 	import { createEventDispatcher } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { categories, currentWeatherCondition } from '$lib/stores/appState';
+	import ThemeIcon from '$lib/components/ThemeIcon.svelte';
 	
 	const dispatch = createEventDispatcher();
-	
-	const categoryEmojis = {
-		'Foodie Finds': '🍽️',
-		'Iconic Sights': '🏛️',
-		'Night Out': '🌙',
-		'Hidden Gems': '💎',
-		'Pet Friendly': '🐾',
-		'Utilities & Help': '🚑',
-		'Outdoor': '🏞️',
-		'Local Events': '🎭',
-		'Breweries': '🍺',
-		'Recreation': '⛺',
-		'Bird Watching': '🐦'
-	};
 	
 	// Reactive category ordering based on weather
 	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Bird Watching'), $currentWeatherCondition);
@@ -62,7 +49,9 @@
 			on:click={() => handleCategoryClick(category)}
 			transition:fly={{ y: 20, duration: 400, delay: i * 50 }}
 		>
-			<span class="filter-emoji">{categoryEmojis[category] || '📍'}</span>
+			<div class="filter-icon">
+				<ThemeIcon iconName={category} />
+			</div>
 			<span class="filter-label">{category}</span>
 		</button>
 	{/each}
@@ -123,8 +112,7 @@
 		transform: translateY(-2px) scale(0.98);
 	}
 	
-	.filter-emoji {
-		font-size: 1.8rem;
+	.filter-icon {
 		animation: bounce 2s ease-in-out infinite;
 	}
 	
@@ -150,10 +138,6 @@
 		
 		.filter-btn {
 			padding: 0.9rem 0.6rem;
-		}
-		
-		.filter-emoji {
-			font-size: 1.5rem;
 		}
 		
 		.filter-label {

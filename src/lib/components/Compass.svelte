@@ -2,6 +2,8 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
+	import { Navigation } from 'lucide-svelte';
+	import compassArrow from '$lib/assets/compass-arrow.svg';
 
 	const dispatch = createEventDispatcher();
 	
@@ -650,7 +652,8 @@
 		<div class="compass-header">
 			<div>
 				<h2 class="compass-title">
-					<span class="compass-icon" aria-hidden="true"></span> Compass
+					<Navigation size={24} color="currentColor" />
+					<span>Compass</span>
 				</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
@@ -713,33 +716,8 @@
 				</div>
 				
 				<!-- Rotating arc indicator showing device heading -->
-				<div class="heading-arc-indicator" style="transform: {personTransform} scale({indicatorScale})">>
-					<svg viewBox="0 0 100 100" class="arc-svg" role="img" aria-label="Direction indicator">
-						<defs>
-							<filter id="arcGlow" x="-50%" y="-50%" width="200%" height="200%">
-								<feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-								<feOffset dx="0" dy="1" result="offsetblur"/>
-								<feComponentTransfer>
-									<feFuncA type="linear" slope="0.6"/>
-								</feComponentTransfer>
-								<feMerge>
-									<feMergeNode/>
-									<feMergeNode in="SourceGraphic"/>
-								</feMerge>
-							</filter>
-						</defs>
-						
-						<!-- Arc shape (C shape) pointing upward -->
-						<path 
-							d="M 50 15 A 25 25 0 0 1 70 50 A 25 25 0 0 1 50 75"
-							fill="none"
-							stroke="var(--primary, #c87941)"
-							stroke-width="4"
-							stroke-linecap="round"
-							filter="url(#arcGlow)"
-							opacity="0.85"
-						/>
-					</svg>
+				<div class="heading-arc-indicator" style="transform: {personTransform} scale({indicatorScale})">
+					<img src={compassArrow} alt="Direction indicator" class="compass-arrow-svg" />
 				</div>
 			</div>
 		</div>
@@ -1118,6 +1096,37 @@
 		margin-top: -32px;
 		transition: transform 0.1s ease-out;
 		opacity: 0.95;
+	}
+	
+	.compass-icon {
+		display: inline-block;
+		width: 0;
+		height: 0;
+		border-left: 8px solid transparent;
+		border-right: 8px solid transparent;
+		border-bottom: 14px solid currentColor;
+		position: relative;
+		flex-shrink: 0;
+	}
+	
+	.compass-icon::after {
+		content: '';
+		position: absolute;
+		width: 0;
+		height: 0;
+		border-left: 8px solid transparent;
+		border-right: 8px solid transparent;
+		border-top: 14px solid currentColor;
+		left: -8px;
+		top: 4px;
+		opacity: 0.5;
+	}
+	
+	.compass-arrow-svg {
+		width: 100%;
+		height: 100%;
+		filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+		color: var(--primary, #c87941);
 	}
 	
 	.arc-svg {
