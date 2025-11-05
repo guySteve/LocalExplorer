@@ -284,7 +284,7 @@
 	
 	.filter-close-btn {
 		position: absolute;
-		top: 0.4rem;
+		bottom: 0.4rem;
 		right: 0.4rem;
 		background: rgba(244, 67, 54, 0.85);
 		border: none;

@@ -468,10 +468,12 @@
 	}
 	
 	.result-item {
+		position: relative;
 		display: flex;
 		align-items: center;
 		gap: 1rem;
 		padding: 1rem;
+		padding-bottom: 2.5rem;
 		background: rgba(var(--card-rgb, 26, 43, 68), 0.03);
 		border-radius: 8px;
 		margin-bottom: 0.75rem;
@@ -530,6 +532,9 @@
 	}
 	
 	.remove-btn {
+		position: absolute;
+		bottom: 0.5rem;
+		right: 0.5rem;
 		background: rgba(244, 67, 54, 0.1);
 		border: 1px solid rgba(244, 67, 54, 0.3);
 		color: #f44336;
