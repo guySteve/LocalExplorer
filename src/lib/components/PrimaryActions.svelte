@@ -21,7 +21,7 @@
 		title="Hide primary actions"
 		aria-label="Hide primary actions"
 	>
-		<X size={16} color="currentColor" />
+		<X size={12} color="currentColor" />
 	</button>
 	<button id="myCollectionBtn" on:click={handleCollectionClick}>
 		<BookMarked size={18} color="currentColor" />
@@ -40,26 +40,26 @@
 	
 	.minimize-primary-btn {
 		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		background: var(--card);
+		bottom: 0.25rem;
+		right: 0.25rem;
+		background: rgba(0, 0, 0, 0.6);
 		border: none;
 		cursor: pointer;
-		padding: 0.4rem;
+		padding: 0.3rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: var(--text-light);
 		transition: all 0.2s ease;
 		z-index: 20;
-		opacity: 0.8;
-		border-radius: 50%;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		opacity: 0.5;
+		border-radius: 4px;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 	}
 	
 	.minimize-primary-btn:hover {
-		transform: scale(1.1);
+		transform: scale(1.05);
 		color: rgba(244, 67, 54, 0.9);
-		opacity: 1;
+		opacity: 0.9;
 	}
 </style>

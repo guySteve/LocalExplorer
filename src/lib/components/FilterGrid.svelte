@@ -119,7 +119,7 @@
 		title="Hide all category filters"
 		aria-label="Hide all category filters"
 	>
-		<X size={16} color="currentColor" />
+		<X size={12} color="currentColor" />
 	</button>
 	{#each displayCategories as category, i (category)}
 		<div 
@@ -148,7 +148,7 @@
 				title="Hide this category"
 				aria-label="Hide {category} category"
 			>
-				<X size={14} color="currentColor" />
+				<X size={12} color="currentColor" />
 			</button>
 			<button 
 				class="filter-btn"
@@ -175,28 +175,28 @@
 	
 	.minimize-filter-btn {
 		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		background: var(--card);
+		bottom: 0.25rem;
+		right: 0.25rem;
+		background: rgba(0, 0, 0, 0.6);
 		border: none;
 		cursor: pointer;
-		padding: 0.5rem;
+		padding: 0.3rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: var(--text-light);
 		transition: all 0.2s ease;
 		z-index: 20;
-		opacity: 0.9;
-		border-radius: 50%;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+		opacity: 0.5;
+		border-radius: 4px;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 	}
 	
 	.minimize-filter-btn:hover {
-		transform: scale(1.1);
+		transform: scale(1.05);
 		color: rgba(244, 67, 54, 0.9);
-		opacity: 1;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		opacity: 0.9;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 	}
 	
 	.filter-wrapper {
@@ -283,29 +283,28 @@
 	
 	.filter-close-btn {
 		position: absolute;
-		bottom: 0.3rem;
-		left: 50%;
-		transform: translateX(-50%);
+		bottom: 0.25rem;
+		right: 0.25rem;
 		background: rgba(244, 67, 54, 0.85);
 		border: 1px solid rgba(255, 255, 255, 0.3);
-		border-radius: 12px;
+		border-radius: 4px;
 		cursor: pointer;
-		padding: 0.4rem 0.6rem;
+		padding: 0.25rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: white;
 		transition: all 0.2s ease;
 		z-index: 10;
-		opacity: 0.9;
+		opacity: 0.5;
 		font-size: 0.75rem;
 		font-weight: 600;
 	}
 	
 	.filter-close-btn:hover {
-		opacity: 1;
+		opacity: 0.9;
 		background: rgba(244, 67, 54, 1);
-		transform: translateX(-50%) scale(1.05);
+		transform: scale(1.05);
 		box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
 	}
 	

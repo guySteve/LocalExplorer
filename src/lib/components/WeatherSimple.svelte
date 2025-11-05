@@ -307,6 +307,14 @@
 </script>
 
 <div class="weather-widget">
+	<button 
+		class="minimize-btn" 
+		on:click|stopPropagation={() => widgetState.hide('weather')} 
+		title="Hide weather widget"
+		aria-label="Hide weather widget"
+	>
+		<X size={14} color="currentColor" />
+	</button>
 	<button class="weather-header" on:click={() => isExpanded = !isExpanded} type="button">
 		<div class="header-left">
 			{#if weather}
@@ -331,14 +339,6 @@
 			>
 				<Calendar size={16} color="currentColor" />
 				<span>{weather?.daily?.length || 10} days</span>
-			</button>
-			<button 
-				class="minimize-btn" 
-				on:click|stopPropagation={() => widgetState.hide('weather')} 
-				title="Hide weather widget"
-				aria-label="Hide weather widget"
-			>
-				<X size={18} color="currentColor" />
 			</button>
 			<button class="toggle-btn" aria-label={isExpanded ? 'Collapse weather' : 'Expand weather'}>
 				{#if isExpanded}
@@ -443,6 +443,7 @@
 		border-radius: var(--button-radius, 12px);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		position: relative;
 	}
 
 	.weather-widget:hover {
@@ -539,11 +540,23 @@
 
 	.minimize-btn:hover,
 	.toggle-btn:hover {
-		transform: scale(1.1);
+		transform: scale(1.05);
+	}
+	
+	.minimize-btn {
+		position: absolute;
+		bottom: 0.25rem;
+		right: 0.25rem;
+		background: rgba(0, 0, 0, 0.6);
+		padding: 0.25rem;
+		opacity: 0.5;
+		border-radius: 4px;
+		z-index: 10;
 	}
 	
 	.minimize-btn:hover {
 		color: rgba(244, 67, 54, 0.9);
+		opacity: 0.9;
 	}
 
 	.weather-main {
