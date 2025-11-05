@@ -6,13 +6,18 @@ export const STORAGE_KEYS = {
   saved: 'localExplorer.savedPlaces',
   plan: 'localExplorer.plan',
   visited: 'localExplorer.visitedPlan',
-  dayPlan: 'localExplorer.dayPlan'
+  dayPlan: 'localExplorer.dayPlan',
+  customPOIs: 'localExplorer.customPOIs',
+  userNotes: 'localExplorer.userNotes',
+  gpsTrack: 'localExplorer.gpsTracks'
 };
 
 export const STORAGE_LIMITS = {
   saved: 60,
   plan: 40,
-  dayPlan: 20
+  dayPlan: 20,
+  customPOIs: 100,
+  gpsTracks: 50
 };
 
 const storageFallback = Object.create(null);
@@ -409,3 +414,128 @@ export function deduplicatePlaces(places) {
   
   return places.filter((_, index) => !duplicates.has(index));
 }
+
+// Custom POI store for user-created points of interest
+function createCustomPOIStore() {
+  const { subscribe, set, update } = writable(browser ? readStorageList(STORAGE_KEYS.customPOIs) : []);
+
+  return {
+    subscribe,
+    add: (poi) => {
+      if (!poi || !poi.name || !poi.location) return;
+      const customPOI = {
+        id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: poi.name,
+        location: poi.location,
+        notes: poi.notes || '',
+        tags: Array.isArray(poi.tags) ? poi.tags : [],
+        photos: Array.isArray(poi.photos) ? poi.photos : [],
+        created: Date.now(),
+        isCustom: true
+      };
+      update(list => {
+        const newList = [customPOI, ...list].slice(0, STORAGE_LIMITS.customPOIs);
+        writeStorageList(STORAGE_KEYS.customPOIs, newList);
+        return newList;
+      });
+      return customPOI.id;
+    },
+    update: (id, updates) => {
+      if (!id) return;
+      update(list => {
+        const newList = list.map(poi => 
+          poi.id === id ? { ...poi, ...updates, updated: Date.now() } : poi
+        );
+        writeStorageList(STORAGE_KEYS.customPOIs, newList);
+        return newList;
+      });
+    },
+    remove: (id) => {
+      if (!id) return;
+      update(list => {
+        const newList = list.filter(poi => poi.id !== id);
+        writeStorageList(STORAGE_KEYS.customPOIs, newList);
+        return newList;
+      });
+    },
+    refresh: () => {
+      set(readStorageList(STORAGE_KEYS.customPOIs));
+    }
+  };
+}
+
+// User notes store for adding notes to any POI (custom or official)
+function createUserNotesStore() {
+  const { subscribe, set, update } = writable(browser ? readStorageList(STORAGE_KEYS.userNotes) : {});
+
+  return {
+    subscribe,
+    set: (placeId, note) => {
+      if (!placeId) return;
+      update(notes => {
+        const newNotes = { ...notes, [placeId]: { text: note, updated: Date.now() } };
+        writeStorageList(STORAGE_KEYS.userNotes, newNotes);
+        return newNotes;
+      });
+    },
+    get: (placeId) => {
+      let result = null;
+      subscribe(notes => { result = notes[placeId] || null; })();
+      return result;
+    },
+    remove: (placeId) => {
+      if (!placeId) return;
+      update(notes => {
+        const newNotes = { ...notes };
+        delete newNotes[placeId];
+        writeStorageList(STORAGE_KEYS.userNotes, newNotes);
+        return newNotes;
+      });
+    },
+    refresh: () => {
+      set(readStorageList(STORAGE_KEYS.userNotes) || {});
+    }
+  };
+}
+
+// GPS Track store for recording tracks
+function createGPSTrackStore() {
+  const { subscribe, set, update } = writable(browser ? readStorageList(STORAGE_KEYS.gpsTrack) : []);
+
+  return {
+    subscribe,
+    add: (track) => {
+      if (!track || !track.name || !Array.isArray(track.points) || track.points.length === 0) return;
+      const gpsTrack = {
+        id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: track.name,
+        points: track.points,
+        distance: track.distance || 0,
+        duration: track.duration || 0,
+        created: Date.now(),
+        notes: track.notes || ''
+      };
+      update(list => {
+        const newList = [gpsTrack, ...list].slice(0, STORAGE_LIMITS.gpsTracks);
+        writeStorageList(STORAGE_KEYS.gpsTrack, newList);
+        return newList;
+      });
+      return gpsTrack.id;
+    },
+    remove: (id) => {
+      if (!id) return;
+      update(list => {
+        const newList = list.filter(track => track.id !== id);
+        writeStorageList(STORAGE_KEYS.gpsTrack, newList);
+        return newList;
+      });
+    },
+    refresh: () => {
+      set(readStorageList(STORAGE_KEYS.gpsTrack));
+    }
+  };
+}
+
+export const customPOIs = createCustomPOIStore();
+export const userNotes = createUserNotesStore();
+export const gpsTracks = createGPSTrackStore();
