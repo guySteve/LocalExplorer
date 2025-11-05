@@ -313,7 +313,7 @@
 		title="Hide weather widget"
 		aria-label="Hide weather widget"
 	>
-		<X size={14} color="currentColor" />
+		<X size={12} color="currentColor" />
 	</button>
 	<button class="weather-header" on:click={() => isExpanded = !isExpanded} type="button">
 		<div class="header-left">
