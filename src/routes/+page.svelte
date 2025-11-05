@@ -28,6 +28,7 @@
 	import ForecastModal from '$lib/components/ForecastModal.svelte';
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
 	import Compass from '$lib/components/Compass.svelte';
+	import GPSTracker from '$lib/components/GPSTracker.svelte';
 	
 	// Modal visibility state
 	let showSettings = false;
@@ -38,6 +39,7 @@
 	let showForecast = false;
 	let showDetails = false;
 	let showCompass = false;
+	let showGPSTracker = false;
 	
 	// Modal data
 	let subMenuTitle = '';
@@ -359,6 +361,7 @@
 	<PrimaryActions 
     on:openCollection={() => showMyCollection = true}
     on:openCompass={() => showCompass = true}
+    on:openRecordTrack={() => showGPSTracker = true}
 	/>
 	{/if}
 	
@@ -441,6 +444,12 @@
 	destinationName={compassDestinationName}
 	visible={showCompass}
 	on:close={handleCloseCompass}
+/>
+
+<!-- NEW: GPS Tracker -->
+<GPSTracker 
+	visible={showGPSTracker}
+	on:close={() => showGPSTracker = false}
 />
 
 <style>

@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
-	import { BookMarked, Compass, X } from 'lucide-svelte';
+	import { BookMarked, Compass, X, MapPin } from 'lucide-svelte';
 	import { widgetState } from '$lib/stores/widgetState';
 	
 	const dispatch = createEventDispatcher();
@@ -11,6 +11,10 @@
 	
 	function handleCompassClick() {
 		dispatch('openCompass');
+	}
+	
+	function handleRecordTrackClick() {
+		dispatch('openRecordTrack');
 	}
 </script>
 
@@ -25,7 +29,11 @@
 	</button>
 	<button id="myCollectionBtn" on:click={handleCollectionClick}>
 		<BookMarked size={18} color="currentColor" />
-		<span>My Collection</span>
+		<span>Field Journal</span>
+	</button>
+	<button id="recordTrackBtn" on:click={handleRecordTrackClick}>
+		<MapPin size={18} color="currentColor" />
+		<span>Record Track</span>
 	</button>
 	<button id="compassBtn" on:click={handleCompassClick}>
 		<Compass size={18} color="currentColor" />
