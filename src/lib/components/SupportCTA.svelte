@@ -13,7 +13,7 @@
 		title="Hide support section"
 		aria-label="Hide support section"
 	>
-		<X size={12} color="currentColor" />
+		<X size={10} color="currentColor" />
 	</button>
 	<h3>Support the App</h3>
 	<p>Enjoying these adventures? Help keep Local Explorer sailing.</p>
@@ -33,25 +33,31 @@
 	
 	.minimize-support-btn {
 		position: absolute;
-		bottom: 0.25rem;
+		top: 0.25rem;
 		right: 0.25rem;
-		background: rgba(0, 0, 0, 0.6);
+		background: rgba(0, 0, 0, 0.4);
 		border: none;
 		cursor: pointer;
-		padding: 0.3rem;
+		padding: 0.25rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--text-light);
+		color: rgba(255, 255, 255, 0.7);
 		transition: all 0.2s ease;
 		z-index: 10;
-		opacity: 0.5;
-		border-radius: 4px;
+		opacity: 0;
+		border-radius: 50%;
+		width: 22px;
+		height: 22px;
+	}
+	
+	.support-cta:hover .minimize-support-btn {
+		opacity: 1;
 	}
 	
 	.minimize-support-btn:hover {
-		transform: scale(1.05);
-		color: rgba(244, 67, 54, 0.9);
-		opacity: 0.9;
+		transform: scale(1.1);
+		background: rgba(244, 67, 54, 0.9);
+		color: white;
 	}
 </style>
