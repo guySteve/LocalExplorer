@@ -307,7 +307,7 @@
 		title="Hide weather widget"
 		aria-label="Hide weather widget"
 	>
-		<X size={12} color="currentColor" />
+		<X size={10} color="currentColor" />
 	</button>
 	<button class="weather-header" on:click={() => isExpanded = !isExpanded} type="button">
 		<div class="header-left">
@@ -539,18 +539,32 @@
 	
 	.minimize-btn {
 		position: absolute;
-		bottom: 0.25rem;
+		top: 0.25rem;
 		right: 0.25rem;
-		background: rgba(0, 0, 0, 0.6);
+		background: rgba(0, 0, 0, 0.4);
+		border: none;
+		cursor: pointer;
 		padding: 0.25rem;
-		opacity: 0.5;
-		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: rgba(255, 255, 255, 0.7);
+		transition: all 0.2s ease;
 		z-index: 10;
+		opacity: 0;
+		border-radius: 50%;
+		width: 22px;
+		height: 22px;
+	}
+	
+	.weather-widget:hover .minimize-btn {
+		opacity: 1;
 	}
 	
 	.minimize-btn:hover {
-		color: rgba(244, 67, 54, 0.9);
-		opacity: 0.9;
+		transform: scale(1.1);
+		background: rgba(244, 67, 54, 0.9);
+		color: white;
 	}
 
 	.weather-main {

@@ -119,7 +119,7 @@
 		title="Hide all category filters"
 		aria-label="Hide all category filters"
 	>
-		<X size={12} color="currentColor" />
+		<X size={10} color="currentColor" />
 	</button>
 	{#each displayCategories as category, i (category)}
 		<div 
@@ -148,7 +148,7 @@
 				title="Hide this category"
 				aria-label="Hide {category} category"
 			>
-				<X size={12} color="currentColor" />
+				<X size={10} color="currentColor" />
 			</button>
 			<button 
 				class="filter-btn"
@@ -175,27 +175,33 @@
 	
 	.minimize-filter-btn {
 		position: absolute;
-		bottom: 0.25rem;
+		top: 0.25rem;
 		right: 0.25rem;
-		background: rgba(0, 0, 0, 0.6);
+		background: rgba(0, 0, 0, 0.4);
 		border: none;
 		cursor: pointer;
-		padding: 0.3rem;
+		padding: 0.25rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--text-light);
+		color: rgba(255, 255, 255, 0.7);
 		transition: all 0.2s ease;
 		z-index: 20;
-		opacity: 0.5;
-		border-radius: 4px;
-		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+		opacity: 0;
+		border-radius: 50%;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+		width: 22px;
+		height: 22px;
+	}
+	
+	.filters:hover .minimize-filter-btn {
+		opacity: 1;
 	}
 	
 	.minimize-filter-btn:hover {
-		transform: scale(1.05);
-		color: rgba(244, 67, 54, 0.9);
-		opacity: 0.9;
+		transform: scale(1.1);
+		background: rgba(244, 67, 54, 0.9);
+		color: white;
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 	}
 	
@@ -283,29 +289,32 @@
 	
 	.filter-close-btn {
 		position: absolute;
-		bottom: 0.25rem;
-		right: 0.25rem;
-		background: rgba(244, 67, 54, 0.85);
-		border: 1px solid rgba(255, 255, 255, 0.3);
-		border-radius: 4px;
+		top: 0.2rem;
+		right: 0.2rem;
+		background: rgba(0, 0, 0, 0.4);
+		border: none;
+		border-radius: 50%;
 		cursor: pointer;
-		padding: 0.25rem;
+		padding: 0.15rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: white;
+		color: rgba(255, 255, 255, 0.7);
 		transition: all 0.2s ease;
 		z-index: 10;
-		opacity: 0.5;
-		font-size: 0.75rem;
-		font-weight: 600;
+		opacity: 0;
+		width: 20px;
+		height: 20px;
+	}
+	
+	.filter-wrapper:hover .filter-close-btn {
+		opacity: 1;
 	}
 	
 	.filter-close-btn:hover {
-		opacity: 0.9;
-		background: rgba(244, 67, 54, 1);
-		transform: scale(1.05);
-		box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+		background: rgba(244, 67, 54, 0.9);
+		color: white;
+		transform: scale(1.1);
 	}
 	
 	.filter-icon {
