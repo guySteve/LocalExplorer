@@ -37,6 +37,7 @@
     "workbox-strategies": "^7.3.0"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "lucide-svelte": "^0.395.0"
   }
 }
