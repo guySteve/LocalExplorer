@@ -289,13 +289,13 @@
 	
 	.filter-close-btn {
 		position: absolute;
-		top: 0.2rem;
-		right: 0.2rem;
+		top: 0.25rem;
+		right: 0.25rem;
 		background: rgba(0, 0, 0, 0.4);
 		border: none;
 		border-radius: 50%;
 		cursor: pointer;
-		padding: 0.15rem;
+		padding: 0.25rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -303,8 +303,8 @@
 		transition: all 0.2s ease;
 		z-index: 10;
 		opacity: 0;
-		width: 20px;
-		height: 20px;
+		width: 22px;
+		height: 22px;
 	}
 	
 	.filter-wrapper:hover .filter-close-btn {
