@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentTheme, selectedVoiceUri, showBirdSightings, sassyWeatherMode, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
+	import { currentTheme, selectedVoiceUri, showBirdSightings, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
 	import { widgetState } from '$lib/stores/widgetState';
 	import { browser } from '$app/environment';
 	import { Eye } from 'lucide-svelte';
@@ -85,12 +85,6 @@
 		dispatch('settingsChanged', { showBirds: next });
 	}
 
-	function handleSassyToggle() {
-		const next = !$sassyWeatherMode;
-		sassyWeatherMode.set(next);
-		dispatch('settingsChanged', { sassyWeather: next });
-	}
-
 	function handleVoiceToggle() {
 		const next = !$voiceNavigationEnabled;
 		voiceNavigationEnabled.set(next);
@@ -133,24 +127,6 @@ function handleClose() {
 					class="toggle-btn {$showBirdSightings ? 'active' : ''}" 
 					on:click={handleBirdToggle}
 					aria-label="Toggle bird sightings"
-					type="button"
-				>
-					<span class="toggle-slider"></span>
-				</button>
-			</div>
-		</div>
-
-		<div class="setting-group">
-			<div class="setting-toggle">
-				<label for="sassyToggle">
-					<span class="setting-label">Sassy Weather Mode 😎</span>
-					<span class="setting-description">Get entertaining and sassy weather commentary</span>
-				</label>
-				<button 
-					id="sassyToggle"
-					class="toggle-btn {$sassyWeatherMode ? 'active' : ''}" 
-					on:click={handleSassyToggle}
-					aria-label="Toggle sassy weather mode"
 					type="button"
 				>
 					<span class="toggle-slider"></span>

@@ -72,7 +72,6 @@ function getInitialBooleanSetting(key, defaultValue) {
 }
 
 export const showBirdSightings = writable(getInitialBooleanSetting('showBirdSightings', false)); // Default to OFF unless user enables
-export const sassyWeatherMode = writable(getInitialBooleanSetting('sassyWeather', false));
 export const voiceNavigationEnabled = writable(getInitialBooleanSetting('voiceEnabled', true));
 
 // Font size setting for accessibility
@@ -91,29 +90,8 @@ export const fontSize = writable(getInitialFontSize());
 // Network status
 export const isOffline = writable(false);
 
-// Search categories configuration
+// Search categories configuration - Refocused for exploration and discovery
 export const categories = {
-  'Foodie Finds': [
-    { name: 'Italian', keyword: 'italian restaurant', type: 'restaurant', primaryTypeOnly: true },
-    { name: 'Pizza', keyword: 'pizza', type: 'restaurant', primaryTypeOnly: true },
-    { name: 'Cafes', keyword: 'cafe', type: 'cafe', primaryTypeOnly: true },
-    { name: 'Bakeries', keyword: 'bakery', type: 'bakery', primaryTypeOnly: true },
-    { name: 'Sushi', keyword: 'sushi', type: 'restaurant', primaryTypeOnly: true }
-  ],
-  'Iconic Sights': [
-    { name: 'Tourist Attractions', type: 'tourist_attraction', primaryTypeOnly: true },
-    { name: 'Museums', type: 'museum', primaryTypeOnly: true },
-    { name: 'Art Galleries', type: 'art_gallery', primaryTypeOnly: true },
-    { name: 'Parks', type: 'park', primaryTypeOnly: true },
-    { name: 'Landmarks', keyword: 'landmark', type: 'point_of_interest' }
-  ],
-  'Night Out': [
-    { name: 'Bars', type: 'bar', primaryTypeOnly: true },
-    { name: 'Night Clubs', type: 'night_club', primaryTypeOnly: true },
-    { name: 'Movie Theaters', type: 'movie_theater', primaryTypeOnly: true },
-    { name: 'Bowling Alleys', type: 'bowling_alley', primaryTypeOnly: true },
-    { name: 'Concert Venues', keyword: 'concert', type: 'point_of_interest' }
-  ],
   'Hidden Gems': [
     { name: 'Libraries', type: 'library', primaryTypeOnly: true },
     { name: 'Book Stores', type: 'book_store', primaryTypeOnly: true },
@@ -121,6 +99,40 @@ export const categories = {
     { name: 'Historical Sites', keyword: 'historical site', type: 'point_of_interest' },
     { name: 'Local Favorites', keyword: 'local favorite', type: 'point_of_interest' },
     { name: 'Historical Markers', keyword: 'historical marker', type: 'point_of_interest' }
+  ],
+  'Outdoor': [
+    { name: 'Parks', type: 'park', primaryTypeOnly: true },
+    { name: 'Trails', keyword: 'hiking trail', type: 'park', primaryTypeOnly: true },
+    { name: 'Nature Reserves', keyword: 'nature reserve', type: 'park', primaryTypeOnly: true },
+    { name: 'Beaches', keyword: 'beach', type: 'park', primaryTypeOnly: true },
+    { name: 'Campgrounds', keyword: 'campground', type: 'campground', primaryTypeOnly: true }
+  ],
+  'Recreation': [
+    { name: 'Campgrounds', search: 'campground' },
+    { name: 'Recreation Areas', search: 'recreation' },
+    { name: 'National Parks', search: 'national_park' },
+    { name: 'Pickleball Courts', keyword: 'pickleball court', type: 'sports_complex', primaryTypeOnly: false }
+  ],
+  'Geographic Features': [
+    { name: 'Summits', keyword: 'summit', type: 'natural_feature', primaryTypeOnly: false },
+    { name: 'Springs', keyword: 'spring', type: 'natural_feature', primaryTypeOnly: false },
+    { name: 'Geological Formations', keyword: 'geological formation', type: 'natural_feature', primaryTypeOnly: false },
+    { name: 'Valleys', keyword: 'valley', type: 'natural_feature', primaryTypeOnly: false },
+    { name: 'Overlooks', keyword: 'scenic overlook', type: 'point_of_interest', primaryTypeOnly: false }
+  ],
+  'Local Provisions': [
+    { name: 'Farmers Markets', keyword: 'farmers market', type: 'point_of_interest', primaryTypeOnly: false },
+    { name: 'Bakeries', keyword: 'bakery', type: 'bakery', primaryTypeOnly: true },
+    { name: 'Cafes', keyword: 'cafe', type: 'cafe', primaryTypeOnly: true },
+    { name: 'Picnic Spots', keyword: 'picnic area', type: 'park', primaryTypeOnly: false },
+    { name: 'Local Food', keyword: 'local food', type: 'restaurant', primaryTypeOnly: false }
+  ],
+  'Iconic Sights': [
+    { name: 'Tourist Attractions', type: 'tourist_attraction', primaryTypeOnly: true },
+    { name: 'Museums', type: 'museum', primaryTypeOnly: true },
+    { name: 'Art Galleries', type: 'art_gallery', primaryTypeOnly: true },
+    { name: 'Parks', type: 'park', primaryTypeOnly: true },
+    { name: 'Landmarks', keyword: 'landmark', type: 'point_of_interest' }
   ],
   'Pet Friendly': [
     { name: 'Dog Parks', keyword: 'dog park', type: 'park', primaryTypeOnly: true },
@@ -136,32 +148,12 @@ export const categories = {
     { name: 'Gas Stations', type: 'gas_station', ignoreRating: true, primaryTypeOnly: true },
     { name: 'ATMs', type: 'atm', ignoreRating: true, primaryTypeOnly: true }
   ],
-  Outdoor: [
-    { name: 'Parks', type: 'park', primaryTypeOnly: true },
-    { name: 'Trails', keyword: 'hiking trail', type: 'park', primaryTypeOnly: true },
-    { name: 'Nature Reserves', keyword: 'nature reserve', type: 'park', primaryTypeOnly: true },
-    { name: 'Beaches', keyword: 'beach', type: 'park', primaryTypeOnly: true },
-    { name: 'Campgrounds', keyword: 'campground', type: 'campground', primaryTypeOnly: true }
-  ],
-  'Local Events': [
-    { name: 'All Events', value: 'all' },
-    { name: 'Music', value: 'music' },
-    { name: 'Sports', value: 'sports' },
-    { name: 'Comedy', value: 'comedy' },
-    { name: 'Festivals', value: 'festival' }
-  ],
   'Breweries': [
     { name: 'Nearby Breweries', search: 'breweries' },
     { name: 'Micro Breweries', search: 'micro' },
     { name: 'Brew Pubs', search: 'brewpub' }
   ],
-  'Recreation': [
-    { name: 'Campgrounds', search: 'campground' },
-    { name: 'Recreation Areas', search: 'recreation' },
-    { name: 'National Parks', search: 'national_park' },
-    { name: 'Pickleball Courts', keyword: 'pickleball court', type: 'sports_complex', primaryTypeOnly: false }
-  ],
-  'Bird Watching': [
+  'Regional Bird Guide': [
     { name: 'Recent Sightings', value: 'bird-sightings' },
     { name: 'Rare Birds', value: 'rare-birds' },
     { name: 'Hotspots Near Me', value: 'bird-hotspots-nearby' },
@@ -189,10 +181,6 @@ if (browser) {
 
   showBirdSightings.subscribe(value => {
     localStorage.setItem('showBirdSightings', value ? 'true' : 'false');
-  });
-
-  sassyWeatherMode.subscribe(value => {
-    localStorage.setItem('sassyWeather', value ? 'true' : 'false');
   });
 
   voiceNavigationEnabled.subscribe(value => {
