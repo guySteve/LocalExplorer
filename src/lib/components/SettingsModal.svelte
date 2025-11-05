@@ -3,12 +3,16 @@
 	import { currentTheme, selectedVoiceUri, showBirdSightings, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
 	import { widgetState } from '$lib/stores/widgetState';
 	import { browser } from '$app/environment';
-	import { Eye } from 'lucide-svelte';
+	import { Eye, WifiOff } from 'lucide-svelte';
+	import OfflineManager from '$lib/components/OfflineManager.svelte';
 	
 	const dispatch = createEventDispatcher();
 	
 	// Props
 	export let visible = false;
+	
+	// Offline manager visibility
+	let showOfflineManager = false;
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
@@ -233,9 +237,29 @@ function handleClose() {
 				</button>
 			</div>
 		{/if}
+		
+		<!-- Offline Manager Section -->
+		<div class="setting-group offline-manager-section">
+			<h3>Offline Mode</h3>
+			<p class="restore-description">Manage offline maps and data</p>
+			<button 
+				class="offline-manager-btn"
+				on:click={() => showOfflineManager = true}
+				type="button"
+			>
+				<WifiOff size={20} />
+				<span>Offline Manager</span>
+			</button>
+		</div>
 	</div>
 </div>
 {/if}
+
+<!-- Offline Manager Modal -->
+<OfflineManager 
+	visible={showOfflineManager}
+	on:close={() => showOfflineManager = false}
+/>
 
 <style>
 	/* Component-specific styles scoped by default */
@@ -410,5 +434,35 @@ function handleClose() {
 		background: var(--secondary);
 		transform: translateY(-2px);
 		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+	}
+	
+	/* Offline Manager Section */
+	.offline-manager-section {
+		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
+	}
+	
+	.offline-manager-btn {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 1rem;
+		background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+		border: none;
+		border-radius: 8px;
+		color: var(--text-light);
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 700;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+	
+	.offline-manager-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 	}
 </style>
