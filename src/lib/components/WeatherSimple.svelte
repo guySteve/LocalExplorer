@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentPosition, currentTheme, showBirdSightings, sassyWeatherMode, currentWeatherCondition } from '$lib/stores/appState';
+	import { currentPosition, currentTheme, showBirdSightings, currentWeatherCondition } from '$lib/stores/appState';
 	import { widgetState } from '$lib/stores/widgetState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
@@ -15,7 +15,6 @@
 	let historicalData = [];
 	let showBirds = true; // Controlled via store
 	let birdFact = '';
-	let sassyMode = false; // Controlled via store
 	let lastHistoricalFetch = 0; // Cache timestamp for historical data
 	let lastKnownPosition = null;
 	let isExpanded = false; // Start collapsed by default
@@ -46,14 +45,9 @@
 			}
 		});
 
-		const unsubscribeSassy = sassyWeatherMode.subscribe((value) => {
-			sassyMode = value;
-		});
-
 		return () => {
 			unsubscribePosition();
 			unsubscribeBirds();
-			unsubscribeSassy();
 		};
 	});
 
@@ -276,7 +270,7 @@
 		}
 	}
 
-	$: funSaying = weather ? getWeatherPhrase(weather.temperature, weather.condition, sassyMode, $currentTheme) : "";
+	$: funSaying = weather ? getWeatherPhrase(weather.temperature, weather.condition, false, $currentTheme) : "";
 	
 	function getTimeUntilSunEvent(sunTime) {
 		if (!sunTime) return null;

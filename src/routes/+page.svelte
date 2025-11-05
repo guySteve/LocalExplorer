@@ -367,7 +367,7 @@
 	{#if $widgetState.weather}
 	<WeatherSimple 
 		on:openForecast={handleOpenForecast}
-		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Bird Watching', items: categories['Bird Watching'] || [] } })}
+		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Regional Bird Guide', items: categories['Regional Bird Guide'] || [] } })}
 	/>
 	{/if}
 	

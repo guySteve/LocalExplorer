@@ -15,7 +15,7 @@
 	let categoryOrderInitialized = false;
 	
 	// Reactive category ordering based on weather
-	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Bird Watching' && !hiddenCategories.includes(cat)), $currentWeatherCondition);
+	$: orderedCategories = reorderCategoriesByWeather(Object.keys(categories).filter(cat => cat !== 'Regional Bird Guide' && !hiddenCategories.includes(cat)), $currentWeatherCondition);
 	
 	// Initialize category order on first load only
 	$: if (!categoryOrderInitialized && orderedCategories.length > 0) {
