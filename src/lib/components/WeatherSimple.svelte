@@ -23,7 +23,7 @@
 	const TEMP_DIFF_THRESHOLD = 5; // Degrees for significant temperature change
 	
 	function handleBirdBoxClick() {
-		// Dispatch event to open the Bird Watching submenu
+		// Dispatch event to open the Regional Bird Guide submenu
 		dispatch('openBirdMenu');
 	}
 
