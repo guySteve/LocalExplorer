@@ -1,10 +1,10 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentTheme, selectedVoiceUri, showBirdSightings, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
-	import { widgetState } from '$lib/stores/widgetState';
 	import { browser } from '$app/environment';
-	import { Eye, WifiOff } from 'lucide-svelte';
+	import { WifiOff } from 'lucide-svelte';
 	import OfflineManager from '$lib/components/OfflineManager.svelte';
+	import SupportCTA from '$lib/components/SupportCTA.svelte';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -22,29 +22,17 @@
 	
 	// Theme selection
 	const themes = [
-		{ value: 'naval', label: 'Polished Sailor' },
-		{ value: 'sunset', label: 'Sunset Cruise' },
-		{ value: 'neon', label: 'Neon City Lights' },
-		{ value: 'arctic', label: 'Arctic Dawn' },
-		{ value: 'highseas', label: 'High Seas Neon' },
-		{ value: 'aurora', label: 'Aurora Mist' },
-		{ value: 'arcane', label: 'Arcane Nightfall' },
-		{ value: 'solstice', label: 'Solstice Glow' },
-		{ value: 'evergreen', label: 'Evergreen Trails' },
-		{ value: 'voyager', label: 'Celestial Voyager' },
-		{ value: 'monochrome', label: 'Monochrome Focus' },
-		{ value: 'playful', label: 'Playful Pop' },
-		{ value: 'retro90', label: 'Retro Arcade 90s' },
-		{ value: 'groove70', label: 'Sunburst 70s' },
-		{ value: 'mojave', label: 'Mojave Drift' },
-		{ value: 'atomic50', label: 'Atomic Age 50s' },
-		{ value: 'psychedelic60', label: 'Psychedelic 60s' },
-		{ value: 'arcade80', label: 'Arcade 80s' },
-		{ value: 'y2k00', label: 'Y2K 2000s' },
-		{ value: 'metro10', label: 'Metro 2010s' },
-		{ value: 'sushi', label: 'Sushi Bar' },
-		{ value: 'bbq', label: 'BBQ Pit' },
-		{ value: 'cafe', label: 'Coffee Café' }
+		{ value: 'default-light', label: 'Default Light' },
+		{ value: 'default-dark', label: 'Default Dark' },
+		{ value: 'high-contrast', label: 'High-Contrast (Sunlight)' },
+		{ value: 'night-vision', label: 'Night Vision' },
+		{ value: 'naval', label: 'Naval' },
+		{ value: 'army-temperate', label: 'Army (Temperate)' },
+		{ value: 'army-arid', label: 'Army (Arid)' },
+		{ value: 'air-force', label: 'Air Force' },
+		{ value: 'arcade', label: 'Arcade' },
+		{ value: 'monochrome', label: 'Monochrome' },
+		{ value: 'retro90', label: 'Retro90' }
 	];
 
 	let availableVoices = [];
@@ -104,8 +92,12 @@ function handleClose() {
 }
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && handleClose()} />
+
 {#if visible}
-<div id="settingsPanel" class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div id="settingsPanel" class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1">
 	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>Settings</h3>
@@ -180,68 +172,17 @@ function handleClose() {
 				<span class="setting-hint">Choose a voice for turn-by-turn navigation.</span>
 			</div>
 		{/if}
-
-		<!-- Restore Hidden Widgets Section -->
-		{#if !$widgetState.weather || !$widgetState.primaryActions || !$widgetState.filterGrid || !$widgetState.supportCTA}
-			<div class="setting-group restore-widgets-section">
-				<h3>Restore Hidden Widgets</h3>
-				<p class="restore-description">Show widgets you've previously minimized</p>
-				<div class="restore-buttons">
-					{#if !$widgetState.weather}
-						<button 
-							class="restore-btn"
-							on:click={() => widgetState.show('weather')}
-							type="button"
-						>
-							<Eye size={16} />
-							<span>Weather Widget</span>
-						</button>
-					{/if}
-					{#if !$widgetState.primaryActions}
-						<button 
-							class="restore-btn"
-							on:click={() => widgetState.show('primaryActions')}
-							type="button"
-						>
-							<Eye size={16} />
-							<span>Primary Actions</span>
-						</button>
-					{/if}
-					{#if !$widgetState.filterGrid}
-						<button 
-							class="restore-btn"
-							on:click={() => widgetState.show('filterGrid')}
-							type="button"
-						>
-							<Eye size={16} />
-							<span>Category Filters</span>
-						</button>
-					{/if}
-					{#if !$widgetState.supportCTA}
-						<button 
-							class="restore-btn"
-							on:click={() => widgetState.show('supportCTA')}
-							type="button"
-						>
-							<Eye size={16} />
-							<span>Support Section</span>
-						</button>
-					{/if}
-				</div>
-				<button 
-					class="restore-all-btn"
-					on:click={() => widgetState.reset()}
-					type="button"
-				>
-					Restore All Widgets
-				</button>
-			</div>
-		{/if}
+		
+		<div class="setting-group support-section">
+			<h3>Support LocalExplorer</h3>
+			<p class="support-description">Focus groups wanted the donation tools in one obvious place.</p>
+			<SupportCTA on:openDonate={() => dispatch('openDonate')} />
+		</div>
 		
 		<!-- Offline Manager Section -->
 		<div class="setting-group offline-manager-section">
 			<h3>Offline Mode</h3>
-			<p class="restore-description">Manage offline maps and data</p>
+			<p class="setting-hint">Manage offline maps and data</p>
 			<button 
 				class="offline-manager-btn"
 				on:click={() => showOfflineManager = true}
@@ -370,72 +311,6 @@ function handleClose() {
 		border-color: var(--primary);
 	}
 
-	/* Restore Widgets Section */
-	.restore-widgets-section {
-		margin-top: 2rem;
-		padding-top: 1.5rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.15);
-	}
-
-	.restore-widgets-section h3 {
-		margin-bottom: 0.5rem;
-		font-size: 1.1rem;
-	}
-
-	.restore-description {
-		font-size: 0.9rem;
-		opacity: 0.7;
-		margin-bottom: 1rem;
-	}
-
-	.restore-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		margin-bottom: 1rem;
-	}
-
-	.restore-btn {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-		background: rgba(76, 175, 80, 0.15);
-		border: 1px solid rgba(76, 175, 80, 0.3);
-		border-radius: 8px;
-		color: var(--text-light);
-		cursor: pointer;
-		transition: all 0.2s ease;
-		font-size: 0.95rem;
-		font-weight: 600;
-	}
-
-	.restore-btn:hover {
-		background: rgba(76, 175, 80, 0.25);
-		border-color: rgba(76, 175, 80, 0.5);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
-	}
-
-	.restore-all-btn {
-		width: 100%;
-		padding: 0.85rem;
-		background: var(--primary);
-		border: none;
-		border-radius: 8px;
-		color: var(--text-light);
-		cursor: pointer;
-		font-size: 1rem;
-		font-weight: 700;
-		transition: all 0.2s ease;
-	}
-
-	.restore-all-btn:hover {
-		background: var(--secondary);
-		transform: translateY(-2px);
-		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-	}
-	
 	/* Offline Manager Section */
 	.offline-manager-section {
 		margin-top: 2rem;
@@ -461,6 +336,26 @@ function handleClose() {
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 	}
 	
+	.support-section {
+		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.support-section h3 {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+
+	.support-description {
+		font-size: 0.9rem;
+		opacity: 0.75;
+		margin: 0;
+	}
+
 	.offline-manager-btn:hover {
 		transform: translateY(-2px);
 		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);

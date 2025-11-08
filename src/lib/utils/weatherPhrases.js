@@ -3,29 +3,17 @@
 
 // Theme flair emojis, moved from appState for co-location
 export const themeFlairs = {
+	'default-light': '☀️',
+	'default-dark': '🌙',
+	'high-contrast': '🔆',
+	'night-vision': '🟥',
 	'naval': '⚓',
-	'sunset': '🌅',
-	'neon': '✨',
-	'arctic': '🏔️',
-	'highseas': '🌊',
-	'aurora': '🌌',
-	'arcane': '🔮',
-	'solstice': '☀️',
-	'evergreen': '🌲',
-	'voyager': '🚀',
+	'army-temperate': '🌲',
+	'army-arid': '🌵',
+	'air-force': '✈️',
+	'arcade': '👾',
 	'monochrome': '⬛',
-	'playful': '🎨',
-	'retro90': '📼',
-	'groove70': '🕺',
-	'mojave': '🌵',
-	'atomic50': '⚛️',
-	'psychedelic60': '☮️',
-	'arcade80': '👾',
-	'y2k00': '💿',
-	'metro10': '📱',
-	'sushi': '🍣',
-	'bbq': '🍖',
-	'cafe': '☕'
+	'retro90': '📼'
 };
 
 export const weatherSayings = {
@@ -641,6 +629,32 @@ export const weatherSayings = {
     },
     // Theme-specific REGULAR phrases
     themes: {
+      'default-light': {
+        sunny: ["Perfect weather for an iced coffee on the patio."],
+        partlySunny: ["A great day for a latte and a quiet walk."],
+        cloudy: ["Cozy overcast vibes—ideal for curling up with a book."],
+        rain: ["Gentle rain pairs nicely with a warm drink."],
+        general: ["Bright, welcoming, and easy on the eyes."]
+      },
+      'default-dark': {
+        sunny: ["Weather looks good—time to get things done."],
+        cloudy: ["Moody clouds keep the glare down."],
+        rain: ["Rain tapping the window is peak focus mode."],
+        thunderstorm: ["Stormy skies add drama. Stay sharp."],
+        general: ["Sleek, modern vibes all day."]
+      },
+      'high-contrast': {
+        sunny: ["Bright sun with bold shadows—maximum clarity."],
+        cloudy: ["Soft diffuse light keeps every detail crisp."],
+        rain: ["Even in rain, nothing blends into the background."],
+        general: ["Perfect visibility for any plan."]
+      },
+      'night-vision': {
+        sunny: ["Daylight recon complete. Save your eyes for later."],
+        cloudy: ["Cloud cover makes it easy to stay low-profile."],
+        rain: ["Rain keeps reflections down—ideal for stealth missions."],
+        general: ["Dim, disciplined, and night-ready."]
+      },
       naval: {
         sunny: ["Clear skies and a calm sea. A perfect day to be on the water."],
         cloudy: ["A bit overcast, but good for spotting lighthouses."],
@@ -648,61 +662,30 @@ export const weatherSayings = {
         thunderstorm: ["All hands on deck! This is a real storm."],
         general: ["A fine day for a sailor."]
       },
-      sunset: {
-        sunny: ["This weather is as beautiful as a sunset cruise."],
-        partlySunny: ["The clouds might make for an even better sunset!"],
-        cloudy: ["Looks like the sunset will be hidden tonight."],
-        rain: ["A bit too wet to watch the sun go down. Stay warm!"],
-        general: ["Wishing you a beautiful evening."]
-      },
-      neon: {
-        sunny: ["The city lights will look amazing tonight."],
-        cloudy: ["This fog is giving real cyberpunk vibes."],
-        rain: ["This rain is making all the neon lights reflect. Kind of cool?"],
-        thunderstorm: ["The city's electric, and so is the sky!"],
-        general: ["A great day for the city."]
-      },
-      arctic: {
-        sunny: ["Crisp and clear, just like an arctic morning."],
-        partlySunny: ["A little cloud cover can't hurt."],
-        cloudy: ["A classic grey arctic day. Stay warm."],
-        snow: ["It's snowing. Again. A good day for the cabin."],
-        general: ["Stay warm out there."]
-      },
-      highseas: {
-        sunny: ["Calm seas and fair winds. A perfect day."],
-        cloudy: ["The fog is rolling in. Very mysterious."],
-        rain: ["Looks like a squall is brewing. Be careful."],
-        thunderstorm: ["Rough seas today. Best to stay in port."],
-        general: ["May your sails be full."]
-      },
-      aurora: {
-        sunny: ["Clear day! Let's hope for clear skies tonight, too!"],
-        cloudy: ["Too cloudy to see any lights tonight."],
-        general: ["Hoping for a magical night."],
-      },
-      arcane: {
-        sunny: ["A magical day, full of possibilities."],
-        rain: ["The weather is mysterious today..."],
-        thunderstorm: ["The sky is full of energy! A powerful day."],
-        general: ["An enchanting day to you."]
-      },
-      solstice: {
-        sunny: ["The sun is shining bright! Enjoy the long day."],
-        cloudy: ["Even the sun needs a rest. A cloudy day."],
-        general: ["Wishing you a bright day."]
-      },
-      evergreen: {
-        sunny: ["Perfect day for a hike in the trails."],
+      'army-temperate': {
+        sunny: ["Perfect day for a hike through the tree line."],
         cloudy: ["The forest is misty and quiet today."],
-        rain: ["The forest smells amazing in the rain."],
-        general: ["Enjoy the forest."]
+        rain: ["The woods smell incredible after a fresh rain."],
+        general: ["Stay sharp out there in the greenery."]
       },
-      voyager: {
-        sunny: ["Clear skies, perfect for stargazing later."],
-        partlySunny: ["A few clouds... mostly harmless."],
-        thunderstorm: ["Atmospheric disturbance detected. Seek shelter."],
-        general: ["A great day to explore new frontiers."]
+      'army-arid': {
+        sunny: ["Clear desert skies and a dry heat—hydrate early."],
+        cloudy: ["A rare blanket of clouds softens the sun."],
+        rain: ["A desert rainstorm! A rare sight worth respecting."],
+        general: ["Pack extra water and keep moving."]
+      },
+      'air-force': {
+        sunny: ["Clear skies and smooth air—perfect navigation weather."],
+        partlySunny: ["Light clouds on the horizon, but the route is clear."],
+        rain: ["Rain in the pattern. Adjust and keep it steady."],
+        thunderstorm: ["Cells popping nearby—plot an alternate course."],
+        general: ["Mission-ready conditions aloft and on the ground."]
+      },
+      arcade: {
+        sunny: ["Totally awesome weather! Go for a high score."],
+        partlySunny: ["The weather is, like, pretty choice."],
+        rain: ["Gag me with a spoon! This rain is bogus."],
+        general: ["Have a tubular day."]
       },
       monochrome: {
         sunny: ["A clear, simple, beautiful day."],
@@ -710,121 +693,14 @@ export const weatherSayings = {
         rain: ["Rain streaks add texture to the grey."],
         general: ["A day of contrasts."]
       },
-      playful: {
-        sunny: ["What a fun, happy day! Go play!"],
-        rain: ["Rain, rain, go away. Time to play inside!"],
-        general: ["Have a fun day!"]
-      },
       retro90: {
         sunny: ["This weather is all that and a bag of chips. Go outside!"],
         cloudy: ["A bit gloomy. Bummer, man."],
         rain: ["This rain is wack. Stay inside."],
         general: ["Have a radical day."]
-      },
-      groove70: {
-        sunny: ["Solid gold weather. Can you dig it?"],
-        cloudy: ["A bit of a bummer, but stay groovy."],
-        rain: ["This rain is a drag, man."],
-        general: ["Far out!"]
-      },
-      mojave: {
-        sunny: ["It's a beautiful, dry heat.", "Clear skies over the dunes."],
-        cloudy: ["A rare cloudy day in the desert."],
-        rain: ["A desert rainstorm! A rare sight."],
-        general: ["Stay hydrated out there."]
-      },
-      atomic50: {
-        sunny: ["What a swell day! Perfect for a picnic."],
-        cloudy: ["Gee, it's a bit gray out."],
-        rain: ["Heavens to Betsy, it's raining cats and dogs."],
-        general: ["Have a peachy keen day!"]
-      },
-      psychedelic60: {
-        sunny: ["What a far-out, beautiful day!"],
-        cloudy: ["The clouds are, like, a total vibe, man."],
-        rain: ["This rain is a total downer."],
-        general: ["Peace, love, and good weather."]
-      },
-      arcade80: {
-        sunny: ["Totally awesome weather! Go for a high score."],
-        partlySunny: ["The weather is, like, pretty choice."],
-        rain: ["Gag me with a spoon! This rain is bogus."],
-        general: ["Have a tubular day."]
-      },
-      y2k00: {
-        sunny: ["This weather is off the hook!"],
-        rain: ["This rain is so not cool."],
-        cloudy: ["Lame. This weather is wack."],
-        general: ["Have a sweet day."]
-      },
-      metro10: {
-        sunny: ["Weather looks good. Let's get this bread."],
-        cloudy: ["This weather is not the vibe."],
-        rain: ["It's raining. I can't even."],
-        general: ["It is what it is."]
-      },
-      sushi: {
-        sunny: ["A crisp, clean, perfect day."],
-        cloudy: ["A calm, overcast day. Very balanced."],
-        rain: ["A bit wet. Good day for some warm sake."],
-        general: ["Enjoy a day of harmony."]
-      },
-      bbq: {
-        sunny: [
-          "Weather is so nice, let's get the grill out!",
-          "Perfect day for some low and slow smoking.",
-          "Sunshine and grill marks, that's what it's all about.",
-          "Not a cloud in the sky. Fire up the pit!",
-          "It's a beautiful day to be outside with some barbecue.",
-          "Smells like grilling weather to me.",
-          "This is a 10/10 day for a backyard BBQ.",
-          "Get the charcoal, it's a perfect day.",
-          "You couldn't ask for better weather to grill.",
-          "The sun's out! Time to get the smoker going."
-        ],
-        partlySunny: [
-          "A little cloud cover won't stop this grill.",
-          "Sun's playing peek-a-boo. Grill's staying on.",
-          "Perfectly pleasant. Get those skewers ready."
-        ],
-        cloudy: [
-          "Who needs the sun when you have the glow of the charcoal?",
-          "An overcast day is a perfect day to tend the smoker.",
-          "It's not raining, so we're grilling."
-        ],
-        rain: [
-          "Rain can't stop a true pitmaster. To the garage!",
-          "A little rain just adds moisture. Keep grilling.",
-          "Looks like it's an indoor 'grilling' (oven) day.",
-          "A little drizzle won't hurt. We're still grilling.",
-          "This weather is terrible. Good thing the smoker has a lid."
-        ],
-        thunderstorm: [
-          "Okay, even I'm not grilling in lightning. Stay inside.",
-          "The sky is rumbling. Better pause the cook."
-        ],
-        snow: [
-          "Cold weather just means the fire feels even better.",
-          "Snowing? Perfect excuse to try smoking that brisket.",
-          "It's cold, but that's what the grill's heat is for."
-        ],
-        general: [
-          "Every day is a good day to grill.",
-          "Weather's looking good for a feast."
-        ]
-      },
-      cafe: {
-        sunny: ["Perfect weather for an iced coffee on the patio."],
-        partlySunny: ["A great day for a latte and a quiet walk."],
-        cloudy: ["The perfect gloomy weather to sit in a cafe and read."],
-        rain: ["Cozy rainy day. Perfect for a warm cup of coffee."],
-        general: ["Time for a coffee break."]
       }
     }
   },
-  // ====================================================================
-  // SASSY PHRASES (Blunt & Humorous)
-  // ====================================================================
   sassy: {
     // General sayings for each weather condition
     conditions: {
@@ -1389,62 +1265,58 @@ export const weatherSayings = {
     },
     // Theme-specific SASSY phrases
     themes: {
+      'default-light': {
+        sunny: ["It's too nice for that overpriced latte. Go outside.", "This weather is better than free Wi-Fi."],
+        cloudy: ["Perfect weather to overpay for a coffee and look moody.", "Oh, it's gray. How... 'atmospheric'."],
+        rain: ["It's cold. Just like that barista's stare.", "Rainy. Now you have a real excuse to brood in a cafe."],
+        general: ["Go drink your bean water, I guess."]
+      },
+      'default-dark': {
+        sunny: ["This weather is #blessed. Go get that content.", "It's a good day to be the main character."],
+        cloudy: ["The vibe is moody. Lean into it."],
+        rain: ["It's raining. I can't even. Literally."],
+        general: ["It is what it is."]
+      },
+      'high-contrast': {
+        sunny: ["The sun is screaming and so are your retinas."],
+        cloudy: ["Even the clouds have sharp edges today."],
+        rain: ["Rain can't hide anything. Nice try."],
+        general: ["Everything is bold, including your excuses."]
+      },
+      'night-vision': {
+        sunny: ["Daylight is overrated. Prep for lights-out ops."],
+        cloudy: ["Perfect gloom for sneaking around."],
+        rain: ["Rain keeps the glow down. Quit complaining."],
+        general: ["Stay low, stay sharp."]
+      },
       naval: {
         sunny: ["If you're not on a boat right now, what's the point?", "This is what they call 'perfect sailing weather,' landlubber."],
         rain: ["A real sailor isn't afraid of a little spray. Get out there.", "It's just wind, you coward. It's called 'sailing'."],
         thunderstorm: ["This is it. The perfect storm. Don't be a hero."],
         general: ["Stop being a landlubber."]
       },
-      sunset: {
-        sunny: ["The sky is showing off. You should be watching.", "Weather's better than your Instagram filter. Go look."],
-        cloudy: ["Of course it's cloudy. The sky hates you.", "A grey, dull, disappointing sunset. How fitting."],
-        general: ["At least the sky is trying."]
-      },
-      neon: {
-        sunny: ["Perfect night to light it up. Don't stay home.", "The city is calling. Don't let it go to voicemail."],
-        rain: ["Rain's making the neon blur. Just like your vision will be later."],
-        thunderstorm: ["The city's electric, and so is the sky! Don't get zapped."],
-        general: ["Go be the main character in your cyberpunk movie."]
-      },
-      arctic: {
-        sunny: ["It's not 'actively trying to kill you' cold. That's a win.", "A 'balmy' 30 degrees. Put on a t-shirt."],
-        snow: ["It's cold. Again. What did you expect?", "Another blizzard. Hope you like the inside of your house."],
-        general: ["Yes, it's freezing. Complaining won't make it warmer."]
-      },
-      highseas: {
-        sunny: ["The sea is calm. Too calm...", "Perfect day to pretend you're a pirate."],
-        rain: ["It's raining. The ocean is wet. You'll survive."],
-        thunderstorm: ["Poseidon is angry. Stay off the water, idiot."],
-        general: ["Stop being a scallywag and check the forecast."]
-      },
-      aurora: {
-        sunny: ["The sky is clear. Look up, you might see something cool.", "Stop looking at your screen and look at the *actual* sky."],
-        cloudy: ["Too cloudy. The universe said 'not today'.", "No aurora for you. Go to bed."],
-        general: ["Look up, or don't. I don't care."]
-      },
-      arcane: {
-        sunny: ["The vibes are immaculate. Go manifest something.", "This weather feels magical. Don't waste it."],
-        cloudy: ["The fog is thick. Perfect for disappearing."],
-        rain: ["This gloomy weather is perfect for summoning... a pizza."],
-        thunderstorm: ["The sky is casting 'Lightning Bolt'. I'd take cover."],
-        general: ["The spirits are... feeling a type of way."]
-      },
-      solstice: {
-        sunny: ["It's the longest day of the year. You have no excuse for being lazy.", "Maximum sunshine. Go absorb some."],
-        cloudy: ["Cloudy. The sun took the day off. On its own day.", "The sun is failing at its one job."],
-        general: ["Praise the sun! Or whatever."]
-      },
-      evergreen: {
+      'army-temperate': {
         sunny: ["Go smell a tree. It's nice out.", "The forest is perfect. Go get lost in it. (Don't actually)."],
         rain: ["It's raining. The forest is now a mud pit. Have fun."],
         cloudy: ["Bigfoot weather. Stay inside."],
         general: ["Go touch some moss, you nerd."]
       },
-      voyager: {
-        sunny: ["Engage! Go explore... the backyard, at least.", "Atmosphere is stable. You are cleared for outdoor activity."],
-        rain: ["Atmospheric interference. Abort mission."],
-        thunderstorm: ["Warning: Energy discharge detected. Shields up!"],
-        general: ["Make it so... or don't."]
+      'army-arid': {
+        sunny: ["It's hot. What, you expected snow?", "Dry, hot, and sunny. It's the desert. Duh."],
+        rain: ["It's raining. In the desert. Go buy a lottery ticket."],
+        general: ["It's the desert. It's dry. Shocking."]
+      },
+      'air-force': {
+        sunny: ["Clear skies. If you aren't wheels-up, why not?", "The runway is calling. Answer it."],
+        rain: ["Rain in the pattern. Fly the plan, not your feelings."],
+        thunderstorm: ["Cells lighting up radar. Don't be a hero."],
+        general: ["Check your instruments and hydrate."]
+      },
+      arcade: {
+        sunny: ["The weather is, like, totally awesome to the max.", "No way! This weather is choice."],
+        rain: ["This rain is, like, grody. Gag me."],
+        snow: ["It's bogus cold. Stay home and play Pac-Man."],
+        general: ["This weather is a total bummer."]
       },
       monochrome: {
         sunny: ["It's sunny. In black and white, it would just be 'bright'."],
@@ -1452,110 +1324,10 @@ export const weatherSayings = {
         rain: ["Rainy, cold, and grey. A perfect mood."],
         general: ["It's... weather."]
       },
-      playful: {
-        sunny: ["It's a 'slide whistle' kind of day. Go be annoying outside.", "This weather is more fun than a ball pit."],
-        rain: ["Rain. The outside is cancelled. Play-Doh time."],
-        cloudy: ["This weather is a big, sad, grey frowny face."],
-        general: ["Go play! Or don't. See if I care."]
-      },
       retro90: {
         sunny: ["It's da bomb out. Stop being a scrub and go outside.", "This weather is fresh. Don't be a dweeb, get off the couch."],
         rain: ["This rain is wack. Stay inside.", "It's raining? Whatever. Talk to the hand."],
         general: ["As if!"]
-      },
-      groove70: {
-        sunny: ["This weather is dy-no-mite! Go be cool.", "It's a stone cold groove out there."],
-        rain: ["This rain is a real buzzkill.", "Don't be a jive turkey, stay inside."],
-        general: ["Catch you on the flip side."]
-      },
-      mojave: {
-        sunny: ["It's hot. What, you expected snow?", "Dry, hot, and sunny. It's the desert. Duh."],
-        rain: ["It's raining. In the desert. Go buy a lottery ticket."],
-        general: ["It's the desert. It's dry. Shocking."]
-      },
-      atomic50: {
-        sunny: ["What a swell day! Go put on some slacks.", "The weather is just peachy keen."],
-        rain: ["Heavens to Betsy, this rain won't quit."],
-        cloudy: ["Gee whiz, it's a bit gray out."],
-        general: ["Don't be a square."]
-      },
-      psychedelic60: {
-        sunny: ["The vibes are just... cosmic, man.", "Go tune in, turn on, and drop... into a park or something."],
-        rain: ["This rain is a bad trip. Stay inside."],
-        general: ["Heavy, man. Just heavy."]
-      },
-      arcade80: {
-        sunny: ["The weather is, like, totally awesome to the max.", "No way! This weather is choice."],
-        rain: ["This rain is, like, grody. Gag me."],
-        snow: ["It's bogus cold. Stay home and play Pac-Man."],
-        general: ["This weather is a total bummer."]
-      },
-      y2k00: {
-        sunny: ["This weather is phat. Go download some sun.", "It's a sweet day to hang with your peeps."],
-        rain: ["This rain is not the download I wanted.", "This weather is a 404 error."],
-        general: ["Word up."]
-      },
-      metro10: {
-        sunny: ["This weather is #blessed. Go get that content.", "It's a good day to be the main character."],
-        cloudy: ["This weather is not the vibe."],
-        rain: ["It's raining. I can't even. Literally."],
-        general: ["It is what it is."]
-      },
-      sushi: {
-        sunny: ["A crisp, clean, perfect day.", "The weather is as fresh as high-grade tuna."],
-        rain: ["This rain is messy. No elegance.", "A bit wet. Good day for some warm sake."],
-        general: ["A day of perfect balance. Or not."]
-      },
-      bbq: {
-        sunny: [
-          "Bitch, it is too nice not to grill.",
-          "Get your tongs, loser, we're grilling.",
-          "If you're not grilling in this weather, you're dead inside.",
-          "This is prime-time, top-tier, A+ grilling weather. Don't screw it up.",
-          "The sun's out. If I see you microwaving, we're fighting.",
-          "Stop staring at your phone and go stare at a grill.",
-          "Weather's perfect. Your excuses for not grilling are not.",
-          "Fire up the grill or surrender your 'BBQ Pit' theme privileges.",
-          "Hot damn, it's nice. The only smoke should be from a grill.",
-          "Stop whatever you're doing. It's grilling time. That's an order."
-        ],
-        partlySunny: [
-          "The sun is half-assing it, but you shouldn't. Grill.",
-          "Cloudy, sunny, who cares? The coals are hot.",
-          "It's nice enough. Stop debating and start marinating."
-        ],
-        cloudy: [
-          "What, you need the sun to cook? The grill works fine, you baby.",
-          "It's cloudy. Good. No sun glaring off your beer can.",
-          "A grey day is a great day to make some grey smoke. Fire it up."
-        ],
-        rain: [
-          "Rain? You call that rain? A real griller isn't scared of a little sky-water.",
-          "It's cold. So what? Are you a griller or a child?",
-          "This is why they invented covered patios, genius.",
-          "Let me guess, you're going to order a pizza? Pathetic.",
-          "Yeah, it's raining. Your meat's not made of sugar, it won't melt."
-        ],
-        thunderstorm: [
-          "Don't be a dumbass, you can't grill in a lightning storm.",
-          "Grilling with metal tongs in a thunderstorm is a 'final destination' move. Don't.",
-          "The sky is literally exploding. The ribs can wait."
-        ],
-        snow: [
-          "Snowing? Good. It'll keep your beer cold while you grill.",
-          "The grill is hotter than this cold. What's your excuse?",
-          "Real pitmasters grill in a blizzard. Don't be weak."
-        ],
-        general: [
-          "Stop looking at this app and go light a fire.",
-          "If your first thought wasn't 'I should grill,' you're wrong."
-        ]
-      },
-      cafe: {
-        sunny: ["It's too nice for that overpriced latte. Go outside.", "This weather is better than free Wi-Fi."],
-        cloudy: ["Perfect weather to overpay for a coffee and look miserable.", "Oh, it's gray. How... 'atmospheric'."],
-        rain: ["It's cold. Just like that barista's stare.", "Rainy. Now you have a *real* excuse to be moody in a cafe."],
-        general: ["Go drink your bean water, I guess."]
       }
     }
   }
@@ -1616,7 +1388,7 @@ export function getWeatherPhrase(temp, condition, isSassy = false, theme = 'nava
   
   let possiblePhrases = [];
 
-  // 1. Add theme-specific phrases for the exact condition (e.g., sassy.themes.bbq.sunny)
+  // 1. Add theme-specific phrases for the exact condition (e.g., sassy.themes['default-light'].sunny)
   if (phraseDb.themes[theme] && phraseDb.themes[theme][category]) {
     possiblePhrases.push(...phraseDb.themes[theme][category]);
   }

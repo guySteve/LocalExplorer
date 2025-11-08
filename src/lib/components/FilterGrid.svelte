@@ -2,7 +2,6 @@
 	import { createEventDispatcher } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { categories, currentWeatherCondition } from '$lib/stores/appState';
-	import { widgetState } from '$lib/stores/widgetState';
 	import { X, GripVertical } from 'lucide-svelte';
 	import ThemeIcon from '$lib/components/ThemeIcon.svelte';
 	
@@ -113,14 +112,6 @@
 </script>
 
 <div class="filters" id="filterGrid">
-	<button 
-		class="minimize-filter-btn" 
-		on:click={() => widgetState.hide('filterGrid')} 
-		title="Hide all category filters"
-		aria-label="Hide all category filters"
-	>
-		<X size={12} color="currentColor" />
-	</button>
 	{#each displayCategories as category, i (category)}
 		<div 
 			class="filter-wrapper"
@@ -165,39 +156,11 @@
 
 <style>
 	.filters {
-		position: relative;
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
 		gap: 0.8rem;
 		width: 100%;
 		margin: 0;
-	}
-	
-	.minimize-filter-btn {
-		position: absolute;
-		top: 0.4rem;
-		right: 0.4rem;
-		background: rgba(244, 67, 54, 0.85);
-		border: none;
-		cursor: pointer;
-		padding: 0.3rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		transition: all 0.2s ease;
-		z-index: 20;
-		opacity: 1;
-		border-radius: 50%;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-		width: 26px;
-		height: 26px;
-	}
-	
-	.minimize-filter-btn:hover {
-		transform: scale(1.1);
-		background: rgba(244, 67, 54, 1);
-		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 	}
 	
 	.filter-wrapper {

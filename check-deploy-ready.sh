@@ -103,7 +103,7 @@ fi
 
 # Check for documentation
 echo "Checking for documentation:"
-DOCS=("NETLIFY_DEPLOY.md" "GITHUB_ACTIONS_DEPLOY.md" "README.md")
+DOCS=("README.md" "CURRENT_FEATURES.md" "PROJECT_SUMMARY.md")
 for doc in "${DOCS[@]}"; do
     echo -n "  - $doc... "
     if [ -f "$doc" ]; then
@@ -154,18 +154,18 @@ if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
     echo "2. Add environment variables in Netlify dashboard"
     echo "3. Test your deployed site"
     echo ""
-    echo "📖 See NETLIFY_DEPLOY.md for detailed instructions"
+    echo "📖 See README.md and PROJECT_SUMMARY.md for detailed deployment instructions"
     exit 0
 elif [ $ERRORS -eq 0 ]; then
     echo -e "${YELLOW}⚠ $WARNINGS warning(s) found, but deployment should work.${NC}"
     echo ""
     echo "You can proceed with deployment, but consider addressing the warnings."
-    echo "📖 See NETLIFY_DEPLOY.md for detailed instructions"
+    echo "📖 See README.md and PROJECT_SUMMARY.md for detailed deployment instructions"
     exit 0
 else
     echo -e "${RED}✗ $ERRORS error(s) and $WARNINGS warning(s) found.${NC}"
     echo ""
     echo "Please fix the errors before deploying."
-    echo "📖 See NETLIFY_DEPLOY.md for setup instructions"
+    echo "📖 See README.md and PROJECT_SUMMARY.md for setup instructions"
     exit 1
 fi

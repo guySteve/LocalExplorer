@@ -2005,3 +2005,30 @@ h1, h2, h3 {
     width: 100%;
   }
 }
+
+.tile-layer-control {
+  display: flex;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.35rem;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.tile-layer-control .tile-btn {
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 0.7rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tile-layer-control .tile-btn.active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}

@@ -80,6 +80,18 @@ The application already has comprehensive mobile optimizations:
 - Prevented zoom on input focus
 - Better modal interactions
 
+### 5. Phase 2 UX Simplification (2025-11-XX)
+**Files:** `src/lib/components/CollapsibleWidget.svelte`, `src/lib/stores/widgetCollapseState.js`, `src/routes/+page.svelte`, `src/lib/components/SettingsModal.svelte`, `src/lib/components/Compass.svelte`, `src/lib/components/GPSTracker.svelte`, `src/lib/components/CollectionModal.svelte`, `src/lib/components/SupportCTA.svelte`, `src/lib/utils/tileLayerToggle.js`, `static/css/theme.css`, `src/lib/stores/appState.js`
+
+**Changes:**
+- Introduced a reusable `CollapsibleWidget` wrapper and `widgetCollapseState` store so Primary Actions, Weather Intel, and the Category Grid can be collapsed per user preference. State persists via localStorage.
+- Removed the in-page Support CTA and reintroduced it inside `SettingsModal` as requested by focus groups, reducing clutter on the home canvas.
+- Rebuilt `Compass.svelte` into a Navigation Dashboard that surfaces heading, bearing, distance, coordinates, altitude, speed, GPS accuracy, and ETA, plus added an inline Night Mode toggle for low-light ops.
+- Added a shared Leaflet tile toggle control (`attachTileToggle`) and wired it into the GPS Track Recorder and Day Plan maps so pros can flip between Street, Topo, and Satellite providers (leveraging the existing offline tile stack).
+- Consolidated the theme system to 11 curated options, refreshed `theme.css`, and updated `SettingsModal`/`appState` so users pick from meaningful presets instead of 20+ novelty themes.
+
+**Rationale:** Usability tests called the main screen "cluttered" and pro users wanted richer navigation telemetry and map controls. These changes keep the UI clean on mobile while surfacing high-value data only when needed.
+
 ## Code Quality Improvements
 Based on code review feedback:
 1. Removed unused `BIRD_WATCHING_MENU_ITEMS` constant

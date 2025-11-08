@@ -86,8 +86,12 @@
 	}
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && closeModal()} />
+
 {#if visible}
-<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && closeModal()}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1">
 	<div 
 		class="modal-content" 
 		bind:this={modalContent}
@@ -294,12 +298,6 @@
 		color: var(--text-light);
 		opacity: 0.8;
 		font-size: 0.9rem;
-	}
-	
-	.result-categories {
-		margin: 0.25rem 0;
-		color: var(--accent);
-		font-size: 0.85rem;
 	}
 	
 	.result-rating {

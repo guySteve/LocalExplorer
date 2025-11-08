@@ -1,10 +1,9 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { currentPosition, currentTheme, showBirdSightings, currentWeatherCondition } from '$lib/stores/appState';
-	import { widgetState } from '$lib/stores/widgetState';
 	import { fetchRecentBirdSightings } from '$lib/utils/api-extended';
 	import { getWeatherPhrase } from '$lib/utils/weatherPhrases';
-	import { ChevronDown, ChevronUp, X, Calendar } from 'lucide-svelte';
+	import { ChevronDown, ChevronUp, Calendar } from 'lucide-svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -301,14 +300,6 @@
 </script>
 
 <div class="weather-widget">
-	<button 
-		class="minimize-btn" 
-		on:click|stopPropagation={() => widgetState.hide('weather')} 
-		title="Hide weather widget"
-		aria-label="Hide weather widget"
-	>
-		<X size={12} color="currentColor" />
-	</button>
 	<button class="weather-header" on:click={() => isExpanded = !isExpanded} type="button">
 		<div class="header-left">
 			{#if weather}
@@ -519,7 +510,6 @@
 		cursor: not-allowed;
 	}
 
-	.minimize-btn,
 	.toggle-btn {
 		background: transparent;
 		border: none;
@@ -532,36 +522,8 @@
 		transition: all 0.2s ease;
 	}
 
-	.minimize-btn:hover,
 	.toggle-btn:hover {
 		transform: scale(1.05);
-	}
-	
-	.minimize-btn {
-		position: absolute;
-		top: 0.4rem;
-		right: 0.4rem;
-		background: rgba(244, 67, 54, 0.85);
-		border: none;
-		cursor: pointer;
-		padding: 0.3rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		transition: all 0.2s ease;
-		z-index: 10;
-		opacity: 1;
-		border-radius: 50%;
-		width: 26px;
-		height: 26px;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-	}
-	
-	.minimize-btn:hover {
-		transform: scale(1.1);
-		background: rgba(244, 67, 54, 1);
-		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 	}
 
 	.weather-main {

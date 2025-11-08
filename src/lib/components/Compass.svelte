@@ -1,8 +1,9 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
+	import { currentPosition as appCurrentPosition, selectedVoiceUri, voiceNavigationEnabled } from '$lib/stores/appState';
 	import { Navigation } from 'lucide-svelte';
+	import { calculateBearing, calculateDistance } from '$lib/utils/leafletMap';
 
 	const dispatch = createEventDispatcher();
 	
@@ -30,9 +31,18 @@
 	let orientationReady = false;
 	let geolocationReady = false;
 	let currentPosition = null;
-	let currentSpeed = 0;
-	let accuracy = '—';
-	let bearing = '—';
+	let destinationCoords = null;
+	let activePosition = null;
+	let effectiveSpeed = null;
+	let effectiveAccuracy = null;
+	let effectiveAltitude = null;
+	let currentSpeed = null; // meters per second
+	let accuracyMeters = null;
+	let bearingToTarget = null;
+	let distanceToTarget = null;
+	let altitudeMeters = null;
+	let nightMode = false;
+	let now = new Date();
 	
 	let watchId = null;
 	let orientationListener = null;
@@ -61,6 +71,9 @@
 	const MIN_INDICATOR_SCALE = 0.5; // Minimum scale for indicators when zoomed out
 	const MAX_INDICATOR_SCALE = 2; // Maximum scale for indicators when zoomed in
 	const ZOOM_SCALE_BASE = 18; // Base zoom level for 1:1 scale
+	const METERS_IN_MILE = 1609.34;
+	const MPS_TO_MPH = 2.23694;
+	const METERS_TO_FEET = 3.28084;
 	
 	// Cardinal direction names for display
 	// Note: Boundaries are non-overlapping. Each range uses >= for min and < for max,
@@ -76,6 +89,24 @@
 		{ name: 'West', min: 247.5, max: 292.5 },
 		{ name: 'Northwest', min: 292.5, max: 337.5 }
 	];
+	const CARDINAL_ABBREVIATIONS = {
+		North: 'N',
+		Northeast: 'NE',
+		East: 'E',
+		Southeast: 'SE',
+		South: 'S',
+		Southwest: 'SW',
+		West: 'W',
+		Northwest: 'NW'
+	};
+	
+	onMount(() => {
+		const timer = setInterval(() => {
+			now = new Date();
+		}, 1000);
+		
+		return () => clearInterval(timer);
+	});
 	
 	// Map type cycling order: Roadmap → Terrain → Satellite
 	const MAP_TYPE_ORDER = { 'roadmap': 'terrain', 'terrain': 'satellite', 'satellite': 'roadmap' };
@@ -398,31 +429,36 @@
 					lng: position.coords.longitude
 				};
 				
-				const speed = (typeof position.coords.speed === 'number' && !Number.isNaN(position.coords.speed)) 
-					? position.coords.speed : 0;
-				currentSpeed = speed.toFixed(1);
+				const speed = (typeof position.coords.speed === 'number' && !Number.isNaN(position.coords.speed))
+					? position.coords.speed
+					: null;
+				currentSpeed = speed;
 				
-				accuracy = (typeof position.coords.accuracy === 'number' && !Number.isNaN(position.coords.accuracy))
-					? Math.round(position.coords.accuracy).toString()
-					: '—';
+				accuracyMeters = (typeof position.coords.accuracy === 'number' && !Number.isNaN(position.coords.accuracy))
+					? position.coords.accuracy
+					: null;
 				
-				// Calculate bearing to current destination
-				if (currentDestination) {
-					const destLat = typeof currentDestination.lat === 'function' ? currentDestination.lat() : (currentDestination.location?.lat || currentDestination.lat);
-					const destLng = typeof currentDestination.lng === 'function' ? currentDestination.lng() : (currentDestination.location?.lng || currentDestination.lng);
+				altitudeMeters = (typeof position.coords.altitude === 'number' && !Number.isNaN(position.coords.altitude))
+					? position.coords.altitude
+					: null;
+				
+				const destinationCoords = getDestinationCoordinates(currentDestination);
+				if (destinationCoords && currentPosition) {
+					distanceToTarget = calculateDistance(
+						currentPosition.lat,
+						currentPosition.lng,
+						destinationCoords.lat,
+						destinationCoords.lng
+					);
+					bearingToTarget = calculateBearing(
+						currentPosition.lat,
+						currentPosition.lng,
+						destinationCoords.lat,
+						destinationCoords.lng
+					);
 					
-					if (window.google && window.google.maps && destLat && destLng) {
-						const curLatLng = new window.google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-						const destLatLng = new window.google.maps.LatLng(destLat, destLng);
-						bearing = Math.round(window.google.maps.geometry.spherical.computeHeading(curLatLng, destLatLng)).toString();
-						
-						// Check if close to destination (within 50 meters) for multi-stop
-						if (isMultiStop && currentStopIndex < currentStops.length - 1) {
-							const distance = window.google.maps.geometry.spherical.computeDistanceBetween(curLatLng, destLatLng);
-							if (distance < 50) { // Within 50 meters
-								console.log('Compass: Close to destination, ready for next stop');
-							}
-						}
+					if (isMultiStop && currentStopIndex < currentStops.length - 1 && distanceToTarget < 50) {
+						console.log('Compass: Close to destination, ready for next stop');
 					}
 				}
 			},
@@ -621,6 +657,85 @@
 		return tmp.textContent || tmp.innerText || '';
 	}
 	
+	function getDestinationCoordinates(point) {
+		if (!point) return null;
+		const latSource = typeof point.lat === 'function' ? point.lat() : (point.location?.lat ?? point.lat);
+		const lngSource = typeof point.lng === 'function' ? point.lng() : (point.location?.lng ?? point.lng);
+		
+		if (typeof latSource === 'number' && typeof lngSource === 'number' && !Number.isNaN(latSource) && !Number.isNaN(lngSource)) {
+			return { lat: latSource, lng: lngSource };
+		}
+		return null;
+	}
+	
+	function formatHeadingValue(value) {
+		if (typeof value !== 'number' || Number.isNaN(value)) return '---°';
+		const rounded = Math.round(wrapAngle(value));
+		const cardinal = getCardinalDirection(value);
+		const abbreviation = CARDINAL_ABBREVIATIONS[cardinal] || (cardinal ? cardinal.charAt(0) : '');
+		return `${String(rounded).padStart(3, '0')}° ${abbreviation}`;
+	}
+	
+	function formatDistance(meters) {
+		if (typeof meters !== 'number' || Number.isNaN(meters)) return '—';
+		const miles = meters / METERS_IN_MILE;
+		if (miles >= 0.5) {
+			return `${miles.toFixed(miles >= 10 ? 0 : 1)} mi`;
+		}
+		const feet = meters * METERS_TO_FEET;
+		return `${Math.round(feet)} ft`;
+	}
+	
+	function formatCoordinates(point) {
+		if (!point || typeof point.lat !== 'number' || typeof point.lng !== 'number') return '—';
+		return `Lat: ${point.lat.toFixed(4)}, Lng: ${point.lng.toFixed(4)}`;
+	}
+	
+	function formatAltitude(meters) {
+		if (typeof meters !== 'number' || Number.isNaN(meters)) return '—';
+		return `${Math.round(meters * METERS_TO_FEET)} ft`;
+	}
+	
+	function formatSpeed(speedMps) {
+		if (typeof speedMps !== 'number' || Number.isNaN(speedMps) || speedMps <= 0) return '—';
+		return `${(speedMps * MPS_TO_MPH).toFixed(1)} mph`;
+	}
+	
+	function formatAccuracy(meters) {
+		if (typeof meters !== 'number' || Number.isNaN(meters)) return '—';
+		return `± ${Math.round(meters * METERS_TO_FEET)} ft`;
+	}
+	
+	function formatEta(distanceMeters, speedMps, referenceTime) {
+		if (typeof distanceMeters !== 'number' || typeof speedMps !== 'number' || speedMps <= 0) {
+			return '—';
+		}
+		const seconds = distanceMeters / speedMps;
+		const etaDate = new Date(referenceTime.getTime() + seconds * 1000);
+		return etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+	}
+	
+	$: destinationCoords = getDestinationCoordinates(currentDestination);
+	$: activePosition = currentPosition || $appCurrentPosition;
+	$: effectiveSpeed = (typeof currentSpeed === 'number' && !Number.isNaN(currentSpeed))
+		? currentSpeed
+		: ((typeof activePosition?.speed === 'number' && !Number.isNaN(activePosition.speed)) ? activePosition.speed : null);
+	$: effectiveAccuracy = (typeof accuracyMeters === 'number' && !Number.isNaN(accuracyMeters))
+		? accuracyMeters
+		: ((typeof activePosition?.accuracy === 'number' && !Number.isNaN(activePosition.accuracy)) ? activePosition.accuracy : null);
+	$: effectiveAltitude = (typeof altitudeMeters === 'number' && !Number.isNaN(altitudeMeters))
+		? altitudeMeters
+		: ((typeof activePosition?.altitude === 'number' && !Number.isNaN(activePosition.altitude)) ? activePosition.altitude : null);
+	$: {
+		if (activePosition && destinationCoords) {
+			distanceToTarget = calculateDistance(activePosition.lat, activePosition.lng, destinationCoords.lat, destinationCoords.lng);
+			bearingToTarget = calculateBearing(activePosition.lat, activePosition.lng, destinationCoords.lat, destinationCoords.lng);
+		} else if (!activePosition || !destinationCoords) {
+			distanceToTarget = null;
+			bearingToTarget = null;
+		}
+	}
+	
 	// Computed values
 	$: statusText = 
 		orientationReady && geolocationReady ? 'Heading & GPS locked' :
@@ -633,12 +748,20 @@
 		orientationReady || geolocationReady ? 'status-warn' :
 		'status-bad';
 	
-	$: headingDisplay = 
-		orientationReady ? `${String(Math.round(currentHeading)).padStart(3, '0')}°` : '---°';
+	$: headingDisplay = orientationReady ? formatHeadingValue(currentHeading) : '---°';
+	$: bearingDisplay = bearingToTarget !== null ? formatHeadingValue(bearingToTarget) : '---°';
+	$: distanceDisplay = distanceToTarget !== null ? formatDistance(distanceToTarget) : '—';
+	$: currentCoordsDisplay = formatCoordinates(activePosition);
+	$: targetCoordsDisplay = formatCoordinates(destinationCoords);
+	$: altitudeDisplay = formatAltitude(effectiveAltitude);
+	$: speedDisplay = formatSpeed(effectiveSpeed);
+	$: accuracyDisplay = formatAccuracy(effectiveAccuracy);
+	$: timeDisplay = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+	$: etaDisplay = formatEta(distanceToTarget, effectiveSpeed, now);
 	
 	$: destinationDisplay = 
 		currentDestination && currentDestinationName ? 
-			`${currentDestinationName}${bearing !== '—' ? ` (${bearing}°)` : ''}` :
+			`${currentDestinationName}${bearingToTarget !== null ? ` (${bearingDisplay})` : ''}` :
 			currentDestination ? 'Destination set' :
 			orientationReady ? `Pointing ${getCardinalDirection(currentHeading)}` : 'Pointing North';
 	
@@ -646,21 +769,36 @@
 	$: personTransform = `rotateZ(${personHeadingVisual}deg)`; // Person icon rotates with smoothing
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && close()} />
+
 {#if visible}
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="compass-overlay" class:active={visible} on:click={close} on:keydown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }} role="dialog" aria-modal="true" tabindex="0">
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div class="compass-container" on:click={(e) => e.stopPropagation()} on:keydown={(e) => e.stopPropagation()} role="document" tabindex="-1">
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="compass-overlay" class:active={visible} on:click={close} role="dialog" aria-modal="true" tabindex="-1">
+	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
+	<div class="compass-container" class:night-mode={nightMode} on:click={(e) => e.stopPropagation()} role="document" tabindex="-1">
 		<!-- Header -->
 		<div class="compass-header">
 			<div>
 				<h2 class="compass-title">
 					<Navigation size={24} color="currentColor" />
-					<span>Compass</span>
+					<span>Navigation Dashboard</span>
 				</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
-			<button class="close-btn" on:click={close} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }} aria-label="Close compass" type="button">×</button>
+			<div class="header-actions">
+				<button
+					class="night-mode-toggle"
+					type="button"
+					on:click={() => nightMode = !nightMode}
+					aria-pressed={nightMode}
+					title="Toggle night vision safe colors"
+				>
+					{nightMode ? '☀️ Day Mode' : '🌙 Night Mode'}
+				</button>
+				<button class="close-btn" on:click={close} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }} aria-label="Close compass" type="button">×</button>
+			</div>
 		</div>
 		
 		<!-- Status -->
@@ -668,6 +806,56 @@
 			<span class="status-dot {statusClass}"></span>
 			<span class="status-text">{statusText}</span>
 		</div>
+		
+		<section class="navigation-dashboard">
+			<div class="dashboard-grid">
+				<div class="dashboard-card heading-card">
+					<div class="card-label">Heading (Digital)</div>
+					<div class="card-value heading">{headingDisplay}</div>
+					<div class="card-subvalue">Device Orientation API</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Bearing to Target</div>
+					<div class="card-value">{bearingDisplay}</div>
+					<div class="card-subvalue">calculateBearing()</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Distance to Target</div>
+					<div class="card-value">{distanceDisplay}</div>
+					<div class="card-subvalue">calculateDistance()</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Current Coordinates</div>
+					<div class="card-value small">{currentCoordsDisplay}</div>
+					<div class="card-subvalue">$currentPosition</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Target Coordinates</div>
+					<div class="card-value small">{targetCoordsDisplay}</div>
+					<div class="card-subvalue">Destination input</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Altitude (MSL)</div>
+					<div class="card-value">{altitudeDisplay}</div>
+					<div class="card-subvalue">GPS altitude</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Speed Over Ground</div>
+					<div class="card-value">{speedDisplay}</div>
+					<div class="card-subvalue">GPS speed</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">GPS Accuracy</div>
+					<div class="card-value">{accuracyDisplay}</div>
+					<div class="card-subvalue">± position error</div>
+				</div>
+				<div class="dashboard-card">
+					<div class="card-label">Time / ETA</div>
+					<div class="card-value">{timeDisplay}</div>
+					<div class="card-subvalue">ETA {etaDisplay}</div>
+				</div>
+			</div>
+		</section>
 		
 		<!-- Compass Dial -->
 		<div class="compass-dial-container">
@@ -777,25 +965,6 @@
 				</button>
 			</div>
 		{/if}
-		
-		<!-- Heading Display -->
-		<div class="heading-display">
-			<div class="heading-value">{headingDisplay}</div>
-			<div class="heading-label">Current Heading</div>
-		</div>
-		
-		<!-- Stats -->
-		<div class="compass-stats">
-			<div class="stat">
-				<div class="stat-label">Speed</div>
-				<div class="stat-value">{currentSpeed} m/s</div>
-			</div>
-			<div class="stat">
-				<div class="stat-label">Accuracy</div>
-				<div class="stat-value">{accuracy}m</div>
-			</div>
-		</div>
-		
 		<!-- Multi-stop Progress (if applicable) -->
 		{#if isMultiStop}
 			<div class="multi-stop-progress">
@@ -873,6 +1042,28 @@
 		animation: fadeIn 0.3s ease-out;
 	}
 	
+	.compass-container.night-mode {
+		background: #010101;
+		box-shadow: 0 0 40px rgba(255, 0, 0, 0.2);
+		--text-light: #ff4d4d;
+		--primary: #ff4d4d;
+		--secondary: #b71c1c;
+	}
+	
+	.compass-container.night-mode .destination-label {
+		color: #ff4d4d;
+	}
+	
+	.compass-container.night-mode .night-mode-toggle {
+		border-color: rgba(255, 77, 77, 0.5);
+	}
+	
+	.compass-container.night-mode .dashboard-card {
+		background: rgba(255, 0, 0, 0.08);
+		border-color: rgba(255, 77, 77, 0.3);
+		box-shadow: 0 0 25px rgba(255, 0, 0, 0.15);
+	}
+	
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
@@ -933,6 +1124,28 @@
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
+	.header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	
+	.night-mode-toggle {
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		background: transparent;
+		color: var(--text-light);
+		padding: 0.35rem 0.85rem;
+		border-radius: 999px;
+		font-size: 0.85rem;
+		cursor: pointer;
+		transition: background 0.2s ease, color 0.2s ease;
+	}
+	
+	.night-mode-toggle:hover,
+	.night-mode-toggle[aria-pressed="true"] {
+		background: rgba(255, 255, 255, 0.1);
+	}
+	
 	.close-btn {
 		background: none;
 		border: none;
@@ -985,6 +1198,66 @@
 		color: var(--text-light);
 		font-weight: 600;
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+	
+	.navigation-dashboard {
+		margin-bottom: 2rem;
+	}
+	
+	.dashboard-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1rem;
+	}
+	
+	.dashboard-card {
+		padding: 1rem;
+		border-radius: 14px;
+		background: rgba(var(--card-rgb, 26, 43, 68), 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+	
+	.dashboard-card.heading-card {
+		grid-column: span 2;
+	}
+	
+	@media (max-width: 640px) {
+		.dashboard-card.heading-card {
+			grid-column: span 1;
+		}
+	}
+	
+	.card-label {
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.6);
+	}
+	
+	.card-value {
+		font-size: 1.4rem;
+		font-weight: 700;
+		color: var(--text-light);
+	}
+	
+	.card-value.heading {
+		font-size: 2.6rem;
+		letter-spacing: 0.08em;
+	}
+	
+	.card-value.small {
+		font-size: 1rem;
+		line-height: 1.4;
+		word-break: break-word;
+	}
+	
+	.card-subvalue {
+		font-size: 0.8rem;
+		opacity: 0.65;
 	}
 	
 	.compass-dial-container {
@@ -1235,54 +1508,7 @@
 		transform: translateY(0);
 	}
 	
-	.heading-display {
-		text-align: center;
-		margin: 1.5rem 0;
-	}
 	
-	.heading-value {
-		font-size: 3rem;
-		font-weight: 900;
-		color: var(--primary);
-		font-family: var(--font-primary);
-		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-	}
-	
-	.heading-label {
-		font-size: 0.9rem;
-		color: var(--text-light);
-		opacity: 0.8;
-		margin-top: 0.25rem;
-		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-	}
-	
-	.compass-stats {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1rem;
-		margin: 1.5rem 0;
-	}
-	
-	.stat {
-		text-align: center;
-		padding: 1rem;
-		background: rgba(var(--card-rgb, 26, 43, 68), 0.05);
-		border-radius: 8px;
-	}
-	
-	.stat-label {
-		font-size: 0.85rem;
-		color: var(--text-light);
-		opacity: 0.7;
-		margin-bottom: 0.25rem;
-	}
-	
-	.stat-value {
-		font-size: 1.25rem;
-		font-weight: 700;
-		color: var(--primary);
-		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-	}
 	
 	.multi-stop-progress {
 		margin: 1.5rem 0;
@@ -1391,8 +1617,8 @@
 			height: 240px;
 		}
 		
-		.heading-value {
-			font-size: 2.5rem;
+		.card-value.heading {
+			font-size: 2rem;
 		}
 		
 		.navigation-buttons {

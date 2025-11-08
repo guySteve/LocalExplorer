@@ -258,12 +258,12 @@ LocalExplorer/
 
 ## 🎨 Themes
 
-The app includes 20+ themes:
-- Nautical themes (Polished Sailor, High Seas Neon)
-- Retro themes (Retro 90s, Arcade 80s, Y2K 2000s)
-- Nature themes (Evergreen Trails, Mojave Drift)
-- Modern themes (Neon City, Metro 2010s)
-- Food themes (Sushi Bar, BBQ Pit, Coffee Café)
+The theme picker has been simplified to 11 curated options:
+- **Basic:** Default Light, Default Dark, High-Contrast (Sunlight), Night Vision
+- **Military:** Naval, Army (Temperate), Army (Arid), Air Force
+- **Fun:** Arcade, Monochrome, Retro90
+
+Each theme updates CSS variables instantly and has a matching icon set (with fallbacks) so the UI stays cohesive.
 
 ## 📱 PWA Features
 
@@ -281,15 +281,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ### For Developers
 
 If you're new to SvelteKit, check out:
-- [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) - Developer guide and architecture
+- [CURRENT_FEATURES.md](CURRENT_FEATURES.md) - Architecture overview & feature map
 - [SvelteKit Docs](https://kit.svelte.dev/docs) - Official documentation
 - [Svelte Tutorial](https://svelte.dev/tutorial) - Interactive tutorial
 
 ## 📚 Documentation
 
-- **[DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md)** - 📝 Developer notes and architecture
-- **[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)** - 🚀 Netlify deployment instructions
-- **[GITHUB_ACTIONS_DEPLOY.md](GITHUB_ACTIONS_DEPLOY.md)** - 🤖 CI/CD setup
+- **[CURRENT_FEATURES.md](CURRENT_FEATURES.md)** - Feature inventory and architecture overview
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Deployment/readiness snapshot
+- **[MOBILE_UX_IMPROVEMENTS.md](MOBILE_UX_IMPROVEMENTS.md)** - Mobile-first changes and rationale
+- **[EBIRD_INTEGRATION.md](EBIRD_INTEGRATION.md)** - Bird-watching API details
 
 ## 📄 License
 
@@ -308,10 +309,10 @@ MIT License - feel free to use this project for personal or commercial purposes.
 ## 🔧 Recent Updates
 
 ### November 2025
-- ✅ **Weather Comparison** - Now compares current weather to same date last year (hotter/colder indicator)
-- ✅ **Compass Enhancement** - Automatic sensor permission request on open
-- ✅ **Documentation** - Consolidated development notes into single DEVELOPMENT_NOTES.md
-- ✅ **Code Cleanup** - Removed redundant documentation files
+- ✅ **Collapsible Dashboard** - Primary Actions, Weather, and Category Grid now use a persistent accordion.
+- ✅ **Navigation Dashboard** - Compass modal surfaces heading, bearing, distance, coordinates, altitude, speed, accuracy, and ETA plus Night Mode.
+- ✅ **Leaflet Layer Toggle** - GPS Tracks and Day Plan maps now expose Street / Topo / Satellite providers with one-tap controls.
+- ✅ **Theme Refresh** - Consolidated the theme catalog to 11 curated options (Default Light/Dark, High-Contrast, Night Vision, Naval, Army Temperate/Arid, Air Force, Arcade, Monochrome, Retro90).
 
 ### Earlier Updates
 All API functions have been updated with improved error handling:
@@ -326,11 +327,11 @@ node verify-api-functions.cjs
 ## 🐛 Issues
 
 If you encounter any issues, please:
-1. Check [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) for deployment troubleshooting
-2. Review [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) for common issues
-3. Review Netlify function logs
-4. Run `node verify-api-functions.cjs` to verify API function integrity
-5. Open an issue on GitHub with details
+1. Review [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) for deployment prerequisites and environment variables.
+2. Check [CURRENT_FEATURES.md](CURRENT_FEATURES.md) for architecture notes and feature switches.
+3. Review Netlify function logs for API errors.
+4. Run `node verify-api-functions.cjs` to verify API function integrity.
+5. Open an issue on GitHub with details if the problem persists.
 
 ## 📞 Support
 

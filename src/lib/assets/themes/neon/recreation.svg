@@ -1,1 +1,0 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow"><feGaussianBlur stdDeviation="3"/></filter></defs><path d="M20 12L10 28H30L20 12Z" stroke="#ff4d6d" stroke-width="2" fill="none" filter="url(#glow)"/><line x1="14" y1="24" x2="26" y2="24" stroke="#4cc9f0" stroke-width="2" filter="url(#glow)"/></svg>

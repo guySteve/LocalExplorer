@@ -1,8 +1,13 @@
 <script>
-	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
+	import L from 'leaflet';
 	import { Play, Pause, Save, X } from 'lucide-svelte';
 	import { gpsTracks } from '$lib/stores/storage';
 	import { exportTrackToGPX } from '$lib/utils/exportImport';
+	import { currentPosition as liveLocation } from '$lib/stores/appState';
+	import { createMap } from '$lib/utils/leafletMap';
+	import { attachTileToggle } from '$lib/utils/tileLayerToggle';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -19,6 +24,12 @@
 	let watchId = null;
 	let intervalId = null;
 	let lastPosition = null;
+	
+	const DEFAULT_CENTER = [37.7749, -122.4194];
+	let map;
+	let mapContainer;
+	let tileToggleControl = null;
+	let trackPolyline = null;
 	
 	function handleBackdropClick(e) {
 		if (e.target === e.currentTarget) {
@@ -150,6 +161,63 @@
 		return R * c;
 	}
 	
+	function getInitialCenter() {
+		const latestPoint = trackPoints[trackPoints.length - 1] || lastPosition || $liveLocation;
+		if (latestPoint?.lat && latestPoint?.lng) {
+			return [latestPoint.lat, latestPoint.lng];
+		}
+		return DEFAULT_CENTER;
+	}
+	
+	function initMap() {
+		if (!browser || map || !mapContainer) return;
+		const [lat, lng] = getInitialCenter();
+		map = createMap(mapContainer, { center: [lat, lng], zoom: 14, zoomControl: false });
+		tileToggleControl = attachTileToggle(map);
+		setTimeout(() => map?.invalidateSize(), 100);
+		if (trackPoints.length > 0) {
+			updateMapTrack();
+		}
+	}
+	
+	function destroyMap() {
+		clearMapTrack();
+		if (tileToggleControl) {
+			tileToggleControl.remove();
+			tileToggleControl = null;
+		}
+		if (map) {
+			map.remove();
+			map = null;
+		}
+	}
+	
+	function updateMapTrack() {
+		if (!map || trackPoints.length === 0) return;
+		const latLngs = trackPoints.map(point => [point.lat, point.lng]);
+		if (!trackPolyline) {
+			trackPolyline = L.polyline(latLngs, {
+				color: '#ff6b6b',
+				weight: 4,
+				opacity: 0.85
+			}).addTo(map);
+		} else {
+			trackPolyline.setLatLngs(latLngs);
+		}
+		
+		const bounds = trackPolyline.getBounds();
+		if (bounds.isValid()) {
+			map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
+		}
+	}
+	
+	function clearMapTrack() {
+		if (trackPolyline && map) {
+			map.removeLayer(trackPolyline);
+		}
+		trackPolyline = null;
+	}
+	
 	function saveTrack() {
 		if (trackPoints.length === 0) {
 			alert('No track data to save');
@@ -206,6 +274,7 @@
 		trackNotes = '';
 		startTime = null;
 		lastPosition = null;
+		clearMapTrack();
 	}
 	
 	function formatTime(ms) {
@@ -233,13 +302,32 @@
 		}
 	}
 	
-	onDestroy(() => {
-		stopRecording();
-	});
+	$: if (visible && isRecording && mapContainer) {
+		initMap();
+	} else if ((!visible || !isRecording) && map) {
+		clearMapTrack();
+		destroyMap();
+	}
+	
+	$: if (map && trackPoints.length > 0) {
+		updateMapTrack();
+	}
+	
+	$: if (map && trackPoints.length === 0) {
+		clearMapTrack();
+	}
+	
+onDestroy(() => {
+	stopRecording();
+});
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && handleClose()} />
+
 {#if visible}
-<div class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1">
 	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>🗺️ GPS Track Recorder</h3>
@@ -297,6 +385,12 @@
 							<div class="stat-label">Points</div>
 							<div class="stat-value">{trackPoints.length}</div>
 						</div>
+					</div>
+					
+					<div class="tracker-map" bind:this={mapContainer}>
+						{#if !map}
+							<div class="map-placeholder">Map warming up…</div>
+						{/if}
 					</div>
 					
 					<div class="recording-controls">
@@ -454,6 +548,28 @@
 		font-size: 1.3rem;
 		font-weight: 700;
 		color: var(--primary);
+	}
+	
+	.tracker-map {
+		margin-top: 1.25rem;
+		height: 230px;
+		border-radius: 12px;
+		overflow: hidden;
+		background: rgba(0, 0, 0, 0.2);
+		box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+		position: relative;
+	}
+	
+	.map-placeholder {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.9rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.7);
 	}
 	
 	.recording-controls {

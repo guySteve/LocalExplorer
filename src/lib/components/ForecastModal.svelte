@@ -35,8 +35,12 @@
 	}
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && dispatch('close')} />
+
 {#if visible}
-<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && dispatch('close')}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="modal active" on:click={handleBackdropClick} transition:fade={{ duration: 200 }} role="dialog" aria-modal="true" tabindex="-1">
 	<div class="modal-content" transition:fly={{ y: 50, duration: 300 }} role="document">
 		<div class="modal-header">
 			<h3>Weekly Forecast</h3>

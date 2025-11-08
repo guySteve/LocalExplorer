@@ -42,6 +42,13 @@ All documentation is current and accurate:
 - ✅ `netlify.toml` - Production-ready configuration
 - ✅ `.env.example` - Environment variable template
 
+### ✅ Phase 2 UX Refactor Highlights
+- **Collapsible Main Widgets:** Primary Actions, Weather Intel, and Category Grid now live inside a reusable `CollapsibleWidget` with persistent open/close state via `widgetCollapseState`.
+- **Support CTA Relocation:** Donation prompt moved from the crowded home screen into the Settings modal for an inline, focused upsell.
+- **Navigation Dashboard:** `Compass.svelte` rebuilt into a data-rich dashboard (heading, bearing, distance, coords, altitude, speed, GPS accuracy, ETA) with a one-tap Night Mode for night ops.
+- **Leaflet Layer Toggle:** Both the GPS Tracker recorder and the Day Plan map now expose Street / Topo / Satellite providers through a custom Leaflet control backed by `addTileLayer`.
+- **Theme Consolidation:** Retired the sprawling theme list in favor of 11 curated styles (Default Light/Dark, High-Contrast, Night Vision, Naval, Army Temperate/Arid, Air Force, Arcade, Monochrome, Retro90). CSS variables, settings UI, and assets were trimmed accordingly.
+
 ---
 
 ## Deployment Workflow

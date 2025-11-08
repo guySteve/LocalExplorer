@@ -15,15 +15,27 @@
 		loadIcon($currentTheme, formattedName);
 	}
 	
+	const ICON_THEME_FOLDERS = {
+		'default-light': 'cafe',
+		'default-dark': 'voyager',
+		'high-contrast': 'naval',
+		'night-vision': 'naval',
+		'army-temperate': 'evergreen',
+		'army-arid': 'mojave',
+		'air-force': 'highseas',
+		arcade: 'arcade80'
+	};
+	
 	async function loadIcon(theme, name) {
 		loading = true;
+		const assetTheme = ICON_THEME_FOLDERS[theme] || theme;
 		try {
 			// Try to import the theme-specific icon
-			const module = await import(`$lib/assets/themes/${theme}/${name}.svg`);
+			const module = await import(`$lib/assets/themes/${assetTheme}/${name}.svg`);
 			iconSrc = module.default;
 		} catch (err) {
 			// Fallback to naval theme if the icon doesn't exist
-			console.warn(`Missing icon: ${theme}/${name}.svg, falling back to naval`);
+			console.warn(`Missing icon: ${assetTheme}/${name}.svg, falling back to naval`);
 			try {
 				const fallback = await import(`$lib/assets/themes/naval/${name}.svg`);
 				iconSrc = fallback.default;

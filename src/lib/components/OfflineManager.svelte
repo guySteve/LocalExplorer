@@ -169,13 +169,17 @@
 		}
 	}
 	
-	function handleClose() {
-		dispatch('close');
-	}
+function handleClose() {
+	dispatch('close');
+}
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && handleClose()} />
+
 {#if visible}
-<div class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1">
 	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>⚡ Offline Manager</h3>
@@ -425,6 +429,7 @@
 		background: rgba(var(--card-rgb, 26, 43, 68), 0.2);
 		outline: none;
 		-webkit-appearance: none;
+		appearance: none;
 	}
 	
 	.slider::-webkit-slider-thumb {

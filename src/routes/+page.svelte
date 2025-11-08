@@ -1,7 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
 	import { currentPosition, currentResults, latestLocationLabel, categories, currentWeatherCondition } from '$lib/stores/appState';
-	import { widgetState } from '$lib/stores/widgetState';
 	import { searchGooglePlaces, performUnifiedSearch, calculateDistance, MILES_TO_METERS } from '$lib/utils/api';
 	import { 
 		searchLocalEvents, 
@@ -19,7 +18,6 @@
 	import UnifiedSearch from '$lib/components/UnifiedSearch.svelte';
 	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
 	import FilterGrid from '$lib/components/FilterGrid.svelte';
-	import SupportCTA from '$lib/components/SupportCTA.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import CollectionModal from '$lib/components/CollectionModal.svelte';
 	import SubMenuModal from '$lib/components/SubMenuModal.svelte';
@@ -29,6 +27,7 @@
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
 	import Compass from '$lib/components/Compass.svelte';
 	import GPSTracker from '$lib/components/GPSTracker.svelte';
+	import CollapsibleWidget from '$lib/components/CollapsibleWidget.svelte';
 	
 	// Modal visibility state
 	let showSettings = false;
@@ -357,30 +356,35 @@
 <main class="appShell">
 	<LocationDisplay locationDisplay={$latestLocationLabel || 'Determining your location…'} />
 	
-	{#if $widgetState.primaryActions}
-	<PrimaryActions 
-    on:openCollection={() => showMyCollection = true}
-    on:openCompass={() => showCompass = true}
-    on:openRecordTrack={() => showGPSTracker = true}
-	/>
-	{/if}
+	<CollapsibleWidget id="primaryActions" title="Mission Controls" defaultOpen={true}>
+		<svelte:fragment slot="header">
+			<span>Mission Controls</span>
+		</svelte:fragment>
+		<svelte:fragment slot="content">
+			<PrimaryActions 
+				on:openCollection={() => showMyCollection = true}
+				on:openCompass={() => showCompass = true}
+				on:openRecordTrack={() => showGPSTracker = true}
+			/>
+		</svelte:fragment>
+	</CollapsibleWidget>
 	
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
-	{#if $widgetState.weather}
-	<WeatherSimple 
-		on:openForecast={handleOpenForecast}
-		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Regional Bird Guide', items: categories['Regional Bird Guide'] || [] } })}
-	/>
-	{/if}
+	<CollapsibleWidget id="weather" title="Weather Intel" defaultOpen={true}>
+		<svelte:fragment slot="content">
+			<WeatherSimple 
+				on:openForecast={handleOpenForecast}
+				on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Regional Bird Guide', items: categories['Regional Bird Guide'] || [] } })}
+			/>
+		</svelte:fragment>
+	</CollapsibleWidget>
 	
-	{#if $widgetState.filterGrid}
-	<FilterGrid on:openSubMenu={handleOpenSubMenu} />
-	{/if}
-	
-	{#if $widgetState.supportCTA}
-	<SupportCTA on:openDonate={() => showDonate = true} />
-	{/if}
+	<CollapsibleWidget id="filterGrid" title="Categories" defaultOpen={false}>
+		<svelte:fragment slot="content">
+			<FilterGrid on:openSubMenu={handleOpenSubMenu} />
+		</svelte:fragment>
+	</CollapsibleWidget>
 </main>
 
 <!-- Hidden map div for Google Places service -->
@@ -390,6 +394,10 @@
 <SettingsModal 
 	visible={showSettings} 
 	on:close={() => showSettings = false} 
+	on:openDonate={() => {
+		showDonate = true;
+		showSettings = false;
+	}}
 />
 
 <CollectionModal 

@@ -30,6 +30,11 @@
   - Recreation (Campgrounds, Recreation Areas, National Parks via Recreation.gov & NPS)
   - **Bird Watching** (Recent Sightings, Rare Birds, Hotspots, Notable Species via eBird)
 
+### 🧱 Modular Dashboard
+- **Collapsible Widgets:** Primary Actions, Weather Intel, and Category Grid live inside a reusable accordion so users can declutter their home screen without losing context.
+- **Persistent Preferences:** Widget open/closed state is saved in `widgetCollapseState` and restored on every visit.
+- **Focused CTA:** The Support / Donate prompt now lives in Settings, keeping the main canvas strictly task-focused.
+
 ### 🐦 Bird Watching (eBird Integration)
 - Recent bird sightings near your location
 - Notable/rare species alerts
@@ -65,26 +70,27 @@
 - Navigation options
 
 ### 🧭 Navigation & Compass
-- Turn-by-turn compass navigation
-- Voice guidance (optional, with voice selection)
-- Real-time direction updates
-- Distance to destination
-- Device orientation sensors
-- Works offline once destination is set
+- **Navigation Dashboard:** Compass modal rebuilt to surface heading, bearing, distance, current/target coordinates, altitude (MSL), speed, GPS accuracy, and ETA in one glance.
+- **Night Mode:** Inverts the dashboard to dim red text on black for night-vision preservation.
+- **Compass Core:** Real-time device orientation, distance calculations, and voice guidance still powered by existing sensors and speech settings.
 
 ### 💾 Collections
 - Save favorite places
 - View saved locations
 - Organized collection management
 - Persistent storage (localStorage)
+- **Day Plan Map:** Plan tab now shows an interactive Leaflet map with numbered stops, route lines, and Street/Topo/Satellite toggles.
+
+### 🗺️ Tracking & Map Layers
+- **GPS Track Recorder Map:** While recording, a live Leaflet map plots your breadcrumb trail and can switch between Street, Topo, and Satellite tiles with a one-tap control.
+- **Leaflet Layer Toggle:** Shared `attachTileToggle` helper exposes the existing `addTileLayer` providers so pros can flip layers even offline once tiles are cached.
 
 ### 🎨 Themes
 Multiple visual themes:
-- Naval (default), Sunset, Neon, Arctic, High Seas
-- Aurora, Arcane, Solstice, Evergreen, Voyager
-- Monochrome, Playful, Retro 90, Groove 70
-- Mojave, Atomic 50, Psychedelic 60, Arcade 80
-- Y2K 00, Metro 10, Sushi, BBQ, Cafe
+- **Basic:** Default Light, Default Dark, High-Contrast (Sunlight), Night Vision
+- **Military:** Naval, Army (Temperate), Army (Arid), Air Force
+- **Fun:** Arcade, Monochrome, Retro90
+- Theme assets trimmed to match the curated set; settings menu lists only these 11.
 
 ### 📱 Mobile Optimizations
 - Touch-friendly buttons (44px minimum)

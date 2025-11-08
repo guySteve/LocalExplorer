@@ -5,30 +5,17 @@ import { browser } from '$app/environment';
 // Theme configuration
 export const DEFAULT_THEME = 'naval';
 export const THEMES = {
-  naval:    { '--background': '#f8f7f2', '--card': '#1a2b44', '--primary': '#c87941', '--secondary': '#334e68', '--text-dark': '#1a2b44', '--text-light': '#ffffff', '--accent': '#8a5a44', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  sunset:   { '--background': '#1b1c3d', '--card': '#ef476f', '--primary': '#ffd166', '--secondary': '#073b4c', '--text-dark': '#f7f5ff', '--text-light': '#fff8f0', '--accent': '#06d6a0', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  neon:     { '--background': '#080b1a', '--card': '#16213e', '--primary': '#ff4d6d', '--secondary': '#38d9a9', '--text-dark': '#f4f4ff', '--text-light': '#f8f9ff', '--accent': '#4cc9f0', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  arctic:   { '--background': '#e9f4fb', '--card': '#1b3b5f', '--primary': '#3d9be9', '--secondary': '#1f5673', '--text-dark': '#1b3b5f', '--text-light': '#ffffff', '--accent': '#8bc6ec', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  highseas: { '--background': '#050a1c', '--card': '#0f2447', '--primary': '#1dd3b0', '--secondary': '#16355f', '--text-dark': '#d7f3ff', '--text-light': '#f0fbff', '--accent': '#58a4ff', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  aurora:   { '--background': '#060b1b', '--card': '#102a43', '--primary': '#7f5af0', '--secondary': '#2cb67d', '--text-dark': '#e6f0ff', '--text-light': '#f7f2ff', '--accent': '#64dfdf', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  arcane:   { '--background': '#0b0d1f', '--card': '#2b1f4d', '--primary': '#cf6bff', '--secondary': '#5c3dc1', '--text-dark': '#f3eafa', '--text-light': '#fdf7ff', '--accent': '#f7c873', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  solstice: { '--background': '#fff7eb', '--card': '#255270', '--primary': '#fa824c', '--secondary': '#3f7cbf', '--text-dark': '#1f3346', '--text-light': '#ffffff', '--accent': '#ffd275', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  evergreen:{ '--background': '#f2f7ee', '--card': '#2d4a3a', '--primary': '#74b49b', '--secondary': '#3b6b52', '--text-dark': '#22352c', '--text-light': '#fdfdf9', '--accent': '#d9a441', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  voyager:  { '--background': '#0a0f2b', '--card': '#182952', '--primary': '#4cc9f0', '--secondary': '#4361ee', '--text-dark': '#dbe8ff', '--text-light': '#eef5ff', '--accent': '#fca311', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  monochrome:{ '--background': '#f6f6f6', '--card': '#1e1e1e', '--primary': '#4c4c4c', '--secondary': '#2f2f2f', '--text-dark': '#1e1e1e', '--text-light': '#ffffff', '--accent': '#888888', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  playful:  { '--background': '#fff3f8', '--card': '#ff7eb6', '--primary': '#ffd23f', '--secondary': '#5f6dec', '--text-dark': '#273043', '--text-light': '#ffffff', '--accent': '#ff6b6b', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  retro90:  { '--background': '#1a0b2a', '--card': '#ff5dad', '--primary': '#00f5d4', '--secondary': '#845ef7', '--text-dark': '#fef9ff', '--text-light': '#ffffff', '--accent': '#ffd23f', '--button-radius': '4px', '--font-primary': 'Press Start 2P, monospace', '--font-secondary': 'Press Start 2P, monospace' },
-  groove70: { '--background': '#fff2d7', '--card': '#d2691e', '--primary': '#ffb347', '--secondary': '#ef476f', '--text-dark': '#402218', '--text-light': '#fffaf2', '--accent': '#ffa69e', '--button-radius': '16px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  mojave:   { '--background': '#fff3e1', '--card': '#4a2c22', '--primary': '#f4a259', '--secondary': '#bc5f34', '--text-dark': '#3f2a1b', '--text-light': '#fffaf5', '--accent': '#f7c59f', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  atomic50: { '--background': '#e8f5f0', '--card': '#2b4c3e', '--primary': '#ff6b6b', '--secondary': '#4ecdc4', '--text-dark': '#1a3329', '--text-light': '#ffffff', '--accent': '#95e1d3', '--button-radius': '30px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
-  psychedelic60: { '--background': '#ffd93d', '--card': '#6bcf7f', '--primary': '#ff6bcf', '--secondary': '#6b5fff', '--text-dark': '#2b1b3d', '--text-light': '#ffffff', '--accent': '#ff9d3d', '--button-radius': '0px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Helvetica, Arial, sans-serif' },
-  arcade80: { '--background': '#0a0a0a', '--card': '#ff2079', '--primary': '#00ffff', '--secondary': '#ff00ff', '--text-dark': '#00ffff', '--text-light': '#ffffff', '--accent': '#ffff00', '--button-radius': '0px', '--font-primary': 'Press Start 2P, monospace', '--font-secondary': 'Roboto Mono, monospace' },
-  y2k00:    { '--background': '#e0f7fa', '--card': '#0288d1', '--primary': '#00acc1', '--secondary': '#0097a7', '--text-dark': '#01579b', '--text-light': '#ffffff', '--accent': '#b2ebf2', '--button-radius': '8px', '--font-primary': 'Tahoma, Arial, sans-serif', '--font-secondary': 'Arial, sans-serif' },
-  metro10:  { '--background': '#ffffff', '--card': '#2c3e50', '--primary': '#e74c3c', '--secondary': '#3498db', '--text-dark': '#2c3e50', '--text-light': '#ffffff', '--accent': '#95a5a6', '--button-radius': '0px', '--font-primary': 'Roboto, sans-serif', '--font-secondary': 'Roboto, sans-serif' },
-  sushi:    { '--background': '#f5f5f5', '--card': '#1a1a1a', '--primary': '#e91e63', '--secondary': '#4caf50', '--text-dark': '#1a1a1a', '--text-light': '#ffffff', '--accent': '#ffc107', '--button-radius': '4px', '--font-primary': 'Noto Sans JP, sans-serif', '--font-secondary': 'Noto Sans JP, sans-serif' },
-  bbq:      { '--background': '#3e2723', '--card': '#d32f2f', '--primary': '#ff6f00', '--secondary': '#5d4037', '--text-dark': '#fff3e0', '--text-light': '#ffffff', '--accent': '#ffab91', '--button-radius': '8px', '--font-primary': 'Rye, serif', '--font-secondary': 'Merriweather, serif' },
-  cafe:     { '--background': '#fff8e1', '--card': '#5d4037', '--primary': '#8d6e63', '--secondary': '#6d4c41', '--text-dark': '#3e2723', '--text-light': '#ffffff', '--accent': '#bcaaa4', '--button-radius': '12px', '--font-primary': 'Merriweather, serif', '--font-secondary': 'Merriweather, serif' },
-  broncos:  { '--background': '#002244', '--card': '#FB4F14', '--primary': '#FB4F14', '--secondary': '#002244', '--text-dark': '#FFFFFF', '--text-light': '#FFFFFF', '--accent': '#FFB612', '--button-radius': '8px', '--font-primary': 'Impact, sans-serif', '--font-secondary': 'Arial Black, sans-serif' }
+  'default-light': { '--background': '#fff8e1', '--card': '#5d4037', '--primary': '#8d6e63', '--secondary': '#6d4c41', '--text-dark': '#3e2723', '--text-light': '#ffffff', '--accent': '#bcaaa4', '--button-radius': '12px', '--font-primary': 'Merriweather, serif', '--font-secondary': 'Merriweather, serif' },
+  'default-dark': { '--background': '#0a0f2b', '--card': '#182952', '--primary': '#4cc9f0', '--secondary': '#4361ee', '--text-dark': '#dbe8ff', '--text-light': '#eef5ff', '--accent': '#fca311', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  'high-contrast': { '--background': '#fff176', '--card': '#000000', '--primary': '#000000', '--secondary': '#1b1b1b', '--text-dark': '#000000', '--text-light': '#fffde7', '--accent': '#000000', '--button-radius': '4px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  'night-vision': { '--background': '#020202', '--card': '#0b0b0b', '--primary': '#ff4d4d', '--secondary': '#b71c1c', '--text-dark': '#ff4d4d', '--text-light': '#ff4d4d', '--accent': '#ff4d4d', '--button-radius': '6px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  naval: { '--background': '#f8f7f2', '--card': '#1a2b44', '--primary': '#c87941', '--secondary': '#334e68', '--text-dark': '#1a2b44', '--text-light': '#ffffff', '--accent': '#8a5a44', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  'army-temperate': { '--background': '#f2f7ee', '--card': '#2d4a3a', '--primary': '#74b49b', '--secondary': '#3b6b52', '--text-dark': '#22352c', '--text-light': '#fdfdf9', '--accent': '#d9a441', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  'army-arid': { '--background': '#fff3e1', '--card': '#4a2c22', '--primary': '#f4a259', '--secondary': '#bc5f34', '--text-dark': '#3f2a1b', '--text-light': '#fffaf5', '--accent': '#f7c59f', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  'air-force': { '--background': '#050a1c', '--card': '#0f2447', '--primary': '#1dd3b0', '--secondary': '#16355f', '--text-dark': '#d7f3ff', '--text-light': '#f0fbff', '--accent': '#58a4ff', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  arcade: { '--background': '#0a0a0a', '--card': '#ff2079', '--primary': '#00ffff', '--secondary': '#ff00ff', '--text-dark': '#00ffff', '--text-light': '#ffffff', '--accent': '#ffff00', '--button-radius': '0px', '--font-primary': 'Press Start 2P, monospace', '--font-secondary': 'Roboto Mono, monospace' },
+  monochrome: { '--background': '#f6f6f6', '--card': '#1e1e1e', '--primary': '#4c4c4c', '--secondary': '#2f2f2f', '--text-dark': '#1e1e1e', '--text-light': '#ffffff', '--accent': '#888888', '--button-radius': '12px', '--font-primary': 'Poppins, sans-serif', '--font-secondary': 'Raleway, sans-serif' },
+  retro90: { '--background': '#1a0b2a', '--card': '#ff5dad', '--primary': '#00f5d4', '--secondary': '#845ef7', '--text-dark': '#fef9ff', '--text-light': '#ffffff', '--accent': '#ffd23f', '--button-radius': '4px', '--font-primary': 'Press Start 2P, monospace', '--font-secondary': 'Press Start 2P, monospace' }
 };
 
 // Reactive stores
@@ -171,12 +158,16 @@ if (browser) {
   
   // Then subscribe to changes
   currentTheme.subscribe(themeKey => {
-    const theme = THEMES[themeKey] || THEMES[DEFAULT_THEME];
+    const appliedKey = THEMES[themeKey] ? themeKey : DEFAULT_THEME;
+    const theme = THEMES[appliedKey];
     const root = document.documentElement;
     Object.entries(theme).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-    localStorage.setItem('currentTheme', themeKey);
+    if (document.body) {
+      document.body.dataset.theme = appliedKey;
+    }
+    localStorage.setItem('currentTheme', appliedKey);
   });
 
   showBirdSightings.subscribe(value => {

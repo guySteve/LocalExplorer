@@ -1,7 +1,11 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
+	import { browser } from '$app/environment';
+	import L from 'leaflet';
 	import { savedPlaces, dayPlan, customPOIs } from '$lib/stores/storage';
 	import { exportToGPX, exportToGeoJSON, exportToCSV, importFromGPX } from '$lib/utils/exportImport';
+	import { createMap, fitBounds } from '$lib/utils/leafletMap';
+	import { attachTileToggle } from '$lib/utils/tileLayerToggle';
 	
 	const dispatch = createEventDispatcher();
 	
@@ -13,6 +17,12 @@
 	
 	// Drag and drop state for day plan
 	let draggedIndex = null;
+	
+	const MAP_FALLBACK_CENTER = [37.0902, -95.7129];
+	let dayPlanMap;
+	let dayPlanMapContainer;
+	let dayPlanLayers = [];
+	let dayPlanTileToggle = null;
 	
 	// Custom POI creation
 	let showAddCustomPOI = false;
@@ -228,10 +238,88 @@
 			event.target.value = '';
 		}
 	}
+	
+	function initDayPlanMap() {
+		if (!browser || dayPlanMap || !dayPlanMapContainer) return;
+		dayPlanMap = createMap(dayPlanMapContainer, { center: MAP_FALLBACK_CENTER, zoom: 3 });
+		dayPlanTileToggle = attachTileToggle(dayPlanMap);
+		setTimeout(() => dayPlanMap?.invalidateSize(), 100);
+		renderDayPlanMap($dayPlan);
+	}
+	
+	function destroyDayPlanMap() {
+		if (dayPlanLayers.length && dayPlanMap) {
+			dayPlanLayers.forEach(layer => dayPlanMap.removeLayer(layer));
+		}
+		dayPlanLayers = [];
+		
+		if (dayPlanTileToggle) {
+			dayPlanTileToggle.remove();
+			dayPlanTileToggle = null;
+		}
+		
+		if (dayPlanMap) {
+			dayPlanMap.remove();
+			dayPlanMap = null;
+		}
+	}
+	
+	function renderDayPlanMap(planList = []) {
+		if (!dayPlanMap) return;
+		
+		if (dayPlanLayers.length) {
+			dayPlanLayers.forEach(layer => dayPlanMap.removeLayer(layer));
+			dayPlanLayers = [];
+		}
+		
+		const coords = [];
+		planList.forEach((place, index) => {
+			const loc = place?.location;
+			if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
+			const marker = L.circleMarker([loc.lat, loc.lng], {
+				radius: 8,
+				color: '#ffd166',
+				fillColor: '#ffd166',
+				fillOpacity: 0.9,
+				weight: 2
+			}).addTo(dayPlanMap);
+			marker.bindTooltip(`Stop ${index + 1}: ${place.name}`, { direction: 'top' });
+			dayPlanLayers.push(marker);
+			coords.push({ lat: loc.lat, lng: loc.lng });
+		});
+		
+		if (coords.length > 1) {
+			const line = L.polyline(coords.map(coord => [coord.lat, coord.lng]), {
+				color: '#06d6a0',
+				weight: 3,
+				dashArray: '8 6'
+			}).addTo(dayPlanMap);
+			dayPlanLayers.push(line);
+			fitBounds(dayPlanMap, coords);
+		} else if (coords.length === 1) {
+			dayPlanMap.setView([coords[0].lat, coords[0].lng], 13);
+		} else {
+			dayPlanMap.setView(MAP_FALLBACK_CENTER, 3);
+		}
+	}
+	
+	$: if (visible && activeTab === 'dayplan' && dayPlanMapContainer) {
+		initDayPlanMap();
+	} else if ((!visible || activeTab !== 'dayplan') && dayPlanMap) {
+		destroyDayPlanMap();
+	}
+	
+	$: if (dayPlanMap && activeTab === 'dayplan') {
+		renderDayPlanMap($dayPlan);
+	}
 </script>
 
+<svelte:window on:keydown={(e) => visible && e.key === 'Escape' && handleClose()} />
+
 {#if visible}
-<div id="myCollectionModal" class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1" on:keydown={(e) => e.key === 'Escape' && handleClose()}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div id="myCollectionModal" class="modal active" on:click={handleBackdropClick} role="dialog" aria-modal="true" tabindex="-1">
 	<div class="modal-content" role="document">
 		<div class="modal-header">
 			<h3>⛰️ Field Journal</h3>
@@ -378,40 +466,48 @@
 					{/if}
 				</div>
 			{:else}
-				<div class="results-list day-plan-list">
-					{#if $dayPlan.length > 0}
-						{#each $dayPlan as place, index (place.place_id)}
+				<div class="day-plan-layout">
+					<div class="day-plan-map" bind:this={dayPlanMapContainer}>
+						{#if $dayPlan.length === 0}
+							<div class="map-placeholder">Add stops to preview them on the map.</div>
+						{/if}
+					</div>
+					<div class="results-list day-plan-list">
+						{#if $dayPlan.length > 0}
+							{#each $dayPlan as place, index (place.place_id)}
 							<div 
 								class="result-item draggable"
+								role="listitem"
 								draggable="true"
 								on:dragstart={(e) => handleDragStart(e, index)}
 								on:dragover={handleDragOver}
 								on:drop={(e) => handleDrop(e, index)}
 								on:dragend={handleDragEnd}
 							>
-								<div class="drag-handle" aria-label="Drag to reorder">☰</div>
-								<div class="place-info">
-									<div class="stop-number">Stop {index + 1}</div>
-									<h4>{place.name}</h4>
-									<p>{place.formatted_address}</p>
+									<div class="drag-handle" aria-label="Drag to reorder">☰</div>
+									<div class="place-info">
+										<div class="stop-number">Stop {index + 1}</div>
+										<h4>{place.name}</h4>
+										<p>{place.formatted_address}</p>
+									</div>
+									<button 
+										class="remove-btn" 
+										on:click={() => removeFromDayPlan(place.place_id)}
+										aria-label="Remove from day plan"
+										title="Remove"
+									>
+										×
+									</button>
 								</div>
-								<button 
-									class="remove-btn" 
-									on:click={() => removeFromDayPlan(place.place_id)}
-									aria-label="Remove from day plan"
-									title="Remove"
-								>
-									×
-								</button>
-							</div>
-						{/each}
-						
-						<button class="start-trip-btn" on:click={startTrip}>
-							<span class="compass-icon" aria-hidden="true"></span> Start This Trip
-						</button>
-					{:else}
-						<div class="empty-state">Add places to your day plan to build your trip.</div>
-					{/if}
+							{/each}
+							
+							<button class="start-trip-btn" on:click={startTrip}>
+								<span class="compass-icon" aria-hidden="true"></span> Start This Trip
+							</button>
+						{:else}
+							<div class="empty-state">Add places to your day plan to build your trip.</div>
+						{/if}
+					</div>
 				</div>
 			{/if}
 		</div>
@@ -433,6 +529,37 @@
 		max-height: 100%;
 		overscroll-behavior: contain;
 		-webkit-overflow-scrolling: touch;
+	}
+	
+	.day-plan-layout {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	
+	.day-plan-map {
+		height: 280px;
+		border-radius: 12px;
+		overflow: hidden;
+		background: rgba(0, 0, 0, 0.2);
+		box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+		position: relative;
+	}
+	
+	.day-plan-map .map-placeholder {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.9rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.75);
+	}
+	
+	.day-plan-list {
+		max-height: calc(60vh - 320px);
 	}
 	
 	.tabs {
