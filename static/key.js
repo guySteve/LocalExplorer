@@ -56,7 +56,10 @@
 // ALL OTHER API KEYS ARE SECURED VIA NETLIFY FUNCTIONS
 // =============================================================================
 // The frontend will make requests to these serverless endpoints:
-window.USE_NETLIFY_FUNCTIONS = true;
-window.NETLIFY_FUNCTIONS_BASE = '/.netlify/functions';
-window.WEATHER_API_KEY = window.WEATHER_API_KEY || null;
+// Only execute in browser environment (not during SSR)
+if (typeof window !== 'undefined') {
+	window.USE_NETLIFY_FUNCTIONS = true;
+	window.NETLIFY_FUNCTIONS_BASE = '/.netlify/functions';
+	window.WEATHER_API_KEY = window.WEATHER_API_KEY || null;
+}
 
