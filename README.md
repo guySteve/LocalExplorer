@@ -2,38 +2,20 @@
 
 A Progressive Web App for discovering local attractions, events, and activities. Built with **SvelteKit** and designed for **adventure seekers** who want to explore their surroundings.
 
-## 🚀 Quick Deploy to Netlify
+## 🚀 Deployment
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/guySteve/LocalExplorer)
-
-**Ready to deploy?** 
-- ⚡ **Quick Start**: Click the button above, add API keys, and you're live!
-- For detailed setup, see deployment instructions below
+This app is now configured for **GitHub Pages** static hosting. Simply push to the `main` branch and GitHub Actions will automatically build and deploy your site!
 
 ## ✨ Features
 
 ### 🔍 Discovery & Search
-- **Smart Search** - Find places, attractions, and points of interest
-- **Category Filters** - Quick access to 11 categories with 50+ subcategories
+- **Smart Search** - Find places, attractions, and points of interest via Google Places
+- **Category Filters** - Quick access to various categories
 - **Distance-Based Results** - Everything sorted by proximity
 
-### 🐦 Bird Watching (eBird Integration)
-- Recent bird sightings near you
-- Notable/rare species alerts
-- Birding hotspot discovery
-- Detailed observation data
-- 📱 *Note: Submit observations via eBird website/app*
-
-### 🏞️ Outdoor & Recreation
-- **National Parks** (NPS API)
-- **Recreation Areas** (Recreation.gov)
-- **Campgrounds & Trails**
-- **Nature Reserves & Beaches**
-
-### 🎭 Events & Entertainment
-- **Local Events** (Ticketmaster) - Concerts, sports, comedy, festivals
+### 🍺 Breweries
 - **Breweries** (OpenBreweryDB) - Nearby breweries and brew pubs
-- **Night Life** - Bars, clubs, theaters, venues
+- Completely free - no API key required!
 
 ### 🌤️ Weather Features
 - Current conditions with historical comparison
@@ -43,12 +25,8 @@ A Progressive Web App for discovering local attractions, events, and activities.
 - **100% Free** - No API key required!
 
 ### 🗺️ Place Details & Reviews
-- **Google Places Reviews** - Smart filtering shows:
-  - Most recent review
-  - Worst review from last year (if critical)
-  - Balanced positive review
+- **Google Places Integration** - Place details, ratings, and reviews
 - Address, phone, website
-- What3Words precise location
 - Photos and ratings
 - Distance and directions
 
@@ -72,94 +50,60 @@ A Progressive Web App for discovering local attractions, events, and activities.
 
 ## 🔐 Security
 
-**All API keys are secured!** This app uses Netlify serverless functions to protect API keys from exposure. Keys are stored as environment variables and never exposed to the client.
+**Google Maps API Key:** This app requires a Google Maps API key for the maps functionality. The key can be configured as a GitHub Secret and will be injected during build time.
 
-## 🚀 Deployment
+## 🚀 Deployment to GitHub Pages
 
 ### Automatic Deployment (GitHub Actions)
 
-**Every push to `main` automatically deploys to Netlify!**
+**Every push to `main` automatically deploys to GitHub Pages!**
 
-The repository includes GitHub Actions workflow that:
+The repository includes a GitHub Actions workflow that:
 - ✅ Automatically builds on every push to `main`
-- ✅ Runs on pull requests for testing
-- ✅ Deploys directly to Netlify
-- ✅ Comments deployment status on PRs
+- ✅ Deploys to GitHub Pages
+- ✅ No external services required
 
 **Setup Steps:**
 1. **Fork or clone this repository**
-2. **Connect to Netlify:**
-   - Go to [Netlify](https://app.netlify.com/)
-   - Create new site from Git
-   - Select your repository
-   - Netlify will auto-detect settings from `netlify.toml`
 
-3. **Add Secrets to GitHub:**
+2. **Enable GitHub Pages:**
+   - Go to your repo → Settings → Pages
+   - Under "Build and deployment" → Source, select "GitHub Actions"
+
+3. **Add Google Maps API Key (Optional but Recommended):**
    - Go to your repo → Settings → Secrets and variables → Actions
-   - Add `NETLIFY_AUTH_TOKEN` (from Netlify: User Settings → Applications)
-   - Add `NETLIFY_SITE_ID` (from Netlify: Site Settings → General)
+   - Add `MAPS_API_KEY` with your Google Maps API key value
 
-4. **Add Environment Variables in Netlify Dashboard:**
-   ```bash
-   MAPS_API_KEY=your_google_maps_key
-   EBIRD_API_KEY=your_ebird_key          # Optional
-   TICKETMASTER_API_KEY=your_tm_key     # Optional
-   WHAT3WORDS_API_KEY=your_w3w_key      # Optional
-   RECREATION_GOV_API_KEY=your_rec_key   # Optional
-   NPS_API_KEY=your_nps_key              # Optional
-   ```
+4. **Push to main branch** - Automatic deployment starts!
 
-5. **Push to main branch** - Automatic deployment starts!
-
-### Manual Deployment (Alternative)
-
-If you prefer manual control:
-
-```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Login to Netlify
-netlify login
-
-# Initialize site
-netlify init
-
-# Deploy
-netlify deploy --prod
-```
+Your site will be available at: `https://<username>.github.io/<repository-name>/`
 
 ### Build Configuration
 
-The following are automatically configured via `netlify.toml`:
+The build is configured via `svelte.config.js`:
 - **Build command:** `npm run build`
 - **Publish directory:** `build`
-- **Functions directory:** `netlify/functions`
-- **Node version:** 18.x (via `.nvmrc` or package.json)
+- **Adapter:** `@sveltejs/adapter-static`
+- **Node version:** 18.x
 
 ### Verify Deployment
 
 After deployment, verify:
 1. ✅ Site loads correctly
-2. ✅ Search functionality works
-3. ✅ Weather displays (no API key needed)
-4. ✅ Maps load (requires MAPS_API_KEY)
-5. ✅ Optional features work if API keys provided
+2. ✅ Search functionality works (Google Places)
+3. ✅ Weather displays (no API key needed - uses Open-Meteo)
+4. ✅ Maps load (if MAPS_API_KEY is configured)
+5. ✅ Breweries search works (no API key needed)
 
 ## 🔑 API Keys
 
 | Service | Get Key | Free Tier | Required | Notes |
 |---------|---------|-----------|----------|-------|
-| Google Maps | [Get Key](https://developers.google.com/maps/documentation/javascript/get-api-key) | Yes | **Yes** | Required for maps and location |
-| **Weather** | **No Key Needed** | **100% Free** | **No** | **Works automatically!** |
-| eBird | [Get Key](https://ebird.org/api/keygen) | Yes (10K/day) | No | For bird watching features |
-| Ticketmaster | [Get Key](https://developer.ticketmaster.com/) | Yes | No | For event listings |
-| What3Words | [Get Key](https://accounts.what3words.com/register) | Yes | No | For precise location codes |
+| Google Maps | [Get Key](https://developers.google.com/maps/documentation/javascript/get-api-key) | Yes | **Recommended** | For maps, search, and location services |
+| **Weather** | **No Key Needed** | **100% Free** | **No** | **Uses Open-Meteo - works automatically!** |
 | OpenBreweryDB | **No Key Needed** | **Free** | **No** | **Works automatically!** |
-| Recreation.gov | [Get Key](https://ridb.recreation.gov/) | Yes | No | For recreation areas |
-| NPS | [Get Key](https://www.nps.gov/subjects/developer/get-started.htm) | Yes | No | For national parks |
 
-**Minimum Required:** Just Google Maps API key. Everything else works without keys or is optional!
+**Static Hosting Note:** This app now runs on GitHub Pages without serverless functions. Features that previously required API key proxying (eBird, Ticketmaster, What3Words, Foursquare, Recreation.gov, NPS) have been disabled in this version.
 
 ## 📖 Documentation
 
@@ -199,18 +143,17 @@ npm run preview
 ## 🏗️ Architecture
 
 ### Frontend
-- **SvelteKit** - Modern framework with SSR capabilities
+- **SvelteKit** - Modern framework with static site generation
 - **Svelte** - Reactive component framework
 - **Vite** - Lightning-fast build tool
 - Progressive Web App (PWA) with service worker
 - Responsive design with CSS Grid and Flexbox
 - Google Maps JavaScript API integration
 
-### Backend (Serverless)
-- Netlify Functions (AWS Lambda)
-- 7 serverless functions proxying API requests
-- Environment-based configuration
-- CORS enabled for cross-origin requests
+### Hosting
+- **GitHub Pages** - Static hosting
+- **No backend required** - All APIs are client-side or free public APIs
+- **Automatic deployment** via GitHub Actions
 
 ### File Structure
 
@@ -224,37 +167,31 @@ LocalExplorer/
 │   │   ├── stores/          # Svelte stores
 │   │   │   ├── appState.js  # App state
 │   │   │   └── storage.js   # Storage utilities
-│   │   └── components/      # Svelte components
+│   │   ├── components/      # Svelte components
+│   │   └── utils/           # API utilities
+│   │       ├── api.js       # Core API functions
+│   │       └── api-extended.js # Extended API functions
 │   └── app.html             # HTML template
-├── netlify/
-│   └── functions/           # Serverless functions
-│       ├── ticketmaster.js  # Events API
-│       ├── what3words.js    # Location API
-│       ├── foursquare.js    # Places API
-│       ├── ebird.js         # Bird data API
-│       ├── holiday.js       # Holiday API
-│       ├── recreation.js    # Recreation API
-│       └── nps.js           # National Parks API
 ├── static/                  # Static assets
 │   ├── css/                 # Stylesheets
 │   ├── icon-*.png           # PWA icons
-│   └── manifest.json        # PWA manifest
+│   ├── manifest.json        # PWA manifest
+│   └── .nojekyll            # GitHub Pages config
+├── .github/
+│   └── workflows/
+│       └── github-pages.yml # Deployment workflow
 ├── build/                   # Production build (generated)
-├── svelte.config.js         # SvelteKit config
-├── vite.config.js           # Vite config with PWA
-└── netlify.toml             # Netlify config
-├── manifest.json           # PWA manifest
-└── netlify.toml            # Netlify config
+├── svelte.config.js         # SvelteKit config (static adapter)
+└── vite.config.js           # Vite config with PWA
 ```
 
 ## 🛡️ Security Features
 
-✅ API keys stored as environment variables  
-✅ Serverless functions proxy all API requests  
-✅ CORS headers properly configured  
-✅ Input validation on all endpoints  
-✅ No sensitive data in client code  
+✅ Google Maps API key can be restricted to specific domains  
+✅ No backend API keys exposed (features requiring them are disabled)  
+✅ Uses free public APIs (Open-Meteo, OpenBreweryDB)  
 ✅ `.gitignore` configured to prevent accidental commits  
+✅ Static hosting with no server-side vulnerabilities  
 
 ## 🎨 Themes
 
@@ -298,40 +235,28 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 ## 🙏 Acknowledgments
 
-- Weather data from [Open-Meteo](https://open-meteo.com/)
-- Brewery data from [Open Brewery DB](https://www.openbrewerydb.org/)
-- Bird data from [eBird](https://ebird.org/)
-- Park data from [National Park Service](https://www.nps.gov/)
-- Recreation data from [Recreation.gov](https://www.recreation.gov/)
-- Events from [Ticketmaster](https://www.ticketmaster.com/)
-- Places from [Foursquare](https://foursquare.com/)
+- Weather data from [Open-Meteo](https://open-meteo.com/) - Free weather API
+- Brewery data from [Open Brewery DB](https://www.openbrewerydb.org/) - Free brewery database
+- Maps and places from [Google Maps Platform](https://developers.google.com/maps)
 
 ## 🔧 Recent Updates
 
 ### November 2025
-- ✅ **Collapsible Dashboard** - Primary Actions, Weather, and Category Grid now use a persistent accordion.
-- ✅ **Navigation Dashboard** - Compass modal surfaces heading, bearing, distance, coordinates, altitude, speed, accuracy, and ETA plus Night Mode.
-- ✅ **Leaflet Layer Toggle** - GPS Tracks and Day Plan maps now expose Street / Topo / Satellite providers with one-tap controls.
-- ✅ **Theme Refresh** - Consolidated the theme catalog to 11 curated options (Default Light/Dark, High-Contrast, Night Vision, Naval, Army Temperate/Arid, Air Force, Arcade, Monochrome, Retro90).
-
-### Earlier Updates
-All API functions have been updated with improved error handling:
-- ✅ **Proper error handling** for all API responses
-- ✅ **eBird, Ticketmaster, What3Words** and all other APIs now gracefully handle errors
-
-To verify API functionality, run:
-```bash
-node verify-api-functions.cjs
-```
+- ✅ **Migrated to GitHub Pages** - Now using static hosting instead of Netlify
+- ✅ **Simplified Architecture** - Removed serverless functions, using only free public APIs
+- ✅ **Collapsible Dashboard** - Primary Actions, Weather, and Category Grid use persistent accordion
+- ✅ **Navigation Dashboard** - Compass modal with heading, bearing, distance, coordinates, etc.
+- ✅ **Leaflet Layer Toggle** - GPS Tracks and Day Plan maps with Street/Topo/Satellite providers
+- ✅ **Theme Refresh** - 11 curated theme options
 
 ## 🐛 Issues
 
 If you encounter any issues, please:
-1. Review [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) for deployment prerequisites and environment variables.
-2. Check [CURRENT_FEATURES.md](CURRENT_FEATURES.md) for architecture notes and feature switches.
-3. Review Netlify function logs for API errors.
-4. Run `node verify-api-functions.cjs` to verify API function integrity.
-5. Open an issue on GitHub with details if the problem persists.
+1. Check that GitHub Pages is enabled in your repository settings
+2. Verify that the GitHub Actions workflow completed successfully
+3. Ensure your Google Maps API key is properly configured (if using maps)
+4. Check the browser console for any JavaScript errors
+5. Open an issue on GitHub with details if the problem persists
 
 ## 📞 Support
 
@@ -343,4 +268,10 @@ If you encounter any issues, please:
 
 **Built with ❤️ for adventure seekers**
 
-Deploy your own instance today and start exploring! 🗺️✨
+Fork this repository and start exploring! 🗺️✨
+
+### Quick Start
+1. Fork this repository
+2. Enable GitHub Pages in Settings → Pages → Source: GitHub Actions
+3. (Optional) Add `MAPS_API_KEY` secret for Google Maps
+4. Push to main branch - your site will deploy automatically!

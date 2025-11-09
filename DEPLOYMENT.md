@@ -1,69 +1,47 @@
 # 🚀 Deployment Guide - LocalExplorer
 
-Complete guide for deploying LocalExplorer to production with automatic CI/CD.
+Complete guide for deploying LocalExplorer to GitHub Pages with automatic CI/CD.
 
 ---
 
 ## Overview
 
-LocalExplorer uses **Netlify** for hosting with **GitHub Actions** for automatic deployment. Every push to `main` triggers a build and deployment automatically.
+LocalExplorer uses **GitHub Pages** for static hosting with **GitHub Actions** for automatic deployment. Every push to `main` triggers a build and deployment automatically.
 
 ### Architecture
-- **Frontend:** SvelteKit PWA
-- **Backend:** Netlify Serverless Functions (7 functions)
-- **Hosting:** Netlify CDN
+- **Frontend:** SvelteKit PWA (static build)
+- **Hosting:** GitHub Pages
 - **CI/CD:** GitHub Actions
 - **Node Version:** 18.x
+- **No backend required** - Uses free public APIs
 
 ---
 
-## Quick Start (5 Minutes)
+## Quick Start (2 Minutes)
 
-### 1. Fork/Clone Repository
-```bash
-git clone https://github.com/guySteve/LocalExplorer.git
-cd LocalExplorer
-```
+### 1. Fork Repository
+Fork this repository to your GitHub account using the "Fork" button on GitHub.
 
-### 2. Create Netlify Site
-1. Go to [https://app.netlify.com/](https://app.netlify.com/)
-2. Click "Add new site" → "Import an existing project"
-3. Connect to your GitHub repository
-4. Netlify auto-detects settings from `netlify.toml` ✅
-5. Click "Deploy site"
+### 2. Enable GitHub Pages
+1. Go to your forked repository
+2. Click Settings → Pages
+3. Under "Build and deployment" → Source, select **"GitHub Actions"**
+4. Save the changes
 
-### 3. Add Environment Variables in Netlify
-Go to Site Settings → Environment variables → Add a variable
+### 3. Add Google Maps API Key (Optional)
+If you want maps functionality:
+1. Go to Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name: `MAPS_API_KEY`
+4. Value: Your Google Maps API key
+5. Click "Add secret"
 
-**Required:**
-```
-MAPS_API_KEY = your_google_maps_api_key
-```
+### 4. Deploy
+The app will automatically deploy when you:
+- Push to the `main` branch
+- Manually trigger the workflow from Actions tab
 
-**Optional (features gracefully degrade without these):**
-```
-EBIRD_API_KEY = your_ebird_api_key
-TICKETMASTER_API_KEY = your_ticketmaster_key
-WHAT3WORDS_API_KEY = your_what3words_key
-RECREATION_GOV_API_KEY = your_recreation_gov_key
-NPS_API_KEY = your_nps_api_key
-```
-
-### 4. Configure GitHub Actions
-Go to your repo → Settings → Secrets and variables → Actions → New repository secret
-
-Add these two secrets:
-```
-NETLIFY_AUTH_TOKEN = <from Netlify User Settings → Applications>
-NETLIFY_SITE_ID = <from Netlify Site Settings → General>
-```
-
-### 5. Push to Main
-```bash
-git push origin main
-```
-
-✨ **Automatic deployment begins!** Watch the progress in GitHub Actions tab.
+✨ **That's it!** Your site will be available at: `https://<your-username>.github.io/<repository-name>/`
 
 ---
 
@@ -73,43 +51,27 @@ git push origin main
 
 **Accounts Needed:**
 - GitHub account (free)
-- Netlify account (free tier sufficient)
-- Google Cloud account (for Maps API)
+- Google Cloud account (optional, for Maps API)
 
-**Optional API Keys:**
-- eBird API (free, 10k requests/day)
-- Ticketmaster API (free tier available)
-- What3Words API (free tier available)
-- Recreation.gov API (free)
-- National Park Service API (free)
+**No other accounts or API keys required!** The app uses free public APIs for weather and brewery data.
 
-### Getting API Keys
+### Getting Google Maps API Key (Optional but Recommended)
 
-#### Google Maps API Key (Required)
+#### Google Maps API Key
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing
 3. Enable these APIs:
    - Maps JavaScript API
    - Places API
-   - Directions API
    - Geocoding API
 4. Create credentials → API Key
-5. Restrict the key:
+5. Restrict the key (recommended):
    - Application restrictions: HTTP referrers
-   - Add your domain: `*.netlify.app/*`, `your-domain.com/*`
-   - API restrictions: Select the 4 APIs above
+   - Add your domain: `https://<your-username>.github.io/*`
+   - API restrictions: Select the 3 APIs above
+6. Add the key as a GitHub secret (see Quick Start step 3)
 
 **Cost:** Free tier includes $200 credit/month (plenty for most uses)
-
-#### eBird API Key (Optional)
-1. Go to [https://ebird.org/api/keygen](https://ebird.org/api/keygen)
-2. Fill out the form
-3. Receive key instantly via email
-
-**Cost:** Free, 10,000 requests/day
-
-#### Other API Keys
-See `README.md` for links to all API key registration pages.
 
 ---
 
@@ -117,145 +79,106 @@ See `README.md` for links to all API key registration pages.
 
 ### How It Works
 
-The `.github/workflows/netlify-deploy.yml` file triggers on:
+The `.github/workflows/github-pages.yml` file triggers on:
 - Every push to `main` branch
-- Every pull request (preview deployments)
 - Manual trigger via GitHub Actions UI
 
 **Workflow Steps:**
 1. Checkout code from repository
 2. Setup Node.js 18 environment
 3. Install dependencies with `npm ci`
-4. Deploy to Netlify using `nwtgck/actions-netlify@v2.1`
-5. Add deployment comment to PRs
-
-### Configuration
-
-The workflow uses these inputs:
-```yaml
-publish-dir: '.'              # Root directory (Netlify.toml handles rest)
-production-branch: main        # Deploy to production on main
-github-token: ${{ secrets.GITHUB_TOKEN }}  # Auto-provided by GitHub
-```
-
-And these secrets:
-```yaml
-NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-```
-
-### Getting Netlify Credentials
-
-**NETLIFY_AUTH_TOKEN:**
-1. Login to Netlify
-2. Click your avatar → User settings
-3. Applications → Personal access tokens
-4. New access token → Copy the token
-
-**NETLIFY_SITE_ID:**
-1. Go to your site in Netlify
-2. Site settings → General
-3. Site details → API ID
-4. Copy the Site ID
+4. Build the static site with `npm run build`
+5. Upload build artifact
+6. Deploy to GitHub Pages
 
 ### Viewing Deployment Status
 
 **In GitHub:**
-- Actions tab shows workflow runs
-- Each commit shows deployment status
-- PRs show deployment preview link in comments
+- Go to the Actions tab to see all workflow runs
+- Each commit shows a deployment status with a green checkmark when complete
+- Click on a workflow run to see detailed build logs
+- The deployment URL is shown in the deploy step
 
-**In Netlify:**
-- Deploys tab shows all deployments
-- Click any deploy to see logs
-- Real-time log streaming during build
+**Accessing Your Site:**
+Your site will be available at:
+```
+https://<your-username>.github.io/<repository-name>/
+```
 
 ---
 
-## Manual Deployment (Alternative)
+## Local Development
 
-If you prefer manual control or need to deploy from local machine:
-
-### Install Netlify CLI
+### Setup
 ```bash
-npm install -g netlify-cli
+# Clone the repository
+git clone https://github.com/<your-username>/LocalExplorer.git
+cd LocalExplorer
+
+# Install dependencies
+npm install
 ```
 
-### Login to Netlify
+### Development Server
 ```bash
-netlify login
+npm run dev
 ```
-This opens a browser for authentication.
+Opens at `http://localhost:5173` with hot module replacement.
 
-### Initialize Site (First Time)
+### Build for Production
 ```bash
-netlify init
-```
-Follow prompts to connect to your Netlify site.
-
-### Deploy to Production
-```bash
-# Full deployment
-netlify deploy --prod
-
-# Or use npm script
-npm run deploy
-
-# Preview deployment (test before production)
-netlify deploy
-```
-
-### Deploy Specific Build
-```bash
-# Build locally first
 npm run build
-
-# Deploy the build folder
-netlify deploy --prod --dir=build
 ```
+Builds static files to the `build/` directory.
+
+### Preview Production Build
+```bash
+npm run preview
+```
+Previews the production build locally at `http://localhost:4173`.
 
 ---
 
 ## Build Configuration
 
-### netlify.toml
+### svelte.config.js
 
-This file at the root configures everything:
+The static adapter configuration:
 
-```toml
-[build]
-  command = "npm run build"
-  publish = "build"
-  functions = "netlify/functions"
+```javascript
+import adapter from '@sveltejs/adapter-static';
+
+export default {
+  kit: {
+    adapter: adapter({
+      pages: 'build',
+      assets: 'build',
+      fallback: 'index.html',
+      precompress: false,
+      strict: true
+    })
+  }
+};
 ```
 
 **What it does:**
-- `command`: Runs SvelteKit build + env injection
-- `publish`: Serves the `build/` directory
-- `functions`: Deploys serverless functions from `netlify/functions/`
+- `pages`: Output directory for HTML files
+- `assets`: Output directory for static assets
+- `fallback`: SPA fallback for client-side routing
+- `strict`: Ensures all routes are prerendered
 
-### Build Command Explained
+### Build Command
 
-The `npm run build` script in `package.json`:
+The `npm run build` script simply runs:
 ```json
-"build": "vite build && node netlify/inject-env.js"
+"build": "vite build"
 ```
 
-**Steps:**
-1. `vite build` - SvelteKit builds the app
-2. `node netlify/inject-env.js` - Injects Google Maps API key
-
-### Environment Variable Injection
-
-The `netlify/inject-env.js` script:
-- Reads `MAPS_API_KEY` from Netlify environment
-- Injects it into `build/key.js`
-- This keeps the key out of source control
-- Netlify functions handle all other API keys
+This uses Vite to build the SvelteKit app with the static adapter, generating a fully static site in the `build/` directory.
 
 ---
 
-## Netlify Functions
+## Features and APIs
 
 7 serverless functions proxy API requests:
 
