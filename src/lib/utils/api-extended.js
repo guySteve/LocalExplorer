@@ -1,5 +1,5 @@
-// Extended API utilities for LocalExplorer - Weather, eBird, Breweries, What3Words, etc.
-import { NETLIFY_FUNCTIONS_BASE, calculateDistance, calculateDistanceMiles, MILES_TO_METERS } from './api.js';
+// Extended API utilities for LocalExplorer - Weather, Breweries (free APIs only for static hosting)
+import { calculateDistance, calculateDistanceMiles, MILES_TO_METERS } from './api.js';
 
 // ===== CACHING =====
 const weatherCache = new Map();
@@ -82,16 +82,9 @@ async function safeParseJson(response) {
 }
 
 async function fetchGoogleWeather(lat, lng, days, units, language) {
-  const params = new URLSearchParams({
-    lat: lat.toString(),
-    lng: lng.toString(),
-    days: days.toString(),
-    units,
-    language
-  });
-
-  const functionsBase = NETLIFY_FUNCTIONS_BASE || '/.netlify/functions';
-  const response = await fetch(`${functionsBase}/weather?${params}`);
+  // Google Weather API disabled for static GitHub Pages hosting
+  // Always use Open-Meteo fallback instead
+  throw new Error('Google Weather API not available in static deployment');
 
   if (!response.ok) {
     const info = await safeParseJson(response);
@@ -294,73 +287,74 @@ export function weatherCodeToSummary(code) {
   return map[code] || { icon: '🌤️', text: 'Mixed' };
 }
 
-// ===== eBIRD INTEGRATION =====
+// ===== eBIRD INTEGRATION (DISABLED for static hosting) =====
+// All eBird functions disabled - they require backend API proxy
 
 export async function fetchRecentBirdSightings(lat, lng) {
-  try {
-    const cacheKey = generateLocationCacheKey(lat, lng, 'birds');
-    const cached = birdFactCache.get(cacheKey);
-    
-    if (isCacheValid(cached, BIRD_FACT_CACHE_MS)) {
-      return cached.value;
-    }
-    
-    const params = new URLSearchParams({
-      lat: lat.toString(),
-      lng: lng.toString(),
-      dist: '10',
-      maxResults: '5'
-    });
-    
-    const url = `${NETLIFY_FUNCTIONS_BASE}/ebird?${params}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      if (response.status === 500) {
-        console.warn('eBird API key not configured');
-        return 'configure-key';
-      }
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    if (data && data.length > 0) {
-      const randomBird = data[Math.floor(Math.random() * data.length)];
-      const birdName = randomBird.comName;
-      const count = randomBird.howMany || 1;
-      const date = new Date(randomBird.obsDt);
-      const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-      const timeStr = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
-      
-      let distanceStr = '';
-      if (randomBird.lat && randomBird.lng) {
-        const distance = calculateDistanceMiles(lat, lng, randomBird.lat, randomBird.lng);
-        distanceStr = distance < 0.1 ? 
-          ` - ${(distance * 5280).toFixed(0)}ft away` : 
-          ` - ${distance.toFixed(1)} mi away`;
-      }
-      
-      const result = `🐦 ${birdName} (${count}) spotted ${timeStr}${distanceStr}`;
-      
-      // Cache result
-      birdFactCache.set(cacheKey, {
-        value: result,
-        timestamp: Date.now()
-      });
-      
-      return result;
-    }
-    
-    return null;
-  } catch (err) {
-    console.error('Failed to fetch bird sightings:', err);
-    return null;
-  }
+  return null; // eBird disabled for static deployment
 }
 
-// Search bird sightings for list view
 export async function searchBirdSightings(lat, lng, type = 'recent') {
+  return []; // eBird disabled for static deployment
+}
+
+export async function fetchBirdHotspots(lat, lng, distance = 50) {
+  return []; // eBird disabled for static deployment
+}
+
+export async function fetchRegionSpecies(regionCode) {
+  return []; // eBird disabled for static deployment
+}
+
+export async function fetchHotspotDetails(hotspotCode) {
+  return { info: null, species: [] }; // eBird disabled for static deployment
+}
+
+export async function findNearestSpecies(lat, lng, speciesCode, maxResults = 10) {
+  return []; // eBird disabled for static deployment
+}
+
+export async function fetchBirdTaxonomy(speciesCode = null) {
+  return []; // eBird disabled for static deployment
+}
+
+export async function fetchTopContributors(regionCode) {
+  return []; // eBird disabled for static deployment
+}
+
+// === What3Words API (DISABLED for static hosting) ===
+
+export async function fetchWhat3Words(lat, lng) {
+  return null; // What3Words disabled for static deployment
+}
+
+// === Ticketmaster, NPS, Recreation, Foursquare APIs (DISABLED) ===
+
+export async function searchLocalEvents(lat, lng, classification = '') {
+  return []; // Ticketmaster disabled for static deployment
+}
+
+export async function searchNationalParks(lat, lng, radius = 100) {
+  return []; // NPS API disabled for static deployment
+}
+
+export async function searchRecreationAreas(lat, lng, radius = 50) {
+  return []; // Recreation.gov disabled for static deployment
+}
+
+export async function searchFoursquareNearby(lat, lng, query = '', limit = 20) {
+  return []; // Foursquare disabled for static deployment
+}
+
+export async function getFoursquareDetails(fsqId) {
+  return null; // Foursquare disabled for static deployment
+}
+
+// ========== ORIGINAL DISABLED IMPLEMENTATIONS BELOW ==========
+// (Kept for reference but not exported)
+
+// DISABLED - Search bird sightings for list view
+async function searchBirdSightings_DISABLED(lat, lng, type = 'recent') {
   try {
     // Determine endpoint based on type
     let endpoint = 'recent';
@@ -451,8 +445,8 @@ export async function searchBirdSightings(lat, lng, type = 'recent') {
   }
 }
 
-// Get nearby bird hotspots
-export async function fetchBirdHotspots(lat, lng, distance = 50) {
+// DISABLED - Get nearby bird hotspots
+async function fetchBirdHotspots_DISABLED(lat, lng, distance = 50) {
   try {
     const params = new URLSearchParams({
       endpoint: 'hotspots',
@@ -501,8 +495,8 @@ export async function fetchBirdHotspots(lat, lng, distance = 50) {
   }
 }
 
-// Get species list for a region
-export async function fetchRegionSpecies(regionCode) {
+// DISABLED - Get species list for a region
+async function fetchRegionSpecies_DISABLED(regionCode) {
   try {
     const params = new URLSearchParams({
       endpoint: 'species-list',
@@ -525,8 +519,8 @@ export async function fetchRegionSpecies(regionCode) {
   }
 }
 
-// Get hotspot details and species
-export async function fetchHotspotDetails(hotspotCode) {
+// DISABLED - Get hotspot details and species
+async function fetchHotspotDetails_DISABLED(hotspotCode) {
   try {
     const [info, species] = await Promise.all([
       fetch(`${NETLIFY_FUNCTIONS_BASE}/ebird?endpoint=hotspot-info&hotspotCode=${hotspotCode}`),
@@ -546,8 +540,8 @@ export async function fetchHotspotDetails(hotspotCode) {
   }
 }
 
-// Find nearest observations of a specific species
-export async function findNearestSpecies(lat, lng, speciesCode, maxResults = 10) {
+// DISABLED - Find nearest observations of a specific species
+async function findNearestSpecies_DISABLED(lat, lng, speciesCode, maxResults = 10) {
   try {
     const params = new URLSearchParams({
       endpoint: 'nearest-species',
@@ -600,8 +594,8 @@ export async function findNearestSpecies(lat, lng, speciesCode, maxResults = 10)
   }
 }
 
-// Get eBird taxonomy data
-export async function fetchBirdTaxonomy(speciesCode = null) {
+// DISABLED - Get eBird taxonomy data
+async function fetchBirdTaxonomy_DISABLED(speciesCode = null) {
   try {
     const params = new URLSearchParams({
       endpoint: 'taxonomy'
@@ -626,8 +620,8 @@ export async function fetchBirdTaxonomy(speciesCode = null) {
   }
 }
 
-// Get top 100 contributors for a region
-export async function fetchTopContributors(regionCode) {
+// DISABLED - Get top 100 contributors for a region
+async function fetchTopContributors_DISABLED(regionCode) {
   try {
     const params = new URLSearchParams({
       endpoint: 'top100',
@@ -709,33 +703,13 @@ export async function searchBreweries(lat, lng, query = '') {
   }
 }
 
-// ===== WHAT3WORDS =====
+// ===== WHAT3WORDS (DISABLED) =====
+// What3Words function moved to stub implementation above
 
-export async function fetchWhat3Words(lat, lng) {
-  try {
-    const url = `${NETLIFY_FUNCTIONS_BASE}/what3words?lat=${lat}&lng=${lng}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    if (data.words) {
-      return `///${data.words}`;
-    }
-    
-    return null;
-  } catch (err) {
-    console.error('Failed to fetch What3Words:', err);
-    return null;
-  }
-}
+// ===== LOCAL EVENTS (Ticketmaster - DISABLED) =====
+// Ticketmaster function moved to stub implementation above
 
-// ===== LOCAL EVENTS (Ticketmaster) =====
-
-export async function searchLocalEvents(lat, lng, classification = '') {
+async function searchLocalEvents_DISABLED(lat, lng, classification = '') {
   try {
     // Get the current date and calculate date range for next 30 days only
     const today = new Date();
@@ -814,9 +788,10 @@ export async function searchLocalEvents(lat, lng, classification = '') {
   }
 }
 
-// ===== NATIONAL PARKS (NPS) =====
+// ===== NATIONAL PARKS (NPS - DISABLED) =====
+// NPS function moved to stub implementation above
 
-export async function searchNationalParks(lat, lng, radius = 100) {
+async function searchNationalParks_DISABLED(lat, lng, radius = 100) {
   try {
     const params = new URLSearchParams({
       endpoint: 'parks',
@@ -865,9 +840,10 @@ export async function searchNationalParks(lat, lng, radius = 100) {
   }
 }
 
-// ===== RECREATION AREAS (Recreation.gov) =====
+// ===== RECREATION AREAS (Recreation.gov - DISABLED) =====
+// Recreation.gov function moved to stub implementation above
 
-export async function searchRecreationAreas(lat, lng, radius = 50) {
+async function searchRecreationAreas_DISABLED(lat, lng, radius = 50) {
   try {
     const params = new URLSearchParams({
       latitude: lat.toString(),
@@ -907,9 +883,10 @@ export async function searchRecreationAreas(lat, lng, radius = 50) {
   }
 }
 
-// ===== FOURSQUARE =====
+// ===== FOURSQUARE (DISABLED) =====
+// Foursquare functions moved to stub implementations above
 
-export async function searchFoursquareNearby(lat, lng, query = '', limit = 20) {
+async function searchFoursquareNearby_DISABLED(lat, lng, query = '', limit = 20) {
   try {
     const params = new URLSearchParams({
       endpoint: 'places/search',
@@ -953,7 +930,7 @@ export async function searchFoursquareNearby(lat, lng, query = '', limit = 20) {
   }
 }
 
-export async function getFoursquareDetails(fsqId) {
+async function getFoursquareDetails_DISABLED(fsqId) {
   if (!fsqId) return null;
   
   try {
