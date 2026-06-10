@@ -1,13 +1,13 @@
+<script>
     import { createEventDispatcher } from 'svelte';
     import { Search, Loader2, Map as MapIcon, Info, Droplets, TreePine, Sparkles, ChevronDown, ChevronUp, Compass } from 'lucide-svelte';
     import { slide, fade } from 'svelte/transition';
-    import { performUnifiedSearch } from '$lib/utils/api';
+    import { currentPosition, currentAddress } from '$lib/stores/appState';
 
     const dispatch = createEventDispatcher();
 
     let prompt = '';
     let isPlanning = false;
-    let isSearchingPlaces = false;
     let error = null;
     let rawStream = '';
     let reasoningTrace = '';
@@ -26,7 +26,7 @@
     }
 
     async function handleAIPlan() {
-        if (!prompt.trim() || isPlanning || isSearchingPlaces) return;
+        if (!prompt.trim() || isPlanning) return;
         
         isPlanning = true;
         error = null;
@@ -36,10 +36,14 @@
         showReasoning = true;
 
         try {
+            // Include location context if available
+            const locationContext = $currentAddress || ($currentPosition ? `${$currentPosition.lat}, ${$currentPosition.lng}` : 'Unknown');
+            const enhancedPrompt = `User's current location context: ${locationContext}\nUser's request: ${prompt}`;
+            
             const response = await fetch('/api/eco-route', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt })
+                body: JSON.stringify({ prompt: enhancedPrompt })
             });
 
             if (!response.ok) {
@@ -81,25 +85,6 @@
             isPlanning = false;
         }
     }
-
-    async function handleNormalSearch() {
-        if (!prompt.trim() || isPlanning || isSearchingPlaces) return;
-        
-        isSearchingPlaces = true;
-        error = null;
-        
-        try {
-            const results = await performUnifiedSearch(prompt);
-            dispatch('searchResults', { 
-                query: prompt,
-                results: results 
-            });
-        } catch (err) {
-            error = err.message || 'Search failed. Please try again.';
-        } finally {
-            isSearchingPlaces = false;
-        }
-    }
 </script>
 
 <div class="eco-route-container">
@@ -112,22 +97,15 @@
         </div>
         <p class="subtitle">Tell us what kind of adventure you want. Our intelligent planner considers shade, trails, and local history to craft the perfect itinerary.</p>
         
-        <form class="search-form" on:submit|preventDefault={handleNormalSearch}>
+        <form class="search-form" on:submit|preventDefault={handleAIPlan}>
             <input 
                 type="text" 
                 bind:value={prompt} 
                 placeholder="Find a place or describe an adventure..."
-                disabled={isPlanning || isSearchingPlaces}
+                disabled={isPlanning}
             />
             <div class="action-buttons">
-                <button type="submit" class="btn-search" disabled={isPlanning || isSearchingPlaces || !prompt.trim()} title="Search Places">
-                    {#if isSearchingPlaces}
-                        <Loader2 class="spin" size={20} />
-                    {:else}
-                        <Search size={20} />
-                    {/if}
-                </button>
-                <button type="button" class="btn-ai" on:click={handleAIPlan} disabled={isPlanning || isSearchingPlaces || !prompt.trim()} title="Plan AI Route">
+                <button type="submit" class="btn-ai" disabled={isPlanning || !prompt.trim()} title="Plan Route">
                     {#if isPlanning}
                         <Loader2 class="spin" size={20} />
                     {:else}
@@ -284,23 +262,11 @@
         font-size: 1rem;
     }
 
-    .btn-search {
-        background: rgba(42, 40, 37, 0.05);
-        color: var(--text-dark);
-        border: 1px solid rgba(42, 40, 37, 0.1) !important;
-        padding: 0.85rem 1.5rem;
-        flex: 1;
-    }
-
-    .btn-search:hover:not(:disabled) {
-        background: rgba(42, 40, 37, 0.1);
-    }
-
     .btn-ai {
         background: var(--primary);
         color: var(--text-light);
         padding: 0.85rem 1.5rem;
-        flex: 2;
+        width: 100%;
         gap: 0.5rem;
         box-shadow: 0 4px 12px rgba(212, 93, 59, 0.25);
     }
