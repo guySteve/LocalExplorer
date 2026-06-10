@@ -23,7 +23,6 @@
 	import CollectionModal from '$lib/components/CollectionModal.svelte';
 	import SubMenuModal from '$lib/components/SubMenuModal.svelte';
 	import ResultsModal from '$lib/components/ResultsModal.svelte';
-	import ResultsModal from '$lib/components/ResultsModal.svelte';
 	import DonateModal from '$lib/components/DonateModal.svelte';
 	import ForecastModal from '$lib/components/ForecastModal.svelte';
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
