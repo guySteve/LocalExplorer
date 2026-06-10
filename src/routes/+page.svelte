@@ -15,7 +15,6 @@
 	import LocationDisplay from '$lib/components/LocationDisplay.svelte';
 	import EcoRouteChat from '$lib/components/EcoRouteChat.svelte';
 	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
-	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import BottomNav from '$lib/components/BottomNav.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import CollectionModal from '$lib/components/CollectionModal.svelte';
@@ -371,12 +370,6 @@
 		}} 
 		on:searchResults={handleSearchResults}
 	/>
-	
-	<!-- Categories Grid (flattened) -->
-	<div class="categories-section">
-		<h4 class="section-title">Explore Categories</h4>
-		<FilterGrid on:openSubMenu={handleOpenSubMenu} />
-	</div>
 </main>
 
 <BottomNav 
@@ -472,19 +465,5 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-	}
-
-
-
-	.categories-section {
-		margin-top: 0.5rem;
-	}
-
-	.section-title {
-		margin: 0 0 0.75rem 0;
-		color: var(--text-dark);
-		font-family: var(--font-primary);
-		font-size: 1.1rem;
-		padding-left: 0.25rem;
 	}
 </style>
