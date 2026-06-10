@@ -156,83 +156,57 @@
 
 <style>
 	.filters {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-		gap: 0.8rem;
+		display: flex;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		gap: 0.5rem;
 		width: 100%;
-		margin: 0;
+		padding-bottom: 0.5rem; /* For scrollbar */
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none; /* Firefox */
+	}
+
+	.filters::-webkit-scrollbar {
+		display: none; /* Safari and Chrome */
 	}
 	
 	.filter-wrapper {
 		position: relative;
-		display: flex;
-		flex-direction: column;
-		gap: 0;
+		flex: 0 0 auto;
 	}
 	
 	.filter-btn {
-		background: linear-gradient(135deg, var(--card) 0%, var(--secondary) 100%);
-		color: var(--text-light);
-		border: none;
-		border-radius: var(--button-radius, 12px);
-		padding: 1.1rem 0.8rem;
-		font-size: 0.95rem;
-		font-weight: 700;
-		font-family: var(--font-primary);
-		text-transform: uppercase;
-		letter-spacing: 0.05rem;
+		background: rgba(42, 40, 37, 0.05);
+		color: var(--text-dark);
+		border: 1px solid rgba(42, 40, 37, 0.1);
+		border-radius: 20px; /* Pill shape */
+		padding: 0.5rem 1rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		font-family: var(--font-secondary);
+		text-transform: capitalize;
 		cursor: pointer;
-		transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-		position: relative;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.4rem;
-		width: 100%;
-	}
-	
-	.filter-btn::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: -100%;
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-		transition: left 0.6s;
-	}
-	
-	.filter-btn:hover {
-		transform: translateY(-5px) scale(1.03);
-		box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-	}
-	
-	.filter-btn:hover::before {
-		left: 100%;
-	}
-	
-	.filter-btn:active {
-		transform: translateY(-2px) scale(0.98);
-	}
-	
-	.drag-handle {
-		position: absolute;
-		top: 0.3rem;
-		left: 50%;
-		transform: translateX(-50%);
-		opacity: 0.5;
-		cursor: grab;
-		z-index: 10;
+		transition: all 0.2s ease;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 0.3rem;
-		transition: opacity 0.2s, transform 0.2s;
-		background: rgba(255, 255, 255, 0.15);
-		border-radius: 8px;
-		touch-action: none;
+		gap: 0.4rem;
+		white-space: nowrap;
+	}
+	
+	.filter-btn:hover {
+		background: rgba(212, 93, 59, 0.1);
+		border-color: var(--primary);
+		transform: translateY(-1px);
+	}
+	
+	.filter-btn:active {
+		transform: translateY(0);
+	}
+	
+	.drag-handle {
+		display: none; /* Hide drag handles in pill row mode */
 	}
 	
 	.filter-wrapper:hover .drag-handle {
@@ -246,58 +220,29 @@
 	}
 	
 	.filter-close-btn {
-		position: absolute;
-		top: 0.4rem;
-		right: 0.4rem;
-		background: rgba(244, 67, 54, 0.85);
-		border: none;
-		border-radius: 50%;
-		cursor: pointer;
-		padding: 0.3rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		transition: all 0.2s ease;
-		z-index: 10;
-		opacity: 1;
-		width: 26px;
-		height: 26px;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-	}
-	
-	.filter-close-btn:hover {
-		background: rgba(244, 67, 54, 1);
-		transform: scale(1.1);
-		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+		display: none; /* Too cluttered on small pills, let users filter in settings instead if needed */
 	}
 	
 	.filter-icon {
-		/* Removed bouncing animation for better UX */
-		transition: transform 0.2s ease;
+		display: flex;
+		align-items: center;
 	}
 	
 	.filter-btn:hover .filter-icon {
-		transform: scale(1.1);
+		color: var(--primary);
 	}
 	
 	.filter-label {
-		font-size: 0.8rem;
+		font-size: 0.85rem;
 	}
 	
-	/* Responsive adjustments */
 	@media (max-width: 600px) {
-		.filters {
-			grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-			gap: 0.6rem;
-		}
-		
 		.filter-btn {
-			padding: 0.9rem 0.6rem;
+			padding: 0.4rem 0.8rem;
 		}
 		
 		.filter-label {
-			font-size: 0.75rem;
+			font-size: 0.8rem;
 		}
 	}
 </style>

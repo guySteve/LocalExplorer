@@ -14,10 +14,11 @@
 	// Import components
 	import Header from '$lib/components/Header.svelte';
 	import LocationDisplay from '$lib/components/LocationDisplay.svelte';
-	import PrimaryActions from '$lib/components/PrimaryActions.svelte';
 	import UnifiedSearch from '$lib/components/UnifiedSearch.svelte';
 	import EcoRouteChat from '$lib/components/EcoRouteChat.svelte';
 	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
+	import FilterGrid from '$lib/components/FilterGrid.svelte';
+	import BottomNav from '$lib/components/BottomNav.svelte';
 	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import CollectionModal from '$lib/components/CollectionModal.svelte';
@@ -28,7 +29,6 @@
 	import DetailsSheet from '$lib/components/DetailsSheet.svelte';
 	import Compass from '$lib/components/Compass.svelte';
 	import GPSTracker from '$lib/components/GPSTracker.svelte';
-	import CollapsibleWidget from '$lib/components/CollapsibleWidget.svelte';
 	import EcoRouteMapModal from '$lib/components/EcoRouteMapModal.svelte';
 	
 	// Modal visibility state
@@ -360,46 +360,33 @@
 <main class="appShell">
 	<LocationDisplay locationDisplay={$latestLocationLabel || 'Determining your location…'} />
 	
-	<CollapsibleWidget id="primaryActions" title="Mission Controls" defaultOpen={true}>
-		<svelte:fragment slot="header">
-			<span>Mission Controls</span>
-		</svelte:fragment>
-		<svelte:fragment slot="content">
-			<PrimaryActions 
-				on:openCollection={() => showMyCollection = true}
-				on:openCompass={() => showCompass = true}
-				on:openRecordTrack={() => showGPSTracker = true}
-			/>
-		</svelte:fragment>
-	</CollapsibleWidget>
-	
-	<!-- EcoRoute Section -->
-	<CollapsibleWidget id="ecoRoute" title="EcoRoute Intelligent Planner" defaultOpen={true}>
-		<svelte:fragment slot="content">
-			<EcoRouteChat on:viewMap={(e) => {
-				ecoRouteData = e.detail;
-				showEcoRouteMap = true;
-			}} />
-		</svelte:fragment>
-	</CollapsibleWidget>
+	<!-- Weather Widget (always visible at top) -->
+	<WeatherSimple 
+		on:openForecast={handleOpenForecast}
+		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Regional Bird Guide', items: categories['Regional Bird Guide'] || [] } })}
+	/>
 
+	<!-- EcoRoute Smart Planner -->
+	<EcoRouteChat on:viewMap={(e) => {
+		ecoRouteData = e.detail;
+		showEcoRouteMap = true;
+	}} />
+
+	<!-- Unified Search -->
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
-	<CollapsibleWidget id="weather" title="Weather Intel" defaultOpen={true}>
-		<svelte:fragment slot="content">
-			<WeatherSimple 
-				on:openForecast={handleOpenForecast}
-				on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Regional Bird Guide', items: categories['Regional Bird Guide'] || [] } })}
-			/>
-		</svelte:fragment>
-	</CollapsibleWidget>
-	
-	<CollapsibleWidget id="filterGrid" title="Categories" defaultOpen={false}>
-		<svelte:fragment slot="content">
-			<FilterGrid on:openSubMenu={handleOpenSubMenu} />
-		</svelte:fragment>
-	</CollapsibleWidget>
+	<!-- Categories Grid (flattened) -->
+	<div class="categories-section">
+		<h4 class="section-title">Explore Categories</h4>
+		<FilterGrid on:openSubMenu={handleOpenSubMenu} />
+	</div>
 </main>
+
+<BottomNav 
+	on:openCollection={() => showMyCollection = true}
+	on:openCompass={() => showCompass = true}
+	on:openRecordTrack={() => showGPSTracker = true}
+/>
 
 <!-- Hidden map div for Google Places service -->
 <div id="hiddenMap" style="display: none; pointer-events: none;"></div>
@@ -482,5 +469,23 @@
 />
 
 <style>
-	/* Page-specific styles if needed */
+	.appShell {
+		/* Add padding to the bottom so the BottomNav doesn't cover content */
+		padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.categories-section {
+		margin-top: 0.5rem;
+	}
+
+	.section-title {
+		margin: 0 0 0.75rem 0;
+		color: var(--text-dark);
+		font-family: var(--font-primary);
+		font-size: 1.1rem;
+		padding-left: 0.25rem;
+	}
 </style>
