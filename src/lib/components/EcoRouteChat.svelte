@@ -1,12 +1,13 @@
-<script>
     import { createEventDispatcher } from 'svelte';
     import { Search, Loader2, Map as MapIcon, Info, Droplets, TreePine, Sparkles, ChevronDown, ChevronUp, Compass } from 'lucide-svelte';
     import { slide, fade } from 'svelte/transition';
+    import { performUnifiedSearch } from '$lib/utils/api';
 
     const dispatch = createEventDispatcher();
 
-    let prompt = 'Plan a 35-mile cycling route starting in Bradenton, Florida, optimizing for morning shade and birdwatching.';
+    let prompt = '';
     let isPlanning = false;
+    let isSearchingPlaces = false;
     let error = null;
     let rawStream = '';
     let reasoningTrace = '';
@@ -24,8 +25,8 @@
         }
     }
 
-    async function handleSubmit() {
-        if (!prompt.trim() || isPlanning) return;
+    async function handleAIPlan() {
+        if (!prompt.trim() || isPlanning || isSearchingPlaces) return;
         
         isPlanning = true;
         error = null;
@@ -80,6 +81,25 @@
             isPlanning = false;
         }
     }
+
+    async function handleNormalSearch() {
+        if (!prompt.trim() || isPlanning || isSearchingPlaces) return;
+        
+        isSearchingPlaces = true;
+        error = null;
+        
+        try {
+            const results = await performUnifiedSearch(prompt);
+            dispatch('searchResults', { 
+                query: prompt,
+                results: results 
+            });
+        } catch (err) {
+            error = err.message || 'Search failed. Please try again.';
+        } finally {
+            isSearchingPlaces = false;
+        }
+    }
 </script>
 
 <div class="eco-route-container">
@@ -92,20 +112,30 @@
         </div>
         <p class="subtitle">Tell us what kind of adventure you want. Our intelligent planner considers shade, trails, and local history to craft the perfect itinerary.</p>
         
-        <form on:submit|preventDefault={handleSubmit} class="search-form">
+        <form class="search-form" on:submit|preventDefault={handleNormalSearch}>
             <input 
                 type="text" 
                 bind:value={prompt} 
-                placeholder="E.g., 35-mile cycling route in Bradenton, FL..."
-                disabled={isPlanning}
+                placeholder="Find a place or describe an adventure..."
+                disabled={isPlanning || isSearchingPlaces}
             />
-            <button type="submit" disabled={isPlanning || !prompt.trim()}>
-                {#if isPlanning}
-                    <Loader2 class="spin" size={20} />
-                {:else}
-                    <Search size={20} />
-                {/if}
-            </button>
+            <div class="action-buttons">
+                <button type="submit" class="btn-search" disabled={isPlanning || isSearchingPlaces || !prompt.trim()} title="Search Places">
+                    {#if isSearchingPlaces}
+                        <Loader2 class="spin" size={20} />
+                    {:else}
+                        <Search size={20} />
+                    {/if}
+                </button>
+                <button type="button" class="btn-ai" on:click={handleAIPlan} disabled={isPlanning || isSearchingPlaces || !prompt.trim()} title="Plan AI Route">
+                    {#if isPlanning}
+                        <Loader2 class="spin" size={20} />
+                    {:else}
+                        <Sparkles size={20} />
+                    {/if}
+                    <span>Plan Route</span>
+                </button>
+            </div>
         </form>
     </div>
 
@@ -212,11 +242,12 @@
 
     .search-form {
         display: flex;
-        gap: 0.5rem;
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
     input {
-        flex: 1;
+        width: 100%;
         padding: 0.85rem 1.25rem;
         border: 2px solid rgba(42, 40, 37, 0.1);
         border-radius: var(--button-radius);
@@ -235,34 +266,61 @@
         background: #ffffff;
     }
 
-    button[type="submit"] {
-        background: var(--primary);
-        color: var(--text-light);
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-buttons button {
         border: none;
         border-radius: var(--button-radius);
-        width: 54px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
+        font-family: var(--font-primary);
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .btn-search {
+        background: rgba(42, 40, 37, 0.05);
+        color: var(--text-dark);
+        border: 1px solid rgba(42, 40, 37, 0.1) !important;
+        padding: 0.85rem 1.5rem;
+        flex: 1;
+    }
+
+    .btn-search:hover:not(:disabled) {
+        background: rgba(42, 40, 37, 0.1);
+    }
+
+    .btn-ai {
+        background: var(--primary);
+        color: var(--text-light);
+        padding: 0.85rem 1.5rem;
+        flex: 2;
+        gap: 0.5rem;
         box-shadow: 0 4px 12px rgba(212, 93, 59, 0.25);
     }
 
-    button[type="submit"]:hover:not(:disabled) {
+    .btn-ai:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(212, 93, 59, 0.35);
         filter: brightness(1.05);
     }
 
-    button[type="submit"]:active:not(:disabled) {
+    .action-buttons button:active:not(:disabled) {
         transform: translateY(0);
     }
 
-    button:disabled {
+    .action-buttons button:disabled {
         background: #D3CEC4;
+        color: rgba(255, 255, 255, 0.6);
         cursor: not-allowed;
         box-shadow: none;
+        border: none !important;
     }
 
     .spin {
