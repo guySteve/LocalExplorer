@@ -3,10 +3,19 @@ import { env } from '$env/dynamic/private';
 
 // Configuration for Microsoft Foundry / Azure AI Serverless
 const rawEndpoint = env.AZURE_OPENAI_ENDPOINT || 'https://mock-foundry.endpoint/v1';
-const baseURL = rawEndpoint.endsWith('/') ? rawEndpoint.slice(0, -1) : rawEndpoint;
+let baseURL = rawEndpoint.endsWith('/') ? rawEndpoint.slice(0, -1) : rawEndpoint;
 
-// Automatically determine if we need Azure-specific parameters based on the URL
-const isAzureGateway = baseURL.includes('openai.azure.com') || baseURL.includes('/openai');
+// Normalize Azure AI Foundry project endpoint to standard OpenAI-compatible endpoint
+if (baseURL.includes('services.ai.azure.com')) {
+    if (baseURL.includes('/api/projects/')) {
+        baseURL = baseURL.replace(/\/api\/projects\/[^/]+/, '/openai/v1');
+    } else if (!baseURL.endsWith('/openai/v1')) {
+        baseURL = `${baseURL}/openai/v1`;
+    }
+}
+
+// Automatically determine if we need Azure-specific parameters based on the URL (classic Azure OpenAI)
+const isAzureGateway = baseURL.includes('openai.azure.com');
 
 const defaultQuery = {};
 const defaultHeaders = {};
