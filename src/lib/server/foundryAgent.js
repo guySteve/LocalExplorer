@@ -2,13 +2,26 @@ import OpenAI from 'openai';
 import { env } from '$env/dynamic/private';
 
 // Configuration for Microsoft Foundry / Azure AI Serverless
-const baseURL = env.AZURE_OPENAI_ENDPOINT || 'https://mock-foundry.endpoint/v1';
+const rawEndpoint = env.AZURE_OPENAI_ENDPOINT || 'https://mock-foundry.endpoint/v1';
+const baseURL = rawEndpoint.endsWith('/') ? rawEndpoint.slice(0, -1) : rawEndpoint;
 
-// Azure AI Serverless endpoints use native OpenAI schemas
-// No api-version query param or custom api-key header is required.
+// Automatically determine if we need Azure-specific parameters based on the URL
+const isAzureGateway = baseURL.includes('openai.azure.com') || baseURL.includes('/openai');
+
+const defaultQuery = {};
+const defaultHeaders = {};
+
+if (isAzureGateway) {
+    // Azure API Management requires api-version and api-key
+    defaultQuery['api-version'] = env.AZURE_OPENAI_API_VERSION || '2024-08-01-preview';
+    defaultHeaders['api-key'] = env.AZURE_OPENAI_KEY || 'mock-key';
+}
+
 const openai = new OpenAI({
-    apiKey: env.AZURE_OPENAI_KEY || 'mock-key',
-    baseURL: baseURL
+    apiKey: env.AZURE_OPENAI_KEY || 'mock-key', // Standard SDK uses Authorization: Bearer
+    baseURL: baseURL,
+    defaultQuery: Object.keys(defaultQuery).length > 0 ? defaultQuery : undefined,
+    defaultHeaders: Object.keys(defaultHeaders).length > 0 ? defaultHeaders : undefined
 });
 
 const DEPLOYMENT_NAME = env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4-turbo';
