@@ -88,6 +88,11 @@ The JSON must have the following schema:
  */
 export async function planEcoRoute(userPrompt, onStreamUpdate) {
     try {
+        console.log("[PlanEcoRoute] Starting. BaseURL:", baseURL);
+        console.log("[PlanEcoRoute] Deployment/Model:", DEPLOYMENT_NAME);
+        console.log("[PlanEcoRoute] API Key Length:", openai.apiKey ? openai.apiKey.length : 0);
+        console.log("[PlanEcoRoute] Prompt Preview:", userPrompt.slice(0, 100));
+
         const stream = await openai.chat.completions.create({
             model: DEPLOYMENT_NAME,
             messages: [
@@ -97,8 +102,12 @@ export async function planEcoRoute(userPrompt, onStreamUpdate) {
             stream: true
         });
 
+        console.log("[PlanEcoRoute] Chat completion stream successfully initialized.");
+
         let rawOutput = '';
+        let chunkCount = 0;
         for await (const chunk of stream) {
+            chunkCount++;
             const content = chunk.choices[0]?.delta?.content || '';
             if (content) {
                 rawOutput += content;
@@ -108,9 +117,12 @@ export async function planEcoRoute(userPrompt, onStreamUpdate) {
             }
         }
         
-        return parsePhi4Response(rawOutput);
+        console.log(`[PlanEcoRoute] Stream completed. Received ${chunkCount} chunks. Total length: ${rawOutput.length}`);
+        const parsed = parsePhi4Response(rawOutput);
+        console.log("[PlanEcoRoute] Parsing finished. Trace length:", parsed.reasoningTrace.length);
+        return parsed;
     } catch (error) {
-        console.error("Error calling Azure OpenAI Phi-4:", error);
+        console.error("[PlanEcoRoute] Error calling Azure OpenAI Phi-4:", error);
         throw error;
     }
 }
