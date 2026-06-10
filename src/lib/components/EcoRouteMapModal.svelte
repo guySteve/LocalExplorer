@@ -33,7 +33,7 @@
             return Promise.resolve();
         }
         
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (document.getElementById('google-maps-script-ecoroute')) {
                 // Script is loading
                 let attempts = 0;
