@@ -19,7 +19,6 @@
 	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
 	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import BottomNav from '$lib/components/BottomNav.svelte';
-	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import CollectionModal from '$lib/components/CollectionModal.svelte';
 	import SubMenuModal from '$lib/components/SubMenuModal.svelte';
