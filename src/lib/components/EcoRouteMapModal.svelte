@@ -115,9 +115,9 @@
             const routePath = new window.google.maps.Polyline({
                 path: path.map(p => ({ lat: p.lat, lng: p.lng })),
                 geodesic: true,
-                strokeColor: '#2196F3', // Primary blue
-                strokeOpacity: 0.8,
-                strokeWeight: 5,
+                strokeColor: '#D45D3B', // Mid-century Burnt Orange
+                strokeOpacity: 0.9,
+                strokeWeight: 6,
             });
             routePath.setMap(map);
 
@@ -126,8 +126,8 @@
             
             // Start pin
             const startPin = new PinElement({
-                background: '#4CAF50',
-                borderColor: '#2E7D32',
+                background: '#5F7151', // Olive Green
+                borderColor: '#3A4830',
                 glyphColor: 'white',
             });
             new AdvancedMarkerElement({
@@ -139,8 +139,8 @@
 
             // End pin
             const endPin = new PinElement({
-                background: '#F44336',
-                borderColor: '#C62828',
+                background: '#D45D3B', // Burnt Orange
+                borderColor: '#8A3A22',
                 glyphColor: 'white',
             });
             new AdvancedMarkerElement({
@@ -153,8 +153,8 @@
             // POI markers
             pois.forEach(poi => {
                 const poiPin = new PinElement({
-                    background: '#FFC107',
-                    borderColor: '#FF8F00',
+                    background: '#E5A93D', // Mustard Yellow
+                    borderColor: '#9E7220',
                     glyphColor: 'black',
                 });
                 
@@ -237,23 +237,26 @@
         width: 100%;
         max-width: 800px;
         height: 80vh;
-        background: rgba(20, 24, 28, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        background: rgba(253, 251, 250, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(42, 40, 37, 0.1);
+        border-radius: var(--radius);
         padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     }
     
     .modal-header {
         flex-shrink: 0;
         padding-bottom: 1rem;
-        border-bottom: 1px solid rgba(200, 121, 65, 0.2);
+        border-bottom: 1px solid rgba(42, 40, 37, 0.1);
         margin-bottom: 1rem;
     }
 
     h3 {
         margin: 0;
-        color: var(--text-light, #fff);
-        font-family: 'Poppins', sans-serif;
+        color: var(--text-dark);
+        font-family: var(--font-primary);
+        font-size: 1.35rem;
     }
     
     .map-wrapper {
@@ -261,8 +264,9 @@
         position: relative;
         border-radius: var(--button-radius, 12px);
         overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(42, 40, 37, 0.15);
         min-height: 300px;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
     }
     
     .google-map {
@@ -281,21 +285,21 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: rgba(30, 35, 42, 0.8);
-        backdrop-filter: blur(4px);
+        background: rgba(253, 251, 250, 0.85);
+        backdrop-filter: blur(8px);
         z-index: 10;
-        color: white;
+        color: var(--text-dark);
     }
 
     .status-overlay.error {
-        background: rgba(50, 20, 20, 0.9);
-        color: #ff8a80;
+        background: rgba(253, 240, 240, 0.9);
+        color: #D45D3B;
     }
     
     .spinner {
         width: 40px;
         height: 40px;
-        border: 4px solid var(--accent, #c87941);
+        border: 4px solid var(--accent);
         border-top-color: transparent;
         border-radius: 50%;
         animation: spin 1s linear infinite;
@@ -310,10 +314,11 @@
         width: 100%;
         padding: 0.9rem;
         margin-top: 1rem;
-        background: rgba(244, 67, 54, 0.9);
-        color: white;
+        background: var(--text-dark);
+        color: var(--text-light);
         border: none;
-        border-radius: var(--button-radius, 12px);
+        border-radius: var(--button-radius);
+        font-family: var(--font-primary);
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
@@ -322,7 +327,7 @@
     }
     
     .close-btn-bottom:hover {
-        background: rgba(244, 67, 54, 1);
+        background: #1a1816;
         transform: translateY(-2px);
     }
 </style>

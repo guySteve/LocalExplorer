@@ -1,15 +1,15 @@
 :root {
-  --background: #f8f7f2;
-  --card: #1a2b44;
-  --primary: #c87941;
-  --secondary: #334e68;
-  --text-dark: #1a2b44;
-  --text-light: #ffffff;
-  --accent: #8a5a44;
-  --radius: var(--button-radius, 12px);
+  --background: #F9F6F0;
+  --card: #3A352F;
+  --primary: #D45D3B;
+  --secondary: #5F7151;
+  --text-dark: #2A2825;
+  --text-light: #F9F6F0;
+  --accent: #E5A93D;
+  --radius: 16px;
   --button-radius: 12px;
-  --font-primary: 'Poppins', sans-serif;
-  --font-secondary: 'Raleway', sans-serif;
+  --font-primary: 'Outfit', 'Inter', 'Poppins', sans-serif;
+  --font-secondary: 'Inter', 'Raleway', sans-serif;
 }
 
 body[data-theme='default-light'] {
