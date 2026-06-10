@@ -2,11 +2,14 @@ import OpenAI from 'openai';
 import { env } from '$env/dynamic/private';
 
 // Configuration for Microsoft Foundry / Azure OpenAI
+const baseURL = env.AZURE_OPENAI_ENDPOINT || 'https://mock-foundry.endpoint/v1';
+const isAzureOpenAI = baseURL.includes('openai.azure.com');
+
 const openai = new OpenAI({
     apiKey: env.AZURE_OPENAI_KEY || 'mock-key',
-    baseURL: env.AZURE_OPENAI_ENDPOINT || 'https://mock-foundry.endpoint/v1',
-    defaultQuery: { 'api-version': '2024-02-15-preview' },
-    defaultHeaders: { 'api-key': env.AZURE_OPENAI_KEY || 'mock-key' }
+    baseURL: baseURL,
+    defaultQuery: isAzureOpenAI ? { 'api-version': '2024-02-15-preview' } : undefined,
+    defaultHeaders: isAzureOpenAI ? { 'api-key': env.AZURE_OPENAI_KEY || 'mock-key' } : undefined
 });
 
 const DEPLOYMENT_NAME = env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4-turbo';
