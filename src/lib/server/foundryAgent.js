@@ -93,34 +93,56 @@ export async function planEcoRoute(userPrompt, onStreamUpdate) {
         console.log("[PlanEcoRoute] API Key Length:", openai.apiKey ? openai.apiKey.length : 0);
         console.log("[PlanEcoRoute] Prompt Preview:", userPrompt.slice(0, 100));
 
-        const stream = await openai.chat.completions.create({
-            model: DEPLOYMENT_NAME,
-            messages: [
-                { role: 'system', content: SYSTEM_MESSAGE },
-                { role: 'user', content: userPrompt }
-            ],
-            stream: true
-        });
+        // Disable streaming in Netlify serverless environment to prevent buffering timeouts
+        const useStreaming = !process.env.NETLIFY && typeof onStreamUpdate === 'function';
 
-        console.log("[PlanEcoRoute] Chat completion stream successfully initialized.");
+        if (useStreaming) {
+            console.log("[PlanEcoRoute] Executing in STREAMING mode.");
+            const stream = await openai.chat.completions.create({
+                model: DEPLOYMENT_NAME,
+                messages: [
+                    { role: 'system', content: SYSTEM_MESSAGE },
+                    { role: 'user', content: userPrompt }
+                ],
+                stream: true
+            });
 
-        let rawOutput = '';
-        let chunkCount = 0;
-        for await (const chunk of stream) {
-            chunkCount++;
-            const content = chunk.choices[0]?.delta?.content || '';
-            if (content) {
-                rawOutput += content;
-                if (onStreamUpdate) {
-                    onStreamUpdate(rawOutput);
+            console.log("[PlanEcoRoute] Chat completion stream successfully initialized.");
+
+            let rawOutput = '';
+            let chunkCount = 0;
+            for await (const chunk of stream) {
+                chunkCount++;
+                const content = chunk.choices[0]?.delta?.content || '';
+                if (content) {
+                    rawOutput += content;
+                    if (onStreamUpdate) {
+                        onStreamUpdate(rawOutput);
+                    }
                 }
             }
+            
+            console.log(`[PlanEcoRoute] Stream completed. Received ${chunkCount} chunks. Total length: ${rawOutput.length}`);
+            const parsed = parsePhi4Response(rawOutput);
+            console.log("[PlanEcoRoute] Parsing finished. Trace length:", parsed.reasoningTrace.length);
+            return parsed;
+        } else {
+            console.log("[PlanEcoRoute] Executing in NON-STREAMING mode.");
+            const completion = await openai.chat.completions.create({
+                model: DEPLOYMENT_NAME,
+                messages: [
+                    { role: 'system', content: SYSTEM_MESSAGE },
+                    { role: 'user', content: userPrompt }
+                ],
+                stream: false
+            });
+
+            const rawOutput = completion.choices[0]?.message?.content || '';
+            console.log("[PlanEcoRoute] Non-stream completion successful. Total length:", rawOutput.length);
+            const parsed = parsePhi4Response(rawOutput);
+            console.log("[PlanEcoRoute] Parsing finished. Trace length:", parsed.reasoningTrace.length);
+            return parsed;
         }
-        
-        console.log(`[PlanEcoRoute] Stream completed. Received ${chunkCount} chunks. Total length: ${rawOutput.length}`);
-        const parsed = parsePhi4Response(rawOutput);
-        console.log("[PlanEcoRoute] Parsing finished. Trace length:", parsed.reasoningTrace.length);
-        return parsed;
     } catch (error) {
         console.error("[PlanEcoRoute] Error calling Azure OpenAI Phi-4:", error);
         throw error;
