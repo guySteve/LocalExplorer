@@ -16,11 +16,13 @@
 	import LocationDisplay from '$lib/components/LocationDisplay.svelte';
 	import PrimaryActions from '$lib/components/PrimaryActions.svelte';
 	import UnifiedSearch from '$lib/components/UnifiedSearch.svelte';
+	import EcoRouteChat from '$lib/components/EcoRouteChat.svelte';
 	import WeatherSimple from '$lib/components/WeatherSimple.svelte';
 	import FilterGrid from '$lib/components/FilterGrid.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import CollectionModal from '$lib/components/CollectionModal.svelte';
 	import SubMenuModal from '$lib/components/SubMenuModal.svelte';
+	import ResultsModal from '$lib/components/ResultsModal.svelte';
 	import ResultsModal from '$lib/components/ResultsModal.svelte';
 	import DonateModal from '$lib/components/DonateModal.svelte';
 	import ForecastModal from '$lib/components/ForecastModal.svelte';
@@ -28,6 +30,7 @@
 	import Compass from '$lib/components/Compass.svelte';
 	import GPSTracker from '$lib/components/GPSTracker.svelte';
 	import CollapsibleWidget from '$lib/components/CollapsibleWidget.svelte';
+	import EcoRouteMapModal from '$lib/components/EcoRouteMapModal.svelte';
 	
 	// Modal visibility state
 	let showSettings = false;
@@ -39,6 +42,7 @@
 	let showDetails = false;
 	let showCompass = false;
 	let showGPSTracker = false;
+	let showEcoRouteMap = false;
 	
 	// Modal data
 	let subMenuTitle = '';
@@ -49,6 +53,7 @@
 	let selectedPlace = null;
 	let compassDestination = null;
 	let compassDestinationName = '';
+	let ecoRouteData = null;
 	
 	onMount(() => {
 		// Initialize app
@@ -369,6 +374,16 @@
 		</svelte:fragment>
 	</CollapsibleWidget>
 	
+	<!-- EcoRoute Section -->
+	<CollapsibleWidget id="ecoRoute" title="EcoRoute Intelligent Planner" defaultOpen={true}>
+		<svelte:fragment slot="content">
+			<EcoRouteChat on:viewMap={(e) => {
+				ecoRouteData = e.detail;
+				showEcoRouteMap = true;
+			}} />
+		</svelte:fragment>
+	</CollapsibleWidget>
+
 	<UnifiedSearch on:searchResults={handleSearchResults} />
 	
 	<CollapsibleWidget id="weather" title="Weather Intel" defaultOpen={true}>
@@ -458,6 +473,13 @@
 <GPSTracker 
 	visible={showGPSTracker}
 	on:close={() => showGPSTracker = false}
+/>
+
+<!-- NEW: EcoRoute Map -->
+<EcoRouteMapModal 
+	visible={showEcoRouteMap}
+	routeData={ecoRouteData}
+	on:close={() => showEcoRouteMap = false}
 />
 
 <style>

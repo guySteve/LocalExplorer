@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "lucide-svelte": "^0.395.0"
+    "lucide-svelte": "^0.395.0",
+    "openai": "^4.28.0"
   }
 }
