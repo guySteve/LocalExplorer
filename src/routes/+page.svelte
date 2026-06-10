@@ -41,6 +41,8 @@
 	let showCompass = false;
 	let showGPSTracker = false;
 	let showEcoRouteMap = false;
+
+	let activeSearchTab = 'ai'; // 'ai' or 'places'
 	
 	// Modal data
 	let subMenuTitle = '';
@@ -365,14 +367,32 @@
 		on:openBirdMenu={() => handleOpenSubMenu({ detail: { title: 'Regional Bird Guide', items: categories['Regional Bird Guide'] || [] } })}
 	/>
 
-	<!-- EcoRoute Smart Planner -->
-	<EcoRouteChat on:viewMap={(e) => {
-		ecoRouteData = e.detail;
-		showEcoRouteMap = true;
-	}} />
+	<!-- Search & Planner Tabs -->
+	<div class="search-container">
+		<div class="search-tabs">
+			<button 
+				class="tab-btn {activeSearchTab === 'ai' ? 'active' : ''}" 
+				on:click={() => activeSearchTab = 'ai'}
+			>
+				Plan Adventure ✨
+			</button>
+			<button 
+				class="tab-btn {activeSearchTab === 'places' ? 'active' : ''}" 
+				on:click={() => activeSearchTab = 'places'}
+			>
+				Find Places 🔍
+			</button>
+		</div>
 
-	<!-- Unified Search -->
-	<UnifiedSearch on:searchResults={handleSearchResults} />
+		{#if activeSearchTab === 'ai'}
+			<EcoRouteChat on:viewMap={(e) => {
+				ecoRouteData = e.detail;
+				showEcoRouteMap = true;
+			}} />
+		{:else}
+			<UnifiedSearch on:searchResults={handleSearchResults} />
+		{/if}
+	</div>
 	
 	<!-- Categories Grid (flattened) -->
 	<div class="categories-section">
@@ -474,6 +494,44 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+	}
+
+	.search-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.search-tabs {
+		display: flex;
+		background: rgba(42, 40, 37, 0.05);
+		border-radius: var(--button-radius) var(--button-radius) 0 0;
+		overflow: hidden;
+		border: 1px solid rgba(42, 40, 37, 0.1);
+		border-bottom: none;
+		margin-bottom: -1px; /* Overlap border */
+		z-index: 2;
+		position: relative;
+	}
+
+	.tab-btn {
+		flex: 1;
+		padding: 0.85rem;
+		background: transparent;
+		border: none;
+		font-family: var(--font-primary);
+		font-weight: 600;
+		font-size: 0.95rem;
+		color: var(--text-dark);
+		opacity: 0.6;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.tab-btn.active {
+		opacity: 1;
+		background: rgba(253, 251, 250, 0.85); /* Match frost card */
+		box-shadow: inset 0 2px 0 var(--primary);
 	}
 
 	.categories-section {
