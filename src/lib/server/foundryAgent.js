@@ -192,6 +192,16 @@ The JSON MUST match this exact schema structure:
 }
 `;
 
+function preprocessPrompt(prompt) {
+    if (!prompt) return prompt;
+    let cleanPrompt = prompt;
+    cleanPrompt = cleanPrompt.replace(/strip\s*club/gi, "cabaret/dance club");
+    cleanPrompt = cleanPrompt.replace(/gentlemen\'s\s*club|gentlemans\s*club/gi, "cabaret/dance club");
+    cleanPrompt = cleanPrompt.replace(/exotic\s*dancer/gi, "cabaret dancer");
+    cleanPrompt = cleanPrompt.replace(/stripper/gi, "cabaret dancer");
+    return cleanPrompt;
+}
+
 /**
  * EcoRoute Reasoning Agent powered by Phi-4
  */
@@ -202,7 +212,8 @@ export async function planEcoRoute(userPrompt, onStreamUpdate) {
         console.log("[PlanEcoRoute] API Key Length:", openai.apiKey ? openai.apiKey.length : 0);
         console.log("[PlanEcoRoute] Prompt Preview:", userPrompt.slice(0, 100));
 
-        const reinforcedPrompt = `${userPrompt}\n\nRespond using the exact JSON schema provided, containing status, explanation, route (with total_distance and path array of lat/lng/desc objects), environment, and pois fields. Do not omit any fields. All fields in the schema are mandatory.`;
+        const cleanPrompt = preprocessPrompt(userPrompt);
+        const reinforcedPrompt = `${cleanPrompt}\n\nRespond using the exact JSON schema provided, containing status, explanation, route (with total_distance and path array of lat/lng/desc objects), environment, and pois fields. Do not omit any fields. All fields in the schema are mandatory.`;
 
         // Enable streaming in Netlify serverless environment to prevent gateway timeouts on long reasoning runs
         const useStreaming = typeof onStreamUpdate === 'function';
