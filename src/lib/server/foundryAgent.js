@@ -44,6 +44,10 @@ const DEPLOYMENT_NAME = env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4-turbo';
  * Executes a 5-step Chain-of-Thought (CoT) reasoning loop for logistical outdoor planning.
  */
 export function extractStreamingReasoning(accumulatedJson) {
+    const explanationMatch = accumulatedJson.match(/"explanation"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/);
+    if (explanationMatch) {
+        return explanationMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    }
     const thinkingMatch = accumulatedJson.match(/"thinking"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/);
     if (thinkingMatch) {
         return thinkingMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
@@ -85,7 +89,7 @@ export function parsePhi4Response(rawOutput) {
         if (parsed) {
             // Fallback for reasoning trace
             if (!reasoningTrace) {
-                reasoningTrace = parsed.thinking || parsed.disclaimer || '';
+                reasoningTrace = parsed.thinking || parsed.disclaimer || parsed.explanation || '';
             }
 
             // Normalize status
@@ -153,8 +157,6 @@ Do NOT wrap the response in markdown blocks, do NOT write \`\`\`json, and do NOT
 
 The JSON MUST match this exact schema structure:
 {
-  "disclaimer": "Your safety disclaimer or advisory note here.",
-  "thinking": "Your short 2-3 sentence planning/reasoning trace.",
   "status": "success",
   "explanation": "A 2-paragraph natural language summary of why this route was chosen, including shade and POI reasoning.",
   "route": {
@@ -192,7 +194,7 @@ export async function planEcoRoute(userPrompt, onStreamUpdate) {
         console.log("[PlanEcoRoute] API Key Length:", openai.apiKey ? openai.apiKey.length : 0);
         console.log("[PlanEcoRoute] Prompt Preview:", userPrompt.slice(0, 100));
 
-        const reinforcedPrompt = `${userPrompt}\n\nRespond using the exact JSON schema provided, containing disclaimer, thinking, status, explanation, route (with total_distance and path array of lat/lng/desc objects), environment, and pois fields. Do not omit any fields. All fields in the schema are mandatory.`;
+        const reinforcedPrompt = `${userPrompt}\n\nRespond using the exact JSON schema provided, containing status, explanation, route (with total_distance and path array of lat/lng/desc objects), environment, and pois fields. Do not omit any fields. All fields in the schema are mandatory.`;
 
         // Enable streaming in Netlify serverless environment to prevent gateway timeouts on long reasoning runs
         const useStreaming = typeof onStreamUpdate === 'function';
