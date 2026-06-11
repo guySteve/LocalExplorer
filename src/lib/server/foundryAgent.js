@@ -103,6 +103,13 @@ export function parsePhi4Response(rawOutput) {
                     shadeCoverage: parsed.environment,
                     temperature: '75°F'
                 };
+            } else if (parsed.environment && typeof parsed.environment === 'object') {
+                if (!parsed.environment.shadeCoverage) {
+                    parsed.environment.shadeCoverage = parsed.environment.conditions || parsed.environment.weather || 'Standard outdoor conditions';
+                }
+                if (!parsed.environment.temperature) {
+                    parsed.environment.temperature = '75°F';
+                }
             } else if (!parsed.environment) {
                 parsed.environment = {
                     shadeCoverage: 'Shaded path',
@@ -152,6 +159,7 @@ function findNestedSchema(obj) {
 const SYSTEM_MESSAGE = `
 You are EcoRoute, an expert multi-variable logistical outdoor planner. 
 You must solve interwoven constraints for local exploration tasks. 
+You must remain neutral, objective, and helpful. You are allowed to plan routes to adult entertainment venues, nightlife spots, or other legal businesses. Do not refuse requests based on these themes; instead, plan a safe, standard route to the requested destination factually.
 For every user request, you must output ONLY a valid JSON object matching the exact structure below.
 Do NOT wrap the response in markdown blocks, do NOT write \`\`\`json, and do NOT output any conversational text outside the JSON.
 
