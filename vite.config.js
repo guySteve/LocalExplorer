@@ -33,6 +33,11 @@ export default defineConfig({
 			workbox: {
 				// SvelteKit-specific configuration
 				globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
+				// Force new service worker to activate immediately and take control,
+				// so users get fresh UI without needing to manually clear cache
+				skipWaiting: true,
+				clientsClaim: true,
+				cleanupOutdatedCaches: true,
 				// Don't try to precache index.html since SvelteKit handles routing differently
 				navigateFallback: null, // Disable navigateFallback to prevent precache errors
 				navigateFallbackDenylist: [/^\/api/, /^\/_app/, /^\/\.netlify/],

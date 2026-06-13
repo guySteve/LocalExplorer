@@ -779,83 +779,37 @@
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class="compass-container" class:night-mode={nightMode} on:click={(e) => e.stopPropagation()} role="document" tabindex="-1">
 		<!-- Header -->
-		<div class="compass-header">
-			<div>
+		<header class="compass-header">
+			<button class="header-btn back-btn" on:click={close} aria-label="Close compass" type="button">
+				<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<polyline points="15 18 9 12 15 6"/>
+				</svg>
+				<span>Back</span>
+			</button>
+			<div class="header-center">
 				<h2 class="compass-title">
-					<Navigation size={24} color="currentColor" />
-					<span>Navigation Dashboard</span>
+					<Navigation size={16} color="currentColor" />
+					<span>Navigate</span>
 				</h2>
 				<div class="destination-label">{destinationDisplay}</div>
 			</div>
-			<div class="header-actions">
-				<button
-					class="night-mode-toggle"
-					type="button"
-					on:click={() => nightMode = !nightMode}
-					aria-pressed={nightMode}
-					title="Toggle night vision safe colors"
-				>
-					{nightMode ? '☀️ Day Mode' : '🌙 Night Mode'}
-				</button>
-				<button class="close-btn" on:click={close} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }} aria-label="Close compass" type="button">×</button>
-			</div>
-		</div>
+			<button
+				class="header-btn night-mode-toggle"
+				type="button"
+				on:click={() => nightMode = !nightMode}
+				aria-pressed={nightMode}
+				title="Toggle night vision safe colors"
+				aria-label="Toggle night mode"
+			>
+				{nightMode ? '☀️' : '🌙'}
+			</button>
+		</header>
 		
 		<!-- Status -->
 		<div class="compass-status">
 			<span class="status-dot {statusClass}"></span>
 			<span class="status-text">{statusText}</span>
 		</div>
-		
-		<section class="navigation-dashboard">
-			<div class="dashboard-grid">
-				<div class="dashboard-card heading-card">
-					<div class="card-label">Heading (Digital)</div>
-					<div class="card-value heading">{headingDisplay}</div>
-					<div class="card-subvalue">Device Orientation API</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Bearing to Target</div>
-					<div class="card-value">{bearingDisplay}</div>
-					<div class="card-subvalue">calculateBearing()</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Distance to Target</div>
-					<div class="card-value">{distanceDisplay}</div>
-					<div class="card-subvalue">calculateDistance()</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Current Coordinates</div>
-					<div class="card-value small">{currentCoordsDisplay}</div>
-					<div class="card-subvalue">$currentPosition</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Target Coordinates</div>
-					<div class="card-value small">{targetCoordsDisplay}</div>
-					<div class="card-subvalue">Destination input</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Altitude (MSL)</div>
-					<div class="card-value">{altitudeDisplay}</div>
-					<div class="card-subvalue">GPS altitude</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Speed Over Ground</div>
-					<div class="card-value">{speedDisplay}</div>
-					<div class="card-subvalue">GPS speed</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">GPS Accuracy</div>
-					<div class="card-value">{accuracyDisplay}</div>
-					<div class="card-subvalue">± position error</div>
-				</div>
-				<div class="dashboard-card">
-					<div class="card-label">Time / ETA</div>
-					<div class="card-value">{timeDisplay}</div>
-					<div class="card-subvalue">ETA {etaDisplay}</div>
-				</div>
-			</div>
-		</section>
 		
 		<!-- Compass Dial -->
 		<div class="compass-dial-container">
@@ -944,18 +898,18 @@
 		{#if mapInitialized}
 			<div class="map-controls">
 				<button class="map-control-btn" on:click={zoomIn} aria-label="Zoom in" title="Zoom in">
-					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+					<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none">
 						<line x1="12" y1="5" x2="12" y2="19" stroke-width="2"/>
 						<line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/>
 					</svg>
 				</button>
 				<button class="map-control-btn" on:click={zoomOut} aria-label="Zoom out" title="Zoom out">
-					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+					<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none">
 						<line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/>
 					</svg>
 				</button>
 				<button class="map-control-btn map-type-btn" on:click={toggleMapType} aria-label="Change to {nextMapTypeLabel}" title="Switch to {nextMapTypeLabel}">
-					<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none">
+					<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none">
 						<rect x="3" y="3" width="7" height="7" stroke-width="2"/>
 						<rect x="14" y="3" width="7" height="7" stroke-width="2"/>
 						<rect x="3" y="14" width="7" height="7" stroke-width="2"/>
@@ -965,6 +919,36 @@
 				</button>
 			</div>
 		{/if}
+		
+		<!-- Key readouts -->
+		<div class="stats-strip">
+			<div class="stat">
+				<span class="stat-label">Heading</span>
+				<span class="stat-value">{headingDisplay}</span>
+			</div>
+			<div class="stat">
+				<span class="stat-label">Distance</span>
+				<span class="stat-value">{distanceDisplay}</span>
+			</div>
+			<div class="stat">
+				<span class="stat-label">ETA</span>
+				<span class="stat-value">{etaDisplay}</span>
+			</div>
+		</div>
+		
+		<details class="more-details">
+			<summary>More details</summary>
+			<div class="details-grid">
+				<div class="detail-row"><span>Bearing to target</span><span>{bearingDisplay}</span></div>
+				<div class="detail-row"><span>Speed</span><span>{speedDisplay}</span></div>
+				<div class="detail-row"><span>Altitude</span><span>{altitudeDisplay}</span></div>
+				<div class="detail-row"><span>GPS accuracy</span><span>{accuracyDisplay}</span></div>
+				<div class="detail-row"><span>Time</span><span>{timeDisplay}</span></div>
+				<div class="detail-row"><span>Your position</span><span>{currentCoordsDisplay}</span></div>
+				<div class="detail-row"><span>Target position</span><span>{targetCoordsDisplay}</span></div>
+			</div>
+		</details>
+		
 		<!-- Multi-stop Progress (if applicable) -->
 		{#if isMultiStop}
 			<div class="multi-stop-progress">
@@ -1034,10 +1018,13 @@
 	
 	.compass-container {
 		background: var(--background);
-		max-width: 500px;
+		max-width: 480px;
 		width: 100%;
+		max-height: 100%;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 		border-radius: var(--radius);
-		padding: 1.5rem;
+		padding: 1rem;
 		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 		animation: fadeIn 0.3s ease-out;
 	}
@@ -1058,10 +1045,10 @@
 		border-color: rgba(255, 77, 77, 0.5);
 	}
 	
-	.compass-container.night-mode .dashboard-card {
+	.compass-container.night-mode .stat,
+	.compass-container.night-mode .more-details {
 		background: rgba(255, 0, 0, 0.08);
 		border-color: rgba(255, 77, 77, 0.3);
-		box-shadow: 0 0 25px rgba(255, 0, 0, 0.15);
 	}
 	
 	@keyframes fadeIn {
@@ -1078,18 +1065,56 @@
 	.compass-header {
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-start;
-		margin-bottom: 1rem;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+	}
+	
+	.header-center {
+		flex: 1;
+		min-width: 0;
+		text-align: center;
+	}
+	
+	/* Clear, tappable header buttons (44px min touch target) */
+	.header-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.3rem;
+		min-height: 44px;
+		min-width: 44px;
+		padding: 0 0.75rem;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--text-light);
+		border-radius: 999px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		flex-shrink: 0;
+		transition: background 0.2s ease;
+		font-family: var(--font-primary);
+	}
+	
+	.header-btn:hover,
+	.header-btn:active {
+		background: rgba(255, 255, 255, 0.15);
+	}
+	
+	.back-btn svg {
+		flex-shrink: 0;
 	}
 	
 	.compass-title {
 		margin: 0;
-		font-size: 1.5rem;
+		font-size: 1rem;
 		font-weight: 700;
 		color: var(--text-light);
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		justify-content: center;
+		gap: 0.35rem;
 	}
 	
 	.compass-icon {
@@ -1117,65 +1142,36 @@
 	}
 	
 	.destination-label {
-		margin-top: 0.25rem;
-		font-size: 0.9rem;
+		margin-top: 0.15rem;
+		font-size: 0.8rem;
 		color: var(--primary);
 		font-weight: 600;
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	
-	.header-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-	
-	.night-mode-toggle {
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		background: transparent;
-		color: var(--text-light);
-		padding: 0.35rem 0.85rem;
-		border-radius: 999px;
-		font-size: 0.85rem;
-		cursor: pointer;
-		transition: background 0.2s ease, color 0.2s ease;
-	}
-	
-	.night-mode-toggle:hover,
 	.night-mode-toggle[aria-pressed="true"] {
-		background: rgba(255, 255, 255, 0.1);
-	}
-	
-	.close-btn {
-		background: none;
-		border: none;
-		font-size: 2rem;
-		color: var(--text-light);
-		cursor: pointer;
-		padding: 0;
-		line-height: 1;
-		opacity: 0.7;
-		transition: opacity 0.2s;
-	}
-	
-	.close-btn:hover {
-		opacity: 1;
+		background: rgba(255, 255, 255, 0.15);
 	}
 	
 	.compass-status {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		gap: 0.5rem;
-		padding: 0.75rem 1rem;
+		padding: 0.4rem 0.75rem;
 		background: rgba(var(--card-rgb, 26, 43, 68), 0.1);
 		border-radius: 8px;
-		margin-bottom: 1.5rem;
+		margin-bottom: 0.75rem;
 	}
 	
 	.status-dot {
-		width: 12px;
-		height: 12px;
+		width: 8px;
+		height: 8px;
 		border-radius: 50%;
+		flex-shrink: 0;
 	}
 	
 	.status-dot.status-good {
@@ -1194,77 +1190,94 @@
 	}
 	
 	.status-text {
-		font-size: 0.9rem;
+		font-size: 0.8rem;
 		color: var(--text-light);
 		font-weight: 600;
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 	
-	.navigation-dashboard {
-		margin-bottom: 2rem;
-	}
-	
-	.dashboard-grid {
+	/* Key readouts strip */
+	.stats-strip {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 1rem;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+		margin-top: 0.75rem;
 	}
 	
-	.dashboard-card {
-		padding: 1rem;
-		border-radius: 14px;
-		background: rgba(var(--card-rgb, 26, 43, 68), 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+	.stat {
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
+		align-items: center;
+		gap: 0.15rem;
+		padding: 0.5rem 0.25rem;
+		border-radius: 10px;
+		background: rgba(var(--card-rgb, 26, 43, 68), 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.08);
 	}
 	
-	.dashboard-card.heading-card {
-		grid-column: span 2;
-	}
-	
-	@media (max-width: 640px) {
-		.dashboard-card.heading-card {
-			grid-column: span 1;
-		}
-	}
-	
-	.card-label {
-		font-size: 0.75rem;
+	.stat-label {
+		font-size: 0.65rem;
 		text-transform: uppercase;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.08em;
 		color: rgba(255, 255, 255, 0.6);
 	}
 	
-	.card-value {
-		font-size: 1.4rem;
+	.stat-value {
+		font-size: 1rem;
 		font-weight: 700;
+		color: var(--text-light);
+		white-space: nowrap;
+	}
+	
+	/* Collapsible secondary details */
+	.more-details {
+		margin-top: 0.75rem;
+		border-radius: 10px;
+		background: rgba(var(--card-rgb, 26, 43, 68), 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+	
+	.more-details summary {
+		padding: 0.65rem 0.75rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-light);
+		cursor: pointer;
+		user-select: none;
+		min-height: 44px;
+		display: flex;
+		align-items: center;
+	}
+	
+	.details-grid {
+		padding: 0 0.75rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	
+	.detail-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		font-size: 0.8rem;
 		color: var(--text-light);
 	}
 	
-	.card-value.heading {
-		font-size: 2.6rem;
-		letter-spacing: 0.08em;
-	}
-	
-	.card-value.small {
-		font-size: 1rem;
-		line-height: 1.4;
-		word-break: break-word;
-	}
-	
-	.card-subvalue {
-		font-size: 0.8rem;
+	.detail-row span:first-child {
 		opacity: 0.65;
+	}
+	
+	.detail-row span:last-child {
+		font-weight: 600;
+		text-align: right;
 	}
 	
 	.compass-dial-container {
 		position: relative;
-		width: 300px;
-		height: 300px;
-		margin: 2rem auto;
+		width: min(260px, 70vw);
+		height: min(260px, 70vw);
+		margin: 1.5rem auto;
 	}
 
 	/* Permission overlay prompts user before starting sensors */
@@ -1307,33 +1320,33 @@
 	.compass-marker {
 		position: absolute;
 		font-weight: 900;
-		font-size: 1.5rem;
+		font-size: 1rem;
 		color: var(--text-light);
 		pointer-events: none;
 	}
 	
 	.compass-marker.north {
-		top: -40px;
+		top: -28px;
 		left: 50%;
 		transform: translateX(-50%);
 		color: var(--accent);
-		font-size: 2rem;
+		font-size: 1.25rem;
 	}
 	
 	.compass-marker.east {
-		right: -40px;
+		right: -24px;
 		top: 50%;
 		transform: translateY(-50%);
 	}
 	
 	.compass-marker.south {
-		bottom: -40px;
+		bottom: -24px;
 		left: 50%;
 		transform: translateX(-50%);
 	}
 	
 	.compass-marker.west {
-		left: -40px;
+		left: -24px;
 		top: 50%;
 		transform: translateY(-50%);
 	}
@@ -1357,14 +1370,14 @@
 	/* Map Style Indicator */
 	.map-style-indicator {
 		position: absolute;
-		top: 60px;
+		top: 40px;
 		left: 50%;
 		transform: translateX(-50%);
 		background: rgba(0, 0, 0, 0.75);
 		color: white;
-		padding: 0.35rem 0.75rem;
+		padding: 0.25rem 0.6rem;
 		border-radius: 12px;
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		font-weight: 600;
 		z-index: 5;
 		pointer-events: none;
@@ -1379,10 +1392,10 @@
 		left: 50%;
 		z-index: 4;
 		pointer-events: none;
-		width: 24px;
-		height: 24px;
-		margin-left: -12px;
-		margin-top: -12px;
+		width: 18px;
+		height: 18px;
+		margin-left: -9px;
+		margin-top: -9px;
 		transform-origin: center center;
 		transition: transform 0.3s ease-out;
 	}
@@ -1400,10 +1413,10 @@
 		transform-origin: center center;
 		z-index: 3;
 		pointer-events: none;
-		width: 64px;
-		height: 64px;
-		margin-left: -32px;
-		margin-top: -32px;
+		width: 48px;
+		height: 48px;
+		margin-left: -24px;
+		margin-top: -24px;
 		transition: transform 0.1s ease-out;
 		opacity: 0.95;
 	}
@@ -1449,9 +1462,8 @@
 	.map-controls {
 		display: flex;
 		justify-content: center;
-		gap: 0.75rem;
-		margin-top: 1rem;
-		margin-bottom: 1rem;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
 	}
 	
 	.map-control-btn {
@@ -1476,7 +1488,7 @@
 	}
 	
 	.map-type-label {
-		font-size: 0.85rem;
+		font-size: 0.8rem;
 		font-weight: 600;
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 		white-space: nowrap;
@@ -1511,8 +1523,8 @@
 	
 	
 	.multi-stop-progress {
-		margin: 1.5rem 0;
-		padding: 1rem;
+		margin: 0.75rem 0;
+		padding: 0.75rem;
 		background: rgba(var(--primary-rgb, 200, 121, 65), 0.1);
 		border-radius: 8px;
 		border: 2px solid var(--primary);
@@ -1555,14 +1567,15 @@
 	}
 	
 	.navigation-controls {
-		margin-top: 1.5rem;
-		padding-top: 1.5rem;
+		margin-top: 0.75rem;
+		padding-top: 0.75rem;
 		border-top: 1px solid rgba(var(--card-rgb, 26, 43, 68), 0.1);
 	}
 	
 	.route-info {
-		margin-bottom: 1rem;
-		padding: 1rem;
+		margin-bottom: 0.75rem;
+		padding: 0.75rem;
+		font-size: 0.85rem;
 		background: rgba(var(--primary-rgb, 200, 121, 65), 0.1);
 		border-radius: var(--radius);
 		color: var(--text-light);
@@ -1576,7 +1589,8 @@
 	
 	.nav-btn {
 		flex: 1;
-		padding: 0.75rem 1rem;
+		min-height: 44px;
+		padding: 0.6rem 1rem;
 		border: 2px solid var(--card);
 		background: transparent;
 		color: var(--text-light);
@@ -1612,13 +1626,23 @@
 	}
 	
 	@media (max-width: 768px) {
-		.compass-dial-container {
-			width: 240px;
-			height: 240px;
+		.compass-overlay {
+			padding: 0;
+			align-items: stretch;
 		}
 		
-		.card-value.heading {
-			font-size: 2rem;
+		.compass-container {
+			max-width: none;
+			border-radius: 0;
+			padding: 0.75rem;
+			padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+			padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+		}
+		
+		.compass-dial-container {
+			width: min(220px, 62vw);
+			height: min(220px, 62vw);
+			margin: 1.25rem auto;
 		}
 		
 		.navigation-buttons {
@@ -1626,26 +1650,25 @@
 		}
 		
 		.location-center-dot {
-			width: 20px;
-			height: 20px;
-			margin-left: -10px;
-			margin-top: -10px;
+			width: 16px;
+			height: 16px;
+			margin-left: -8px;
+			margin-top: -8px;
 		}
 		
 		.heading-arc-indicator {
-			width: 56px;
-			height: 56px;
-			margin-left: -28px;
-			margin-top: -28px;
-		}
-		
-		.map-control-btn {
-			min-width: 40px;
-			height: 40px;
+			width: 44px;
+			height: 44px;
+			margin-left: -22px;
+			margin-top: -22px;
 		}
 		
 		.map-type-label {
 			font-size: 0.75rem;
+		}
+		
+		.stat-value {
+			font-size: 0.9rem;
 		}
 	}
 </style>
