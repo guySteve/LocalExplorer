@@ -9,8 +9,6 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
-    "deploy": "npm run build && netlify deploy --prod",
-    "deploy:preview": "npm run build && netlify deploy",
     "verify": "npm run check && node verify-api-functions.cjs"
   },
   "keywords": [
@@ -23,15 +21,16 @@
   "author": "guySteve",
   "license": "MIT",
   "devDependencies": {
-    "@sveltejs/adapter-netlify": "^4.3.3",
+    "@babel/generator": "^7.29.7",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
-    "netlify-cli": "^17.0.0",
     "svelte": "^4.2.20",
+    "svelte-adapter-azure-swa": "^0.22.1",
     "svelte-check": "^3.8.6",
     "vite": "^5.0.0",
     "vite-plugin-pwa": "^1.1.0",
+    "workbox-build": "^7.4.1",
     "workbox-precaching": "^7.3.0",
     "workbox-routing": "^7.3.0",
     "workbox-strategies": "^7.3.0"

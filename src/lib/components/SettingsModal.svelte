@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { currentTheme, selectedVoiceUri, showBirdSightings, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
+	import { selectedVoiceUri, showBirdSightings, voiceNavigationEnabled, fontSize } from '$lib/stores/appState';
 	import { browser } from '$app/environment';
 	import { WifiOff } from 'lucide-svelte';
 	import OfflineManager from '$lib/components/OfflineManager.svelte';
@@ -20,21 +20,6 @@
 		}
 	}
 	
-	// Theme selection
-	const themes = [
-		{ value: 'default-light', label: 'Default Light' },
-		{ value: 'default-dark', label: 'Default Dark' },
-		{ value: 'high-contrast', label: 'High-Contrast (Sunlight)' },
-		{ value: 'night-vision', label: 'Night Vision' },
-		{ value: 'naval', label: 'Naval' },
-		{ value: 'army-temperate', label: 'Army (Temperate)' },
-		{ value: 'army-arid', label: 'Army (Arid)' },
-		{ value: 'air-force', label: 'Air Force' },
-		{ value: 'arcade', label: 'Arcade' },
-		{ value: 'monochrome', label: 'Monochrome' },
-		{ value: 'retro90', label: 'Retro90' }
-	];
-
 	let availableVoices = [];
 	let selectedVoice = '';
 	let voicesChangedHandler = null;
@@ -102,14 +87,6 @@ function handleClose() {
 		<div class="modal-header">
 			<h3>Settings</h3>
 			<button class="close-btn" on:click={handleClose} type="button">×</button>
-		</div>		<div class="setting-group">
-			<label for="themeSelect">Theme</label>
-			<select id="themeSelect" bind:value={$currentTheme}>
-				{#each themes as theme}
-					<option value={theme.value}>{theme.label}</option>
-				{/each}
-			</select>
-			<span class="setting-hint">Pick a style and we will remember it for next time.</span>
 		</div>
 
 		<div class="setting-group">

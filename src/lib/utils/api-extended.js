@@ -90,7 +90,7 @@ async function fetchGoogleWeather(lat, lng, days, units, language) {
     language
   });
 
-  const functionsBase = NETLIFY_FUNCTIONS_BASE || '/.netlify/functions';
+  const functionsBase = NETLIFY_FUNCTIONS_BASE || '/svc/fn';
   const response = await fetch(`${functionsBase}/weather?${params}`);
 
   if (!response.ok) {

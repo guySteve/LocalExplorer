@@ -12,13 +12,39 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load .env file for local builds (Netlify injects env vars directly,
+// but plain `node` scripts don't read .env automatically)
+function loadDotEnv() {
+  const envPath = path.join(__dirname, '..', '.env');
+  if (!fs.existsSync(envPath)) return;
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+  for (const line of lines) {
+    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)\s*$/);
+    if (!match) continue;
+    const key = match[1];
+    let value = match[2];
+    // Strip surrounding quotes if present
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+loadDotEnv();
+
 try {
-  // Read the key.js file from the build output directory
-  const keyFilePath = path.join(__dirname, '..', 'build', 'key.js');
-  
-  // Check if file exists before reading
-  if (!fs.existsSync(keyFilePath)) {
-    console.warn(`Warning: ${keyFilePath} not found. Skipping environment injection.`);
+  // Read the key.js file from the build output directory.
+  // Netlify adapter outputs to build/, Azure SWA adapter outputs to build/static/
+  const candidates = [
+    path.join(__dirname, '..', 'build', 'static', 'key.js'),
+    path.join(__dirname, '..', 'build', 'key.js')
+  ];
+  const keyFilePath = candidates.find((p) => fs.existsSync(p));
+
+  if (!keyFilePath) {
+    console.warn(`Warning: key.js not found in build output. Skipping environment injection.`);
     process.exit(0);
   }
   

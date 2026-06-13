@@ -1,19 +1,9 @@
 // LocalExplorer Weather Sayings Database
 // This file contains all weather phrases, categorized by style, condition, and theme.
 
-// Theme flair emojis, moved from appState for co-location
+// Theme flair emojis (single naval theme)
 export const themeFlairs = {
-	'default-light': '☀️',
-	'default-dark': '🌙',
-	'high-contrast': '🔆',
-	'night-vision': '🟥',
-	'naval': '⚓',
-	'army-temperate': '🌲',
-	'army-arid': '🌵',
-	'air-force': '✈️',
-	'arcade': '👾',
-	'monochrome': '⬛',
-	'retro90': '📼'
+	'naval': '⚓'
 };
 
 export const weatherSayings = {
@@ -629,75 +619,12 @@ export const weatherSayings = {
     },
     // Theme-specific REGULAR phrases
     themes: {
-      'default-light': {
-        sunny: ["Perfect weather for an iced coffee on the patio."],
-        partlySunny: ["A great day for a latte and a quiet walk."],
-        cloudy: ["Cozy overcast vibes—ideal for curling up with a book."],
-        rain: ["Gentle rain pairs nicely with a warm drink."],
-        general: ["Bright, welcoming, and easy on the eyes."]
-      },
-      'default-dark': {
-        sunny: ["Weather looks good—time to get things done."],
-        cloudy: ["Moody clouds keep the glare down."],
-        rain: ["Rain tapping the window is peak focus mode."],
-        thunderstorm: ["Stormy skies add drama. Stay sharp."],
-        general: ["Sleek, modern vibes all day."]
-      },
-      'high-contrast': {
-        sunny: ["Bright sun with bold shadows—maximum clarity."],
-        cloudy: ["Soft diffuse light keeps every detail crisp."],
-        rain: ["Even in rain, nothing blends into the background."],
-        general: ["Perfect visibility for any plan."]
-      },
-      'night-vision': {
-        sunny: ["Daylight recon complete. Save your eyes for later."],
-        cloudy: ["Cloud cover makes it easy to stay low-profile."],
-        rain: ["Rain keeps reflections down—ideal for stealth missions."],
-        general: ["Dim, disciplined, and night-ready."]
-      },
       naval: {
         sunny: ["Clear skies and a calm sea. A perfect day to be on the water."],
         cloudy: ["A bit overcast, but good for spotting lighthouses."],
         rain: ["Batten down the hatches, looks like a squall's brewing."],
         thunderstorm: ["All hands on deck! This is a real storm."],
         general: ["A fine day for a sailor."]
-      },
-      'army-temperate': {
-        sunny: ["Perfect day for a hike through the tree line."],
-        cloudy: ["The forest is misty and quiet today."],
-        rain: ["The woods smell incredible after a fresh rain."],
-        general: ["Stay sharp out there in the greenery."]
-      },
-      'army-arid': {
-        sunny: ["Clear desert skies and a dry heat—hydrate early."],
-        cloudy: ["A rare blanket of clouds softens the sun."],
-        rain: ["A desert rainstorm! A rare sight worth respecting."],
-        general: ["Pack extra water and keep moving."]
-      },
-      'air-force': {
-        sunny: ["Clear skies and smooth air—perfect navigation weather."],
-        partlySunny: ["Light clouds on the horizon, but the route is clear."],
-        rain: ["Rain in the pattern. Adjust and keep it steady."],
-        thunderstorm: ["Cells popping nearby—plot an alternate course."],
-        general: ["Mission-ready conditions aloft and on the ground."]
-      },
-      arcade: {
-        sunny: ["Totally awesome weather! Go for a high score."],
-        partlySunny: ["The weather is, like, pretty choice."],
-        rain: ["Gag me with a spoon! This rain is bogus."],
-        general: ["Have a tubular day."]
-      },
-      monochrome: {
-        sunny: ["A clear, simple, beautiful day."],
-        cloudy: ["It's a grey, overcast day. Very monochrome."],
-        rain: ["Rain streaks add texture to the grey."],
-        general: ["A day of contrasts."]
-      },
-      retro90: {
-        sunny: ["This weather is all that and a bag of chips. Go outside!"],
-        cloudy: ["A bit gloomy. Bummer, man."],
-        rain: ["This rain is wack. Stay inside."],
-        general: ["Have a radical day."]
       }
     }
   },
@@ -1265,69 +1192,11 @@ export const weatherSayings = {
     },
     // Theme-specific SASSY phrases
     themes: {
-      'default-light': {
-        sunny: ["It's too nice for that overpriced latte. Go outside.", "This weather is better than free Wi-Fi."],
-        cloudy: ["Perfect weather to overpay for a coffee and look moody.", "Oh, it's gray. How... 'atmospheric'."],
-        rain: ["It's cold. Just like that barista's stare.", "Rainy. Now you have a real excuse to brood in a cafe."],
-        general: ["Go drink your bean water, I guess."]
-      },
-      'default-dark': {
-        sunny: ["This weather is #blessed. Go get that content.", "It's a good day to be the main character."],
-        cloudy: ["The vibe is moody. Lean into it."],
-        rain: ["It's raining. I can't even. Literally."],
-        general: ["It is what it is."]
-      },
-      'high-contrast': {
-        sunny: ["The sun is screaming and so are your retinas."],
-        cloudy: ["Even the clouds have sharp edges today."],
-        rain: ["Rain can't hide anything. Nice try."],
-        general: ["Everything is bold, including your excuses."]
-      },
-      'night-vision': {
-        sunny: ["Daylight is overrated. Prep for lights-out ops."],
-        cloudy: ["Perfect gloom for sneaking around."],
-        rain: ["Rain keeps the glow down. Quit complaining."],
-        general: ["Stay low, stay sharp."]
-      },
       naval: {
         sunny: ["If you're not on a boat right now, what's the point?", "This is what they call 'perfect sailing weather,' landlubber."],
         rain: ["A real sailor isn't afraid of a little spray. Get out there.", "It's just wind, you coward. It's called 'sailing'."],
         thunderstorm: ["This is it. The perfect storm. Don't be a hero."],
         general: ["Stop being a landlubber."]
-      },
-      'army-temperate': {
-        sunny: ["Go smell a tree. It's nice out.", "The forest is perfect. Go get lost in it. (Don't actually)."],
-        rain: ["It's raining. The forest is now a mud pit. Have fun."],
-        cloudy: ["Bigfoot weather. Stay inside."],
-        general: ["Go touch some moss, you nerd."]
-      },
-      'army-arid': {
-        sunny: ["It's hot. What, you expected snow?", "Dry, hot, and sunny. It's the desert. Duh."],
-        rain: ["It's raining. In the desert. Go buy a lottery ticket."],
-        general: ["It's the desert. It's dry. Shocking."]
-      },
-      'air-force': {
-        sunny: ["Clear skies. If you aren't wheels-up, why not?", "The runway is calling. Answer it."],
-        rain: ["Rain in the pattern. Fly the plan, not your feelings."],
-        thunderstorm: ["Cells lighting up radar. Don't be a hero."],
-        general: ["Check your instruments and hydrate."]
-      },
-      arcade: {
-        sunny: ["The weather is, like, totally awesome to the max.", "No way! This weather is choice."],
-        rain: ["This rain is, like, grody. Gag me."],
-        snow: ["It's bogus cold. Stay home and play Pac-Man."],
-        general: ["This weather is a total bummer."]
-      },
-      monochrome: {
-        sunny: ["It's sunny. In black and white, it would just be 'bright'."],
-        cloudy: ["It's grey. How appropriate for your theme.", "The weather is as uninspired as this theme."],
-        rain: ["Rainy, cold, and grey. A perfect mood."],
-        general: ["It's... weather."]
-      },
-      retro90: {
-        sunny: ["It's da bomb out. Stop being a scrub and go outside.", "This weather is fresh. Don't be a dweeb, get off the couch."],
-        rain: ["This rain is wack. Stay inside.", "It's raining? Whatever. Talk to the hand."],
-        general: ["As if!"]
       }
     }
   }

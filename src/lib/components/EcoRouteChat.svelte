@@ -13,6 +13,12 @@
     let reasoningTrace = '';
     let finalPayload = null;
     let showReasoning = true; // Allow user to collapse reasoning
+    let toolActivities = []; // { name, status } tool execution progress
+
+    const TOOL_LABELS = {
+        get_weather: 'Checking current weather',
+        search_nearby_places: 'Searching nearby places'
+    };
 
     // Helper to extract think block on the fly
     function parseStream(content) {
@@ -34,13 +40,14 @@
         reasoningTrace = '';
         finalPayload = null;
         showReasoning = true;
+        toolActivities = [];
 
         try {
             // Include location context if available
             const locationContext = $currentAddress || ($currentPosition ? `${$currentPosition.lat}, ${$currentPosition.lng}` : 'Unknown');
             const enhancedPrompt = `User's current location context: ${locationContext}\nUser's request: ${prompt}`;
             
-            const response = await fetch('/api/eco-route', {
+            const response = await fetch('/svc/eco-route', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: enhancedPrompt })
@@ -66,6 +73,14 @@
                         
                         if (data.type === 'stream') {
                             parseStream(data.content);
+                        } else if (data.type === 'tool') {
+                            const existing = toolActivities.findIndex(t => t.name === data.name && t.status === 'running');
+                            if (data.status === 'done' && existing !== -1) {
+                                toolActivities[existing] = { ...toolActivities[existing], status: 'done' };
+                                toolActivities = [...toolActivities];
+                            } else if (data.status === 'running') {
+                                toolActivities = [...toolActivities, { name: data.name, status: 'running' }];
+                            }
                         } else if (data.type === 'final') {
                             reasoningTrace = data.data.reasoningTrace;
                             finalPayload = data.data.finalPayload;
@@ -120,6 +135,21 @@
     {#if error}
         <div class="error-message" transition:fade>
             {error}
+        </div>
+    {/if}
+
+    {#if toolActivities.length > 0 && isPlanning}
+        <div class="tool-activity" transition:slide>
+            {#each toolActivities as tool}
+                <div class="tool-item">
+                    {#if tool.status === 'running'}
+                        <Loader2 class="spin" size={14} color="var(--accent)" />
+                    {:else}
+                        <Search size={14} color="var(--secondary)" />
+                    {/if}
+                    <span>{TOOL_LABELS[tool.name] || tool.name}{tool.status === 'done' ? ' ✓' : '...'}</span>
+                </div>
+            {/each}
         </div>
     {/if}
 
@@ -300,6 +330,26 @@
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
+    }
+
+    .tool-activity {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: var(--button-radius);
+        border: 1px solid rgba(42, 40, 37, 0.08);
+    }
+
+    .tool-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: rgba(42, 40, 37, 0.75);
+        font-family: var(--font-secondary);
     }
 
     .reasoning-card {

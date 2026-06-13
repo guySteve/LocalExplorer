@@ -3,12 +3,8 @@ import { get } from 'svelte/store';
 import { currentPosition, isOffline } from '$lib/stores/appState';
 import { browser } from '$app/environment';
 
-// Netlify functions base URL
-const NETLIFY_FUNCTIONS_BASE_URL = process.env.NETLIFY_FUNCTIONS_BASE_URL || 'http://localhost:8888';
-
-export const NETLIFY_FUNCTIONS_BASE = browser 
-  ? (window.location.hostname === 'localhost' ? `${NETLIFY_FUNCTIONS_BASE_URL}/.netlify/functions` : '/.netlify/functions')
-  : `${NETLIFY_FUNCTIONS_BASE_URL}/.netlify/functions`;
+// Serverless functions base URL (SvelteKit API route, works on any adapter incl. Azure SWA)
+export const NETLIFY_FUNCTIONS_BASE = '/svc/fn';
 
 // ===== CACHING UTILITIES =====
 

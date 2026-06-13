@@ -3,6 +3,27 @@
 }
 
 :root {
+  /* Theme defaults (naval) — applied immediately so there is no flash
+     of unstyled content before JS hydrates */
+  --background: #f8f7f2;
+  --card: #1a2b44;
+  --card-rgb: 26, 43, 68;
+  --primary: #c87941;
+  --primary-rgb: 200, 121, 65;
+  --secondary: #334e68;
+  --text-dark: #1a2b44;
+  --text-light: #ffffff;
+  --accent: #8a5a44;
+  --radius: 12px;
+  --button-radius: 12px;
+  --font-primary: 'Poppins', sans-serif;
+  --font-secondary: 'Raleway', sans-serif;
+
+  /* Elevation & polish tokens */
+  --shadow-sm: 0 2px 6px rgba(26, 43, 68, 0.08);
+  --shadow-md: 0 6px 18px rgba(26, 43, 68, 0.12);
+  --shadow-lg: 0 14px 34px rgba(26, 43, 68, 0.18);
+
   /* Font size variables for accessibility */
   --font-size-base: 1rem;
   --font-size-small: 0.85rem;
@@ -216,7 +237,8 @@ h1, h2, h3 {
     
     #unifiedSearchBtn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      box-shadow: var(--shadow-md);
+      filter: brightness(1.05);
     }
     
     #unifiedSearchBtn:active {
@@ -493,8 +515,14 @@ h1, h2, h3 {
       justify-content: center;
       gap: 0.5rem;
       cursor: pointer;
-      transition: transform 0.1s ease, background-color 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
       touch-action: manipulation;
+    }
+    .filter-btn:hover {
+      background-color: var(--secondary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
     .filter-btn .emoji {
       font-size: 1.1rem;

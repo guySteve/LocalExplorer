@@ -55,7 +55,7 @@
             // If missing on window, fetch from our dev endpoint
             if (!apiKey) {
                 try {
-                    const res = await fetch('/api/maps-key');
+                    const res = await fetch('/svc/maps-key');
                     if (res.ok) {
                         const data = await res.json();
                         apiKey = data.key;
